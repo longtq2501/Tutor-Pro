@@ -23,5 +23,9 @@ public class SessionRecordRequest {
     @Min(value = 1, message = "Sessions must be at least 1")
     private Integer sessions;
 
+    @NotNull(message = "Hours per session is required")
+    @Min(value = 1, message = "Hours per session must be at least 0.5")
+    private Double hoursPerSession; // Thêm field này
+
     private String notes;
 }

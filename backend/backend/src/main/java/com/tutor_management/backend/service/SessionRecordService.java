@@ -39,21 +39,21 @@ public class SessionRecordService {
 
     public SessionRecordResponse createRecord(SessionRecordRequest request) {
         Student student = studentRepository.findById(request.getStudentId())
-                .orElseThrow(() -> new RuntimeException("Student not found"));
+                .orElseThrow(() -> new RuntimeException("Student not found with id: " + request.getStudentId()));
 
-        int hours = request.getSessions() * 2;
-        long totalAmount = hours * student.getPricePerHour();
+        SessionRecord record = new SessionRecord();
+        record.setStudent(student);
+        record.setMonth(request.getMonth());
+        record.setSessions(request.getSessions());
 
-        SessionRecord record = SessionRecord.builder()
-                .student(student)
-                .month(request.getMonth())
-                .sessions(request.getSessions())
-                .hours(hours)
-                .pricePerHour(student.getPricePerHour())
-                .totalAmount(totalAmount)
-                .paid(false)
-                .notes(request.getNotes())
-                .build();
+        // Sử dụng hoursPerSession từ request thay vì hardcode * 2
+        Double hoursPerSession = request.getHoursPerSession() != null ? request.getHoursPerSession() : 2.0;
+        record.setHours((int) (request.getSessions() * hoursPerSession));
+
+        record.setPricePerHour(student.getPricePerHour());
+        record.setTotalAmount(record.getHours() * student.getPricePerHour());
+        record.setPaid(false);
+        record.setNotes(request.getNotes());
 
         SessionRecord saved = sessionRecordRepository.save(record);
         return convertToResponse(saved);

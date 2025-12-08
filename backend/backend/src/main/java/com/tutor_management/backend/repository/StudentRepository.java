@@ -9,8 +9,8 @@ import java.util.Optional;
 
 @Repository
 public interface StudentRepository extends JpaRepository<Student, Long> {
-    List<Student> findByUserIdOrderByCreatedAtDesc(Long userId);
-    Optional<Student> findByIdAndUserId(Long id, Long userId);
+//    List<Student> findByUserIdOrderByCreatedAtDesc(Long userId);
+//    Optional<Student> findByIdAndUserId(Long id, Long userId);
 
     List<Student> findAllByOrderByCreatedAtDesc();
 }

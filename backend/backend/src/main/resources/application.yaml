@@ -1,11 +1,11 @@
 # MySQL Database Configuration
 spring:
   datasource:
-    # URL cơ sở dữ liệu: Sử dụng giá trị mặc định.
+    # URL cơ sở dữ liệu
     url: jdbc:mysql://localhost:3315/tutor_management?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    # Tên người dùng MySQL: Sử dụng giá trị mặc định.
+    # Tên người dùng MySQL
     username: root
-    # Mật khẩu MySQL: Sử dụng giá trị mặc định.
+    # Mật khẩu MySQL
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
 
@@ -19,33 +19,28 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
 
-  # File upload size
+  # File upload configuration
   servlet:
     multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 50MB
 
-# JWT Configuration
-jwt:
-  # Khóa bí mật JWT: Sử dụng giá trị mặc định.
-  secret: your-secret-key-change-this-in-production-minimum-256-bits
-  expiration: 86400000
+# File storage location
+file:
+  upload-dir: uploads
 
 # Server Configuration
 server:
-  # Cổng của ứng dụng Spring Boot: Sử dụng giá trị mặc định.
+  # Cổng của ứng dụng Spring Boot
   port: 8080
 
-# CORS Configuration
+# CORS Configuration (cho phép tất cả origins vì chỉ bạn dùng)
 cors:
-  # Nguồn gốc được phép: Sử dụng giá trị mặc định.
-  allowed-origins: http://localhost:3000,https://your-frontend-domain.vercel.app
+  allowed-origins: '*'
 
 # Logging
 logging:
   level:
     com:
       tutormanagement: DEBUG
-    org:
-      springframework:
-        security: DEBUG

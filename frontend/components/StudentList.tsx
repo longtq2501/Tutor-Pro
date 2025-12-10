@@ -94,6 +94,7 @@ export default function StudentList() {
         month: month,
         sessions: sessionsCount,
         sessionDate: sessionDate,
+        hoursPerSession: hoursPerSession,
       });
 
       setShowAddSessionModal(false);

@@ -36,11 +36,6 @@ public class Student {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    // XÓA hoặc COMMENT 3 dòng này:
-    // @ManyToOne(fetch = FetchType.LAZY)
-    // @JoinColumn(name = "user_id", nullable = false)
-    // private User user;
-
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

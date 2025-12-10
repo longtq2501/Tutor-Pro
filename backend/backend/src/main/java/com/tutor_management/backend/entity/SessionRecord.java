@@ -2,6 +2,8 @@ package com.tutor_management.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -43,12 +45,11 @@ public class SessionRecord {
     @Column(length = 1000)
     private String notes;
 
+    @Column(nullable = false)
+    private LocalDate sessionDate; // 🆕 Ngày dạy cụ thể
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
 
     @PrePersist
     protected void onCreate() {

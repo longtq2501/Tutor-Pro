@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,21 +40,25 @@ public class SessionRecordService {
 
     public SessionRecordResponse createRecord(SessionRecordRequest request) {
         Student student = studentRepository.findById(request.getStudentId())
-                .orElseThrow(() -> new RuntimeException("Student not found with id: " + request.getStudentId()));
+                .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        SessionRecord record = new SessionRecord();
-        record.setStudent(student);
-        record.setMonth(request.getMonth());
-        record.setSessions(request.getSessions());
+        int hours = request.getSessions() * 2;
+        long totalAmount = hours * student.getPricePerHour();
 
-        // Sử dụng hoursPerSession từ request thay vì hardcode * 2
-        Double hoursPerSession = request.getHoursPerSession() != null ? request.getHoursPerSession() : 2.0;
-        record.setHours((int) (request.getSessions() * hoursPerSession));
+        // 🆕 Parse sessionDate từ String thành LocalDate và set vào record
+        LocalDate sessionDate = LocalDate.parse(request.getSessionDate());
 
-        record.setPricePerHour(student.getPricePerHour());
-        record.setTotalAmount(record.getHours() * student.getPricePerHour());
-        record.setPaid(false);
-        record.setNotes(request.getNotes());
+        SessionRecord record = SessionRecord.builder()
+                .student(student)
+                .month(request.getMonth())
+                .sessions(request.getSessions())
+                .hours(hours)
+                .pricePerHour(student.getPricePerHour())
+                .totalAmount(totalAmount)
+                .paid(false)
+                .notes(request.getNotes())
+                .sessionDate(sessionDate)  // 🆕 Set sessionDate
+                .build();
 
         SessionRecord saved = sessionRecordRepository.save(record);
         return convertToResponse(saved);
@@ -97,6 +102,7 @@ public class SessionRecordService {
                 .paid(record.getPaid())
                 .paidAt(record.getPaidAt() != null ? record.getPaidAt().format(formatter) : null)
                 .notes(record.getNotes())
+                .sessionDate(record.getSessionDate() != null ? record.getSessionDate().toString() : null)  // 🆕 Handle null để tránh NPE
                 .createdAt(record.getCreatedAt().format(formatter))
                 .build();
     }

@@ -21,5 +21,6 @@ public class SessionRecordResponse {
     private Boolean paid;
     private String paidAt;
     private String notes;
+    private String sessionDate; // 🆕 Ngày dạy (String để dễ serialize)
     private String createdAt;
 }

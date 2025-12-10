@@ -23,30 +23,26 @@ public class DashboardService {
     public DashboardStats getDashboardStats(String currentMonth) {
         int totalStudents = (int) studentRepository.count();
 
-        // SỬ DỤNG PHƯƠNG THỨC @Query MỚI (sumTotalPaid thay vì sumTotalAmountByPaidTrue)
         Long totalPaid = sessionRecordRepository.sumTotalPaid();
         Long totalUnpaid = sessionRecordRepository.sumTotalUnpaid();
 
-        // SỬ DỤNG PHƯƠNG THỨC @Query MỚI
-        Long currentMonthTotalPaid = sessionRecordRepository.sumTotalPaidByMonth(currentMonth);
-        Long currentMonthTotalUnpaid = sessionRecordRepository.sumTotalUnpaidByMonth(currentMonth);
+        Long currentMonthTotal = sessionRecordRepository.sumTotalPaidByMonth(currentMonth);
+        Long currentMonthUnpaid = sessionRecordRepository.sumTotalUnpaidByMonth(currentMonth);
 
         return DashboardStats.builder()
                 .totalStudents(totalStudents)
                 .totalPaidAllTime(totalPaid != null ? totalPaid : 0L)
                 .totalUnpaidAllTime(totalUnpaid != null ? totalUnpaid : 0L)
-                .currentMonthTotal(currentMonthTotalPaid != null ? currentMonthTotalPaid : 0L)
-                .currentMonthUnpaid(currentMonthTotalUnpaid != null ? currentMonthTotalUnpaid : 0L)
+                .currentMonthTotal(currentMonthTotal != null ? currentMonthTotal : 0L)
+                .currentMonthUnpaid(currentMonthUnpaid != null ? currentMonthUnpaid : 0L)
                 .build();
     }
 
     public List<MonthlyStats> getMonthlyStats() {
-        // Phương thức này không cần thay đổi vì nó sử dụng @Query
         List<String> months = sessionRecordRepository.findDistinctMonths();
 
         return months.stream()
                 .map(month -> {
-                    // SỬ DỤNG PHƯƠNG THỨC @Query MỚI
                     Long totalPaid = sessionRecordRepository.sumTotalPaidByMonth(month);
                     Long totalUnpaid = sessionRecordRepository.sumTotalUnpaidByMonth(month);
                     Integer totalSessions = sessionRecordRepository.sumSessionsByMonth(month);

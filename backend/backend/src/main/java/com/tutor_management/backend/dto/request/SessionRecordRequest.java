@@ -1,9 +1,6 @@
 package com.tutor_management.backend.dto.request;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,8 +20,12 @@ public class SessionRecordRequest {
     @Min(value = 1, message = "Sessions must be at least 1")
     private Integer sessions;
 
-    @NotBlank(message = "Session date is required")  // 🆕 Thêm validation để đảm bảo không null
-    private String sessionDate; // Format: YYYY-MM-DD
+    @NotNull(message = "Hours per session is required")  // 🆕 Thêm validation
+    @DecimalMin(value = "0.5", message = "Hours per session must be at least 0.5")
+    private Double hoursPerSession;  // 🆕 Thêm field này
+
+    @NotBlank(message = "Session date is required")
+    private String sessionDate;
 
     private String notes;
 }

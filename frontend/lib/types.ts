@@ -54,7 +54,8 @@ export interface Student {
     paid: boolean;
     paidAt?: string;
     notes?: string;
-    sessionDate: string; // 🆕 YYYY-MM-DD
+    sessionDate: string;
+    hoursPerSession: number;
     createdAt: string;
   }
   
@@ -63,6 +64,7 @@ export interface Student {
     month: string;
     sessions: number;
     sessionDate: string; // 🆕 YYYY-MM-DD
+    hoursPerSession: number; // Thêm field này
     notes?: string;
   }
   

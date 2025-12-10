@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { User, Plus, Edit2, Trash2, Calendar, DollarSign, Clock, Power } from 'lucide-react';
 import { studentsApi, sessionsApi } from '@/lib/api';
-import type { Student } from '@/lib/types';
+import type { Student, SessionRecordRequest } from '@/lib/types';
 import StudentModal from './StudentModal';
 import AddSessionModal from './AddSessionModal';
 
@@ -42,8 +42,8 @@ export default function StudentList() {
   const loadStudents = async () => {
     try {
       setLoading(true);
-      const response = await studentsApi.getAll();
-      setStudents(response.data);
+      const data = await studentsApi.getAll();
+      setStudents(data);
     } catch (error) {
       console.error('Error loading students:', error);
     } finally {
@@ -67,7 +67,7 @@ export default function StudentList() {
     }
     try {
       await studentsApi.delete(id);
-      loadStudents();
+      await loadStudents();
     } catch (error) {
       console.error('Error deleting student:', error);
       alert('Không thể xóa học sinh!');
@@ -77,7 +77,7 @@ export default function StudentList() {
   const handleToggleActive = async (id: number) => {
     try {
       await studentsApi.toggleActive(id);
-      loadStudents();
+      await loadStudents();
     } catch (error) {
       console.error('Error toggling status:', error);
       alert('Không thể thay đổi trạng thái!');
@@ -97,16 +97,18 @@ export default function StudentList() {
   ) => {
     if (!selectedStudentIdForSession) return;
     try {
-      await sessionsApi.create({
+      const requestData: SessionRecordRequest = {
         studentId: selectedStudentIdForSession,
         month: month,
         sessions: sessionsCount,
         sessionDate: sessionDate,
         hoursPerSession: hoursPerSession
-      });
+      };
+      
+      await sessionsApi.create(requestData);
       setShowAddSessionModal(false);
       setSelectedStudentIdForSession(null);
-      loadStudents();
+      await loadStudents();
       alert(`Đã thêm buổi học ngày ${sessionDate} thành công!`);
     } catch (error) {
       console.error('Error adding session:', error);
@@ -116,8 +118,8 @@ export default function StudentList() {
 
   const filteredStudents = students.filter(student => {
     if (filterStatus === 'all') return true;
-    if (filterStatus === 'active') return student.active;
-    if (filterStatus === 'inactive') return !student.active;
+    if (filterStatus === 'active') return student.active === true;
+    if (filterStatus === 'inactive') return student.active === false;
     return true;
   });
 
@@ -255,7 +257,7 @@ export default function StudentList() {
                   </div>
                 </div>
 
-                {/* 🆕 Learning Duration */}
+                {/* Learning Duration */}
                 {student.learningDuration && (
                   <div className="mb-3 px-3 py-2 bg-indigo-50 border-l-4 border-indigo-500 rounded">
                     <div className="flex items-center gap-2 text-sm text-indigo-700 font-medium">
@@ -274,6 +276,12 @@ export default function StudentList() {
                     <DollarSign className="mr-2" size={16} />
                     {formatCurrency(student.pricePerHour)}/giờ
                   </div>
+                  {student.startMonth && (
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Calendar className="mr-2" size={16} />
+                      Bắt đầu: {student.startMonth}
+                    </div>
+                  )}
                 </div>
 
                 {student.notes && (

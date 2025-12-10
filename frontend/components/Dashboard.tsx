@@ -32,12 +32,12 @@ export default function Dashboard() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [statsRes, monthlyRes] = await Promise.all([
+      const [statsData, monthlyData] = await Promise.all([
         dashboardApi.getStats(currentMonth),
         dashboardApi.getMonthlyStats(),
       ]);
-      setStats(statsRes.data);
-      setMonthlyStats(monthlyRes.data);
+      setStats(statsData);
+      setMonthlyStats(monthlyData);
     } catch (error) {
       console.error('Error loading dashboard:', error);
     } finally {

@@ -63,12 +63,12 @@ export default function DocumentLibrary() {
     try {
       setLoading(true);
       const response = await documentsApi.getAll();
-      setDocuments(response.data as unknown as Document[]);
+      setDocuments(response as unknown as Document[]);
       
       // Calculate stats
-      const total = response.data.length;
-      const downloads = response.data.reduce((sum, doc) => sum + (doc as unknown as Document).downloadCount, 0);
-      const totalSize = response.data.reduce((sum, doc) => sum + (doc as unknown as Document).fileSize, 0);
+      const total = response.length;
+      const downloads = response.reduce((sum, doc) => sum + (doc as unknown as Document).downloadCount, 0);
+      const totalSize = response.reduce((sum, doc) => sum + (doc as unknown as Document).fileSize, 0);
       
       setStats({
         total,
@@ -86,7 +86,7 @@ export default function DocumentLibrary() {
     if (!selectedCategory) return;
     try {
       const response = await documentsApi.getByCategory(selectedCategory);
-      setCategoryDocs(response.data as unknown as Document[]);
+      setCategoryDocs(response as unknown as Document[]);
     } catch (error) {
       console.error('Error loading category documents:', error);
     }
@@ -110,7 +110,7 @@ export default function DocumentLibrary() {
   const handleDownload = async (doc: Document) => {
     try {
       const response = await documentsApi.download(doc.id);
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const url = window.URL.createObjectURL(new Blob([response]));
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', doc.fileName);

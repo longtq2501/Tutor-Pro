@@ -41,10 +41,11 @@ export default function MonthlyView() {
   const loadRecords = async () => {
     try {
       setLoading(true);
-      const response = await sessionsApi.getByMonth(selectedMonth);
-      setRecords(response.data);
+      const data = await sessionsApi.getByMonth(selectedMonth);
+      setRecords(data || []); // Đảm bảo luôn là mảng
     } catch (error) {
       console.error('Error loading records:', error);
+      setRecords([]); // Nếu có lỗi, set thành mảng rỗng
     } finally {
       setLoading(false);
     }
@@ -59,7 +60,7 @@ export default function MonthlyView() {
   const handleTogglePayment = async (id: number) => {
     try {
       await sessionsApi.togglePayment(id);
-      loadRecords();
+      await loadRecords();
     } catch (error) {
       console.error('Error toggling payment:', error);
       alert('Không thể cập nhật trạng thái thanh toán!');
@@ -71,15 +72,18 @@ export default function MonthlyView() {
 
     try {
       await sessionsApi.delete(id);
-      loadRecords();
+      await loadRecords();
     } catch (error) {
       console.error('Error deleting record:', error);
       alert('Không thể xóa buổi học!');
     }
   };
 
+  // Kiểm tra records trước khi reduce
+  const safeRecords = Array.isArray(records) ? records : [];
+
   // Group by student
-  const groupedRecords = records.reduce((acc, record) => {
+  const groupedRecords = safeRecords.reduce((acc, record) => {
     const key = record.studentId;
     if (!acc[key]) {
       acc[key] = {
@@ -114,11 +118,11 @@ export default function MonthlyView() {
 
   const groupedRecordsArray = Object.values(groupedRecords);
 
-  const totalSessions = records.reduce((sum, r) => sum + r.sessions, 0);
-  const totalPaid = records
+  const totalSessions = safeRecords.reduce((sum, r) => sum + r.sessions, 0);
+  const totalPaid = safeRecords
     .filter((r) => r.paid)
     .reduce((sum, r) => sum + r.totalAmount, 0);
-  const totalUnpaid = records
+  const totalUnpaid = safeRecords
     .filter((r) => !r.paid)
     .reduce((sum, r) => sum + r.totalAmount, 0);
 
@@ -173,7 +177,7 @@ export default function MonthlyView() {
       </div>
 
       {/* Records List */}
-      {records.length === 0 ? (
+      {safeRecords.length === 0 ? (
         <div className="text-center py-16">
           <Calendar className="mx-auto text-gray-300 mb-4" size={64} />
           <p className="text-gray-500 text-lg">
@@ -195,7 +199,7 @@ export default function MonthlyView() {
                   </h3>
                   <div className="flex items-center gap-4 text-sm text-gray-600">
                     <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">
-                      {group.totalSessions} buổi × 2h = {group.totalHours}h
+                      {group.totalSessions} buổi × {group.totalHours / group.totalSessions}h = {group.totalHours}h
                     </span>
                     <span>{formatCurrency(group.pricePerHour)}/giờ</span>
                     <span>•</span>
@@ -241,7 +245,7 @@ export default function MonthlyView() {
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {group.sessions
-                    .sort((a, b) => a.sessionDate.localeCompare(b.sessionDate))  // 🆕 Sort by date
+                    .sort((a, b) => a.sessionDate.localeCompare(b.sessionDate))
                     .map((session) => (
                       <div
                         key={session.id}

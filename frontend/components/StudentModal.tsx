@@ -20,7 +20,7 @@ export default function StudentModal({ student, onClose, onSuccess }: StudentMod
     pricePerHour: 200000,
     notes: '',
     active: true,
-    startMonth: new Date().toISOString().slice(0, 7), // YYYY-MM
+    startMonth: new Date().toISOString().slice(0, 7),
   });
   const [loading, setLoading] = useState(false);
 
@@ -33,7 +33,6 @@ export default function StudentModal({ student, onClose, onSuccess }: StudentMod
         pricePerHour: student.pricePerHour,
         notes: student.notes || '',
         active: student.active,
-        // Đảm bảo startMonth luôn có giá trị, nếu null thì dùng giá trị mặc định
         startMonth: student.startMonth || new Date().toISOString().slice(0, 7),
       });
     } else {
@@ -49,7 +48,6 @@ export default function StudentModal({ student, onClose, onSuccess }: StudentMod
     }
   }, [student]);
 
-  // Thêm hàm xử lý thay đổi startMonth
   const handleStartMonthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ 
       ...formData, 
@@ -122,7 +120,7 @@ export default function StudentModal({ student, onClose, onSuccess }: StudentMod
               </label>
               <input
                 type="tel"
-                value={formData.phone}
+                value={formData.phone || ''}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none"
                 placeholder="0901234567"
@@ -148,7 +146,7 @@ export default function StudentModal({ student, onClose, onSuccess }: StudentMod
               </label>
               <input
                 type="number"
-                value={formData.pricePerHour || 200000}
+                value={formData.pricePerHour}
                 onChange={(e) =>
                   setFormData({ ...formData, pricePerHour: parseInt(e.target.value) || 200000 })
                 }
@@ -159,7 +157,7 @@ export default function StudentModal({ student, onClose, onSuccess }: StudentMod
               />
             </div>
 
-            {/* 🆕 Tháng bắt đầu học */}
+            {/* Tháng bắt đầu học */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 <Calendar className="inline mr-2" size={16} />
@@ -177,7 +175,7 @@ export default function StudentModal({ student, onClose, onSuccess }: StudentMod
               </p>
             </div>
 
-            {/* 🆕 Trạng thái */}
+            {/* Trạng thái */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Trạng thái

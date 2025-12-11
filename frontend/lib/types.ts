@@ -68,9 +68,10 @@ export interface MonthlyStats {
 }
 
 export interface InvoiceRequest {
-  studentId: number;
+  studentId?: number; // Optional - nếu không có thì là báo giá tổng
   month: string;
   sessionRecordIds?: number[];
+  allStudents?: boolean; // True nếu muốn tạo báo giá cho tất cả học sinh
 }
 
 export interface InvoiceResponse {

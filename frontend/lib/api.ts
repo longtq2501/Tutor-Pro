@@ -144,8 +144,29 @@ export const invoicesApi = {
     return response.data;
   },
 
+  // Phương pháp 1: Dùng chung endpoint (như code hiện tại)
   downloadInvoicePDF: async (request: InvoiceRequest): Promise<Blob> => {
     const response = await api.post('/invoices/download-pdf', request, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  // Phương pháp 2: Endpoint riêng cho báo giá tổng (nếu backend có endpoint này)
+  downloadMonthlyInvoicePDF: async (month: string): Promise<Blob> => {
+    const response = await api.post('/invoices/download-monthly-pdf', null, {
+      params: { month },
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  // HOẶC dùng phương pháp 1 với allStudents flag
+  downloadMonthlyInvoicePDFAlt: async (month: string): Promise<Blob> => {
+    const response = await api.post('/invoices/download-pdf', {
+      month,
+      allStudents: true
+    }, {
       responseType: 'blob',
     });
     return response.data;

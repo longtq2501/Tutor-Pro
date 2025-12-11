@@ -33,6 +33,7 @@ export default function MonthlyView() {
   );
   const [records, setRecords] = useState<SessionRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [downloadingMonthly, setDownloadingMonthly] = useState(false);
 
   useEffect(() => {
     loadRecords();
@@ -97,6 +98,35 @@ export default function MonthlyView() {
     } catch (error) {
       console.error('Error generating invoice:', error);
       alert('Không thể tạo báo giá!');
+    }
+  };
+
+  const handleGenerateMonthlyInvoice = async () => {
+    if (records.length === 0) {
+      alert('Không có buổi học nào trong tháng này!');
+      return;
+    }
+  
+    try {
+      setDownloadingMonthly(true);
+      const response = await invoicesApi.downloadInvoicePDF({
+        month: selectedMonth,
+        allStudents: true, // FLAG QUAN TRỌNG
+      });
+  
+      const url = window.URL.createObjectURL(new Blob([response]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Bao-Gia-Tong-${selectedMonth}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error generating monthly invoice:', error);
+      alert('Không thể tạo báo giá tổng tháng!');
+    } finally {
+      setDownloadingMonthly(false);
     }
   };
 
@@ -193,6 +223,31 @@ export default function MonthlyView() {
           </p>
         </div>
       </div>
+
+      {records.length > 0 && (
+      <div className="mb-6">
+        <button
+          onClick={handleGenerateMonthlyInvoice}
+          disabled={downloadingMonthly}
+          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {downloadingMonthly ? (
+            <>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              Đang tạo báo giá...
+            </>
+          ) : (
+            <>
+              <FileText size={20} />
+              Xuất báo giá tổng tháng (Tất cả học sinh)
+            </>
+          )}
+        </button>
+        <p className="text-sm text-gray-500 mt-2 text-center">
+          Tạo 1 file PDF chứa tổng hợp học phí của tất cả học sinh trong tháng
+        </p>
+      </div>
+      )}
 
       {/* Records List */}
       {records.length === 0 ? (

@@ -24,4 +24,8 @@ public class StudentRequest {
     private Long pricePerHour;
 
     private String notes;
+
+    private Boolean active; // 🆕 Trạng thái
+
+    private String startMonth; // 🆕 Tháng bắt đầu (YYYY-MM)
 }

@@ -42,24 +42,18 @@ public class SessionRecordService {
         Student student = studentRepository.findById(request.getStudentId())
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        // 🆕 Sử dụng hoursPerSession từ request thay vì hardcode 2
-        Double hoursPerSession = request.getHoursPerSession() != null ? request.getHoursPerSession() : 2.0;
-        int hours = (int) (request.getSessions() * hoursPerSession);  // 🆕 Tính hours dựa trên hoursPerSession
-
+        int hours = request.getSessions() * 2;
         long totalAmount = hours * student.getPricePerHour();
-
-        LocalDate sessionDate = LocalDate.parse(request.getSessionDate());
 
         SessionRecord record = SessionRecord.builder()
                 .student(student)
                 .month(request.getMonth())
                 .sessions(request.getSessions())
-                .hours(hours)  // 🆕 Sử dụng hours đã tính
+                .hours(hours)
                 .pricePerHour(student.getPricePerHour())
                 .totalAmount(totalAmount)
                 .paid(false)
                 .notes(request.getNotes())
-                .sessionDate(sessionDate)
                 .build();
 
         SessionRecord saved = sessionRecordRepository.save(record);
@@ -104,7 +98,7 @@ public class SessionRecordService {
                 .paid(record.getPaid())
                 .paidAt(record.getPaidAt() != null ? record.getPaidAt().format(formatter) : null)
                 .notes(record.getNotes())
-                .sessionDate(record.getSessionDate() != null ? record.getSessionDate().toString() : null)
+                .sessionDate(record.getSessionDate().toString()) // 🆕 Format YYYY-MM-DD
                 .createdAt(record.getCreatedAt().format(formatter))
                 .build();
     }

@@ -30,6 +30,13 @@ public class Student {
     @Column(length = 1000)
     private String notes;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean active = true; // Thêm trường active
+
+    private String startMonth; // Thêm trường startMonth
+    private String lastActiveMonth; // Thêm trường lastActiveMonth
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

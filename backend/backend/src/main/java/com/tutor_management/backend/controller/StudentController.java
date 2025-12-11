@@ -3,6 +3,8 @@ package com.tutor_management.backend.controller;
 //import com.tutor_management.backend.dto.*;
 import com.tutor_management.backend.dto.request.StudentRequest;
 import com.tutor_management.backend.dto.response.StudentResponse;
+import com.tutor_management.backend.entity.Student;
+import com.tutor_management.backend.repository.StudentRepository;
 import com.tutor_management.backend.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import java.util.List;
 public class StudentController {
 
     private final StudentService studentService;
+    private final StudentRepository studentRepository;
 
     @GetMapping
     public ResponseEntity<List<StudentResponse>> getAllStudents() {
@@ -46,5 +49,14 @@ public class StudentController {
     public ResponseEntity<Void> deleteStudent(@PathVariable Long id) {
         studentService.deleteStudent(id);
         return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}/toggle-active")
+    public ResponseEntity<StudentResponse> toggleActive(@PathVariable Long id) {
+        Student student = studentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+        student.setActive(!student.getActive());
+        studentRepository.save(student);
+        return ResponseEntity.ok(studentService.convertToResponse(student));
     }
 }

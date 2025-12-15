@@ -39,7 +39,7 @@ public class PDFGeneratorService {
         loadVietnameseFonts();
 
         // Set margins và page size
-        document.setMargins(50, 50, 50, 50);
+        document.setMargins(50, 50, 50, 50); // top, right, bottom, left
         document.setFont(vietnameseFont); // Set font mặc định
 
         // Header
@@ -64,7 +64,7 @@ public class PDFGeneratorService {
         addDivider(document);
 
         // Footer
-        addFooter(document);
+//        addFooter(document);
 
         document.close();
         return baos.toByteArray();
@@ -191,7 +191,7 @@ public class PDFGeneratorService {
     private void addItemsTable(Document document, InvoiceResponse invoice) {
         Table table = new Table(new float[]{2, 4, 1.5f, 1.5f, 2, 2.5f});
         table.useAllAvailableWidth();
-        table.setMarginBottom(20);
+        table.setMarginBottom(10);
 
         // Header row with styling
         String[] headers = {"Ngày", "Nội dung", "Buổi", "Giờ", "Đơn giá", "Thành tiền"};
@@ -242,7 +242,7 @@ public class PDFGeneratorService {
     private Cell createTableCell(String text) {
         return new Cell()
                 .add(new Paragraph(text).setFont(vietnameseFont).setFontSize(10))
-                .setPadding(6)
+                .setPadding(4)
                 .setTextAlignment(TextAlignment.LEFT);
     }
 
@@ -261,21 +261,32 @@ public class PDFGeneratorService {
     }
 
     private void addBankInfo(Document document, InvoiceResponse invoice) {
-        Table bankTable = new Table(2).useAllAvailableWidth();
-        bankTable.setMarginBottom(20);
+        int itemCount = invoice.getItems().size();
+        boolean isCompact = itemCount > 3;
+
+        Table bankTable;
+        if (isCompact) {
+            bankTable = new Table(1).useAllAvailableWidth();
+        } else {
+            // Tăng tỷ lệ phần QR
+            bankTable = new Table(new float[]{1f, 1.1f}).useAllAvailableWidth();
+            //                                      ^^^ tăng từ 1f lên 1.1f
+        }
+
+        bankTable.setMarginBottom(0);
+        bankTable.setKeepTogether(true);
 
         // Bank info
         Paragraph bankTitle = new Paragraph("THÔNG TIN CHUYỂN KHOẢN")
                 .setFont(vietnameseFontBold)
                 .setFontSize(12)
-                .setMarginBottom(8);
+                .setMarginBottom(5);
 
         Paragraph bankDetails = new Paragraph()
                 .setFont(vietnameseFont)
                 .setFontSize(10)
                 .add("Ngân hàng: " + invoice.getBankInfo().getBankName() + "\n")
-//                .add("Số tài khoản: " + invoice.getBankInfo().getAccountNumber() + "\n")
-                .add("Số tài khoản: 1041819355" + "\n")
+                .add("Số tài khoản: 1041819355\n")
                 .add("Tên tài khoản: " + invoice.getBankInfo().getAccountName() + "\n")
                 .add("Nội dung: " + invoice.getInvoiceNumber());
 
@@ -283,27 +294,26 @@ public class PDFGeneratorService {
                 .add(bankTitle)
                 .add(bankDetails)
                 .setBorder(null)
-                .setPadding(10);
+                .setPadding(5);
 
-        // QR Code
         Cell qrCell = new Cell()
                 .setBorder(null)
-                .setPadding(10)
-                .setTextAlignment(TextAlignment.CENTER);
+                .setPadding(0)
+                .setTextAlignment(TextAlignment.RIGHT);
 
         try {
-            Paragraph qrTitle = new Paragraph("QR THANH TOÁN")
-                    .setFont(vietnameseFontBold)
-                    .setFontSize(10)
-                    .setTextAlignment(TextAlignment.CENTER)
-                    .setMarginBottom(5);
-
             Image qrImage = new Image(ImageDataFactory.create(new URL(invoice.getQrCodeUrl())));
-            qrImage.setWidth(120);
-            qrImage.setHeight(120);
-            qrImage.setHorizontalAlignment(HorizontalAlignment.CENTER);
 
-            qrCell.add(qrTitle);
+            if (isCompact) {
+                qrImage.setWidth(180);
+                qrImage.setHeight(180);
+            } else {
+                qrImage.setWidth(220); // ← Tăng từ 200 lên 220
+                qrImage.setHeight(253); // ← Tăng tỷ lệ tương ứng
+            }
+
+            qrImage.setHorizontalAlignment(HorizontalAlignment.RIGHT);
+            qrImage.setMarginRight(0);
             qrCell.add(qrImage);
         } catch (Exception e) {
             qrCell.add(new Paragraph("QR Code không khả dụng")
@@ -311,8 +321,15 @@ public class PDFGeneratorService {
                     .setFontSize(9));
         }
 
-        bankTable.addCell(bankCell);
-        bankTable.addCell(qrCell);
+        if (isCompact) {
+            Table innerTable = new Table(new float[]{1f, 1.1f}).useAllAvailableWidth();
+            innerTable.addCell(bankCell);
+            innerTable.addCell(qrCell);
+            bankTable.addCell(new Cell().add(innerTable).setBorder(null).setPadding(0));
+        } else {
+            bankTable.addCell(bankCell);
+            bankTable.addCell(qrCell);
+        }
 
         document.add(bankTable);
     }

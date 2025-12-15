@@ -2,8 +2,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, CheckCircle, XCircle, Trash2, Clock, FileText, Check, Users } from 'lucide-react';
-import { sessionsApi, invoicesApi } from '@/lib/api';
+import { 
+  Calendar, ChevronLeft, ChevronRight, CheckCircle, XCircle, 
+  Trash2, Clock, FileText, Users, Mail, Send, Loader2 
+} from 'lucide-react';
+import { sessionsApi, invoicesApi, studentsApi } from '@/lib/api';
 import type { SessionRecord } from '@/lib/types';
 
 const formatCurrency = (amount: number) => {
@@ -33,9 +36,22 @@ export default function MonthlyView() {
   );
   const [records, setRecords] = useState<SessionRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedStudents, setSelectedStudents] = useState<number[]>([]); // Array of student IDs
+  const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
   const [generatingInvoice, setGeneratingInvoice] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
   const [selectAll, setSelectAll] = useState(false);
+  
+  // Email result modal state
+  const [showEmailResult, setShowEmailResult] = useState(false);
+  const [emailResult, setEmailResult] = useState<{
+    success: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    summary?: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    successDetails?: any[];
+    errors?: string[];
+    message?: string;
+  } | null>(null);
 
   useEffect(() => {
     loadRecords();
@@ -46,7 +62,6 @@ export default function MonthlyView() {
       setLoading(true);
       const response = await sessionsApi.getByMonth(selectedMonth);
       setRecords(response);
-      // Reset selections when month changes
       setSelectedStudents([]);
       setSelectAll(false);
     } catch (error) {
@@ -84,7 +99,6 @@ export default function MonthlyView() {
     }
   };
 
-  // Helper function for individual invoice
   const handleGenerateInvoice = async (studentId: number, sessionIds: number[]) => {
     try {
       const response = await invoicesApi.downloadInvoicePDF({
@@ -134,7 +148,6 @@ export default function MonthlyView() {
     try {
       setGeneratingInvoice(true);
       
-      // Collect all session IDs from selected students
       const allSessionIds: number[] = [];
       selectedStudents.forEach(studentId => {
         const group = groupedRecords[studentId];
@@ -150,16 +163,14 @@ export default function MonthlyView() {
         return;
       }
 
-      // For combined invoice
       const response = await invoicesApi.downloadInvoicePDF({
         studentId: selectedStudents[0],
         month: selectedMonth,
         sessionRecordIds: allSessionIds,
-        multipleStudents: true, // New flag to indicate multiple students
-        selectedStudentIds: selectedStudents // Send all selected student IDs
+        multipleStudents: true,
+        selectedStudentIds: selectedStudents
       });
 
-      // Generate filename with selected student count
       const studentCount = selectedStudents.length;
       const filename = studentCount === 1 
         ? `Bao-Gia-${selectedMonth}.pdf`
@@ -179,6 +190,56 @@ export default function MonthlyView() {
       alert('Không thể tạo báo giá chung!');
     } finally {
       setGeneratingInvoice(false);
+    }
+  };
+
+  // ✅ FIX: Bỏ phần validation frontend, để backend xử lý
+  const handleSendEmail = async () => {
+    if (selectedStudents.length === 0) {
+      alert('Vui lòng chọn ít nhất một học sinh để gửi email!');
+      return;
+    }
+
+    if (!confirm(
+      selectedStudents.length === 1
+        ? 'Gửi email báo giá cho học sinh đã chọn?'
+        : `Gửi email báo giá cho ${selectedStudents.length} học sinh đã chọn?`
+    )) {
+      return;
+    }
+
+    try {
+      setSendingEmail(true);
+
+      let result;
+      
+      if (selectedStudents.length === 1) {
+        // Gửi cho 1 học sinh
+        result = await invoicesApi.sendInvoiceEmail({
+          studentId: selectedStudents[0],
+          month: selectedMonth,
+        });
+      } else {
+        // Gửi cho nhiều học sinh - để backend xử lý validation
+        result = await invoicesApi.sendInvoiceEmailBatch({
+          selectedStudentIds: selectedStudents,
+          month: selectedMonth,
+        });
+      }
+
+      setEmailResult(result);
+      setShowEmailResult(true);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.error('Error sending email:', error);
+      setEmailResult({
+        success: false,
+        message: error.response?.data?.error || 'Lỗi khi gửi email',
+      });
+      setShowEmailResult(true);
+    } finally {
+      setSendingEmail(false);
     }
   };
 
@@ -226,7 +287,6 @@ export default function MonthlyView() {
     .filter((r) => !r.paid)
     .reduce((sum, r) => sum + r.totalAmount, 0);
 
-  // Calculate totals for selected students
   const selectedStudentsTotal = selectedStudents.reduce((acc, studentId) => {
     const group = groupedRecords[studentId];
     if (group) {
@@ -287,13 +347,13 @@ export default function MonthlyView() {
         </div>
       </div>
 
-      {/* Combined Invoice Section */}
+      {/* Combined Invoice & Email Section */}
       {records.length > 0 && (
         <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border-2 border-blue-100">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <Users className="text-blue-600" size={24} />
-              <h3 className="text-xl font-bold text-gray-800">Tạo báo giá chung</h3>
+              <h3 className="text-xl font-bold text-gray-800">Tạo & Gửi báo giá</h3>
             </div>
             <div className="flex items-center gap-3">
               <button
@@ -326,35 +386,160 @@ export default function MonthlyView() {
                   </p>
                 </div>
               </div>
-              <p className="text-sm text-gray-500 text-center">
-                Báo giá chung sẽ bao gồm tất cả buổi học của {selectedStudents.length} học sinh đã chọn
-              </p>
             </div>
           )}
 
-          <button
-            onClick={handleGenerateCombinedInvoice}
-            disabled={generatingInvoice || selectedStudents.length === 0}
-            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {generatingInvoice ? (
-              <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                Đang tạo báo giá...
-              </>
-            ) : (
-              <>
-                <FileText size={20} />
-                {selectedStudents.length === 1 
-                  ? 'Tạo báo giá cho 1 học sinh' 
-                  : `Tạo báo giá chung (${selectedStudents.length} học sinh)`}
-              </>
-            )}
-          </button>
+          {/* Action Buttons */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* Download PDF Button */}
+            <button
+              onClick={handleGenerateCombinedInvoice}
+              disabled={generatingInvoice || selectedStudents.length === 0}
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {generatingInvoice ? (
+                <>
+                  <Loader2 size={20} className="animate-spin" />
+                  Đang tạo...
+                </>
+              ) : (
+                <>
+                  <FileText size={20} />
+                  {selectedStudents.length === 1 
+                    ? 'Tải báo giá PDF' 
+                    : `Tải báo giá PDF (${selectedStudents.length} HS)`}
+                </>
+              )}
+            </button>
+
+            {/* Send Email Button */}
+            <button
+              onClick={handleSendEmail}
+              disabled={sendingEmail || selectedStudents.length === 0}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {sendingEmail ? (
+                <>
+                  <Loader2 size={20} className="animate-spin" />
+                  Đang gửi email...
+                </>
+              ) : (
+                <>
+                  <Mail size={20} />
+                  {selectedStudents.length === 1 
+                    ? 'Gửi email báo giá' 
+                    : `Gửi email (${selectedStudents.length} HS)`}
+                </>
+              )}
+            </button>
+          </div>
           
           <p className="text-sm text-gray-500 mt-3 text-center">
-            Lưu ý: Chọn nhiều học sinh để tạo một báo giá chung cho phụ huynh có nhiều con học cùng lúc
+            💡 Chọn học sinh và nhấn &quot;Gửi email&quot; để gửi báo giá trực tiếp đến phụ huynh
           </p>
+        </div>
+      )}
+
+      {/* Email Result Modal */}
+      {showEmailResult && emailResult && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className={`p-6 rounded-t-2xl ${
+              emailResult.success 
+                ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
+                : 'bg-gradient-to-r from-red-500 to-rose-500'
+            }`}>
+              <div className="flex items-center gap-3 text-white">
+                {emailResult.success ? (
+                  <CheckCircle size={32} />
+                ) : (
+                  <XCircle size={32} />
+                )}
+                <h3 className="text-2xl font-bold">
+                  {emailResult.success ? 'Gửi email thành công!' : 'Có lỗi xảy ra'}
+                </h3>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {/* Summary */}
+              {emailResult.summary && (
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Tổng số</p>
+                    <p className="text-2xl font-bold text-blue-600">{emailResult.summary.total}</p>
+                  </div>
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Đã gửi</p>
+                    <p className="text-2xl font-bold text-green-600">{emailResult.summary.sent}</p>
+                  </div>
+                  <div className="text-center p-4 bg-red-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Thất bại</p>
+                    <p className="text-2xl font-bold text-red-600">{emailResult.summary.failed || 0}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Success Details */}
+              {emailResult.successDetails && emailResult.successDetails.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                    <CheckCircle size={18} className="text-green-600" />
+                    Email đã gửi thành công:
+                  </h4>
+                  <div className="space-y-2">
+                    {emailResult.successDetails.map((detail, index) => (
+                      <div key={index} className="p-3 bg-green-50 rounded-lg border border-green-200">
+                        <p className="font-medium text-gray-800">{detail.student}</p>
+                        <p className="text-sm text-gray-600">
+                          Phụ huynh: {detail.parent} • {detail.email}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Errors */}
+              {emailResult.errors && emailResult.errors.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                    <XCircle size={18} className="text-red-600" />
+                    Lỗi:
+                  </h4>
+                  <div className="space-y-2">
+                    {emailResult.errors.map((error, index) => (
+                      <div key={index} className="p-3 bg-red-50 rounded-lg border border-red-200 text-sm text-red-700">
+                        {error}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Single message */}
+              {emailResult.message && !emailResult.summary && (
+                <div className={`p-4 rounded-lg ${
+                  emailResult.success 
+                    ? 'bg-green-50 text-green-800' 
+                    : 'bg-red-50 text-red-800'
+                }`}>
+                  {emailResult.message}
+                </div>
+              )}
+
+              {/* Close Button */}
+              <button
+                onClick={() => {
+                  setShowEmailResult(false);
+                  setEmailResult(null);
+                }}
+                className="w-full mt-6 bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 px-6 rounded-xl transition-colors"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -405,7 +590,6 @@ export default function MonthlyView() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => {
-                      // Generate individual invoice
                       const sessionIds = group.sessions.map(s => s.id);
                       handleGenerateInvoice(group.studentId, sessionIds);
                     }}

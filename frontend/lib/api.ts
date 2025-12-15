@@ -171,6 +171,57 @@ export const invoicesApi = {
     });
     return response.data;
   },
+  
+  // ✅ Gửi email cho 1 học sinh
+  sendInvoiceEmail: async (request: InvoiceRequest): Promise<{
+    success: boolean;
+    message: string;
+    recipient?: string;
+    parentName?: string;
+    studentName?: string;
+  }> => {
+    const response = await api.post('/invoices/send-email', request);
+    return response.data;
+  },
+
+  // ✅ Gửi email hàng loạt - TÊN ĐÚNG
+  sendInvoiceEmailBatch: async (request: InvoiceRequest): Promise<{
+    success: boolean;
+    summary: {
+      total: number;
+      sent: number;
+      failed: number;
+    };
+    successDetails: Array<{
+      student: string;
+      parent: string;
+      email: string;
+    }>;
+    errors: string[];
+  }> => {
+    const response = await api.post('/invoices/send-email-batch', request);
+    return response.data;
+  },
+
+  // ✅ Gửi email cho tất cả
+  sendInvoiceEmailAll: async (request: InvoiceRequest): Promise<{
+    success: boolean;
+    summary: {
+      total: number;
+      sent: number;
+      skipped: number;
+      failed: number;
+    };
+    successDetails: Array<{
+      student: string;
+      parent: string;
+      email: string;
+    }>;
+    errors: string[];
+  }> => {
+    const response = await api.post('/invoices/send-email-all', request);
+    return response.data;
+  },
 };
 
 export default api;

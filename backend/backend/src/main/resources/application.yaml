@@ -26,6 +26,24 @@ spring:
       max-file-size: 50MB
       max-request-size: 50MB
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: tonquynhlong05@gmail.com
+    password: ioby qhsi cuoi lwmu
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+app:
+  mail:
+    from: tonquynhlong@gmail.com
+    from-name: Thầy Quỳnh Long
+
 # File storage location
 file:
   upload-dir: uploads

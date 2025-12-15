@@ -2,10 +2,17 @@ package com.tutor_management.backend.controller;
 
 import com.tutor_management.backend.dto.request.InvoiceRequest;
 import com.tutor_management.backend.dto.response.InvoiceResponse;
+import com.tutor_management.backend.entity.Parent;
+import com.tutor_management.backend.entity.Student;
+import com.tutor_management.backend.repository.StudentRepository;
 import com.tutor_management.backend.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/invoices")
@@ -15,6 +22,8 @@ public class InvoiceController {
 
     private final InvoiceService invoiceService;
     private final PDFGeneratorService pdfGeneratorService;
+    private final EmailService emailService;
+    private final StudentRepository studentRepository;
 
     @PostMapping("/generate")
     public ResponseEntity<InvoiceResponse> generateInvoice(@RequestBody InvoiceRequest request) {
@@ -31,7 +40,6 @@ public class InvoiceController {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_PDF);
 
-            // Tên file khác nhau cho báo giá tổng vs báo giá từng em
             String filename = Boolean.TRUE.equals(request.getAllStudents())
                     ? "Bao-Gia-Tong-" + request.getMonth() + ".pdf"
                     : "Bao-Gia-" + invoice.getInvoiceNumber() + ".pdf";
@@ -44,17 +52,14 @@ public class InvoiceController {
 
             return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
         } catch (Exception e) {
-            e.printStackTrace(); // Log lỗi để debug
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(null);
         }
     }
 
-    // OPTIONAL: Endpoint riêng cho báo giá tổng tháng (cho rõ ràng)
     @PostMapping("/download-monthly-pdf")
-    public ResponseEntity<byte[]> downloadMonthlyInvoicePDF(
-            @RequestParam String month
-    ) {
+    public ResponseEntity<byte[]> downloadMonthlyInvoicePDF(@RequestParam String month) {
         try {
             InvoiceRequest request = InvoiceRequest.builder()
                     .month(month)
@@ -77,6 +82,312 @@ public class InvoiceController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(null);
+        }
+    }
+
+    // ============ EMAIL ENDPOINTS ============
+
+    /**
+     * Gửi invoice qua email cho một học sinh cụ thể
+     * POST /api/invoices/send-email
+     * Body: { "studentId": 1, "month": "2025-12" }
+     */
+    @PostMapping("/send-email")
+    public ResponseEntity<?> sendInvoiceViaEmail(@RequestBody InvoiceRequest request) {
+        try {
+            // Validate
+            if (request.getStudentId() == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Vui lòng chỉ định studentId"));
+            }
+
+            // ✅ FIX: Dùng findByIdWithParent() để fetch parent cùng lúc
+            Student student = studentRepository.findByIdWithParent(request.getStudentId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy học sinh"));
+
+            // Debug log
+            System.out.println("=== DEBUG SINGLE EMAIL ===");
+            System.out.println("Student: " + student.getName() + " (ID: " + student.getId() + ")");
+            System.out.println("Parent: " + (student.getParent() != null ? student.getParent().getName() : "NULL"));
+            System.out.println("Parent Email: " + (student.getParent() != null ? student.getParent().getEmail() : "NULL"));
+            System.out.println("========================");
+
+            Parent parent = student.getParent();
+            if (parent == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Học sinh chưa có thông tin phụ huynh"));
+            }
+
+            if (parent.getEmail() == null || parent.getEmail().isBlank()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Phụ huynh chưa có email"));
+            }
+
+            // 2. Generate invoice
+            InvoiceResponse invoice = invoiceService.generateInvoice(request);
+
+            // 3. Generate PDF
+            byte[] pdfData = pdfGeneratorService.generateInvoicePDF(invoice);
+
+            // 4. Send email
+            emailService.sendInvoiceEmail(
+                    parent.getEmail(),
+                    parent.getName(),
+                    student.getName(),
+                    request.getMonth(),
+                    pdfData,
+                    invoice.getInvoiceNumber()
+            );
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Đã gửi email thành công",
+                    "recipient", parent.getEmail(),
+                    "parentName", parent.getName(),
+                    "studentName", student.getName()
+            ));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "error", "Lỗi khi gửi email: " + e.getMessage()
+                    ));
+        }
+    }
+
+    /**
+     * Gửi invoice cho nhiều học sinh đã chọn (batch sending)
+     * POST /api/invoices/send-email-batch
+     * Body: { "selectedStudentIds": [1, 2, 3], "month": "2025-12" }
+     */
+    /**
+     * ✅ GỬI 1 EMAIL DUY NHẤT cho nhiều học sinh (cùng phụ huynh)
+     * Tạo 1 PDF chứa tất cả học sinh và gửi 1 email
+     */
+    @PostMapping("/send-email-batch")
+    public ResponseEntity<?> sendInvoiceBatch(@RequestBody InvoiceRequest request) {
+        try {
+            List<Long> studentIds = request.getSelectedStudentIds();
+
+            if (studentIds == null || studentIds.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Vui lòng chọn ít nhất 1 học sinh"));
+            }
+
+            // Fetch students with parent
+            List<Student> students = studentRepository.findByIdInWithParent(studentIds);
+
+            System.out.println("=== DEBUG BATCH EMAIL (COMBINED) ===");
+            System.out.println("Requested " + studentIds.size() + " students");
+            System.out.println("Found " + students.size() + " students in DB");
+
+            // Kiểm tra tất cả học sinh có cùng parent không
+            Parent firstParent = null;
+            boolean sameParent = true;
+            List<String> studentNames = new ArrayList<>();
+
+            for (Student student : students) {
+                studentNames.add(student.getName());
+
+                if (student.getParent() == null) {
+                    return ResponseEntity.badRequest()
+                            .body(Map.of(
+                                    "success", false,
+                                    "error", "Học sinh " + student.getName() + " chưa có thông tin phụ huynh"
+                            ));
+                }
+
+                if (firstParent == null) {
+                    firstParent = student.getParent();
+                } else if (!firstParent.getId().equals(student.getParent().getId())) {
+                    sameParent = false;
+                    break;
+                }
+            }
+
+            if (firstParent == null || firstParent.getEmail() == null || firstParent.getEmail().isBlank()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of(
+                                "success", false,
+                                "error", "Phụ huynh chưa có email"
+                        ));
+            }
+
+            if (!sameParent) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of(
+                                "success", false,
+                                "error", "Các học sinh đã chọn không cùng phụ huynh. Vui lòng chọn các học sinh cùng phụ huynh để gửi 1 email chung."
+                        ));
+            }
+
+            // ✅ TẠO 1 PDF DUY NHẤT cho tất cả học sinh
+            InvoiceRequest combinedRequest = InvoiceRequest.builder()
+                    .studentId(studentIds.get(0))
+                    .month(request.getMonth())
+                    .multipleStudents(true)
+                    .selectedStudentIds(studentIds)
+                    .build();
+
+            InvoiceResponse invoice = invoiceService.generateInvoice(combinedRequest);
+            byte[] pdfData = pdfGeneratorService.generateInvoicePDF(invoice);
+
+            // ✅ GỬI 1 EMAIL DUY NHẤT
+            String allStudentNames = String.join(", ", studentNames);
+            emailService.sendInvoiceEmail(
+                    firstParent.getEmail(),
+                    firstParent.getName(),
+                    allStudentNames,  // Tên tất cả học sinh
+                    request.getMonth(),
+                    pdfData,
+                    invoice.getInvoiceNumber()
+            );
+
+            System.out.println("✓ Combined email sent successfully");
+            System.out.println("To: " + firstParent.getEmail());
+            System.out.println("Students: " + allStudentNames);
+            System.out.println("========================");
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "summary", Map.of(
+                            "total", students.size(),
+                            "sent", 1,  // Chỉ gửi 1 email
+                            "failed", 0
+                    ),
+                    "successDetails", List.of(Map.of(
+                            "student", allStudentNames,
+                            "parent", firstParent.getName(),
+                            "email", firstParent.getEmail()
+                    )),
+                    "errors", new ArrayList<>()
+            ));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "error", "Lỗi hệ thống: " + e.getMessage()
+                    ));
+        }
+    }
+
+    /**
+     * Gửi email cho tất cả học sinh trong tháng
+     * POST /api/invoices/send-email-all
+     * Body: { "month": "2025-12", "allStudents": true }
+     */
+    @PostMapping("/send-email-all")
+    public ResponseEntity<?> sendInvoiceToAll(@RequestBody InvoiceRequest request) {
+        try {
+            if (!Boolean.TRUE.equals(request.getAllStudents())) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "allStudents phải là true"));
+            }
+
+            // ✅ FIX: Dùng findByActiveTrueWithParent() để fetch parent cho tất cả active students
+            List<Student> allStudents = studentRepository.findByActiveTrueWithParent();
+
+            if (allStudents.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Không có học sinh nào đang active"));
+            }
+
+            int successCount = 0;
+            int failCount = 0;
+            int skipCount = 0;
+            List<String> errors = new ArrayList<>();
+            List<Map<String, String>> successDetails = new ArrayList<>();
+
+            System.out.println("=== DEBUG SEND ALL ===");
+            System.out.println("Total active students: " + allStudents.size());
+
+            for (Student student : allStudents) {
+                try {
+                    Parent parent = student.getParent();
+
+                    System.out.println("---");
+                    System.out.println("Processing: " + student.getName());
+
+                    // Skip nếu không có parent hoặc email
+                    if (parent == null || parent.getEmail() == null || parent.getEmail().isBlank()) {
+                        skipCount++;
+                        String reason = parent == null ? "thiếu phụ huynh" : "thiếu email";
+                        errors.add("⚠ " + student.getName() + ": Bỏ qua (" + reason + ")");
+                        System.out.println("⚠ Skipped: " + reason);
+                        continue;
+                    }
+
+                    // Generate invoice
+                    InvoiceRequest singleRequest = InvoiceRequest.builder()
+                            .studentId(student.getId())
+                            .month(request.getMonth())
+                            .allStudents(false)
+                            .build();
+
+                    InvoiceResponse invoice = invoiceService.generateInvoice(singleRequest);
+
+                    // Skip nếu không có session nào trong tháng
+                    if (invoice.getItems() == null || invoice.getItems().isEmpty()) {
+                        skipCount++;
+                        errors.add("⚠ " + student.getName() + ": Bỏ qua (không có buổi học trong tháng)");
+                        System.out.println("⚠ Skipped: no sessions");
+                        continue;
+                    }
+
+                    byte[] pdfData = pdfGeneratorService.generateInvoicePDF(invoice);
+
+                    // Send email
+                    emailService.sendInvoiceEmail(
+                            parent.getEmail(),
+                            parent.getName(),
+                            student.getName(),
+                            request.getMonth(),
+                            pdfData,
+                            invoice.getInvoiceNumber()
+                    );
+
+                    successCount++;
+                    successDetails.add(Map.of(
+                            "student", student.getName(),
+                            "parent", parent.getName(),
+                            "email", parent.getEmail()
+                    ));
+
+                    System.out.println("✓ Sent successfully");
+
+                } catch (Exception e) {
+                    failCount++;
+                    errors.add("❌ " + student.getName() + ": " + e.getMessage());
+                    System.out.println("✗ Failed: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+
+            System.out.println("========================");
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "summary", Map.of(
+                            "total", allStudents.size(),
+                            "sent", successCount,
+                            "skipped", skipCount,
+                            "failed", failCount
+                    ),
+                    "successDetails", successDetails,
+                    "errors", errors
+            ));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "error", "Lỗi hệ thống: " + e.getMessage()
+                    ));
         }
     }
 }

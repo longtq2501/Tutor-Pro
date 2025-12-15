@@ -3,14 +3,16 @@ package com.tutor_management.backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "students")
+@Table(name = "parents")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Student {
+public class Parent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,26 +23,15 @@ public class Student {
 
     private String phone;
 
-    @Column(nullable = false)
-    private String schedule;
+    @Column(unique = true)
+    private String email;
 
-    @Column(nullable = false)
-    private Long pricePerHour;
-
-    @Column(length = 1000)
+    @Column(length = 500)
     private String notes;
 
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     @Builder.Default
-    @Column(nullable = false)
-    private Boolean active = true;
-
-    private String startMonth;
-    private String lastActiveMonth;
-
-    // ===== THÊM QUAN HỆ VỚI PARENT =====
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id")
-    private Parent parent;
+    private List<Student> students = new ArrayList<>();
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

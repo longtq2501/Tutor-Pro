@@ -1,4 +1,14 @@
 // src/lib/types.ts
+export interface Parent {
+  id: number;
+  name: string;
+  email?: string;
+  phone?: string;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Student {
   id: number;
   name: string;
@@ -14,6 +24,7 @@ export interface Student {
   createdAt: string;
   totalPaid: number;
   totalUnpaid: number;
+  parent?: Parent; // Sửa từ 'any' thành Parent interface
 }
 
 export interface StudentRequest {

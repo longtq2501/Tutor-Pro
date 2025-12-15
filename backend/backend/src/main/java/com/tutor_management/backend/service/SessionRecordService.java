@@ -54,6 +54,7 @@ public class SessionRecordService {
                 .totalAmount(totalAmount)
                 .paid(false)
                 .notes(request.getNotes())
+                .sessionDate(LocalDate.parse(request.getSessionDate()))
                 .build();
 
         SessionRecord saved = sessionRecordRepository.save(record);

@@ -165,7 +165,7 @@ public class PDFGeneratorService {
 
     private void addInvoiceInfo(Document document, InvoiceResponse invoice) {
         Table infoTable = new Table(2).useAllAvailableWidth();
-        infoTable.setMarginBottom(15);
+        infoTable.setMarginBottom(10);
 
         // Student info
         Paragraph studentInfo = new Paragraph()
@@ -178,12 +178,12 @@ public class PDFGeneratorService {
         infoTable.addCell(new Cell()
                 .add(studentInfo)
                 .setBorder(null)
-                .setPadding(5));
+                .setPadding(3));
 
-        // Optional: Add contact info or other details
-        infoTable.addCell(new Cell()
-                .setBorder(null)
-                .setPadding(5));
+//        // Optional: Add contact info or other details
+//        infoTable.addCell(new Cell()
+//                .setBorder(null)
+//                .setPadding(5));
 
         document.add(infoTable);
     }
@@ -305,8 +305,8 @@ public class PDFGeneratorService {
             Image qrImage = new Image(ImageDataFactory.create(new URL(invoice.getQrCodeUrl())));
 
             if (isCompact) {
-                qrImage.setWidth(180);
-                qrImage.setHeight(180);
+                qrImage.setWidth(160);
+                qrImage.setHeight(160);
             } else {
                 qrImage.setWidth(211); // ← Tăng từ 200 lên 220
                 qrImage.setHeight(243); // ← Tăng tỷ lệ tương ứng

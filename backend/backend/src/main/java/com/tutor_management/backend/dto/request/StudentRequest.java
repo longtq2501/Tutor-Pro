@@ -25,7 +25,10 @@ public class StudentRequest {
 
     private String notes;
 
-    private Boolean active; // 🆕 Trạng thái
+    private Boolean active;
 
-    private String startMonth; // 🆕 Tháng bắt đầu (YYYY-MM)
+    private String startMonth;
+
+    // ✅ THÊM FIELD PARENT
+    private Long parentId;
 }

@@ -16,12 +16,18 @@ public class StudentResponse {
     private String schedule;
     private Long pricePerHour;
     private String notes;
-    private Boolean active; // 🆕
-    private String startMonth; // 🆕
-    private String lastActiveMonth; // 🆕
-    private Integer monthsLearned; // 🆕 Số tháng đã học
-    private String learningDuration; // 🆕 Text hiển thị: "Bắt đầu: 11/2024 • 2 tháng"
+    private Boolean active;
+    private String startMonth;
+    private String lastActiveMonth;
+    private Integer monthsLearned;
+    private String learningDuration;
     private String createdAt;
     private Long totalPaid;
     private Long totalUnpaid;
+
+    // ✅ THÊM CÁC FIELD PARENT
+    private Long parentId;
+    private String parentName;
+    private String parentEmail;
+    private String parentPhone;
 }

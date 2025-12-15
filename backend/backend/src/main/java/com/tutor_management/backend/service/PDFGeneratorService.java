@@ -39,7 +39,7 @@ public class PDFGeneratorService {
         loadVietnameseFonts();
 
         // Set margins và page size
-        document.setMargins(50, 50, 50, 50); // top, right, bottom, left
+        document.setMargins(50, 50, 40, 50); // top, right, bottom, left
         document.setFont(vietnameseFont); // Set font mặc định
 
         // Header
@@ -280,7 +280,7 @@ public class PDFGeneratorService {
         Paragraph bankTitle = new Paragraph("THÔNG TIN CHUYỂN KHOẢN")
                 .setFont(vietnameseFontBold)
                 .setFontSize(12)
-                .setMarginBottom(5);
+                .setMarginBottom(3);
 
         Paragraph bankDetails = new Paragraph()
                 .setFont(vietnameseFont)
@@ -308,8 +308,8 @@ public class PDFGeneratorService {
                 qrImage.setWidth(180);
                 qrImage.setHeight(180);
             } else {
-                qrImage.setWidth(220); // ← Tăng từ 200 lên 220
-                qrImage.setHeight(253); // ← Tăng tỷ lệ tương ứng
+                qrImage.setWidth(211); // ← Tăng từ 200 lên 220
+                qrImage.setHeight(243); // ← Tăng tỷ lệ tương ứng
             }
 
             qrImage.setHorizontalAlignment(HorizontalAlignment.RIGHT);

@@ -12,6 +12,8 @@ import type {
   DocumentUploadRequest,
   InvoiceRequest,
   InvoiceResponse,
+  Parent,
+  ParentRequest,
 } from './types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
@@ -74,6 +76,10 @@ export const sessionsApi = {
   },
   delete: async (id: number): Promise<void> => {
     await api.delete(`/sessions/${id}`);
+  },
+  getUnpaid: async (): Promise<SessionRecord[]> => {
+    const response = await api.get('/sessions/unpaid');
+    return response.data;
   },
 };
 
@@ -220,6 +226,33 @@ export const invoicesApi = {
     errors: string[];
   }> => {
     const response = await api.post('/invoices/send-email-all', request);
+    return response.data;
+  },
+};
+
+// Parents API
+export const parentsApi = {
+  getAll: async (): Promise<Parent[]> => {
+    const response = await api.get('/parents');
+    return response.data;
+  },
+  getById: async (id: number): Promise<Parent> => {
+    const response = await api.get(`/parents/${id}`);
+    return response.data;
+  },
+  create: async (data: ParentRequest): Promise<Parent> => {
+    const response = await api.post('/parents', data);
+    return response.data;
+  },
+  update: async (id: number, data: ParentRequest): Promise<Parent> => {
+    const response = await api.put(`/parents/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/parents/${id}`);
+  },
+  search: async (keyword: string): Promise<Parent[]> => {
+    const response = await api.get('/parents/search', { params: { keyword } });
     return response.data;
   },
 };

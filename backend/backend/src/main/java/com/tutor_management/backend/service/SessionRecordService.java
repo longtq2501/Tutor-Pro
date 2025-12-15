@@ -82,6 +82,13 @@ public class SessionRecordService {
         sessionRecordRepository.delete(record);
     }
 
+    public List<SessionRecordResponse> getAllUnpaidSessions() {
+        List<SessionRecord> unpaidRecords = sessionRecordRepository.findByPaidFalseOrderBySessionDateDesc();
+        return unpaidRecords.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
+
     public List<String> getDistinctMonths() {
         return sessionRecordRepository.findDistinctMonths();
     }

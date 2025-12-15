@@ -44,4 +44,6 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, Lo
     // Tính tổng số buổi học (Sessions) theo tháng.
     @Query("SELECT COALESCE(SUM(sr.sessions), 0) FROM SessionRecord sr WHERE sr.month = :month")
     Integer sumSessionsByMonth(String month);
+
+    List<SessionRecord> findByPaidFalseOrderBySessionDateDesc();
 }

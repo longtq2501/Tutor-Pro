@@ -49,4 +49,10 @@ public class SessionRecordController {
         sessionRecordService.deleteRecord(id);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/unpaid")
+    public ResponseEntity<List<SessionRecordResponse>> getAllUnpaidSessions() {
+        List<SessionRecordResponse> unpaidSessions = sessionRecordService.getAllUnpaidSessions();
+        return ResponseEntity.ok(unpaidSessions);
+    }
 }

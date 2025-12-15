@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,32 +23,161 @@ public class InvoiceService {
     private final StudentRepository studentRepository;
 
     public InvoiceResponse generateInvoice(InvoiceRequest request) {
-        // Kiểm tra nếu là nhiều học sinh (nhưng không phải tất cả)
+        // ✅ FIX: Ưu tiên sessionRecordIds nếu có (cho case nhiều tháng)
+        if (request.getSessionRecordIds() != null && !request.getSessionRecordIds().isEmpty()) {
+            return generateInvoiceFromSessionIds(request);
+        }
+
+        // Kiểm tra nếu là nhiều học sinh
         if (Boolean.TRUE.equals(request.getMultipleStudents()) &&
                 request.getSelectedStudentIds() != null &&
                 !request.getSelectedStudentIds().isEmpty()) {
             return generateInvoiceForMultipleStudents(request);
         }
 
-        // KIỂM TRA: Nếu allStudents = true → Báo giá tổng tháng
+        // Nếu allStudents = true → Báo giá tổng tháng
         if (Boolean.TRUE.equals(request.getAllStudents())) {
             return generateMonthlyInvoiceForAll(request.getMonth());
         }
 
-        // Logic cũ: Báo giá cho 1 học sinh (GIỮ NGUYÊN)
+        // Logic cũ: Báo giá cho 1 học sinh trong 1 tháng
+        return generateInvoiceForSingleStudent(request);
+    }
+
+    // ✅ METHOD MỚI: Tạo invoice từ danh sách session IDs (hỗ trợ nhiều tháng)
+    private InvoiceResponse generateInvoiceFromSessionIds(InvoiceRequest request) {
+        List<SessionRecord> records = sessionRecordRepository.findAllById(request.getSessionRecordIds());
+
+        if (records.isEmpty()) {
+            throw new RuntimeException("No sessions found for invoice");
+        }
+
+        // Lấy danh sách các tháng
+        Set<String> months = records.stream()
+                .map(SessionRecord::getMonth)
+                .collect(Collectors.toSet());
+
+        // Lấy danh sách học sinh
+        Map<Student, List<SessionRecord>> groupedByStudent = records.stream()
+                .collect(Collectors.groupingBy(SessionRecord::getStudent));
+
+        boolean isMultipleStudents = groupedByStudent.size() > 1;
+        boolean isMultipleMonths = months.size() > 1;
+
+        // Tính tổng
+        int totalSessions = records.stream().mapToInt(SessionRecord::getSessions).sum();
+        int totalHours = records.stream().mapToInt(SessionRecord::getHours).sum();
+        long totalAmount = records.stream().mapToLong(SessionRecord::getTotalAmount).sum();
+
+        // Tạo items
+        List<InvoiceItem> items;
+        String studentName;
+
+        if (isMultipleStudents) {
+            // Nhiều học sinh - mỗi học sinh 1 dòng
+            items = groupedByStudent.entrySet().stream()
+                    .map(entry -> {
+                        Student student = entry.getKey();
+                        List<SessionRecord> studentRecords = entry.getValue();
+
+                        int studentSessions = studentRecords.stream()
+                                .mapToInt(SessionRecord::getSessions).sum();
+                        int studentHours = studentRecords.stream()
+                                .mapToInt(SessionRecord::getHours).sum();
+                        long studentAmount = studentRecords.stream()
+                                .mapToLong(SessionRecord::getTotalAmount).sum();
+
+                        // Group months for this student
+                        Set<String> studentMonths = studentRecords.stream()
+                                .map(SessionRecord::getMonth)
+                                .collect(Collectors.toSet());
+
+                        String monthsText = formatMultipleMonths(studentMonths);
+
+                        return InvoiceItem.builder()
+                                .date(monthsText)
+                                .description(student.getName() + " - Học phí")
+                                .sessions(studentSessions)
+                                .hours(studentHours)
+                                .pricePerHour(studentRecords.get(0).getPricePerHour())
+                                .amount(studentAmount)
+                                .build();
+                    })
+                    .sorted((a, b) -> a.getDescription().compareTo(b.getDescription()))
+                    .collect(Collectors.toList());
+
+            // Tạo tên học sinh
+            List<String> studentNames = groupedByStudent.keySet().stream()
+                    .map(Student::getName)
+                    .sorted()
+                    .collect(Collectors.toList());
+
+            if (studentNames.size() <= 2) {
+                studentName = String.join(" và ", studentNames);
+            } else {
+                studentName = studentNames.get(0) + " và " + (studentNames.size() - 1) + " học sinh khác";
+            }
+
+        } else {
+            // 1 học sinh - chi tiết từng ngày
+            Student student = groupedByStudent.keySet().iterator().next();
+            studentName = student.getName();
+
+            items = records.stream()
+                    .sorted((a, b) -> a.getSessionDate().compareTo(b.getSessionDate()))
+                    .map(record -> InvoiceItem.builder()
+                            .date(formatDate(record.getSessionDate()))
+                            .description("Buổi học tiếng Anh")
+                            .sessions(record.getSessions())
+                            .hours(record.getHours())
+                            .pricePerHour(record.getPricePerHour())
+                            .amount(record.getTotalAmount())
+                            .build())
+                    .collect(Collectors.toList());
+        }
+
+        // Tạo month text
+        String monthText = isMultipleMonths
+                ? formatMultipleMonths(months)
+                : formatMonth(months.iterator().next());
+
+        // Generate invoice number
+        String baseMonth = months.stream().sorted().findFirst().orElse("2024-01");
+        String invoiceNumber = generateInvoiceNumber(baseMonth);
+        if (isMultipleMonths) {
+            invoiceNumber += "-MULTI";
+        }
+        if (isMultipleStudents) {
+            invoiceNumber += "-STUDENTS";
+        }
+
+        // Generate QR code
+        String qrContent = generateQRContent(totalAmount, invoiceNumber);
+
+        return InvoiceResponse.builder()
+                .invoiceNumber(invoiceNumber)
+                .studentName(studentName)
+                .month(monthText)
+                .totalSessions(totalSessions)
+                .totalHours(totalHours)
+                .totalAmount(totalAmount)
+                .items(items)
+                .bankInfo(BankInfo.getDefault())
+                .qrCodeUrl(qrContent)
+                .createdDate(LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                .build();
+    }
+
+    // Logic cũ cho 1 học sinh 1 tháng
+    private InvoiceResponse generateInvoiceForSingleStudent(InvoiceRequest request) {
         Student student = studentRepository.findById(request.getStudentId())
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        List<SessionRecord> records;
-        if (request.getSessionRecordIds() != null && !request.getSessionRecordIds().isEmpty()) {
-            records = sessionRecordRepository.findAllById(request.getSessionRecordIds());
-        } else {
-            // Get all unpaid sessions for the month
-            records = sessionRecordRepository.findByStudentIdOrderByCreatedAtDesc(request.getStudentId())
-                    .stream()
-                    .filter(r -> r.getMonth().equals(request.getMonth()) && !r.getPaid())
-                    .collect(Collectors.toList());
-        }
+        // Get all unpaid sessions for the month
+        List<SessionRecord> records = sessionRecordRepository.findByStudentIdOrderByCreatedAtDesc(request.getStudentId())
+                .stream()
+                .filter(r -> r.getMonth().equals(request.getMonth()) && !r.getPaid())
+                .collect(Collectors.toList());
 
         if (records.isEmpty()) {
             throw new RuntimeException("No sessions found for invoice");
@@ -137,7 +267,7 @@ public class InvoiceService {
                 .sorted((a, b) -> a.getDescription().compareTo(b.getDescription()))
                 .collect(Collectors.toList());
 
-        // Tạo tên học sinh cho invoice (liệt kê các học sinh)
+        // Tạo tên học sinh cho invoice
         List<String> studentNames = groupedByStudent.keySet().stream()
                 .map(Student::getName)
                 .sorted()
@@ -170,9 +300,7 @@ public class InvoiceService {
                 .build();
     }
 
-    // METHOD MỚI: Tạo báo giá tổng cho tất cả học sinh trong tháng
     private InvoiceResponse generateMonthlyInvoiceForAll(String month) {
-        // Lấy TẤT CẢ records của tháng đó
         List<SessionRecord> allRecords = sessionRecordRepository.findAll()
                 .stream()
                 .filter(r -> r.getMonth().equals(month))
@@ -187,7 +315,7 @@ public class InvoiceService {
         int totalHours = allRecords.stream().mapToInt(SessionRecord::getHours).sum();
         long totalAmount = allRecords.stream().mapToLong(SessionRecord::getTotalAmount).sum();
 
-        // Nhóm theo StudentId để tạo items - ĐÚNG: dùng record.getStudent().getId()
+        // Nhóm theo StudentId
         Map<Long, List<SessionRecord>> groupedByStudent = allRecords.stream()
                 .collect(Collectors.groupingBy(record -> record.getStudent().getId()));
 
@@ -213,7 +341,7 @@ public class InvoiceService {
                             .amount(studentAmount)
                             .build();
                 })
-                .sorted((a, b) -> a.getDescription().compareTo(b.getDescription())) // Sắp xếp theo tên
+                .sorted((a, b) -> a.getDescription().compareTo(b.getDescription()))
                 .collect(Collectors.toList());
 
         // Generate invoice number
@@ -236,9 +364,32 @@ public class InvoiceService {
                 .build();
     }
 
+    // ✅ METHOD MỚI: Format nhiều tháng
+    private String formatMultipleMonths(Set<String> months) {
+        List<String> sortedMonths = months.stream()
+                .sorted()
+                .map(this::formatMonth)
+                .collect(Collectors.toList());
+
+        if (sortedMonths.size() == 1) {
+            return sortedMonths.get(0);
+        } else if (sortedMonths.size() == 2) {
+            return sortedMonths.get(0) + " và " + sortedMonths.get(1);
+        } else {
+            // Extract just month numbers for compact display
+            String monthNumbers = months.stream()
+                    .sorted()
+                    .map(m -> m.split("-")[1])
+                    .collect(Collectors.joining(", "));
+
+            String year = months.stream().sorted().findFirst().get().split("-")[0];
+            return "Tháng " + monthNumbers + "/" + year;
+        }
+    }
+
     private String generateInvoiceNumber(String month) {
         String[] parts = month.split("-");
-        long count = sessionRecordRepository.count(); // Simple counter
+        long count = sessionRecordRepository.count();
         return String.format("INV-%s-%s-%03d", parts[0], parts[1], count + 1);
     }
 
@@ -252,7 +403,6 @@ public class InvoiceService {
     }
 
     private String generateQRContent(long amount, String invoiceNumber) {
-        // VietQR format for Vietcombank
         String bankCode = "970436"; // Vietcombank
         String accountNumber = "1041819355";
         String template = "compact2";

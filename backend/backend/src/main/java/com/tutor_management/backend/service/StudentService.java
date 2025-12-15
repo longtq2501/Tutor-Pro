@@ -20,6 +20,7 @@ public class StudentService {
 
     private final StudentRepository studentRepository;
     private final SessionRecordRepository sessionRecordRepository;
+    private final ParentRepository parentRepository; // ✅ THÊM
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
 
     public List<StudentResponse> getAllStudents() {
@@ -35,6 +36,7 @@ public class StudentService {
         return convertToResponse(student);
     }
 
+    // ✅ UPDATE: Thêm xử lý parent
     public StudentResponse createStudent(StudentRequest request) {
         Student student = Student.builder()
                 .name(request.getName())
@@ -47,10 +49,18 @@ public class StudentService {
                         YearMonth.now().toString())
                 .build();
 
+        // ✅ Gán parent nếu có
+        if (request.getParentId() != null) {
+            Parent parent = parentRepository.findById(request.getParentId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy phụ huynh với ID: " + request.getParentId()));
+            student.setParent(parent);
+        }
+
         Student saved = studentRepository.save(student);
         return convertToResponse(saved);
     }
 
+    // ✅ UPDATE: Thêm xử lý parent
     public StudentResponse updateStudent(Long id, StudentRequest request) {
         Student student = studentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
@@ -68,6 +78,16 @@ public class StudentService {
             student.setStartMonth(request.getStartMonth());
         }
 
+        // ✅ Cập nhật parent
+        if (request.getParentId() != null) {
+            Parent parent = parentRepository.findById(request.getParentId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy phụ huynh với ID: " + request.getParentId()));
+            student.setParent(parent);
+        } else {
+            // Nếu parentId = null, xóa liên kết
+            student.setParent(null);
+        }
+
         Student updated = studentRepository.save(student);
         return convertToResponse(updated);
     }
@@ -83,6 +103,7 @@ public class StudentService {
         studentRepository.delete(student);
     }
 
+    // ✅ UPDATE: Thêm parent info vào response
     public StudentResponse convertToResponse(Student student) {
         List<SessionRecord> records = sessionRecordRepository.findByStudentIdOrderByCreatedAtDesc(student.getId());
 
@@ -117,7 +138,7 @@ public class StudentService {
         // Tạo learningDuration text
         String learningDuration = buildLearningDuration(student.getStartMonth(), monthsLearned);
 
-        return StudentResponse.builder()
+        StudentResponse response = StudentResponse.builder()
                 .id(student.getId())
                 .name(student.getName())
                 .phone(student.getPhone())
@@ -133,6 +154,17 @@ public class StudentService {
                 .totalPaid(totalPaid)
                 .totalUnpaid(totalUnpaid)
                 .build();
+
+        // ✅ Thêm parent info
+        if (student.getParent() != null) {
+            Parent parent = student.getParent();
+            response.setParentId(parent.getId());
+            response.setParentName(parent.getName());
+            response.setParentEmail(parent.getEmail());
+            response.setParentPhone(parent.getPhone());
+        }
+
+        return response;
     }
 
     private Integer calculateMonthsLearned(String startMonth, String lastActiveMonth) {

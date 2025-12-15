@@ -5,8 +5,16 @@ export interface Parent {
   email?: string;
   phone?: string;
   notes?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  studentCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ParentRequest {
+  name: string;
+  email?: string;
+  phone?: string;
+  notes?: string;
 }
 
 export interface Student {
@@ -25,6 +33,11 @@ export interface Student {
   totalPaid: number;
   totalUnpaid: number;
   parent?: Parent; // Sửa từ 'any' thành Parent interface
+
+  parentId?: number;      // ← THÊM
+  parentName?: string;    // ← THÊM  
+  parentEmail?: string;   // ← THÊM
+  parentPhone?: string;   // ← THÊM
 }
 
 export interface StudentRequest {
@@ -35,6 +48,8 @@ export interface StudentRequest {
   notes?: string;
   active?: boolean;
   startMonth?: string;
+
+  parentId?: number;      // ← THÊM
 }
 
 export interface SessionRecord {

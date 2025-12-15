@@ -2,13 +2,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, User, TrendingUp, FileText } from 'lucide-react';
+import { Calendar, User, TrendingUp, FileText, UserCheck, AlertCircle } from 'lucide-react';
 import Dashboard from '@/components/Dashboard';
 import StudentList from '@/components/StudentList';
 import MonthlyView from '@/components/MonthlyView';
 import DocumentLibrary from '@/components/DocumentLibrary';
+import ParentsView from '@/components/ParentsView';
+import UnpaidSessionsView from '@/components/UnpaidSessionsView';
 
-type View = 'dashboard' | 'students' | 'monthly' | 'documents';
+type View = 'dashboard' | 'students' | 'monthly' | 'documents' | 'parents' | 'unpaid';
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
@@ -54,6 +56,17 @@ export default function Home() {
               Học sinh
             </button>
             <button
+              onClick={() => setCurrentView('parents')}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                currentView === 'parents'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              <UserCheck  className="inline mr-2" size={18} />
+              Phụ Huynh
+            </button>
+            <button
               onClick={() => setCurrentView('monthly')}
               className={`px-6 py-2 rounded-lg font-medium transition-colors ${
                 currentView === 'monthly'
@@ -63,6 +76,17 @@ export default function Home() {
             >
               <Calendar className="inline mr-2" size={18} />
               Theo tháng
+            </button>
+            <button
+              onClick={() => setCurrentView('unpaid')}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                currentView === 'unpaid'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              <AlertCircle  className="inline mr-2" size={18} />
+              Chưa trả
             </button>
             <button
               onClick={() => setCurrentView('documents')}
@@ -81,7 +105,9 @@ export default function Home() {
         {/* Content */}
         {currentView === 'dashboard' && <Dashboard />}
         {currentView === 'students' && <StudentList />}
+        {currentView === 'parents' && <ParentsView />}
         {currentView === 'monthly' && <MonthlyView />}
+        {currentView === 'unpaid' && <UnpaidSessionsView />}
         {currentView === 'documents' && <DocumentLibrary />}
       </div>
     </div>

@@ -170,17 +170,26 @@ public class InvoiceController {
     public ResponseEntity<?> sendInvoiceBatch(@RequestBody InvoiceRequest request) {
         try {
             List<Long> studentIds = request.getSelectedStudentIds();
+            List<Long> sessionRecordIds = request.getSessionRecordIds(); // Lấy session IDs từ request
 
-            if (studentIds == null || studentIds.isEmpty()) {
+            if ((studentIds == null || studentIds.isEmpty()) &&
+                    (sessionRecordIds == null || sessionRecordIds.isEmpty())) {
                 return ResponseEntity.badRequest()
-                        .body(Map.of("error", "Vui lòng chọn ít nhất 1 học sinh"));
+                        .body(Map.of("error", "Vui lòng chọn ít nhất 1 học sinh hoặc buổi học"));
             }
 
             // Fetch students with parent
-            List<Student> students = studentRepository.findByIdInWithParent(studentIds);
+            List<Student> students;
+            if (studentIds != null && !studentIds.isEmpty()) {
+                students = studentRepository.findByIdInWithParent(studentIds);
+            } else {
+                // Nếu có sessionRecordIds, lấy học sinh từ đó
+                students = new ArrayList<>();
+                // Cần query để lấy unique students từ session records
+            }
 
             System.out.println("=== DEBUG BATCH EMAIL (COMBINED) ===");
-            System.out.println("Requested " + studentIds.size() + " students");
+            System.out.println("Requested " + (studentIds != null ? studentIds.size() : 0) + " students");
             System.out.println("Found " + students.size() + " students in DB");
 
             // Kiểm tra tất cả học sinh có cùng parent không
@@ -223,14 +232,28 @@ public class InvoiceController {
                         ));
             }
 
-            // ✅ TẠO 1 PDF DUY NHẤT cho tất cả học sinh
-            InvoiceRequest combinedRequest = InvoiceRequest.builder()
-                    .studentId(studentIds.get(0))
-                    .month(request.getMonth())
-                    .multipleStudents(true)
-                    .selectedStudentIds(studentIds)
-                    .build();
+            // ✅ SỬA QUAN TRỌNG: Tạo request với sessionRecordIds (cho nhiều tháng)
+            InvoiceRequest combinedRequest;
 
+            if (sessionRecordIds != null && !sessionRecordIds.isEmpty()) {
+                // Ưu tiên dùng sessionRecordIds để lấy đúng các buổi học từ nhiều tháng
+                combinedRequest = InvoiceRequest.builder()
+                        .sessionRecordIds(sessionRecordIds) // ← QUAN TRỌNG: truyền session IDs
+                        .multipleStudents(true)
+                        .selectedStudentIds(studentIds)
+                        // KHÔNG truyền month vì đã có sessionRecordIds
+                        .build();
+            } else {
+                // Fallback: dùng studentIds và month (cho 1 tháng)
+                combinedRequest = InvoiceRequest.builder()
+                        .studentId(studentIds.get(0))
+                        .month(request.getMonth())
+                        .multipleStudents(true)
+                        .selectedStudentIds(studentIds)
+                        .build();
+            }
+
+            // Tạo invoice với sessionRecordIds
             InvoiceResponse invoice = invoiceService.generateInvoice(combinedRequest);
             byte[] pdfData = pdfGeneratorService.generateInvoicePDF(invoice);
 
@@ -240,7 +263,7 @@ public class InvoiceController {
                     firstParent.getEmail(),
                     firstParent.getName(),
                     allStudentNames,  // Tên tất cả học sinh
-                    request.getMonth(),
+                    invoice.getMonth(), // Dùng month từ invoice response (có thể là "Tháng 12/2024 và 01/2025")
                     pdfData,
                     invoice.getInvoiceNumber()
             );
@@ -248,6 +271,9 @@ public class InvoiceController {
             System.out.println("✓ Combined email sent successfully");
             System.out.println("To: " + firstParent.getEmail());
             System.out.println("Students: " + allStudentNames);
+            System.out.println("Month in invoice: " + invoice.getMonth());
+            System.out.println("Session IDs used: " +
+                    (sessionRecordIds != null ? sessionRecordIds.size() : 0));
             System.out.println("========================");
 
             return ResponseEntity.ok(Map.of(
@@ -274,7 +300,7 @@ public class InvoiceController {
                     ));
         }
     }
-
+    
     /**
      * Gửi email cho tất cả học sinh trong tháng
      * POST /api/invoices/send-email-all

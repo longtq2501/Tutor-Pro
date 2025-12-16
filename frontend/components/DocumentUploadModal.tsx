@@ -1,4 +1,4 @@
-// src/components/DocumentUploadModal.tsx
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -126,22 +126,20 @@ export default function DocumentUploadModal({
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
   };
 
-  const selectedCategoryInfo = CATEGORIES.find((c) => c.key === formData.category);
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop với blur giống AddSessionModal */}
+      {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
       
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 flex-shrink-0">
+      <div className="relative bg-card rounded-2xl shadow-2xl max-w-lg w-full p-6 flex-shrink-0 border border-border">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Tải lên tài liệu</h2>
+          <h2 className="text-2xl font-bold text-card-foreground">Tải lên tài liệu</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-muted-foreground hover:text-foreground transition-colors"
           >
             <X size={24} />
           </button>
@@ -151,15 +149,15 @@ export default function DocumentUploadModal({
           <div className="space-y-4">
             {/* File Upload */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-card-foreground mb-2">
                 Chọn file *
               </label>
               <div
                 onClick={() => fileInputRef.current?.click()}
                 className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
                   selectedFile
-                    ? 'border-indigo-400 bg-indigo-50'
-                    : 'border-gray-300 hover:border-indigo-300 hover:bg-gray-50'
+                    ? 'border-primary bg-primary/10'
+                    : 'border-border hover:border-primary hover:bg-muted'
                 }`}
               >
                 <input
@@ -171,23 +169,23 @@ export default function DocumentUploadModal({
                 />
                 {selectedFile ? (
                   <div className="flex items-center justify-center gap-3">
-                    <FileText className="text-indigo-600" size={32} />
+                    <FileText className="text-primary" size={32} />
                     <div className="text-left">
-                      <p className="font-medium text-gray-800 text-sm">
+                      <p className="font-medium text-card-foreground text-sm">
                         {selectedFile.name}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         {formatFileSize(selectedFile.size)}
                       </p>
                     </div>
                   </div>
                 ) : (
                   <>
-                    <Upload className="mx-auto text-gray-400 mb-2" size={32} />
-                    <p className="text-gray-600 text-sm mb-1">
+                    <Upload className="mx-auto text-muted-foreground mb-2" size={32} />
+                    <p className="text-muted-foreground text-sm mb-1">
                       Click để chọn file hoặc kéo thả file vào đây
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       PDF, DOC, DOCX, PPT, PPTX, TXT (Max 50MB)
                     </p>
                   </>
@@ -197,14 +195,14 @@ export default function DocumentUploadModal({
 
             {/* Title */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-card-foreground mb-2">
                 Tiêu đề *
               </label>
               <input
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
+                className="w-full px-4 py-2 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                 placeholder="Tên tài liệu"
                 required
               />
@@ -212,7 +210,7 @@ export default function DocumentUploadModal({
 
             {/* Category */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-card-foreground mb-2">
                 Danh mục *
               </label>
               <div className="relative">
@@ -221,7 +219,7 @@ export default function DocumentUploadModal({
                   onChange={(e) =>
                     setFormData({ ...formData, category: e.target.value as DocumentCategory })
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent appearance-none bg-white pr-10 text-gray-900"
+                  className="w-full px-4 py-2 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent appearance-none pr-10"
                 >
                   {CATEGORIES.map((cat) => (
                     <option key={cat.key} value={cat.key}>
@@ -231,7 +229,7 @@ export default function DocumentUploadModal({
                 </select>
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                   <svg
-                    className="w-5 h-5 text-gray-400"
+                    className="w-5 h-5 text-muted-foreground"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -249,11 +247,11 @@ export default function DocumentUploadModal({
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Mô tả</label>
+              <label className="block text-sm font-medium text-card-foreground mb-2">Mô tả</label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
+                className="w-full px-4 py-2 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                 placeholder="Mô tả ngắn về tài liệu..."
                 rows={3}
               />
@@ -262,13 +260,13 @@ export default function DocumentUploadModal({
             {/* Upload Progress */}
             {loading && (
               <div>
-                <div className="flex justify-between text-sm text-gray-600 mb-2">
+                <div className="flex justify-between text-sm text-muted-foreground mb-2">
                   <span>Đang tải lên...</span>
                   <span>{uploadProgress}%</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-muted rounded-full h-2">
                   <div
-                    className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                    className="bg-primary h-2 rounded-full transition-all duration-300"
                     style={{ width: `${uploadProgress}%` }}
                   ></div>
                 </div>
@@ -280,7 +278,7 @@ export default function DocumentUploadModal({
             <button
               type="submit"
               disabled={loading || !selectedFile}
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
+              className="flex-1 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
             >
               <Upload size={20} />
               {loading ? 'Đang tải lên...' : 'Tải lên'}
@@ -289,7 +287,7 @@ export default function DocumentUploadModal({
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="flex-1 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-medium transition-colors"
+              className="flex-1 bg-secondary hover:bg-secondary/80 disabled:opacity-50 text-secondary-foreground px-6 py-3 rounded-lg font-medium transition-colors"
             >
               Hủy
             </button>

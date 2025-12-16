@@ -1,4 +1,4 @@
-// src/components/DocumentLibrary.tsx
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -65,7 +65,6 @@ export default function DocumentLibrary() {
       const response = await documentsApi.getAll();
       setDocuments(response as unknown as Document[]);
       
-      // Calculate stats
       const total = response.length;
       const downloads = response.reduce((sum, doc) => sum + (doc as unknown as Document).downloadCount, 0);
       const totalSize = response.reduce((sum, doc) => sum + (doc as unknown as Document).fileSize, 0);
@@ -155,8 +154,8 @@ export default function DocumentLibrary() {
   if (loading) {
     return (
       <div className="text-center py-16">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-        <p className="mt-4 text-gray-600">Đang tải...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+        <p className="mt-4 text-muted-foreground">Đang tải...</p>
       </div>
     );
   }
@@ -165,17 +164,17 @@ export default function DocumentLibrary() {
   if (!selectedCategory) {
     return (
       <>
-        <div className="bg-white rounded-2xl shadow-lg p-6">
+        <div className="bg-card rounded-2xl shadow-lg p-6 transition-colors border border-border">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-800">Kho Tài Liệu Tiếng Anh</h2>
-              <p className="text-gray-600 text-sm mt-1">
+              <h2 className="text-2xl font-bold text-card-foreground">Kho Tài Liệu Tiếng Anh</h2>
+              <p className="text-muted-foreground text-sm mt-1">
                 Quản lý tài liệu theo danh mục để dễ tìm kiếm sau này
               </p>
             </div>
             <button
               onClick={() => setShowUploadModal(true)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
             >
               <Upload size={20} />
               Tải lên
@@ -184,17 +183,17 @@ export default function DocumentLibrary() {
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4 mb-6">
-            <div className="bg-blue-50 rounded-lg p-4">
-              <p className="text-sm text-gray-600 mb-1">Tổng tài liệu</p>
-              <p className="text-2xl font-bold text-blue-600">{stats.total}</p>
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-100 dark:border-blue-800/30">
+              <p className="text-sm text-muted-foreground mb-1">Tổng tài liệu</p>
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.total}</p>
             </div>
-            <div className="bg-green-50 rounded-lg p-4">
-              <p className="text-sm text-gray-600 mb-1">Lượt tải xuống</p>
-              <p className="text-2xl font-bold text-green-600">{stats.downloads}</p>
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-100 dark:border-green-800/30">
+              <p className="text-sm text-muted-foreground mb-1">Lượt tải xuống</p>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.downloads}</p>
             </div>
-            <div className="bg-purple-50 rounded-lg p-4">
-              <p className="text-sm text-gray-600 mb-1">Dung lượng</p>
-              <p className="text-2xl font-bold text-purple-600">{stats.size}</p>
+            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-100 dark:border-purple-800/30">
+              <p className="text-sm text-muted-foreground mb-1">Dung lượng</p>
+              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.size}</p>
             </div>
           </div>
 
@@ -202,13 +201,13 @@ export default function DocumentLibrary() {
           <div className="mb-6">
             <div className="relative">
               <Search
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                 size={20}
               />
               <input
                 type="text"
                 placeholder="Tìm kiếm tài liệu..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-border bg-background rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent text-foreground"
                 disabled
               />
             </div>
@@ -260,12 +259,12 @@ export default function DocumentLibrary() {
 
   return (
     <>
-      <div className="bg-white rounded-2xl shadow-lg p-6">
+      <div className="bg-card rounded-2xl shadow-lg p-6 transition-colors border border-border">
         {/* Header with Back Button */}
         <div className="flex items-center gap-4 mb-6">
           <button
             onClick={handleBackToCategories}
-            className="text-gray-600 hover:text-gray-800 flex items-center gap-2"
+            className="text-muted-foreground hover:text-foreground flex items-center gap-2"
           >
             ← Quay lại
           </button>
@@ -273,14 +272,14 @@ export default function DocumentLibrary() {
             <div className="flex items-center gap-3">
               <span className="text-3xl">{categoryInfo?.icon}</span>
               <div>
-                <h2 className="text-2xl font-bold text-gray-800">{categoryInfo?.name}</h2>
-                <p className="text-gray-600 text-sm">{categoryDocs.length} tài liệu</p>
+                <h2 className="text-2xl font-bold text-card-foreground">{categoryInfo?.name}</h2>
+                <p className="text-muted-foreground text-sm">{categoryDocs.length} tài liệu</p>
               </div>
             </div>
           </div>
           <button
             onClick={() => setShowUploadModal(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
           >
             <Upload size={20} />
             Thêm tài liệu
@@ -291,7 +290,7 @@ export default function DocumentLibrary() {
         <div className="mb-6">
           <div className="relative">
             <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
               size={20}
             />
             <input
@@ -299,7 +298,7 @@ export default function DocumentLibrary() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tìm kiếm tài liệu..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-border bg-background rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent text-foreground"
             />
           </div>
         </div>
@@ -307,13 +306,13 @@ export default function DocumentLibrary() {
         {/* Documents List */}
         {categoryDocs.length === 0 ? (
           <div className="text-center py-16">
-            <FileText className="mx-auto text-gray-300 mb-4" size={64} />
-            <p className="text-gray-500 text-lg mb-2">
+            <FileText className="mx-auto text-muted-foreground mb-4" size={64} />
+            <p className="text-muted-foreground text-lg mb-2">
               {searchQuery ? 'Không tìm thấy tài liệu' : 'Chưa có tài liệu nào'}
             </p>
             <button
               onClick={() => setShowUploadModal(true)}
-              className="text-indigo-600 hover:text-indigo-700 font-medium inline-flex items-center gap-2 mt-4"
+              className="text-primary hover:text-primary/80 font-medium inline-flex items-center gap-2 mt-4"
             >
               <Upload size={18} />
               Thêm tài liệu đầu tiên
@@ -324,23 +323,23 @@ export default function DocumentLibrary() {
             {categoryDocs.map((doc) => (
               <div
                 key={doc.id}
-                className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all cursor-pointer group"
+                className="border border-border bg-card rounded-lg p-4 hover:shadow-md transition-all cursor-pointer group"
                 onClick={() => setPreviewDocument(doc)}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <FileText className="text-gray-400 flex-shrink-0" size={20} />
+                      <FileText className="text-muted-foreground flex-shrink-0" size={20} />
                       <div className="flex-1">
-                        <h3 className="font-semibold text-gray-800 group-hover:text-indigo-600 transition-colors">
+                        <h3 className="font-semibold text-card-foreground group-hover:text-primary transition-colors">
                           {doc.title}
                         </h3>
                         {doc.description && (
-                          <p className="text-sm text-gray-600 mt-1">{doc.description}</p>
+                          <p className="text-sm text-muted-foreground mt-1">{doc.description}</p>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-gray-500 ml-8">
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground ml-8">
                       <span>{doc.fileName}</span>
                       <span>•</span>
                       <span>{doc.formattedFileSize}</span>
@@ -359,7 +358,7 @@ export default function DocumentLibrary() {
                         e.stopPropagation();
                         setPreviewDocument(doc);
                       }}
-                      className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+                      className="bg-muted hover:bg-muted/80 text-foreground px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
                       title="Xem trước"
                     >
                       <Eye size={16} />
@@ -370,7 +369,7 @@ export default function DocumentLibrary() {
                         e.stopPropagation();
                         handleDownload(doc);
                       }}
-                      className="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+                      className="bg-primary/10 hover:bg-primary/20 text-primary px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
                     >
                       <Download size={16} />
                       Tải xuống
@@ -380,7 +379,7 @@ export default function DocumentLibrary() {
                         e.stopPropagation();
                         handleDelete(doc.id);
                       }}
-                      className="bg-red-100 hover:bg-red-200 text-red-700 p-2 rounded-lg transition-colors"
+                      className="bg-destructive/10 hover:bg-destructive/20 text-destructive p-2 rounded-lg transition-colors"
                     >
                       <Trash2 size={16} />
                     </button>

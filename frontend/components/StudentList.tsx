@@ -2,8 +2,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, Plus, Edit2, Trash2, Calendar, DollarSign, Clock, Power, Repeat, Sparkles } from 'lucide-react';
-import { studentsApi, sessionsApi } from '@/lib/api';
+import { User, Plus, Edit2, Trash2, Calendar, DollarSign, Repeat, Search, Filter } from 'lucide-react';
+import { studentsApi, sessionsApi } from '../lib/api';
 import type { Student, SessionRecordRequest } from '@/lib/types';
 import StudentModal from './StudentModal';
 import AddSessionModal from './AddSessionModal';
@@ -31,6 +31,7 @@ export default function StudentList() {
   const [selectedStudentForSchedule, setSelectedStudentForSchedule] = useState<Student | null>(null);
 
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadStudents();
@@ -76,16 +77,6 @@ export default function StudentList() {
     }
   };
 
-  const handleToggleActive = async (id: number) => {
-    try {
-      await studentsApi.toggleActive(id);
-      await loadStudents();
-    } catch (error) {
-      console.error('Error toggling status:', error);
-      alert('Không thể thay đổi trạng thái!');
-    }
-  };
-
   const openAddSessionModal = (studentId: number) => {
     setSelectedStudentIdForSession(studentId);
     setShowAddSessionModal(true);
@@ -110,7 +101,7 @@ export default function StudentList() {
       await sessionsApi.create(requestData);
       setShowAddSessionModal(false);
       setSelectedStudentIdForSession(null);
-      await loadStudents(); // Reload to update stats
+      await loadStudents(); 
       alert(`Đã thêm buổi học thành công!`);
     } catch (error) {
       console.error('Error adding session:', error);
@@ -119,16 +110,23 @@ export default function StudentList() {
   };
 
   const filteredStudents = students.filter(student => {
-    if (filterStatus === 'all') return true;
-    if (filterStatus === 'active') return student.active === true;
-    if (filterStatus === 'inactive') return student.active === false;
-    return true;
+    const matchesFilter = 
+      filterStatus === 'all' ? true :
+      filterStatus === 'active' ? student.active :
+      !student.active;
+      
+    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+    return matchesFilter && matchesSearch;
   });
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
+      <div className="flex justify-center items-center h-96">
+        <div className="flex flex-col items-center gap-3">
+           <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-primary"></div>
+           <p className="text-muted-foreground font-medium animate-pulse">Đang tải danh sách...</p>
+        </div>
       </div>
     );
   }
@@ -137,115 +135,175 @@ export default function StudentList() {
   const inactiveCount = students.filter(s => !s.active).length;
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-2xl shadow-sm p-6 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800">Danh sách học sinh</h2>
-          <p className="text-sm text-gray-500 mt-1 flex gap-3">
-             <span className="text-green-600 font-medium">{activeCount} đang học</span>
-             <span className="text-gray-300">|</span>
-             <span className="text-red-500 font-medium">{inactiveCount} đã nghỉ</span>
-          </p>
-        </div>
-        <button
-          onClick={handleAddStudent}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-lg shadow-indigo-200"
-        >
-          <Plus size={20} />
-          Thêm Học Sinh
-        </button>
+    <div className="space-y-8">
+      {/* Header & Controls */}
+      <div className="bg-card rounded-3xl shadow-sm border border-border p-6">
+         <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
+            
+            {/* Title & Stats */}
+            <div className="text-center lg:text-left">
+              <h2 className="text-2xl font-bold text-card-foreground flex items-center justify-center lg:justify-start gap-3">
+                 <User className="text-indigo-600 dark:text-indigo-400" />
+                 Danh sách học sinh
+              </h2>
+              <div className="flex items-center gap-4 mt-2 text-sm font-medium">
+                 <span className="px-3 py-1 bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-full border border-emerald-200 dark:border-emerald-800">
+                    {activeCount} đang học
+                 </span>
+                 <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full border border-slate-200 dark:border-slate-700">
+                    {inactiveCount} đã nghỉ
+                 </span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+               <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                  <input 
+                    type="text" 
+                    placeholder="Tìm kiếm học sinh..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-background border border-input rounded-xl focus:border-ring focus:ring-1 focus:ring-ring outline-none transition-all text-foreground placeholder:text-muted-foreground"
+                  />
+               </div>
+
+               <button
+                 onClick={handleAddStudent}
+                 className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl active:scale-95 whitespace-nowrap"
+               >
+                 <Plus size={20} />
+                 Thêm Học Sinh
+               </button>
+            </div>
+         </div>
+
+         {/* Filter Tabs */}
+         <div className="mt-6 flex justify-center lg:justify-start">
+            <div className="bg-muted p-1.5 rounded-xl flex gap-1">
+              {(['all', 'active', 'inactive'] as const).map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setFilterStatus(status)}
+                  className={`px-5 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${
+                    filterStatus === status
+                      ? 'bg-background text-primary shadow-sm scale-100'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                  }`}
+                >
+                  {status === 'all' && 'Tất cả'}
+                  {status === 'active' && 'Đang học'}
+                  {status === 'inactive' && 'Đã nghỉ'}
+                </button>
+              ))}
+            </div>
+         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex p-1 bg-gray-100 rounded-xl w-fit">
-        {(['all', 'active', 'inactive'] as const).map((status) => (
-          <button
-            key={status}
-            onClick={() => setFilterStatus(status)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              filterStatus === status
-                ? 'bg-white text-indigo-600 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            {status === 'all' && 'Tất cả'}
-            {status === 'active' && 'Đang học'}
-            {status === 'inactive' && 'Đã nghỉ'}
-          </button>
-        ))}
-      </div>
-
+      {/* Student Grid */}
       {filteredStudents.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300">
-          <User className="mx-auto text-gray-300 mb-4" size={64} />
-          <p className="text-gray-500 text-lg">Không tìm thấy học sinh nào.</p>
+        <div className="flex flex-col items-center justify-center py-20 bg-card rounded-3xl border-2 border-dashed border-border">
+          <div className="bg-muted p-6 rounded-full mb-4">
+            <User className="text-muted-foreground" size={48} />
+          </div>
+          <h3 className="text-lg font-bold text-card-foreground">Không tìm thấy học sinh nào</h3>
+          <p className="text-muted-foreground mt-1">Thử thay đổi bộ lọc hoặc tìm kiếm lại.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredStudents.map((student) => (
             <div
               key={student.id}
-              className={`group bg-white rounded-2xl p-6 border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
-                student.active ? 'border-gray-200 hover:border-indigo-300' : 'border-gray-100 bg-gray-50 opacity-80'
-              }`}
+              className={`
+                group relative bg-card rounded-3xl p-6 border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl
+                ${student.active 
+                   ? 'border-border hover:border-primary' 
+                   : 'border-border bg-muted/30 opacity-80 hover:opacity-100'}
+              `}
             >
-              <div className="flex justify-between items-start mb-4">
+              <div className="flex justify-between items-start mb-6">
                 <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold ${
-                    student.active ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-200 text-gray-500'
-                  }`}>
+                  {/* Avatar */}
+                  <div className={`
+                     w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-bold shadow-sm transition-transform group-hover:scale-105
+                     ${student.active 
+                        ? 'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground' 
+                        : 'bg-muted text-muted-foreground'}
+                  `}>
                     {student.name.charAt(0).toUpperCase()}
                   </div>
+                  
+                  {/* Info */}
                   <div>
-                    <h3 className="text-lg font-bold text-gray-800 leading-tight">{student.name}</h3>
-                    <div className={`text-xs px-2 py-0.5 rounded-full w-fit mt-1 font-medium ${
-                      student.active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                    <h3 className="text-lg font-bold text-card-foreground leading-tight group-hover:text-primary transition-colors">
+                      {student.name}
+                    </h3>
+                    <div className={`text-xs px-2.5 py-1 rounded-full w-fit mt-1.5 font-bold flex items-center gap-1.5 ${
+                      student.active 
+                        ? 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800' 
+                        : 'bg-destructive/10 text-destructive border border-destructive/20'
                     }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${student.active ? 'bg-emerald-500' : 'bg-destructive'}`} />
                       {student.active ? 'Đang học' : 'Đã nghỉ'}
                     </div>
                   </div>
                 </div>
                 
-                {/* Actions Dropdown/Row */}
-                <div className="flex gap-1">
-                  <button onClick={() => handleEditStudent(student)} className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                {/* Edit Actions */}
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute top-4 right-4 bg-background/90 backdrop-blur-sm p-1 rounded-lg shadow-sm border border-border">
+                  <button onClick={() => handleEditStudent(student)} className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Sửa">
                     <Edit2 size={16} />
                   </button>
-                  <button onClick={() => handleDeleteStudent(student.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                  <button onClick={() => handleDeleteStudent(student.id)} className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors" title="Xóa">
                     <Trash2 size={16} />
                   </button>
                 </div>
               </div>
 
-              <div className="space-y-3 mb-6">
-                <div className="flex items-center text-sm text-gray-600">
-                  <DollarSign size={16} className="text-gray-400 mr-2" />
-                  <span className="font-semibold">{formatCurrency(student.pricePerHour)}</span> / giờ
+              {/* Details */}
+              <div className="space-y-4 mb-6">
+                <div className="flex items-center text-sm text-muted-foreground bg-slate-50 dark:bg-muted/50 p-3 rounded-xl border border-border">
+                  <div className="bg-white dark:bg-background p-1.5 rounded-md shadow-sm mr-3 text-primary border border-border">
+                    <DollarSign size={16} />
+                  </div>
+                  <span className="font-bold text-foreground">{formatCurrency(student.pricePerHour)}</span>
+                  <span className="text-muted-foreground ml-1">/ giờ</span>
                 </div>
+
                 {student.schedule && (
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Calendar size={16} className="text-gray-400 mr-2" />
-                    <span className="line-clamp-1">{student.schedule}</span>
+                  <div className="flex items-center text-sm text-muted-foreground bg-slate-50 dark:bg-muted/50 p-3 rounded-xl border border-border">
+                     <div className="bg-white dark:bg-background p-1.5 rounded-md shadow-sm mr-3 text-primary border border-border">
+                        <Calendar size={16} />
+                     </div>
+                     <span className="font-medium line-clamp-1">{student.schedule}</span>
                   </div>
                 )}
+                
                 {/* Revenue Snapshot */}
-                <div className="pt-3 mt-3 border-t border-gray-100 flex justify-between text-sm">
-                   <div className="text-gray-500">Nợ: <span className="text-orange-600 font-bold">{formatCurrency(student.totalUnpaid || 0)}</span></div>
+                <div className="flex justify-between items-center text-sm pt-2">
+                   <span className="text-muted-foreground font-bold">Đang nợ</span>
+                   <span className={`font-bold ${
+                      (student.totalUnpaid || 0) > 0 ? 'text-destructive' : 'text-emerald-600 dark:text-emerald-400'
+                   }`}>
+                      {formatCurrency(student.totalUnpaid || 0)}
+                   </span>
                 </div>
               </div>
 
+              {/* Buttons */}
               <div className="grid grid-cols-2 gap-3">
                  <button
                     onClick={() => handleSetupSchedule(student)}
-                    className="px-3 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                    className="px-4 py-2.5 bg-slate-100 dark:bg-muted text-foreground hover:bg-slate-200 dark:hover:bg-accent border border-border rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2"
                  >
                     <Repeat size={16} />
-                    Lịch Cố Định
+                    Lịch
                  </button>
                  <button
                     onClick={() => openAddSessionModal(student.id)}
                     disabled={!student.active}
-                    className="px-3 py-2 bg-gray-900 text-white hover:bg-gray-800 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="px-4 py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
                  >
                     <Plus size={16} />
                     Buổi Học
@@ -256,6 +314,7 @@ export default function StudentList() {
         </div>
       )}
 
+      {/* Modals */}
       {showModal && (
         <StudentModal
           student={editingStudent}
@@ -281,7 +340,7 @@ export default function StudentList() {
         <RecurringScheduleModal
           studentId={selectedStudentForSchedule.id}
           studentName={selectedStudentForSchedule.name}
-          existingSchedule={null} // You might want to fetch existing schedule here if your API supports getting by studentID
+          existingSchedule={null}
           onClose={() => {
             setShowRecurringModal(false);
             setSelectedStudentForSchedule(null);
@@ -290,7 +349,6 @@ export default function StudentList() {
             setShowRecurringModal(false);
             setSelectedStudentForSchedule(null);
             loadStudents();
-            alert('✅ Đã lưu thiết lập lịch!');
           }}
         />
       )}

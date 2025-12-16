@@ -6,10 +6,16 @@
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/controller/SessionRecordController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/controller/SessionRecordController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/dto/response/SessionRecordResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/dto/response/SessionRecordResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/entity/SessionRecord.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/entity/SessionRecord.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/service/SessionRecordService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/service/SessionRecordService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/globals.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/AddSessionModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/AddSessionModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/Dashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/Dashboard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/MonthlyView.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/MonthlyView.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/RecurringScheduleModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/RecurringScheduleModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/StudentList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/StudentList.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/StudentModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/StudentModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/UnpaidSessionsView.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/UnpaidSessionsView.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

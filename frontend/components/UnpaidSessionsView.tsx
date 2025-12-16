@@ -1,10 +1,11 @@
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect } from 'react';
 import { 
   AlertCircle, CheckCircle, XCircle, Trash2, Calendar, FileText, 
-  Users, Mail, Loader2, DollarSign 
+  Users, Mail, Loader2 
 } from 'lucide-react';
 import { sessionsApi, invoicesApi } from '@/lib/api';
 import type { SessionRecord } from '@/lib/types';
@@ -30,6 +31,17 @@ const getMonthName = (monthStr: string) => {
   return `${month}/${year}`;
 };
 
+interface StudentGroup {
+  studentId: number;
+  studentName: string;
+  pricePerHour: number;
+  sessions: SessionRecord[];
+  totalSessions: number;
+  totalHours: number;
+  totalAmount: number;
+  months: Set<string>;
+}
+
 export default function UnpaidSessionsView() {
   const [records, setRecords] = useState<SessionRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +51,6 @@ export default function UnpaidSessionsView() {
   const [sendingEmail, setSendingEmail] = useState(false);
   const [selectAll, setSelectAll] = useState(false);
 
-  // Email result modal state
   const [showEmailResult, setShowEmailResult] = useState(false);
   const [emailResult, setEmailResult] = useState<{
     success: boolean;
@@ -56,7 +67,6 @@ export default function UnpaidSessionsView() {
   const loadUnpaidRecords = async () => {
     try {
       setLoading(true);
-      // Fetch all unpaid sessions
       const response = await sessionsApi.getUnpaid();
       setRecords(response);
       setSelectedSessions([]);
@@ -70,19 +80,8 @@ export default function UnpaidSessionsView() {
     }
   };
 
-  const handleTogglePayment = async (id: number) => {
-    try {
-      await sessionsApi.togglePayment(id);
-      loadUnpaidRecords();
-    } catch (error) {
-      console.error('Error toggling payment:', error);
-      alert('Không thể cập nhật trạng thái thanh toán!');
-    }
-  };
-
   const handleDeleteRecord = async (id: number) => {
     if (!confirm('Xóa buổi học này?')) return;
-
     try {
       await sessionsApi.delete(id);
       loadUnpaidRecords();
@@ -108,11 +107,9 @@ export default function UnpaidSessionsView() {
     const allSelected = allSessionIds.every(id => selectedSessions.includes(id));
 
     if (allSelected) {
-      // Bỏ chọn tất cả buổi của học sinh này
       setSelectedSessions(selectedSessions.filter(id => !allSessionIds.includes(id)));
       setSelectedStudents(selectedStudents.filter(id => id !== studentId));
     } else {
-      // Chọn tất cả buổi của học sinh này
       const newSessions = [...selectedSessions, ...allSessionIds.filter(id => !selectedSessions.includes(id))];
       setSelectedSessions(newSessions);
       if (!selectedStudents.includes(studentId)) {
@@ -139,11 +136,9 @@ export default function UnpaidSessionsView() {
       alert('Vui lòng chọn ít nhất một buổi học!');
       return;
     }
-
     if (!confirm(`Đánh dấu ${selectedSessions.length} buổi học đã chọn là đã thanh toán?`)) {
       return;
     }
-
     try {
       for (const sessionId of selectedSessions) {
         await sessionsApi.togglePayment(sessionId);
@@ -161,11 +156,8 @@ export default function UnpaidSessionsView() {
       alert('Vui lòng chọn ít nhất một buổi học!');
       return;
     }
-
     try {
       setGeneratingInvoice(true);
-
-      // Lấy tháng của buổi học đầu tiên đã chọn
       const firstSession = records.find(r => selectedSessions.includes(r.id));
       if (!firstSession) return;
 
@@ -189,7 +181,6 @@ export default function UnpaidSessionsView() {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-
     } catch (error) {
       console.error('Error generating invoice:', error);
       alert('Không thể tạo báo giá!');
@@ -203,33 +194,24 @@ export default function UnpaidSessionsView() {
       alert('Vui lòng chọn ít nhất một học sinh!');
       return;
     }
-  
     if (!confirm(`Gửi email báo giá cho ${selectedStudents.length} học sinh đã chọn?`)) {
       return;
     }
-  
     try {
       setSendingEmail(true);
-  
-      // Lấy tất cả session IDs đã chọn
-      const sessionIds = selectedSessions; // Đây là danh sách ID buổi học đã chọn
-      
+      const sessionIds = selectedSessions; 
       if (sessionIds.length === 0) {
         alert('Vui lòng chọn ít nhất một buổi học!');
         setSendingEmail(false);
         return;
       }
-  
-      // KHÔNG dùng month nữa, chỉ truyền sessionRecordIds
       const result = await invoicesApi.sendInvoiceEmailBatch({
-          selectedStudentIds: selectedStudents, // Vẫn cần để kiểm tra cùng phụ huynh
+          selectedStudentIds: selectedStudents,
           sessionRecordIds: sessionIds,
           month: ''
       });
-  
       setEmailResult(result);
       setShowEmailResult(true);
-  
     } catch (error: any) {
       console.error('Error sending email:', error);
       setEmailResult({
@@ -242,7 +224,6 @@ export default function UnpaidSessionsView() {
     }
   };
 
-  // Group by student
   const groupedRecords = records.reduce((acc, record) => {
     const key = record.studentId;
     if (!acc[key]) {
@@ -263,18 +244,9 @@ export default function UnpaidSessionsView() {
     acc[key].totalAmount += record.totalAmount;
     acc[key].months.add(record.month);
     return acc;
-  }, {} as Record<number, {
-    studentId: number;
-    studentName: string;
-    pricePerHour: number;
-    sessions: SessionRecord[];
-    totalSessions: number;
-    totalHours: number;
-    totalAmount: number;
-    months: Set<string>;
-  }>);
+  }, {} as Record<number, StudentGroup>);
 
-  const groupedRecordsArray = Object.values(groupedRecords);
+  const groupedRecordsArray = Object.values(groupedRecords) as StudentGroup[];
 
   const totalUnpaid = records.reduce((sum, r) => sum + r.totalAmount, 0);
   const totalSessions = records.reduce((sum, r) => sum + r.sessions, 0);
@@ -292,73 +264,73 @@ export default function UnpaidSessionsView() {
   if (loading) {
     return (
       <div className="text-center py-16">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-        <p className="mt-4 text-gray-600">Đang tải...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+        <p className="mt-4 text-muted-foreground">Đang tải...</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6">
+    <div className="bg-card rounded-2xl shadow-lg p-6 transition-colors border border-border">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <AlertCircle className="text-orange-600" size={32} />
-        <h2 className="text-2xl font-bold text-gray-800">Buổi học chưa thanh toán</h2>
+        <AlertCircle className="text-orange-600 dark:text-orange-500" size={32} />
+        <h2 className="text-2xl font-bold text-card-foreground">Buổi học chưa thanh toán</h2>
       </div>
 
       {/* Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-orange-50 rounded-lg p-4">
-          <p className="text-sm text-gray-600 mb-1">Tổng chưa thanh toán</p>
-          <p className="text-2xl font-bold text-orange-600">
+        <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800/30">
+          <p className="text-sm text-muted-foreground mb-1">Tổng chưa thanh toán</p>
+          <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
             {formatCurrency(totalUnpaid)}
           </p>
         </div>
-        <div className="bg-blue-50 rounded-lg p-4">
-          <p className="text-sm text-gray-600 mb-1">Số buổi học</p>
-          <p className="text-2xl font-bold text-blue-600">{totalSessions} buổi</p>
+        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800/30">
+          <p className="text-sm text-muted-foreground mb-1">Số buổi học</p>
+          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{totalSessions} buổi</p>
         </div>
-        <div className="bg-purple-50 rounded-lg p-4">
-          <p className="text-sm text-gray-600 mb-1">Số học sinh</p>
-          <p className="text-2xl font-bold text-purple-600">{groupedRecordsArray.length} HS</p>
+        <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800/30">
+          <p className="text-sm text-muted-foreground mb-1">Số học sinh</p>
+          <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{groupedRecordsArray.length} HS</p>
         </div>
       </div>
 
       {/* Action Section */}
       {records.length > 0 && (
-        <div className="mb-8 p-6 bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl border-2 border-orange-100">
+        <div className="mb-8 p-6 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/10 dark:to-red-900/10 rounded-2xl border-2 border-orange-200 dark:border-orange-800/30">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <Users className="text-orange-600" size={24} />
-              <h3 className="text-xl font-bold text-gray-800">Thanh toán & Gửi báo giá</h3>
+              <Users className="text-orange-600 dark:text-orange-500" size={24} />
+              <h3 className="text-xl font-bold text-card-foreground">Thanh toán & Gửi báo giá</h3>
             </div>
             <div className="flex items-center gap-3">
               <button
                 onClick={toggleSelectAll}
-                className="px-4 py-2 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg font-medium transition-colors"
+                className="px-4 py-2 bg-orange-100 dark:bg-orange-900/30 hover:bg-orange-200 dark:hover:bg-orange-900/50 text-orange-700 dark:text-orange-300 rounded-lg font-medium transition-colors border border-orange-200 dark:border-orange-800/50"
               >
                 {selectAll ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
               </button>
-              <div className="text-sm text-gray-600">
-                Đã chọn: <span className="font-bold text-orange-600">{selectedSessions.length}/{totalSessions}</span> buổi
+              <div className="text-sm text-muted-foreground">
+                Đã chọn: <span className="font-bold text-orange-600 dark:text-orange-400">{selectedSessions.length}/{totalSessions}</span> buổi
               </div>
             </div>
           </div>
 
           {selectedSessions.length > 0 && (
-            <div className="mb-4 p-4 bg-white rounded-xl border border-orange-200">
+            <div className="mb-4 p-4 bg-white dark:bg-card rounded-xl border border-orange-200 dark:border-orange-800/50 shadow-sm">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="text-center">
-                  <p className="text-sm text-gray-600">Buổi đã chọn</p>
-                  <p className="text-2xl font-bold text-blue-600">{selectedTotal.totalSessions} buổi</p>
+                  <p className="text-sm text-muted-foreground">Buổi đã chọn</p>
+                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{selectedTotal.totalSessions} buổi</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-sm text-gray-600">Tổng giờ</p>
-                  <p className="text-2xl font-bold text-green-600">{selectedTotal.totalHours} giờ</p>
+                  <p className="text-sm text-muted-foreground">Tổng giờ</p>
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">{selectedTotal.totalHours} giờ</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-sm text-gray-600">Tổng tiền</p>
-                  <p className="text-2xl font-bold text-purple-600">
+                  <p className="text-sm text-muted-foreground">Tổng tiền</p>
+                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                     {formatCurrency(selectedTotal.totalAmount)}
                   </p>
                 </div>
@@ -418,8 +390,8 @@ export default function UnpaidSessionsView() {
 
       {/* Email Result Modal */}
       {showEmailResult && emailResult && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto border border-border">
             <div className={`p-6 rounded-t-2xl ${
               emailResult.success 
                 ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
@@ -437,32 +409,32 @@ export default function UnpaidSessionsView() {
               </div>
             </div>
 
-            <div className="p-6">
+            <div className="p-6 text-card-foreground">
               {emailResult.summary && (
                 <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <p className="text-sm text-gray-600">Tổng số</p>
-                    <p className="text-2xl font-bold text-blue-600">{emailResult.summary.total}</p>
+                  <div className="text-center p-4 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                    <p className="text-sm text-muted-foreground">Tổng số</p>
+                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{emailResult.summary.total}</p>
                   </div>
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <p className="text-sm text-gray-600">Đã gửi</p>
-                    <p className="text-2xl font-bold text-green-600">{emailResult.summary.sent}</p>
+                  <div className="text-center p-4 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                    <p className="text-sm text-muted-foreground">Đã gửi</p>
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">{emailResult.summary.sent}</p>
                   </div>
-                  <div className="text-center p-4 bg-red-50 rounded-lg">
-                    <p className="text-sm text-gray-600">Thất bại</p>
-                    <p className="text-2xl font-bold text-red-600">{emailResult.summary.failed || 0}</p>
+                  <div className="text-center p-4 bg-red-100 dark:bg-red-900/20 rounded-lg">
+                    <p className="text-sm text-muted-foreground">Thất bại</p>
+                    <p className="text-2xl font-bold text-red-600 dark:text-red-400">{emailResult.summary.failed || 0}</p>
                   </div>
                 </div>
               )}
 
               {emailResult.successDetails && emailResult.successDetails.length > 0 && (
                 <div className="mb-6">
-                  <h4 className="font-bold text-gray-800 mb-3">Email đã gửi:</h4>
+                  <h4 className="font-bold text-card-foreground mb-3">Email đã gửi:</h4>
                   <div className="space-y-2">
                     {emailResult.successDetails.map((detail, index) => (
-                      <div key={index} className="p-3 bg-green-50 rounded-lg border border-green-200">
+                      <div key={index} className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800/50">
                         <p className="font-medium">{detail.student}</p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                           {detail.parent} • {detail.email}
                         </p>
                       </div>
@@ -473,10 +445,10 @@ export default function UnpaidSessionsView() {
 
               {emailResult.errors && emailResult.errors.length > 0 && (
                 <div className="mb-6">
-                  <h4 className="font-bold text-gray-800 mb-3">Lỗi:</h4>
+                  <h4 className="font-bold text-card-foreground mb-3">Lỗi:</h4>
                   <div className="space-y-2">
                     {emailResult.errors.map((error, index) => (
-                      <div key={index} className="p-3 bg-red-50 rounded-lg text-sm text-red-700">
+                      <div key={index} className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg text-sm text-red-700 dark:text-red-400">
                         {error}
                       </div>
                     ))}
@@ -486,7 +458,9 @@ export default function UnpaidSessionsView() {
 
               {emailResult.message && !emailResult.summary && (
                 <div className={`p-4 rounded-lg ${
-                  emailResult.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+                  emailResult.success 
+                    ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300' 
+                    : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300'
                 }`}>
                   {emailResult.message}
                 </div>
@@ -497,7 +471,7 @@ export default function UnpaidSessionsView() {
                   setShowEmailResult(false);
                   setEmailResult(null);
                 }}
-                className="w-full mt-6 bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 px-6 rounded-xl transition-colors"
+                className="w-full mt-6 bg-secondary hover:bg-secondary/80 text-secondary-foreground font-bold py-3 px-6 rounded-xl transition-colors"
               >
                 Đóng
               </button>
@@ -510,7 +484,7 @@ export default function UnpaidSessionsView() {
       {records.length === 0 ? (
         <div className="text-center py-16">
           <CheckCircle className="mx-auto text-green-400 mb-4" size={64} />
-          <p className="text-gray-500 text-lg">Tuyệt vời! Không có buổi học nào chưa thanh toán</p>
+          <p className="text-muted-foreground text-lg">Tuyệt vời! Không có buổi học nào chưa thanh toán</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -521,10 +495,10 @@ export default function UnpaidSessionsView() {
             return (
               <div
                 key={group.studentId}
-                className={`border-2 rounded-xl p-5 transition-all ${
+                className={`border rounded-xl p-5 transition-all ${
                   isStudentSelected
-                    ? 'border-orange-300 bg-orange-50'
-                    : 'border-gray-200'
+                    ? 'border-orange-300 bg-orange-50 dark:border-orange-700 dark:bg-orange-900/10'
+                    : 'border-border bg-card'
                 }`}
               >
                 {/* Student Header */}
@@ -537,17 +511,17 @@ export default function UnpaidSessionsView() {
                       className="h-5 w-5 text-orange-600 rounded focus:ring-orange-500"
                     />
                     <div>
-                      <h3 className="text-lg font-bold text-gray-800 mb-1">
+                      <h3 className="text-lg font-bold text-card-foreground mb-1">
                         {group.studentName}
                       </h3>
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-medium">
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <span className="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-3 py-1 rounded-full font-medium">
                           {group.totalSessions} buổi × 2h = {group.totalHours}h
                         </span>
-                        <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-medium">
+                        <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full font-medium">
                           {Array.from(group.months).map(m => getMonthName(m)).join(', ')}
                         </span>
-                        <span className="font-semibold text-gray-800">
+                        <span className="font-semibold text-foreground">
                           Tổng: {formatCurrency(group.totalAmount)}
                         </span>
                       </div>
@@ -556,17 +530,17 @@ export default function UnpaidSessionsView() {
                 </div>
 
                 {/* Sessions Grid */}
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-muted/30 rounded-lg p-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {group.sessions
                       .sort((a, b) => a.sessionDate.localeCompare(b.sessionDate))
                       .map((session) => (
                         <div
                           key={session.id}
-                          className={`relative group border-2 rounded-lg p-3 cursor-pointer transition-all ${
+                          className={`relative group border rounded-lg p-3 cursor-pointer transition-all ${
                             selectedSessions.includes(session.id)
-                              ? 'bg-orange-100 border-orange-300'
-                              : 'bg-white border-gray-200 hover:border-orange-300'
+                              ? 'bg-orange-100 border-orange-300 dark:bg-orange-900/30 dark:border-orange-600'
+                              : 'bg-card border-border hover:border-orange-300 dark:hover:border-orange-500'
                           }`}
                           onClick={() => toggleSessionSelection(session.id)}
                         >
@@ -580,29 +554,29 @@ export default function UnpaidSessionsView() {
                             />
                             <div className="flex-1">
                               <div className="flex items-center gap-1 mb-1">
-                                <Calendar size={12} className="text-gray-600" />
-                                <span className="text-xs font-semibold text-gray-800">
+                                <Calendar size={12} className="text-muted-foreground" />
+                                <span className="text-xs font-semibold text-card-foreground">
                                   {formatDate(session.sessionDate)}
                                 </span>
                               </div>
 
                               <div className="flex items-center gap-[5px] mb-1">
                                 {session.completed ? (
-                                  <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+                                  <span className="text-xs text-green-600 dark:text-green-400 font-medium flex items-center gap-1">
                                     <CheckCircle size={10} />
                                     Đã dạy
                                   </span>
                                 ) : (
-                                  <span className="text-xs text-gray-400 italic">
+                                  <span className="text-xs text-muted-foreground italic">
                                     Dự kiến
                                   </span>
                                 )}
                               </div>
 
-                              <div className="text-xs text-gray-600">
+                              <div className="text-xs text-muted-foreground">
                                 {getMonthName(session.month)}
                               </div>
-                              <div className="text-xs font-medium text-orange-600 mt-1">
+                              <div className="text-xs font-medium text-orange-600 dark:text-orange-400 mt-1">
                                 {formatCurrency(session.totalAmount)}
                               </div>
                             </div>
@@ -611,7 +585,7 @@ export default function UnpaidSessionsView() {
                                 e.stopPropagation();
                                 handleDeleteRecord(session.id);
                               }}
-                              className="opacity-0 group-hover:opacity-100 bg-red-100 hover:bg-red-200 text-red-600 p-1 rounded"
+                              className="opacity-0 group-hover:opacity-100 bg-red-100 hover:bg-red-200 text-red-600 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 p-1 rounded"
                             >
                               <Trash2 size={12} />
                             </button>

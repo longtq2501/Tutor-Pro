@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Calendar, Clock } from 'lucide-react';
+import { X, Calendar, Clock, Bookmark, ChevronRight } from 'lucide-react';
 
 interface AddSessionModalProps {
   onClose: () => void;
@@ -13,7 +13,6 @@ export default function AddSessionModal({ onClose, onSubmit, initialDate }: AddS
   const [sessions, setSessions] = useState<number>(1);
   const [hoursPerSession, setHoursPerSession] = useState<number>(2);
   
-  // Use local date for default if not provided
   const getDefaultDate = () => {
     const d = new Date();
     const year = d.getFullYear();
@@ -28,25 +27,11 @@ export default function AddSessionModal({ onClose, onSubmit, initialDate }: AddS
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (sessions < 1) {
-      alert('Số buổi học phải lớn hơn 0');
+    if (sessions < 1 || hoursPerSession < 0.5 || !sessionDate) {
+      alert('Vui lòng kiểm tra lại thông tin');
       return;
     }
-    
-    if (hoursPerSession < 0.5) {
-      alert('Số giờ mỗi buổi phải lớn hơn 0.5');
-      return;
-    }
-    
-    if (!sessionDate) {
-      alert('Vui lòng chọn ngày dạy');
-      return;
-    }
-    
-    // Extract month from date (YYYY-MM)
     const month = sessionDate.substring(0, 7);
-    
     onSubmit(sessions, hoursPerSession, sessionDate, month);
   };
 
@@ -54,116 +39,111 @@ export default function AddSessionModal({ onClose, onSubmit, initialDate }: AddS
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
       
-      {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-5 rounded-t-2xl">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">Thêm buổi học</h2>
-            <button
+      <div className="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full animate-in zoom-in-95 duration-300 overflow-hidden border border-slate-200 dark:border-slate-800">
+        
+        {/* Decorative Header */}
+        <div className="bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-900 dark:to-slate-900 px-8 py-6 text-white relative overflow-hidden">
+           <div className="absolute top-0 right-0 p-4 opacity-10 transform translate-x-4 -translate-y-4">
+             <Bookmark size={100} />
+           </div>
+           <h2 className="text-2xl font-bold relative z-10">Thêm Buổi Học</h2>
+           <p className="text-indigo-100 text-sm relative z-10 opacity-90">Ghi nhận lịch dạy mới</p>
+           
+           <button
               onClick={onClose}
-              className="text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-lg transition-all"
-            >
-              <X size={24} />
-            </button>
-          </div>
+              className="absolute top-4 right-4 text-white/60 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-all"
+           >
+              <X size={20} />
+           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6">
-          <div className="space-y-5">
-            {/* Ngày dạy */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                <Calendar className="inline mr-2" size={16} />
-                Ngày dạy <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                value={sessionDate}
-                onChange={(e) => setSessionDate(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none text-gray-900"
-                required
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Chọn ngày cụ thể bạn dạy (có thể chọn ngày quá khứ)
-              </p>
-            </div>
-
-            {/* Số buổi */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Số buổi học <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                value={sessions}
-                onChange={(e) => setSessions(parseInt(e.target.value) || 1)}
-                min="1"
-                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none text-gray-900"
-                required
-              />
-            </div>
-
-            {/* Số giờ mỗi buổi */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                <Clock className="inline mr-2" size={16} />
-                Số giờ mỗi buổi <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                value={hoursPerSession}
-                onChange={(e) => setHoursPerSession(parseFloat(e.target.value) || 2)}
-                min="0.5"
-                step="0.5"
-                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none text-gray-900"
-                required
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Mặc định: 2 giờ/buổi
-              </p>
-            </div>
-
-            {/* Tổng kết */}
-            <div className="bg-indigo-50 rounded-xl p-4 border-2 border-indigo-200">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700">Tổng giờ:</span>
-                <span className="text-xl font-bold text-indigo-600">
-                  {totalHours.toFixed(1)} giờ
-                </span>
-              </div>
-              <div className="flex justify-between items-center text-sm text-gray-600">
-                <span>Tháng:</span>
-                <span className="font-semibold">
-                  {sessionDate.substring(0, 7)}
-                </span>
-              </div>
-            </div>
+        <form onSubmit={handleSubmit} className="p-8 space-y-6">
+          
+          {/* Date Picker */}
+          <div className="group">
+             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
+                <Calendar size={16} className="text-indigo-500 dark:text-indigo-400" />
+                Ngày dạy
+             </label>
+             <input
+               type="date"
+               value={sessionDate}
+               onChange={(e) => setSessionDate(e.target.value)}
+               className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:border-indigo-500 dark:focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:focus:ring-indigo-500/20 outline-none transition-all font-medium text-slate-800 dark:text-white"
+               required
+             />
           </div>
 
-          {/* Buttons */}
-          <div className="flex gap-3 mt-6">
-            <button
-              type="submit"
-              className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3.5 rounded-xl font-semibold transition-all shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40"
-            >
-              Thêm buổi học
-            </button>
+          <div className="grid grid-cols-2 gap-5">
+             {/* Sessions Count */}
+             <div>
+               <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Số buổi</label>
+               <input
+                 type="number"
+                 value={sessions}
+                 onChange={(e) => setSessions(parseInt(e.target.value) || 1)}
+                 min="1"
+                 className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:border-indigo-500 dark:focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:focus:ring-indigo-500/20 outline-none transition-all font-bold text-center text-lg text-slate-800 dark:text-white"
+                 required
+               />
+             </div>
+
+             {/* Hours Count */}
+             <div>
+               <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1">
+                 <Clock size={14} className="text-indigo-500 dark:text-indigo-400" /> Giờ / buổi
+               </label>
+               <input
+                 type="number"
+                 value={hoursPerSession}
+                 onChange={(e) => setHoursPerSession(parseFloat(e.target.value) || 2)}
+                 min="0.5"
+                 step="0.5"
+                 className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:border-indigo-500 dark:focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:focus:ring-indigo-500/20 outline-none transition-all font-bold text-center text-lg text-slate-800 dark:text-white"
+                 required
+               />
+             </div>
+          </div>
+
+          {/* Summary Card */}
+          <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-800/50 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+             <div className="flex justify-between items-center mb-3">
+               <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Tổng thời lượng</span>
+               <span className="text-2xl font-black text-indigo-600 dark:text-indigo-400 tracking-tight">
+                 {totalHours.toFixed(1)} <span className="text-sm font-medium text-slate-400 dark:text-slate-500">giờ</span>
+               </span>
+             </div>
+             <div className="h-px bg-slate-200 dark:bg-slate-700 w-full mb-3" />
+             <div className="flex justify-between items-center text-xs font-semibold text-slate-500 dark:text-slate-400">
+               <span>Ghi nhận cho tháng</span>
+               <span className="bg-white dark:bg-slate-700 px-2 py-1 rounded border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200">
+                  {sessionDate ? sessionDate.substring(0, 7) : '--/--'}
+               </span>
+             </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-4 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3.5 rounded-xl font-semibold transition-all"
+              className="flex-1 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 py-3.5 rounded-xl font-bold transition-all"
             >
               Hủy
             </button>
+            <button
+              type="submit"
+              className="flex-[2] bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400 text-white py-3.5 rounded-xl font-bold transition-all shadow-lg shadow-indigo-200 dark:shadow-none hover:shadow-indigo-300 flex items-center justify-center gap-2 group"
+            >
+              Xác nhận <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+            </button>
           </div>
+
         </form>
       </div>
     </div>

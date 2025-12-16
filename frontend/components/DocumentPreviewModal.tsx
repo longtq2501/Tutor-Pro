@@ -22,6 +22,7 @@ export default function DocumentPreviewModal({
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     loadPreview();
     
     // Cleanup function

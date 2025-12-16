@@ -1,4 +1,3 @@
-// src/components/AddSessionModal.tsx
 'use client';
 
 import { useState } from 'react';
@@ -7,13 +6,24 @@ import { X, Calendar, Clock } from 'lucide-react';
 interface AddSessionModalProps {
   onClose: () => void;
   onSubmit: (sessions: number, hoursPerSession: number, sessionDate: string, month: string) => void;
+  initialDate?: string;
 }
 
-export default function AddSessionModal({ onClose, onSubmit }: AddSessionModalProps) {
+export default function AddSessionModal({ onClose, onSubmit, initialDate }: AddSessionModalProps) {
   const [sessions, setSessions] = useState<number>(1);
   const [hoursPerSession, setHoursPerSession] = useState<number>(2);
+  
+  // Use local date for default if not provided
+  const getDefaultDate = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const [sessionDate, setSessionDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
+    initialDate || getDefaultDate()
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -78,7 +88,7 @@ export default function AddSessionModal({ onClose, onSubmit }: AddSessionModalPr
                 type="date"
                 value={sessionDate}
                 onChange={(e) => setSessionDate(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none text-gray-900"  // 🆕 Thêm text-gray-900 để chữ đen
+                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none text-gray-900"
                 required
               />
               <p className="text-xs text-gray-500 mt-1">
@@ -96,7 +106,7 @@ export default function AddSessionModal({ onClose, onSubmit }: AddSessionModalPr
                 value={sessions}
                 onChange={(e) => setSessions(parseInt(e.target.value) || 1)}
                 min="1"
-                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none text-gray-900"  // 🆕 Thêm text-gray-900
+                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none text-gray-900"
                 required
               />
             </div>
@@ -113,7 +123,7 @@ export default function AddSessionModal({ onClose, onSubmit }: AddSessionModalPr
                 onChange={(e) => setHoursPerSession(parseFloat(e.target.value) || 2)}
                 min="0.5"
                 step="0.5"
-                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none text-gray-900"  // 🆕 Thêm text-gray-900
+                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none text-gray-900"
                 required
               />
               <p className="text-xs text-gray-500 mt-1">

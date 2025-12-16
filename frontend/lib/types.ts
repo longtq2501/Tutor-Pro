@@ -1,4 +1,3 @@
-// src/lib/types.ts
 export interface Parent {
   id: number;
   name: string;
@@ -62,6 +61,7 @@ export interface SessionRecord {
   pricePerHour: number;
   totalAmount: number;
   paid: boolean;
+  completed?: boolean; // ← THÊM: Trạng thái đã dạy hay chưa
   paidAt?: string;
   notes?: string;
   sessionDate: string;
@@ -76,6 +76,7 @@ export interface SessionRecordRequest {
   sessionDate: string;
   hoursPerSession: number;
   notes?: string;
+  completed?: boolean; // ← THÊM
 }
 
 export interface DashboardStats {
@@ -92,13 +93,6 @@ export interface MonthlyStats {
   totalUnpaid: number;
   totalSessions: number;
 }
-
-// export interface InvoiceRequest {
-//   studentId?: number; // Optional - nếu không có thì là báo giá tổng
-//   month: string;
-//   sessionRecordIds?: number[];
-//   allStudents?: boolean; // True nếu muốn tạo báo giá cho tất cả học sinh
-// }
 
 // api.ts - thêm field vào InvoiceRequest interface
 export interface InvoiceRequest {
@@ -189,4 +183,34 @@ export interface DocumentStats {
     toeic: number;
     other: number;
   };
+}
+
+export interface RecurringSchedule {
+  id: number;
+  studentId: number;
+  studentName: string;
+  daysOfWeek: number[];          // [1,3,5] = Thứ 2,4,6
+  daysOfWeekDisplay: string;     // "Thứ 2, 4, 6"
+  startTime: string;             // "18:00"
+  endTime: string;               // "20:00"
+  timeRange: string;             // "18:00-20:00"
+  hoursPerSession: number;       // 2.0
+  startMonth: string;            // "2025-01"
+  endMonth?: string;             // "2025-12" (optional)
+  active: boolean;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RecurringScheduleRequest {
+  studentId: number;
+  daysOfWeek: number[];
+  startTime: string;
+  endTime: string;
+  hoursPerSession: number;
+  startMonth: string;
+  endMonth?: string;
+  active?: boolean;
+  notes?: string;
 }

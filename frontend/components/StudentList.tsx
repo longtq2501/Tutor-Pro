@@ -1,12 +1,13 @@
-// src/components/StudentList.tsx
+
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, Plus, Edit2, Trash2, Calendar, DollarSign, Clock, Power } from 'lucide-react';
+import { User, Plus, Edit2, Trash2, Calendar, DollarSign, Clock, Power, Repeat, Sparkles } from 'lucide-react';
 import { studentsApi, sessionsApi } from '@/lib/api';
 import type { Student, SessionRecordRequest } from '@/lib/types';
 import StudentModal from './StudentModal';
 import AddSessionModal from './AddSessionModal';
+import RecurringScheduleModal from './RecurringScheduleModal';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('vi-VN', {
@@ -18,37 +19,38 @@ const formatCurrency = (amount: number) => {
 export default function StudentList() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Modals
   const [showModal, setShowModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  
   const [showAddSessionModal, setShowAddSessionModal] = useState(false);
   const [selectedStudentIdForSession, setSelectedStudentIdForSession] = useState<number | null>(null);
+  
+  const [showRecurringModal, setShowRecurringModal] = useState(false);
+  const [selectedStudentForSchedule, setSelectedStudentForSchedule] = useState<Student | null>(null);
+
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
 
   useEffect(() => {
     loadStudents();
   }, []);
 
-  useEffect(() => {
-    if (showAddSessionModal || showModal) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [showAddSessionModal, showModal]);
-
   const loadStudents = async () => {
     try {
       setLoading(true);
       const data = await studentsApi.getAll();
-      setStudents(data);
+      setStudents(data || []);
     } catch (error) {
       console.error('Error loading students:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSetupSchedule = (student: Student) => {
+    setSelectedStudentForSchedule(student);
+    setShowRecurringModal(true);
   };
 
   const handleAddStudent = () => {
@@ -62,7 +64,7 @@ export default function StudentList() {
   };
 
   const handleDeleteStudent = async (id: number) => {
-    if (!confirm('Xóa học sinh sẽ xóa toàn bộ lịch sử học của học sinh này. Bạn có chắc?')) {
+    if (!confirm('CẢNH BÁO: Xóa học sinh sẽ xóa toàn bộ lịch sử học và doanh thu liên quan. Bạn có chắc chắn?')) {
       return;
     }
     try {
@@ -108,8 +110,8 @@ export default function StudentList() {
       await sessionsApi.create(requestData);
       setShowAddSessionModal(false);
       setSelectedStudentIdForSession(null);
-      await loadStudents();
-      alert(`Đã thêm buổi học ngày ${sessionDate} thành công!`);
+      await loadStudents(); // Reload to update stats
+      alert(`Đã thêm buổi học thành công!`);
     } catch (error) {
       console.error('Error adding session:', error);
       alert('Không thể thêm buổi học!');
@@ -125,9 +127,8 @@ export default function StudentList() {
 
   if (loading) {
     return (
-      <div className="text-center py-16">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-        <p className="mt-4 text-gray-600">Đang tải...</p>
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
       </div>
     );
   }
@@ -136,189 +137,124 @@ export default function StudentList() {
   const inactiveCount = students.filter(s => !s.active).length;
 
   return (
-    <>
-      <div className="bg-white rounded-2xl shadow-lg p-6">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">Danh sách học sinh</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              {activeCount} đang học • {inactiveCount} đã nghỉ
-            </p>
-          </div>
-          <button
-            onClick={handleAddStudent}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
-          >
-            <Plus size={20} />
-            Thêm học sinh
-          </button>
+    <div className="space-y-6">
+      <div className="bg-white rounded-2xl shadow-sm p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800">Danh sách học sinh</h2>
+          <p className="text-sm text-gray-500 mt-1 flex gap-3">
+             <span className="text-green-600 font-medium">{activeCount} đang học</span>
+             <span className="text-gray-300">|</span>
+             <span className="text-red-500 font-medium">{inactiveCount} đã nghỉ</span>
+          </p>
         </div>
-
-        {/* Filter Tabs */}
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => setFilterStatus('all')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filterStatus === 'all'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            Tất cả ({students.length})
-          </button>
-          <button
-            onClick={() => setFilterStatus('active')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filterStatus === 'active'
-                ? 'bg-green-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            Đang học ({activeCount})
-          </button>
-          <button
-            onClick={() => setFilterStatus('inactive')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filterStatus === 'inactive'
-                ? 'bg-red-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            Đã nghỉ ({inactiveCount})
-          </button>
-        </div>
-
-        {filteredStudents.length === 0 ? (
-          <div className="text-center py-16">
-            <User className="mx-auto text-gray-300 mb-4" size={64} />
-            <p className="text-gray-500 text-lg mb-4">Chưa có học sinh nào</p>
-            <button
-              onClick={handleAddStudent}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center gap-2"
-            >
-              <Plus size={20} />
-              Thêm học sinh đầu tiên
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredStudents.map((student) => (
-              <div
-                key={student.id}
-                className={`border-2 rounded-xl p-6 hover:shadow-md transition-shadow ${
-                  student.active ? 'border-gray-200' : 'border-gray-300 bg-gray-50'
-                }`}
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex items-center flex-1">
-                    <div className={`rounded-full p-3 mr-3 ${
-                      student.active ? 'bg-indigo-100' : 'bg-gray-200'
-                    }`}>
-                      <User className={student.active ? 'text-indigo-600' : 'text-gray-500'} size={24} />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-bold text-gray-800">{student.name}</h3>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          student.active 
-                            ? 'bg-green-100 text-green-700' 
-                            : 'bg-red-100 text-red-700'
-                        }`}>
-                          {student.active ? '✓ Đang học' : '✕ Đã nghỉ'}
-                        </span>
-                      </div>
-                      {student.phone && <p className="text-sm text-gray-600">{student.phone}</p>}
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleToggleActive(student.id)}
-                      className={`p-2 rounded-lg transition-colors ${
-                        student.active
-                          ? 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                          : 'bg-green-100 hover:bg-green-200 text-green-700'
-                      }`}
-                      title={student.active ? 'Đánh dấu đã nghỉ' : 'Đánh dấu đang học'}
-                    >
-                      <Power size={18} />
-                    </button>
-                    <button
-                      onClick={() => handleEditStudent(student)}
-                      className="bg-blue-100 hover:bg-blue-200 text-blue-700 p-2 rounded-lg transition-colors"
-                    >
-                      <Edit2 size={18} />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteStudent(student.id)}
-                      className="bg-red-100 hover:bg-red-200 text-red-700 p-2 rounded-lg transition-colors"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Learning Duration */}
-                {student.learningDuration && (
-                  <div className="mb-3 px-3 py-2 bg-indigo-50 border-l-4 border-indigo-500 rounded">
-                    <div className="flex items-center gap-2 text-sm text-indigo-700 font-medium">
-                      <Clock size={14} />
-                      {student.learningDuration}
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Calendar className="mr-2" size={16} />
-                    {student.schedule}
-                  </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <DollarSign className="mr-2" size={16} />
-                    {formatCurrency(student.pricePerHour)}/giờ
-                  </div>
-                  {student.startMonth && (
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Calendar className="mr-2" size={16} />
-                      Bắt đầu: {student.startMonth}
-                    </div>
-                  )}
-                </div>
-
-                {student.notes && (
-                  <p className="text-sm text-gray-600 mb-4 italic">{student.notes}</p>
-                )}
-
-                <div className="border-t pt-4 mb-4">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600">Đã thu:</span>
-                    <span className="font-semibold text-green-600">
-                      {formatCurrency(student.totalPaid)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Chưa thu:</span>
-                    <span className="font-semibold text-orange-600">
-                      {formatCurrency(student.totalUnpaid)}
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => openAddSessionModal(student.id)}
-                  disabled={!student.active}
-                  className={`w-full py-2 rounded-lg font-medium transition-colors ${
-                    student.active
-                      ? 'bg-indigo-100 hover:bg-indigo-200 text-indigo-700'
-                      : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                  }`}
-                >
-                  + Thêm buổi học
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+        <button
+          onClick={handleAddStudent}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-lg shadow-indigo-200"
+        >
+          <Plus size={20} />
+          Thêm Học Sinh
+        </button>
       </div>
+
+      {/* Filter Tabs */}
+      <div className="flex p-1 bg-gray-100 rounded-xl w-fit">
+        {(['all', 'active', 'inactive'] as const).map((status) => (
+          <button
+            key={status}
+            onClick={() => setFilterStatus(status)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              filterStatus === status
+                ? 'bg-white text-indigo-600 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {status === 'all' && 'Tất cả'}
+            {status === 'active' && 'Đang học'}
+            {status === 'inactive' && 'Đã nghỉ'}
+          </button>
+        ))}
+      </div>
+
+      {filteredStudents.length === 0 ? (
+        <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300">
+          <User className="mx-auto text-gray-300 mb-4" size={64} />
+          <p className="text-gray-500 text-lg">Không tìm thấy học sinh nào.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredStudents.map((student) => (
+            <div
+              key={student.id}
+              className={`group bg-white rounded-2xl p-6 border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
+                student.active ? 'border-gray-200 hover:border-indigo-300' : 'border-gray-100 bg-gray-50 opacity-80'
+              }`}
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center gap-4">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold ${
+                    student.active ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-200 text-gray-500'
+                  }`}>
+                    {student.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-800 leading-tight">{student.name}</h3>
+                    <div className={`text-xs px-2 py-0.5 rounded-full w-fit mt-1 font-medium ${
+                      student.active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                    }`}>
+                      {student.active ? 'Đang học' : 'Đã nghỉ'}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Actions Dropdown/Row */}
+                <div className="flex gap-1">
+                  <button onClick={() => handleEditStudent(student)} className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                    <Edit2 size={16} />
+                  </button>
+                  <button onClick={() => handleDeleteStudent(student.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-3 mb-6">
+                <div className="flex items-center text-sm text-gray-600">
+                  <DollarSign size={16} className="text-gray-400 mr-2" />
+                  <span className="font-semibold">{formatCurrency(student.pricePerHour)}</span> / giờ
+                </div>
+                {student.schedule && (
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Calendar size={16} className="text-gray-400 mr-2" />
+                    <span className="line-clamp-1">{student.schedule}</span>
+                  </div>
+                )}
+                {/* Revenue Snapshot */}
+                <div className="pt-3 mt-3 border-t border-gray-100 flex justify-between text-sm">
+                   <div className="text-gray-500">Nợ: <span className="text-orange-600 font-bold">{formatCurrency(student.totalUnpaid || 0)}</span></div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                 <button
+                    onClick={() => handleSetupSchedule(student)}
+                    className="px-3 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                 >
+                    <Repeat size={16} />
+                    Lịch Cố Định
+                 </button>
+                 <button
+                    onClick={() => openAddSessionModal(student.id)}
+                    disabled={!student.active}
+                    className="px-3 py-2 bg-gray-900 text-white hover:bg-gray-800 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                 >
+                    <Plus size={16} />
+                    Buổi Học
+                 </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {showModal && (
         <StudentModal
@@ -340,6 +276,24 @@ export default function StudentList() {
           onSubmit={handleAddSessionSubmit}
         />
       )}
-    </>
+
+      {showRecurringModal && selectedStudentForSchedule && (
+        <RecurringScheduleModal
+          studentId={selectedStudentForSchedule.id}
+          studentName={selectedStudentForSchedule.name}
+          existingSchedule={null} // You might want to fetch existing schedule here if your API supports getting by studentID
+          onClose={() => {
+            setShowRecurringModal(false);
+            setSelectedStudentForSchedule(null);
+          }}
+          onSuccess={() => {
+            setShowRecurringModal(false);
+            setSelectedStudentForSchedule(null);
+            loadStudents();
+            alert('✅ Đã lưu thiết lập lịch!');
+          }}
+        />
+      )}
+    </div>
   );
 }

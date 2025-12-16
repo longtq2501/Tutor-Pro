@@ -1,4 +1,4 @@
-// src/lib/api.ts
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios';
 import type {
   Student,
@@ -14,6 +14,8 @@ import type {
   InvoiceResponse,
   Parent,
   ParentRequest,
+  RecurringSchedule,
+  RecurringScheduleRequest,
 } from './types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
@@ -70,6 +72,11 @@ export const sessionsApi = {
     const response = await api.post('/sessions', data);
     return response.data;
   },
+  // THÊM: Hàm update chung để sửa completed, notes, v.v.
+  update: async (id: number, data: Partial<SessionRecordRequest>): Promise<SessionRecord> => {
+    const response = await api.put(`/sessions/${id}`, data);
+    return response.data;
+  },
   togglePayment: async (id: number): Promise<SessionRecord> => {
     const response = await api.put(`/sessions/${id}/toggle-payment`);
     return response.data;
@@ -79,6 +86,10 @@ export const sessionsApi = {
   },
   getUnpaid: async (): Promise<SessionRecord[]> => {
     const response = await api.get('/sessions/unpaid');
+    return response.data;
+  },
+  toggleCompleted: async (id: number): Promise<SessionRecord> => {
+    const response = await api.put(`/sessions/${id}/toggle-completed`);
     return response.data;
   },
 };
@@ -253,6 +264,83 @@ export const parentsApi = {
   },
   search: async (keyword: string): Promise<Parent[]> => {
     const response = await api.get('/parents/search', { params: { keyword } });
+    return response.data;
+  },
+};
+
+export const recurringSchedulesApi = {
+  getAll: async (): Promise<RecurringSchedule[]> => {
+    const response = await api.get('/recurring-schedules');
+    return response.data;
+  },
+  
+  getActive: async (): Promise<RecurringSchedule[]> => {
+    const response = await api.get('/recurring-schedules/active');
+    return response.data;
+  },
+  
+  getById: async (id: number): Promise<RecurringSchedule> => {
+    const response = await api.get(`/recurring-schedules/${id}`);
+    return response.data;
+  },
+  
+  getByStudentId: async (studentId: number): Promise<RecurringSchedule> => {
+    const response = await api.get(`/recurring-schedules/student/${studentId}`);
+    return response.data;
+  },
+  
+  create: async (data: RecurringScheduleRequest): Promise<RecurringSchedule> => {
+    const response = await api.post('/recurring-schedules', data);
+    return response.data;
+  },
+  
+  update: async (id: number, data: RecurringScheduleRequest): Promise<RecurringSchedule> => {
+    const response = await api.put(`/recurring-schedules/${id}`, data);
+    return response.data;
+  },
+  
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/recurring-schedules/${id}`);
+  },
+  
+  toggleActive: async (id: number): Promise<RecurringSchedule> => {
+    const response = await api.put(`/recurring-schedules/${id}/toggle-active`);
+    return response.data;
+  },
+  
+  // Auto-generate methods
+  generateSessions: async (month: string, studentIds?: number[]): Promise<{
+    success: boolean;
+    month: string;
+    sessionsCreated: number;
+    message: string;
+  }> => {
+    const response = await api.post('/recurring-schedules/generate-sessions', {
+      month,
+      studentIds
+    });
+    return response.data;
+  },
+  
+  checkMonth: async (month: string, studentId?: number): Promise<{
+    month: string;
+    hasSessions: boolean;
+  }> => {
+    const response = await api.get('/recurring-schedules/check-month', {
+      params: { month, studentId }
+    });
+    return response.data;
+  },
+  
+  countSessions: async (month: string, studentIds?: number[]): Promise<{
+    month: string;
+    count: number;
+    message: string;
+  }> => {
+    const response = await api.post('/recurring-schedules/count-sessions', {
+      month,
+      studentIds
+    });
     return response.data;
   },
 };

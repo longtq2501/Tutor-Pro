@@ -585,6 +585,20 @@ export default function UnpaidSessionsView() {
                                   {formatDate(session.sessionDate)}
                                 </span>
                               </div>
+
+                              <div className="flex items-center gap-[5px] mb-1">
+                                {session.completed ? (
+                                  <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+                                    <CheckCircle size={10} />
+                                    Đã dạy
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-gray-400 italic">
+                                    Dự kiến
+                                  </span>
+                                )}
+                              </div>
+
                               <div className="text-xs text-gray-600">
                                 {getMonthName(session.month)}
                               </div>

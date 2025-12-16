@@ -1,6 +1,7 @@
 package com.tutor_management.backend.service;
 
 import com.tutor_management.backend.dto.request.SessionRecordRequest;
+import com.tutor_management.backend.dto.request.SessionRecordUpdateRequest;
 import com.tutor_management.backend.dto.response.SessionRecordResponse;
 import com.tutor_management.backend.entity.SessionRecord;
 import com.tutor_management.backend.entity.Student;
@@ -66,10 +67,16 @@ public class SessionRecordService {
                 .orElseThrow(() -> new RuntimeException("Record not found"));
 
         record.setPaid(!record.getPaid());
+
         if (record.getPaid()) {
+            // ✅ Khi set paid = true → Auto set completed = true
+            record.setCompleted(true);
             record.setPaidAt(java.time.LocalDateTime.now());
         } else {
+            // Khi unpaid → Có thể giữ nguyên completed hoặc set false
             record.setPaidAt(null);
+            // Optional: Uncomment nếu muốn unpaid → uncomplete
+            // record.setCompleted(false);
         }
 
         SessionRecord updated = sessionRecordRepository.save(record);
@@ -87,6 +94,49 @@ public class SessionRecordService {
         return unpaidRecords.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
+    }
+
+    public SessionRecordResponse updateRecord(Long id, SessionRecordUpdateRequest request) {
+        SessionRecord record = sessionRecordRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Record not found"));
+
+        // Update fields nếu có trong request
+        if (request.getMonth() != null) {
+            record.setMonth(request.getMonth());
+        }
+
+        if (request.getSessions() != null) {
+            record.setSessions(request.getSessions());
+            // Recalculate hours and total
+            int hours = request.getSessions() * 2;
+            record.setHours(hours);
+            record.setTotalAmount(hours * record.getPricePerHour());
+        }
+
+        if (request.getSessionDate() != null) {
+            record.setSessionDate(LocalDate.parse(request.getSessionDate()));
+        }
+
+        if (request.getNotes() != null) {
+            record.setNotes(request.getNotes());
+        }
+
+        if (request.getCompleted() != null) {
+            record.setCompleted(request.getCompleted());
+        }
+
+        SessionRecord updated = sessionRecordRepository.save(record);
+        return convertToResponse(updated);
+    }
+
+    public SessionRecordResponse toggleCompleted(Long id) {
+        SessionRecord record = sessionRecordRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Record not found"));
+
+        record.setCompleted(!record.getCompleted());
+
+        SessionRecord updated = sessionRecordRepository.save(record);
+        return convertToResponse(updated);
     }
 
     public List<String> getDistinctMonths() {
@@ -108,6 +158,7 @@ public class SessionRecordService {
                 .notes(record.getNotes())
                 .sessionDate(record.getSessionDate().toString()) // 🆕 Format YYYY-MM-DD
                 .createdAt(record.getCreatedAt().format(formatter))
+                .completed(record.getCompleted())
                 .build();
     }
 }

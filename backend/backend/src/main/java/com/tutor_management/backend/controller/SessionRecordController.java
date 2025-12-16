@@ -1,6 +1,7 @@
 package com.tutor_management.backend.controller;
 
 import com.tutor_management.backend.dto.request.SessionRecordRequest;
+import com.tutor_management.backend.dto.request.SessionRecordUpdateRequest;
 import com.tutor_management.backend.dto.response.SessionRecordResponse;
 import com.tutor_management.backend.service.SessionRecordService;
 import jakarta.validation.Valid;
@@ -54,5 +55,19 @@ public class SessionRecordController {
     public ResponseEntity<List<SessionRecordResponse>> getAllUnpaidSessions() {
         List<SessionRecordResponse> unpaidSessions = sessionRecordService.getAllUnpaidSessions();
         return ResponseEntity.ok(unpaidSessions);
+    }
+
+    // MỚI:
+    @PutMapping("/{id}")
+    public ResponseEntity<SessionRecordResponse> updateRecord(
+            @PathVariable Long id,
+            @RequestBody SessionRecordUpdateRequest request  // Bỏ @Valid
+    ) {
+        return ResponseEntity.ok(sessionRecordService.updateRecord(id, request));
+    }
+
+    @PutMapping("/{id}/toggle-completed")
+    public ResponseEntity<SessionRecordResponse> toggleCompleted(@PathVariable Long id) {
+        return ResponseEntity.ok(sessionRecordService.toggleCompleted(id));
     }
 }

@@ -23,4 +23,5 @@ public class SessionRecordResponse {
     private String notes;
     private String sessionDate; // 🆕 Ngày dạy (String để dễ serialize)
     private String createdAt;
+    private Boolean completed;  // Trạng thái đã dạy
 }

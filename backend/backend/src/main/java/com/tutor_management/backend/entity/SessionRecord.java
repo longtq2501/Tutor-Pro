@@ -51,11 +51,17 @@ public class SessionRecord {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    private Boolean completed = false;  // Trạng thái đã dạy hay chưa
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         if (paid == null) {
             paid = false;
+        }
+        if (completed == null) {  // ← THÊM
+            completed = false;
         }
     }
 }

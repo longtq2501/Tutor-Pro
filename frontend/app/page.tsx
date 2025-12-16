@@ -1,114 +1,76 @@
-// src/app/page.tsx
+
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Calendar, User, TrendingUp, FileText, UserCheck, AlertCircle } from 'lucide-react';
+import { useState } from 'react';
+import { Calendar, User, TrendingUp, FileText, UserCheck, AlertCircle, CalendarDays } from 'lucide-react';
 import Dashboard from '@/components/Dashboard';
 import StudentList from '@/components/StudentList';
 import MonthlyView from '@/components/MonthlyView';
 import DocumentLibrary from '@/components/DocumentLibrary';
 import ParentsView from '@/components/ParentsView';
 import UnpaidSessionsView from '@/components/UnpaidSessionsView';
+import CalendarView from '@/components/CalendarView';
 
-type View = 'dashboard' | 'students' | 'monthly' | 'documents' | 'parents' | 'unpaid';
+type View = 'dashboard' | 'students' | 'monthly' | 'documents' | 'parents' | 'unpaid' | 'calendar';
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                Hệ Thống Quản Lý Gia Sư
-              </h1>
-              <p className="text-gray-600">
-                Quản lý học sinh, buổi học và doanh thu theo tháng
-              </p>
-            </div>
-          </div>
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: TrendingUp },
+    { id: 'students', label: 'Học Sinh', icon: User },
+    { id: 'monthly', label: 'Theo Tháng', icon: Calendar },
+    { id: 'calendar', label: 'Lịch', icon: CalendarDays },
+    { id: 'unpaid', label: 'Công Nợ', icon: AlertCircle },
+    { id: 'parents', label: 'Phụ Huynh', icon: UserCheck },
+    { id: 'documents', label: 'Tài Liệu', icon: FileText },
+  ] as const;
 
-          {/* Navigation */}
-          <div className="flex gap-3">
-            <button
-              onClick={() => setCurrentView('dashboard')}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                currentView === 'dashboard'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              <TrendingUp className="inline mr-2" size={18} />
-              Dashboard
-            </button>
-            <button
-              onClick={() => setCurrentView('students')}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                currentView === 'students'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              <User className="inline mr-2" size={18} />
-              Học sinh
-            </button>
-            <button
-              onClick={() => setCurrentView('parents')}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                currentView === 'parents'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              <UserCheck  className="inline mr-2" size={18} />
-              Phụ Huynh
-            </button>
-            <button
-              onClick={() => setCurrentView('monthly')}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                currentView === 'monthly'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              <Calendar className="inline mr-2" size={18} />
-              Theo tháng
-            </button>
-            <button
-              onClick={() => setCurrentView('unpaid')}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                currentView === 'unpaid'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              <AlertCircle  className="inline mr-2" size={18} />
-              Chưa trả
-            </button>
-            <button
-              onClick={() => setCurrentView('documents')}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                currentView === 'documents'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              <FileText className="inline mr-2" size={18} />
-              Tài liệu
-            </button>
+  return (
+    <div className="min-h-screen bg-gray-50 pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Header Section */}
+        <div className="mb-8">
+           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Hệ Thống Quản Lý Gia Sư</h1>
+           <p className="text-gray-500 mt-1">Quản lý học sinh, lịch dạy và doanh thu hiệu quả.</p>
+        </div>
+
+        {/* Navigation Bar - Scrollable on mobile */}
+        <div className="mb-8 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
+          <div className="flex space-x-2 border-b border-gray-200 min-w-max pb-1">
+            {navItems.map((item) => {
+              const isActive = currentView === item.id;
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setCurrentView(item.id)}
+                  className={`
+                    flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-t-lg border-b-2 transition-all
+                    ${isActive 
+                      ? 'border-indigo-600 text-indigo-600 bg-white' 
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
+                  `}
+                >
+                  <Icon size={18} />
+                  {item.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Content */}
-        {currentView === 'dashboard' && <Dashboard />}
-        {currentView === 'students' && <StudentList />}
-        {currentView === 'parents' && <ParentsView />}
-        {currentView === 'monthly' && <MonthlyView />}
-        {currentView === 'unpaid' && <UnpaidSessionsView />}
-        {currentView === 'documents' && <DocumentLibrary />}
+        {/* Content Area */}
+        <main className="animate-in fade-in duration-300">
+          {currentView === 'dashboard' && <Dashboard />}
+          {currentView === 'students' && <StudentList />}
+          {currentView === 'monthly' && <MonthlyView />}
+          {currentView === 'calendar' && <CalendarView />}
+          {currentView === 'unpaid' && <UnpaidSessionsView />}
+          {currentView === 'parents' && <ParentsView />}
+          {currentView === 'documents' && <DocumentLibrary />}
+        </main>
       </div>
     </div>
   );

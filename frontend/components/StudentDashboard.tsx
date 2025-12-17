@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   BookOpen, Calendar, FileText, Clock, 
   TrendingUp, CheckCircle, AlertCircle, DollarSign 
@@ -44,17 +44,21 @@ export default function StudentDashboard() {
 
   const currentMonth = new Date().toISOString().slice(0, 7);
 
-  const loadData = useCallback(async () => {
-    // Bail out early if no user or studentId
-    if (!user?.studentId) {
-      setLoading(false); // Stop loading, allowing the "unlinked" message to show
-      return;
-    }
-    const studentId = user.studentId; // Guaranteed to exist here
+  useEffect(() => {
+    loadData();
+  }, []);
 
+  const loadData = async () => {
     try {
       setLoading(true);
       
+      // ✅ CHECK if student ID exists
+      if (!user?.studentId) {
+        console.error('Student ID not found in user profile');
+        setLoading(false);
+        return;
+      }
+
       // ✅ Fetch student-specific data from NEW endpoints
       const [mySessions, allDocuments] = await Promise.all([
         api.get(`/student/sessions?month=${currentMonth}`).then(res => res.data),
@@ -65,13 +69,13 @@ export default function StudentDashboard() {
       
       // Filter documents for this student
       const myDocuments = allDocuments.filter(
-        doc => !doc.studentId || doc.studentId === studentId
+        doc => !doc.studentId || doc.studentId === user.studentId
       );
       setDocuments(myDocuments);
 
       // Try to get schedule for this student
       try {
-        const scheduleData = await recurringSchedulesApi.getByStudentId(studentId);
+        const scheduleData = await recurringSchedulesApi.getByStudentId(user.studentId);
         setSchedule(scheduleData);
       } catch (error) {
         console.log('No schedule found for student');
@@ -82,11 +86,7 @@ export default function StudentDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [user, currentMonth]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  };
 
   if (loading) {
     return (

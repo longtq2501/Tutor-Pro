@@ -21,8 +21,14 @@ import type {
 
 // const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
 // Đảm bảo không có dấu / thừa ở cuối link từ .env
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') || 'http://localhost:8080';
-const API_URL = `${BASE_URL}/api`;
+// 1. Lấy link gốc và xóa dấu gạch chéo ở cuối nếu có
+const rawBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const cleanBaseUrl = rawBaseUrl.replace(/\/$/, '');
+
+// 2. Kiểm tra nếu link chưa có /api thì mới cộng thêm vào
+const API_URL = cleanBaseUrl.endsWith('/api') 
+    ? cleanBaseUrl 
+    : `${cleanBaseUrl}/api`;
 
 const api = axios.create({
   baseURL: API_URL,

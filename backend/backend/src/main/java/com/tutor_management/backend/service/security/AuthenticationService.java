@@ -51,7 +51,7 @@ public class AuthenticationService {
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
-        // Authenticate user
+        // 1. Authenticate user
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
@@ -59,11 +59,15 @@ public class AuthenticationService {
                 )
         );
 
-        // Get user
+        // 2. Get user
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Generate tokens
+        // 🔥 FIX: Xóa sạch Refresh Token cũ của User này trước khi tạo cái mới
+        // Điều này giúp tránh lỗi Duplicate Key trong Database
+        refreshTokenService.deleteByUserId(user.getId());
+
+        // 3. Generate tokens
         String accessToken = jwtService.generateToken(user);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
 

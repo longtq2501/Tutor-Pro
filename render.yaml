@@ -1,0 +1,21 @@
+services:
+    2   - type: web
+    3     name: tutor-api-final   # Bạn có thể đổi tên này nếu muốn
+    4     runtime: java
+    5     plan: free
+    6     repo: https://github.com/longtq2501/Tutor-Management # Repository của bạn
+    7     branch: main
+    8     rootDir: backend/backend
+    9     buildCommand: "./mvnw clean package -DskipTests"
+   10     startCommand: "java -jar target/backend-0.0.1-SNAPSHOT.jar" # QUAN TRỌNG: Sửa lại đúng tên file .jar của bạn
+   11     envVars:
+   12       - key: JAVA_VERSION
+   13         value: 21
+   14       - key: CORS_ALLOWED_ORIGINS
+   15         value: https://tutor-management-e7zh.vercel.app
+   17       - key: SPRING_DATASOURCE_URL
+   18         value: "jdbc:mysql://localhost:3315/tutor_managementcreateDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+   19       - key: SPRING_DATASOURCE_USERNAME
+   20         value: "root"
+   21       - key: SPRING_DATASOURCE_PASSWORD
+   22         sync: false 

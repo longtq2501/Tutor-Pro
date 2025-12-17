@@ -19,7 +19,10 @@ import type {
   RecurringScheduleRequest,
 } from './types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+// const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+// Đảm bảo không có dấu / thừa ở cuối link từ .env
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') || 'http://localhost:8080';
+const API_URL = `${BASE_URL}/api`;
 
 const api = axios.create({
   baseURL: API_URL,
@@ -40,7 +43,8 @@ api.interceptors.request.use(
       return config;
     }
 
-    const token = localStorage.getItem('accessToken');
+    // const token = localStorage.getItem('accessToken');
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

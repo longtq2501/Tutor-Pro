@@ -2,11 +2,11 @@
 spring:
   datasource:
     # URL cơ sở dữ liệu
-    url: jdbc:mysql://localhost:3315/tutor_management?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://mysql-b-br.railway.internal:3306/railway
     # Tên người dùng MySQL
     username: root
     # Mật khẩu MySQL
-    password: root
+    password: KPxVupJjfDIQufKiPsegymnOVIvyONmC
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   # JPA/Hibernate Configuration

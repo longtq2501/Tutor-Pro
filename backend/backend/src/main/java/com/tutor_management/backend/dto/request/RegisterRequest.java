@@ -1,9 +1,9 @@
 package com.tutor_management.backend.dto.request;
 
+import com.tutor_management.backend.entity.Role;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
-// ============= Auth DTOs =============
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,4 +18,7 @@ public class RegisterRequest {
 
     @NotBlank(message = "Full name is required")
     private String fullName;
+
+    @NotNull(message = "Role is required")
+    private Role role;  // ← THÊM FIELD NÀY
 }

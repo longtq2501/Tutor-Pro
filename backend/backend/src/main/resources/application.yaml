@@ -48,10 +48,19 @@ app:
 file:
   upload-dir: uploads
 
+# JWT Configuration
+jwt:
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970337336763979244226452948404D635166546A576E5A7234753778214125442A
+  expiration: 86400000
+  refresh-expiration: 604800000
+
 # Server Configuration
 server:
   # Cổng của ứng dụng Spring Boot
   port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
 
 # CORS Configuration (cho phép tất cả origins vì chỉ bạn dùng)
 cors:
@@ -62,3 +71,6 @@ logging:
   level:
     com:
       tutormanagement: DEBUG
+    org:
+      springframework:
+        security: DEBUG

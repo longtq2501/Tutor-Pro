@@ -44,6 +44,10 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Boolean accountNonLocked = true;
 
+    // ✅ THÊM DUY NHẤT: Link to Student (for STUDENT role)
+    @Column(name = "student_id")
+    private Long studentId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

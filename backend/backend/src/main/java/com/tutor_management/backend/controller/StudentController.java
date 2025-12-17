@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 
 // ============= Student Controller =============
 @RestController
@@ -65,5 +66,33 @@ public class StudentController {
         student.setActive(!student.getActive());
         studentRepository.save(student);
         return ResponseEntity.ok(studentService.convertToResponse(student));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
+    @PostMapping("/{id}/generate-account")
+    public ResponseEntity<Map<String, Object>> generateAccountForStudent(@PathVariable Long id) {
+        try {
+            Map<String, Object> result = studentService.generateUserAccountForStudent(id);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Generate accounts for ALL students who don't have accounts yet
+     * POST /api/students/generate-all-accounts
+     */
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/generate-all-accounts")
+    public ResponseEntity<Map<String, Object>> generateAccountsForAllStudents() {
+        try {
+            Map<String, Object> result = studentService.generateAccountsForAllStudents();
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
+        }
     }
 }

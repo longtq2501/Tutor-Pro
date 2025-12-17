@@ -139,6 +139,36 @@ public class SessionRecordService {
         return convertToResponse(updated);
     }
 
+    // ✅ THÊM vào SessionRecordService.java
+
+    /**
+     * Get all sessions for a specific student
+     */
+    public List<SessionRecordResponse> getRecordsByStudentId(Long studentId) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        List<SessionRecord> records = sessionRecordRepository.findByStudentOrderByCreatedAtDesc(student);
+        return records.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get sessions for a specific student and month
+     */
+    public List<SessionRecordResponse> getRecordsByStudentIdAndMonth(Long studentId, String month) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        List<SessionRecord> records = sessionRecordRepository.findByStudentAndMonthOrderByCreatedAtDesc(student, month);
+        return records.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
+
+
+
     public List<String> getDistinctMonths() {
         return sessionRecordRepository.findDistinctMonths();
     }

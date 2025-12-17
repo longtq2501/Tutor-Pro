@@ -98,6 +98,7 @@ public class AuthenticationService {
                         .email(user.getEmail())
                         .fullName(user.getFullName())
                         .role(user.getRole())
+                        .studentId(user.getStudentId())
                         .build())
                 .build();
     }

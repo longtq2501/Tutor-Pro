@@ -7,6 +7,7 @@ import type {
   SessionRecordRequest,
   DashboardStats,
   MonthlyStats,
+  Document,
   DocumentCategory,
   DocumentStats,
   DocumentUploadRequest,

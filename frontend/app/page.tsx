@@ -6,6 +6,7 @@ import {
   TrendingUp, UserCheck, FileText, LogOut, User
 } from 'lucide-react';
 import Dashboard from '@/components/Dashboard';
+import StudentDashboard from '@/components/StudentDashboard';
 import StudentList from '@/components/StudentList';
 import MonthlyView from '@/components/MonthlyView';
 import DocumentLibrary from '@/components/DocumentLibrary';
@@ -46,10 +47,7 @@ function AppContent() {
 
     // Filter based on role
     return allItems.filter(item => {
-      // Dashboard: ADMIN, TUTOR only
-      if (item.id === 'dashboard' && !hasAnyRole(['ADMIN', 'TUTOR'])) {
-        return false;
-      }
+      // Dashboard: All roles (STUDENT sees StudentDashboard, ADMIN/TUTOR sees Dashboard)
       
       // Students: ADMIN, TUTOR only
       if (item.id === 'students' && !hasAnyRole(['ADMIN', 'TUTOR'])) {
@@ -71,24 +69,20 @@ function AppContent() {
         return false;
       }
 
-      // Parents: ADMIN, TUTOR only
+      // Calendar: ADMIN, TUTOR only (based on your filter)
       if (item.id === 'calendar' && !hasAnyRole(['ADMIN', 'TUTOR'])) {
         return false;
       }
       
-      // Calendar: All roles
       // Documents: All roles
       
       return true;
     });
   }, [hasAnyRole]);
 
-  // ✅ SET DEFAULT VIEW BASED ON ROLE
+  // ✅ SET DEFAULT VIEW - Everyone starts at dashboard
   React.useEffect(() => {
-    if (!hasAnyRole(['ADMIN', 'TUTOR', 'STUDENT'])) {
-      // STUDENT: Default to Calendar or Documents
-      setCurrentView('calendar');
-    }
+    setCurrentView('dashboard');
   }, [hasAnyRole]);
 
   const currentTitle = useMemo(() => {
@@ -181,8 +175,13 @@ function AppContent() {
         {/* Main content */}
         <main className="flex-1 overflow-y-auto animate-in fade-in-50">
           <div className="p-8">
-            {/* ✅ RENDER CONTENT BASED ON CURRENT VIEW */}
+            {/* ✅ RENDER CONTENT BASED ON CURRENT VIEW AND ROLE */}
+            
+            {/* Dashboard: Different for STUDENT vs ADMIN/TUTOR */}
             {currentView === 'dashboard' && hasAnyRole(['ADMIN', 'TUTOR']) && <Dashboard />}
+            {currentView === 'dashboard' && hasAnyRole(['STUDENT']) && <StudentDashboard />}
+            
+            {/* Other views - keep your current logic */}
             {currentView === 'students' && hasAnyRole(['ADMIN', 'TUTOR']) && <StudentList />}
             {currentView === 'monthly' && hasAnyRole(['ADMIN', 'TUTOR']) && <MonthlyView />}
             {currentView === 'calendar' && hasAnyRole(['ADMIN', 'TUTOR']) && <CalendarView />}
@@ -191,7 +190,7 @@ function AppContent() {
             {currentView === 'documents' && <DocumentLibrary />}
             
             {/* Fallback for unauthorized access */}
-            {currentView === 'dashboard' && !hasAnyRole(['ADMIN', 'TUTOR']) && (
+            {currentView === 'dashboard' && !hasAnyRole(['ADMIN', 'TUTOR', 'STUDENT']) && (
               <div className="text-center py-20">
                 <p className="text-muted-foreground">Bạn không có quyền xem trang này</p>
               </div>

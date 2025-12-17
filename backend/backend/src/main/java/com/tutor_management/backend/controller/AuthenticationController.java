@@ -59,6 +59,7 @@ public class AuthenticationController {
                 .email(user.getEmail())
                 .fullName(user.getFullName())
                 .role(user.getRole())
+                .studentId(user.getStudentId())  // ✅ THÊM dòng này
                 .build();
         return ResponseEntity.ok(ApiResponse.success(userInfo));
     }

@@ -27,5 +27,8 @@ public class AuthResponse {
         private String email;
         private String fullName;
         private Role role;
+
+        // ✅ THÊM: Link to Student (for STUDENT role)
+        private Long studentId;
     }
 }

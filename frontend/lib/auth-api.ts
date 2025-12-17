@@ -99,6 +99,7 @@ export interface UserInfo {
   email: string;
   fullName: string;
   role: 'ADMIN' | 'TUTOR' | 'STUDENT';
+  studentId?: number; 
 }
 
 export const authService = {

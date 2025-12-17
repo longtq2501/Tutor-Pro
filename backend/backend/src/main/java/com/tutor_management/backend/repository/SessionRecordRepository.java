@@ -1,6 +1,7 @@
 package com.tutor_management.backend.repository;
 
 import com.tutor_management.backend.entity.SessionRecord;
+import com.tutor_management.backend.entity.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -46,4 +47,8 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, Lo
     Integer sumSessionsByMonth(String month);
 
     List<SessionRecord> findByPaidFalseOrderBySessionDateDesc();
+
+    List<SessionRecord> findByStudentOrderByCreatedAtDesc(Student student);
+
+    List<SessionRecord> findByStudentAndMonthOrderByCreatedAtDesc(Student student, String month);
 }

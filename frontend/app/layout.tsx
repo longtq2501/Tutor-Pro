@@ -1,18 +1,14 @@
-
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
-import { ModeToggle } from '@/components/ModeToggle';
+import { AuthProvider } from '@/contexts/AuthContext';
 
-const inter = Inter({ 
-  subsets: ['latin', 'vietnamese'],
-  display: 'swap',
-});
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Tutor Manager Pro',
-  description: 'Hệ thống quản lý học sinh và buổi học gia sư chuyên nghiệp',
+  title: 'Tutor Pro - Quản lý gia sư',
+  description: 'Hệ thống quản lý gia sư chuyên nghiệp',
 };
 
 export default function RootLayout({
@@ -29,7 +25,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

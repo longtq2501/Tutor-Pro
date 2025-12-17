@@ -27,10 +27,6 @@ const api = axios.create({
   },
 });
 
-// ============================================
-// 🔐 TOKEN INTERCEPTORS - THÊM MỚI
-// ============================================
-
 // Add request interceptor to include token
 api.interceptors.request.use(
   (config) => {
@@ -91,10 +87,6 @@ api.interceptors.response.use(
   }
 );
 
-// ============================================
-// 📝 ORIGINAL API CODE - KHÔNG THAY ĐỔI GÌ
-// ============================================
-
 // Students API
 export const studentsApi = {
   getAll: async (): Promise<Student[]> => {
@@ -140,7 +132,6 @@ export const sessionsApi = {
     const response = await api.post('/sessions', data);
     return response.data;
   },
-  // THÊM: Hàm update chung để sửa completed, notes, v.v.
   update: async (id: number, data: Partial<SessionRecordRequest>): Promise<SessionRecord> => {
     const response = await api.put(`/sessions/${id}`, data);
     return response.data;
@@ -209,13 +200,6 @@ export const documentsApi = {
     });
     return response.data;
   },
-  getPreviewUrl: async (id: number): Promise<string> => {
-    const response = await api.get(`/documents/${id}/preview`, { 
-      responseType: 'blob' 
-    });
-    const blob = response.data;
-    return URL.createObjectURL(blob);
-  },
   delete: async (id: number): Promise<void> => {
     await api.delete(`/documents/${id}`);
   },
@@ -236,7 +220,6 @@ export const invoicesApi = {
     return response.data;
   },
 
-  // Phương pháp 1: Dùng chung endpoint (như code hiện tại)
   downloadInvoicePDF: async (request: InvoiceRequest): Promise<Blob> => {
     const response = await api.post('/invoices/download-pdf', request, {
       responseType: 'blob',
@@ -244,7 +227,6 @@ export const invoicesApi = {
     return response.data;
   },
 
-  // Phương pháp 2: Endpoint riêng cho báo giá tổng (nếu backend có endpoint này)
   downloadMonthlyInvoicePDF: async (month: string): Promise<Blob> => {
     const response = await api.post('/invoices/download-monthly-pdf', null, {
       params: { month },
@@ -253,7 +235,6 @@ export const invoicesApi = {
     return response.data;
   },
 
-  // HOẶC dùng phương pháp 1 với allStudents flag
   downloadMonthlyInvoicePDFAlt: async (month: string): Promise<Blob> => {
     const response = await api.post('/invoices/download-pdf', {
       month,
@@ -264,7 +245,6 @@ export const invoicesApi = {
     return response.data;
   },
   
-  // ✅ Gửi email cho 1 học sinh
   sendInvoiceEmail: async (request: InvoiceRequest): Promise<{
     success: boolean;
     message: string;
@@ -276,7 +256,6 @@ export const invoicesApi = {
     return response.data;
   },
 
-  // ✅ Gửi email hàng loạt - TÊN ĐÚNG
   sendInvoiceEmailBatch: async (request: InvoiceRequest): Promise<{
     success: boolean;
     summary: {
@@ -295,7 +274,6 @@ export const invoicesApi = {
     return response.data;
   },
 
-  // ✅ Gửi email cho tất cả
   sendInvoiceEmailAll: async (request: InvoiceRequest): Promise<{
     success: boolean;
     summary: {
@@ -383,7 +361,6 @@ export const recurringSchedulesApi = {
     return response.data;
   },
   
-  // Auto-generate methods
   generateSessions: async (month: string, studentIds?: number[]): Promise<{
     success: boolean;
     month: string;

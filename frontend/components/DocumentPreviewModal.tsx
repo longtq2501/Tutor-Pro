@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { X, Download, Trash2, ExternalLink, FileText, Loader2 } from 'lucide-react';
 import type { Document } from '@/lib/types';
+import { documentsApi } from '@/lib/api';
 
 interface DocumentPreviewModalProps {
   document: Document;
@@ -39,8 +40,7 @@ export default function DocumentPreviewModal({
       setError(false);
       
       // Use preview endpoint (doesn't increment download count)
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
-      const url = `${apiUrl}/documents/${document.id}/preview`;
+      const url = await documentsApi.getPreviewUrl(document.id);
       
       setPreviewUrl(url);
       setLoading(false);

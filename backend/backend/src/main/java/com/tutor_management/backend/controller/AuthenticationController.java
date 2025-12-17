@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -41,6 +42,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(ApiResponse.success("Token refreshed successfully", response));
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
@@ -48,6 +50,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(ApiResponse.success("Logout successful", null));
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<AuthResponse.UserInfo>> getCurrentUser(Authentication authentication) {
         User user = (User) authentication.getPrincipal();

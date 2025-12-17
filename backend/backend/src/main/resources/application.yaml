@@ -39,10 +39,16 @@ spring:
             enable: true
             required: true
 
+# Application specific configuration
 app:
   mail:
     from: tonquynhlong@gmail.com
     from-name: Thầy Quỳnh Long
+
+  # Data Initialization Configuration
+  init-data:
+    enabled: true                    # Bật/tắt tự động tạo data
+    default-password: password123    # Password mặc định cho demo accounts
 
 # File storage location
 file:
@@ -51,8 +57,8 @@ file:
 # JWT Configuration
 jwt:
   secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970337336763979244226452948404D635166546A576E5A7234753778214125442A
-  expiration: 86400000
-  refresh-expiration: 604800000
+  expiration: 86400000              # 24 hours in milliseconds
+  refresh-expiration: 604800000     # 7 days in milliseconds
 
 # Server Configuration
 server:
@@ -70,7 +76,7 @@ cors:
 logging:
   level:
     com:
-      tutormanagement: DEBUG
+      tutor_management: DEBUG
     org:
       springframework:
         security: DEBUG

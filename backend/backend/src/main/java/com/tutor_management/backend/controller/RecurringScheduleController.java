@@ -6,6 +6,7 @@ import com.tutor_management.backend.service.RecurringScheduleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -20,31 +21,37 @@ public class RecurringScheduleController {
 
     private final RecurringScheduleService recurringScheduleService;
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @GetMapping
     public ResponseEntity<List<RecurringScheduleResponse>> getAllSchedules() {
         return ResponseEntity.ok(recurringScheduleService.getAllSchedules());
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @GetMapping("/active")
     public ResponseEntity<List<RecurringScheduleResponse>> getActiveSchedules() {
         return ResponseEntity.ok(recurringScheduleService.getActiveSchedules());
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @GetMapping("/{id}")
     public ResponseEntity<RecurringScheduleResponse> getScheduleById(@PathVariable Long id) {
         return ResponseEntity.ok(recurringScheduleService.getScheduleById(id));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     @GetMapping("/student/{studentId}")
     public ResponseEntity<RecurringScheduleResponse> getScheduleByStudentId(@PathVariable Long studentId) {
         return ResponseEntity.ok(recurringScheduleService.getScheduleByStudentId(studentId));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @PostMapping
     public ResponseEntity<RecurringScheduleResponse> createSchedule(@Valid @RequestBody RecurringScheduleRequest request) {
         return ResponseEntity.ok(recurringScheduleService.createSchedule(request));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @PutMapping("/{id}")
     public ResponseEntity<RecurringScheduleResponse> updateSchedule(
             @PathVariable Long id,
@@ -53,12 +60,14 @@ public class RecurringScheduleController {
         return ResponseEntity.ok(recurringScheduleService.updateSchedule(id, request));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSchedule(@PathVariable Long id) {
         recurringScheduleService.deleteSchedule(id);
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @PutMapping("/{id}/toggle-active")
     public ResponseEntity<RecurringScheduleResponse> toggleActive(@PathVariable Long id) {
         return ResponseEntity.ok(recurringScheduleService.toggleActive(id));
@@ -71,6 +80,7 @@ public class RecurringScheduleController {
      * POST /api/recurring-schedules/generate-sessions
      * Body: { "month": "2025-01", "studentIds": [1,2,3] }
      */
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @PostMapping("/generate-sessions")
     public ResponseEntity<Map<String, Object>> generateSessions(
             @RequestBody Map<String, Object> request
@@ -99,6 +109,7 @@ public class RecurringScheduleController {
      * Kiểm tra xem tháng này đã có sessions chưa
      * GET /api/recurring-schedules/check-month?month=2025-01&studentId=1
      */
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     @GetMapping("/check-month")
     public ResponseEntity<Map<String, Object>> checkMonth(
             @RequestParam String month,
@@ -118,6 +129,7 @@ public class RecurringScheduleController {
      * POST /api/recurring-schedules/count-sessions
      * Body: { "month": "2025-01", "studentIds": [1,2,3] }
      */
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @PostMapping("/count-sessions")
     public ResponseEntity<Map<String, Object>> countSessions(
             @RequestBody Map<String, Object> request

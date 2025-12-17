@@ -9,6 +9,7 @@ import com.tutor_management.backend.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -22,21 +23,25 @@ public class StudentController {
     private final StudentService studentService;
     private final StudentRepository studentRepository;
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT)")
     @GetMapping
     public ResponseEntity<List<StudentResponse>> getAllStudents() {
         return ResponseEntity.ok(studentService.getAllStudents());
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     @GetMapping("/{id}")
     public ResponseEntity<StudentResponse> getStudent(@PathVariable Long id) {
         return ResponseEntity.ok(studentService.getStudentById(id));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @PostMapping
     public ResponseEntity<StudentResponse> createStudent(@Valid @RequestBody StudentRequest request) {
         return ResponseEntity.ok(studentService.createStudent(request));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @PutMapping("/{id}")
     public ResponseEntity<StudentResponse> updateStudent(
             @PathVariable Long id,
@@ -45,12 +50,14 @@ public class StudentController {
         return ResponseEntity.ok(studentService.updateStudent(id, request));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteStudent(@PathVariable Long id) {
         studentService.deleteStudent(id);
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @PutMapping("/{id}/toggle-active")
     public ResponseEntity<StudentResponse> toggleActive(@PathVariable Long id) {
         Student student = studentRepository.findById(id)

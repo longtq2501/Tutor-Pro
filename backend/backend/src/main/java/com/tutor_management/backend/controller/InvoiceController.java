@@ -8,6 +8,7 @@ import com.tutor_management.backend.repository.StudentRepository;
 import com.tutor_management.backend.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -25,12 +26,14 @@ public class InvoiceController {
     private final EmailService emailService;
     private final StudentRepository studentRepository;
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @PostMapping("/generate")
     public ResponseEntity<InvoiceResponse> generateInvoice(@RequestBody InvoiceRequest request) {
         InvoiceResponse invoice = invoiceService.generateInvoice(request);
         return ResponseEntity.ok(invoice);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @PostMapping("/download-pdf")
     public ResponseEntity<byte[]> downloadInvoicePDF(@RequestBody InvoiceRequest request) {
         try {
@@ -58,6 +61,7 @@ public class InvoiceController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @PostMapping("/download-monthly-pdf")
     public ResponseEntity<byte[]> downloadMonthlyInvoicePDF(@RequestParam String month) {
         try {
@@ -92,6 +96,7 @@ public class InvoiceController {
      * POST /api/invoices/send-email
      * Body: { "studentId": 1, "month": "2025-12" }
      */
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @PostMapping("/send-email")
     public ResponseEntity<?> sendInvoiceViaEmail(@RequestBody InvoiceRequest request) {
         try {
@@ -166,6 +171,7 @@ public class InvoiceController {
      * ✅ GỬI 1 EMAIL DUY NHẤT cho nhiều học sinh (cùng phụ huynh)
      * Tạo 1 PDF chứa tất cả học sinh và gửi 1 email
      */
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @PostMapping("/send-email-batch")
     public ResponseEntity<?> sendInvoiceBatch(@RequestBody InvoiceRequest request) {
         try {
@@ -306,6 +312,7 @@ public class InvoiceController {
      * POST /api/invoices/send-email-all
      * Body: { "month": "2025-12", "allStudents": true }
      */
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @PostMapping("/send-email-all")
     public ResponseEntity<?> sendInvoiceToAll(@RequestBody InvoiceRequest request) {
         try {

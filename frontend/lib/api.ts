@@ -209,12 +209,21 @@ export const documentsApi = {
     });
     return response.data;
   },
-  getPreviewUrl: async (id: number): Promise<string> => {
-    const response = await api.get(`/documents/${id}/preview`, { 
-      responseType: 'blob' 
-    });
-    const blob = response.data;
-    return URL.createObjectURL(blob);
+  // Helper method để download file trực tiếp
+  downloadAndSave: async (id: number, filename: string): Promise<void> => {
+    const blob = await documentsApi.download(id);
+    
+    // Create download link
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Cleanup
+    URL.revokeObjectURL(url);
   },
   delete: async (id: number): Promise<void> => {
     await api.delete(`/documents/${id}`);
@@ -226,6 +235,16 @@ export const documentsApi = {
   getCategories: async (): Promise<DocumentCategory[]> => {
     const response = await api.get('/documents/categories');
     return response.data;
+  },
+  getPreviewUrl: async (id: number): Promise<string> => {
+    const response = await api.get(`/documents/${id}/preview`, { 
+      responseType: 'blob' // ← QUAN TRỌNG: Phải set responseType
+    });
+    
+    // Create blob URL for preview
+    const blob = response.data;
+    const blobUrl = URL.createObjectURL(blob);
+    return blobUrl;
   },
 };
 

@@ -23,7 +23,7 @@ public class StudentController {
     private final StudentService studentService;
     private final StudentRepository studentRepository;
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT)")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     @GetMapping
     public ResponseEntity<List<StudentResponse>> getAllStudents() {
         return ResponseEntity.ok(studentService.getAllStudents());

@@ -1,6 +1,5 @@
 package com.tutor_management.backend.controller;
 
-//import com.tutor_management.backend.dto.*;
 import com.tutor_management.backend.dto.request.DocumentRequest;
 import com.tutor_management.backend.dto.response.DocumentResponse;
 import com.tutor_management.backend.dto.response.DocumentStats;
@@ -15,6 +14,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -71,7 +74,7 @@ public class DocumentController {
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(document.getFileType()))
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"" + document.getFileName() + "\"")
+                        buildContentDisposition("attachment", document.getFileName()))
                 .body(resource);
     }
 
@@ -81,11 +84,10 @@ public class DocumentController {
         DocumentResponse document = documentService.getDocumentById(id);
         Resource resource = documentService.previewDocument(id);
 
-        // For preview, use inline instead of attachment
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(document.getFileType()))
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "inline; filename=\"" + document.getFileName() + "\"")
+                        buildContentDisposition("inline", document.getFileName()))
                 .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
                 .header(HttpHeaders.PRAGMA, "no-cache")
                 .header(HttpHeaders.EXPIRES, "0")
@@ -105,9 +107,42 @@ public class DocumentController {
         return ResponseEntity.ok(documentService.getStatistics());
     }
 
-    @PreAuthorize("permitAll()") // Categories can be viewed by anyone to populate dropdowns etc.
+    @PreAuthorize("permitAll()")
     @GetMapping("/categories")
     public ResponseEntity<DocumentCategory[]> getCategories() {
         return ResponseEntity.ok(DocumentCategory.values());
+    }
+
+    /**
+     * Build Content-Disposition header with proper filename encoding
+     * Supports both ASCII and Unicode filenames (RFC 5987)
+     */
+    private String buildContentDisposition(String disposition, String filename) {
+        try {
+            // Encode filename for UTF-8 (RFC 5987)
+            String encodedFilename = URLEncoder.encode(filename, StandardCharsets.UTF_8.toString())
+                    .replaceAll("\\+", "%20"); // Replace + with %20 for spaces
+
+            // Build header with both ASCII fallback and UTF-8 encoded filename
+            return String.format(
+                    "%s; filename=\"%s\"; filename*=UTF-8''%s",
+                    disposition,
+                    sanitizeFilenameForAscii(filename), // ASCII fallback
+                    encodedFilename                      // UTF-8 encoded (modern browsers)
+            );
+        } catch (UnsupportedEncodingException e) {
+            // Fallback to simple format if encoding fails
+            return disposition + "; filename=\"" + sanitizeFilenameForAscii(filename) + "\"";
+        }
+    }
+
+    /**
+     * Sanitize filename to ASCII-safe characters (fallback for old browsers)
+     */
+    private String sanitizeFilenameForAscii(String filename) {
+        return filename
+                .replaceAll("[^\\x00-\\x7F]", "_")  // Replace non-ASCII with underscore
+                .replaceAll("[\\s]+", "_")           // Replace spaces with underscore
+                .replaceAll("[^a-zA-Z0-9._-]", "");  // Remove special chars
     }
 }

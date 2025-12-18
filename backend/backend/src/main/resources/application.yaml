@@ -2,11 +2,11 @@
 spring:
   datasource:
     # URL cơ sở dữ liệu
-    url: jdbc:mysql://mysql-b-br.railway.internal:3306/railway
+    url: ${MYSQL_URL}
     # Tên người dùng MySQL
-    username: root
+    username: ${MYSQLUSER}
     # Mật khẩu MySQL
-    password: KPxVupJjfDIQufKiPsegymnOVIvyONmC
+    password: ${MYSQLPASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   # JPA/Hibernate Configuration

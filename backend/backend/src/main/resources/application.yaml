@@ -2,11 +2,11 @@
 spring:
   datasource:
     # URL cơ sở dữ liệu
-    url: jdbc:mysql://mysql-b-br.railway.internal:3306/railway
+    url: jdbc:mysql://yamanote.proxy.rlwy.net:28075/railway
     # Tên người dùng MySQL
     username: root
     # Mật khẩu MySQL
-    password: KPxVupJjfDIQufKiPsegymnOVIvyONmC
+    password: ZxcrDghnhFCiDFGmyxcNpNeDAWwkjhMC
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   # JPA/Hibernate Configuration
@@ -70,7 +70,7 @@ server:
 
 # CORS Configuration (cho phép tất cả origins vì chỉ bạn dùng)
 cors:
-  allowed-origins: '*'
+  allowed-origins: 'https://tutor-management-e7zh.vercel.app'
 
 # Logging
 logging:

@@ -2,7 +2,7 @@
 spring:
   datasource:
     # URL cơ sở dữ liệu
-    url: ${MYSQL_URL}
+    url: jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}
     # Tên người dùng MySQL
     username: ${MYSQLUSER}
     # Mật khẩu MySQL

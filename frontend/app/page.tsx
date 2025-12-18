@@ -129,20 +129,22 @@ function AppContent() {
 
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="flex items-center justify-between h-20 px-8 border-b border-border">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">{currentTitle}</h1>
-            <p className="text-sm text-muted-foreground">Chào mừng trở lại, {user?.fullName}.</p>
+        <header className="flex items-center justify-between h-16 lg:h-20 px-4 lg:px-8 border-b border-border">
+          <div className="pl-16 lg:pl-0"> {/* Padding left cho mobile menu button */}
+            <h1 className="text-lg lg:text-2xl font-bold text-foreground">{currentTitle}</h1>
+            <p className="text-xs lg:text-sm text-muted-foreground hidden sm:block">
+              Chào mừng trở lại, {user?.fullName}.
+            </p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 lg:gap-4">
             <ModeToggle />
             
             {/* User menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-primary text-primary-foreground">
+                <Button variant="ghost" className="relative h-8 w-8 lg:h-10 lg:w-10 rounded-full">
+                  <Avatar className="h-8 w-8 lg:h-10 lg:w-10">
+                    <AvatarFallback className="bg-primary text-primary-foreground text-xs lg:text-base">
                       {user && getInitials(user.fullName)}
                     </AvatarFallback>
                   </Avatar>
@@ -152,7 +154,7 @@ function AppContent() {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">{user?.fullName}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
+                    <p className="text-xs leading-none text-muted-foreground truncate">
                       {user?.email}
                     </p>
                     {roleBadge && (
@@ -174,7 +176,7 @@ function AppContent() {
 
         {/* Main content */}
         <main className="flex-1 overflow-y-auto animate-in fade-in-50">
-          <div className="p-8">
+          <div className="p-4 lg:p-8">
             {/* ✅ RENDER CONTENT BASED ON CURRENT VIEW AND ROLE */}
             
             {/* Dashboard: Different for STUDENT vs ADMIN/TUTOR */}

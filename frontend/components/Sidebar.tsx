@@ -30,13 +30,13 @@ export function Sidebar({ currentView, setCurrentView, navItems, isCollapsed, se
 
     return (
         <>
-            {/* Mobile Menu Button - Fixed at top */}
+            {/* Mobile Menu Button - Square shape, no overlap */}
             <button
                 onClick={() => setMobileMenuOpen(true)}
-                className="lg:hidden fixed top-4 left-4 z-50 p-3 bg-card border border-border rounded-xl shadow-lg"
+                className="lg:hidden fixed top-4 left-4 z-50 h-10 w-10 rounded-lg bg-background hover:bg-muted border border-border flex items-center justify-center transition-colors shadow-sm"
                 aria-label="Mở menu"
             >
-                <Menu size={24} className="text-foreground" />
+                <Menu size={20} className="text-foreground" />
             </button>
 
             {/* Mobile Overlay */}

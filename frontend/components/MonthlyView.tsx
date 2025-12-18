@@ -1,4 +1,3 @@
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
@@ -387,7 +386,7 @@ export default function MonthlyView() {
 
       {/* Bulk Actions Toolbar */}
       <div className="bg-card rounded-2xl shadow-sm border border-border p-5 sticky top-0 z-20">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="flex items-center gap-4 w-full md:w-auto">
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input 
@@ -404,11 +403,11 @@ export default function MonthlyView() {
               </span>
             </div>
 
-            <div className="flex gap-2 w-full md:w-auto flex-wrap">
+            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
               <button
                 onClick={handleAutoGenerate}
                 disabled={isGenerating}
-                className="flex-1 md:flex-none px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border border-emerald-200 dark:border-emerald-800/50"
+                className="w-full md:w-auto px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border border-emerald-200 dark:border-emerald-800/50"
               >
                   {isGenerating ? <Loader2 className="animate-spin" size={18}/> : <Zap size={18} />}
                   Tạo Lịch Tự Động
@@ -417,7 +416,7 @@ export default function MonthlyView() {
               <button
                 onClick={handleGenerateCombinedInvoice}
                 disabled={selectedStudents.length === 0 || generatingInvoice}
-                className="flex-1 md:flex-none px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border border-indigo-200 dark:border-indigo-800/50"
+                className="w-full md:w-auto px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border border-indigo-200 dark:border-indigo-800/50"
               >
                   {generatingInvoice ? <Loader2 className="animate-spin" size={18}/> : <FileText size={18} />}
                   Tải Báo Giá
@@ -425,7 +424,7 @@ export default function MonthlyView() {
               <button
                 onClick={handleSendEmail}
                 disabled={selectedStudents.length === 0 || sendingEmail}
-                className="flex-1 md:flex-none px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full md:w-auto px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                   {sendingEmail ? <Loader2 className="animate-spin" size={18}/> : <Mail size={18} />}
                   Gửi Email

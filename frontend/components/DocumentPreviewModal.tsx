@@ -40,22 +40,8 @@ export default function DocumentPreviewModal({
       setLoading(true);
       setError(false);
       
-      // ✅ Fetch with token, then create blob URL
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
-      const token = localStorage.getItem('accessToken');
-      
-      const response = await fetch(`${apiUrl}/documents/${doc.id}/preview`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to load preview');
-      }
-      
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
+      // ✅ Use existing API function with proper axios config
+      const url = await documentsApi.getPreviewUrl(doc.id);
       
       setPreviewUrl(url);
       setLoading(false);
@@ -66,7 +52,7 @@ export default function DocumentPreviewModal({
     }
   };
 
-  // ✅ Download with proper isolation (from new code)
+  // ✅ Download with proper isolation
   const handleDownload = useCallback(async (e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
@@ -104,7 +90,6 @@ export default function DocumentPreviewModal({
       console.error('Download error:', error);
       alert('Không thể tải file. Vui lòng thử lại.');
     } finally {
-      // Reset download state but DON'T call onDownload callback
       setTimeout(() => {
         downloadInProgressRef.current = false;
         setDownloading(false);
@@ -152,27 +137,27 @@ export default function DocumentPreviewModal({
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-0 md:p-4"
       onClick={handleClose}
     >
       <div 
-        className="bg-white dark:bg-gray-900 w-full h-full md:w-[90vw] md:h-[90vh] md:rounded-2xl shadow-2xl flex flex-col"
+        className="bg-white dark:bg-gray-900 w-full h-full md:w-[90vw] md:h-[90vh] md:rounded-2xl shadow-2xl flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30 dark:bg-gray-800">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <FileText className="text-muted-foreground dark:text-gray-400 flex-shrink-0" size={24} />
+        {/* Header - Responsive */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border-b border-border bg-muted/30 dark:bg-gray-800 gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+            <FileText className="text-muted-foreground dark:text-gray-400 flex-shrink-0" size={20} />
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg font-semibold text-foreground dark:text-white truncate">
+              <h2 className="text-base sm:text-lg font-semibold text-foreground dark:text-white truncate">
                 {doc.title}
               </h2>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground dark:text-gray-400">
-                <span>{doc.fileName}</span>
-                <span>•</span>
+              <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground dark:text-gray-400 flex-wrap">
+                <span className="truncate max-w-[120px] sm:max-w-none">{doc.fileName}</span>
+                <span className="hidden sm:inline">•</span>
                 <span>{doc.formattedFileSize}</span>
-                <span>•</span>
-                <span className="flex items-center gap-1">
+                <span className="hidden sm:inline">•</span>
+                <span className="hidden sm:flex items-center gap-1">
                   <Download size={12} />
                   {doc.downloadCount} lượt
                 </span>
@@ -180,31 +165,31 @@ export default function DocumentPreviewModal({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 ml-4">
+          <div className="flex items-center gap-2 justify-end">
             <button
               onClick={handleOpenInNewTab}
-              className="p-2 hover:bg-accent dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="p-2 hover:bg-accent dark:hover:bg-gray-700 rounded-lg transition-colors hidden sm:block"
               title="Mở tab mới"
               type="button"
             >
-              <ExternalLink size={20} className="text-foreground dark:text-gray-300" />
+              <ExternalLink size={18} className="text-foreground dark:text-gray-300" />
             </button>
             
             <button
               onClick={handleDownload}
               disabled={downloading}
-              className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 sm:px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               type="button"
             >
               {downloading ? (
                 <>
-                  <Loader2 size={18} className="animate-spin" />
-                  Đang tải...
+                  <Loader2 size={16} className="animate-spin" />
+                  <span className="hidden sm:inline">Đang tải...</span>
                 </>
               ) : (
                 <>
-                  <Download size={18} />
-                  Tải xuống
+                  <Download size={16} />
+                  <span className="hidden sm:inline">Tải xuống</span>
                 </>
               )}
             </button>
@@ -215,7 +200,7 @@ export default function DocumentPreviewModal({
               title="Xóa"
               type="button"
             >
-              <Trash2 size={20} />
+              <Trash2 size={18} />
             </button>
             
             <button
@@ -223,7 +208,7 @@ export default function DocumentPreviewModal({
               className="p-2 hover:bg-accent dark:hover:bg-gray-700 rounded-lg transition-colors"
               type="button"
             >
-              <X size={24} className="text-foreground dark:text-gray-300" />
+              <X size={20} className="text-foreground dark:text-gray-300" />
             </button>
           </div>
         </div>
@@ -240,13 +225,13 @@ export default function DocumentPreviewModal({
           )}
 
           {error && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center max-w-md p-8">
+            <div className="absolute inset-0 flex items-center justify-center p-4">
+              <div className="text-center max-w-md">
                 <FileText className="text-muted-foreground dark:text-gray-400 mx-auto mb-4" size={64} />
                 <h3 className="text-lg font-semibold text-foreground dark:text-white mb-2">
                   Không thể xem trước
                 </h3>
-                <p className="text-muted-foreground dark:text-gray-400 mb-4">
+                <p className="text-muted-foreground dark:text-gray-400 mb-4 text-sm">
                   Không thể hiển thị xem trước cho loại file này. Vui lòng tải xuống để xem.
                 </p>
                 <button
@@ -281,16 +266,16 @@ export default function DocumentPreviewModal({
 
           {!loading && !error && !canPreview && (
             <div className="absolute inset-0 flex items-center justify-center p-4">
-              <div className="text-center max-w-md p-8 bg-card dark:bg-gray-800 rounded-xl shadow-lg border border-border dark:border-gray-700">
+              <div className="text-center max-w-md p-6 sm:p-8 bg-card dark:bg-gray-800 rounded-xl shadow-lg border border-border dark:border-gray-700">
                 <FileText className="text-primary mx-auto mb-4" size={64} />
-                <h3 className="text-lg font-semibold text-foreground dark:text-white mb-2">
+                <h3 className="text-base sm:text-lg font-semibold text-foreground dark:text-white mb-2">
                   {doc.fileName}
                 </h3>
                 {doc.description && (
-                  <p className="text-muted-foreground dark:text-gray-400 mb-4">{doc.description}</p>
+                  <p className="text-muted-foreground dark:text-gray-400 mb-4 text-sm">{doc.description}</p>
                 )}
-                <div className="bg-muted dark:bg-gray-700 rounded-lg p-4 mb-4">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="bg-muted dark:bg-gray-700 rounded-lg p-3 sm:p-4 mb-4">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
                     <div>
                       <p className="text-muted-foreground dark:text-gray-400">Loại file</p>
                       <p className="font-medium text-foreground dark:text-white">
@@ -317,7 +302,7 @@ export default function DocumentPreviewModal({
                     </div>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground dark:text-gray-400 mb-4">
+                <p className="text-xs sm:text-sm text-muted-foreground dark:text-gray-400 mb-4">
                   Xem trước không khả dụng cho loại file này. Vui lòng tải xuống để xem nội dung.
                 </p>
                 <button
@@ -343,10 +328,10 @@ export default function DocumentPreviewModal({
           )}
         </div>
 
-        {/* Footer Info */}
+        {/* Footer Info - Responsive */}
         {doc.description && (
-          <div className="p-4 border-t border-border dark:border-gray-700 bg-muted/30 dark:bg-gray-800">
-            <p className="text-sm text-muted-foreground dark:text-gray-400">
+          <div className="p-3 sm:p-4 border-t border-border dark:border-gray-700 bg-muted/30 dark:bg-gray-800">
+            <p className="text-xs sm:text-sm text-muted-foreground dark:text-gray-400 line-clamp-2">
               <span className="font-medium">Mô tả:</span> {doc.description}
             </p>
           </div>

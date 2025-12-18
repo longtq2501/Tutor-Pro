@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -164,36 +163,36 @@ export default function DocumentLibrary() {
   if (!selectedCategory) {
     return (
       <>
-        <div className="bg-card rounded-2xl shadow-lg p-6 transition-colors border border-border">
-          <div className="flex justify-between items-center mb-6">
+        <div className="bg-card rounded-2xl shadow-lg p-4 lg:p-6 transition-colors border border-border">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-card-foreground">Kho Tài Liệu Tiếng Anh</h2>
-              <p className="text-muted-foreground text-sm mt-1">
+              <h2 className="text-xl lg:text-2xl font-bold text-card-foreground">Kho Tài Liệu Tiếng Anh</h2>
+              <p className="text-muted-foreground text-xs lg:text-sm mt-1">
                 Quản lý tài liệu theo danh mục để dễ tìm kiếm sau này
               </p>
             </div>
             <button
               onClick={() => setShowUploadModal(true)}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
+              className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground px-4 lg:px-6 py-2.5 lg:py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
             >
-              <Upload size={20} />
+              <Upload size={18} />
               Tải lên
             </button>
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-100 dark:border-blue-800/30">
-              <p className="text-sm text-muted-foreground mb-1">Tổng tài liệu</p>
-              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.total}</p>
+          <div className="grid grid-cols-3 gap-2 lg:gap-4 mb-6">
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 lg:p-4 border border-blue-100 dark:border-blue-800/30">
+              <p className="text-xs lg:text-sm text-muted-foreground mb-1">Tổng tài liệu</p>
+              <p className="text-xl lg:text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.total}</p>
             </div>
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-100 dark:border-green-800/30">
-              <p className="text-sm text-muted-foreground mb-1">Lượt tải xuống</p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.downloads}</p>
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 lg:p-4 border border-green-100 dark:border-green-800/30">
+              <p className="text-xs lg:text-sm text-muted-foreground mb-1">Lượt tải xuống</p>
+              <p className="text-xl lg:text-2xl font-bold text-green-600 dark:text-green-400">{stats.downloads}</p>
             </div>
-            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-100 dark:border-purple-800/30">
-              <p className="text-sm text-muted-foreground mb-1">Dung lượng</p>
-              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.size}</p>
+            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 lg:p-4 border border-purple-100 dark:border-purple-800/30">
+              <p className="text-xs lg:text-sm text-muted-foreground mb-1">Dung lượng</p>
+              <p className="text-xl lg:text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.size}</p>
             </div>
           </div>
 
@@ -214,25 +213,25 @@ export default function DocumentLibrary() {
           </div>
 
           {/* Category Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
             {CATEGORIES.map((category) => {
               const count = getCategoryCount(category.key as DocumentCategory);
               return (
                 <button
                   key={category.key}
                   onClick={() => handleCategoryClick(category.key as DocumentCategory)}
-                  className={`bg-gradient-to-r ${category.color} text-white rounded-xl p-6 text-left hover:shadow-lg transition-all transform hover:scale-[1.02]`}
+                  className={`bg-gradient-to-r ${category.color} text-white rounded-xl p-4 lg:p-6 text-left hover:shadow-lg transition-all transform hover:scale-[1.02]`}
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-3xl">{category.icon}</span>
+                    <div className="flex items-center gap-2 lg:gap-3">
+                      <span className="text-2xl lg:text-3xl">{category.icon}</span>
                       <div>
-                        <h3 className="font-bold text-lg">{category.name}</h3>
-                        <p className="text-white/80 text-sm">{count} tài liệu</p>
+                        <h3 className="font-bold text-base lg:text-lg">{category.name}</h3>
+                        <p className="text-white/80 text-xs lg:text-sm">{count} tài liệu</p>
                       </div>
                     </div>
-                    <div className="bg-white/20 rounded-lg px-3 py-1">
-                      <span className="text-sm font-medium">{count}</span>
+                    <div className="bg-white/20 rounded-lg px-2 lg:px-3 py-1">
+                      <span className="text-xs lg:text-sm font-medium">{count}</span>
                     </div>
                   </div>
                 </button>
@@ -259,29 +258,29 @@ export default function DocumentLibrary() {
 
   return (
     <>
-      <div className="bg-card rounded-2xl shadow-lg p-6 transition-colors border border-border">
+      <div className="bg-card rounded-2xl shadow-lg p-4 lg:p-6 transition-colors border border-border">
         {/* Header with Back Button */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 lg:gap-4 mb-6">
           <button
             onClick={handleBackToCategories}
-            className="text-muted-foreground hover:text-foreground flex items-center gap-2"
+            className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm lg:text-base"
           >
             ← Quay lại
           </button>
           <div className="flex-1">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">{categoryInfo?.icon}</span>
+            <div className="flex items-center gap-2 lg:gap-3">
+              <span className="text-2xl lg:text-3xl">{categoryInfo?.icon}</span>
               <div>
-                <h2 className="text-2xl font-bold text-card-foreground">{categoryInfo?.name}</h2>
-                <p className="text-muted-foreground text-sm">{categoryDocs.length} tài liệu</p>
+                <h2 className="text-xl lg:text-2xl font-bold text-card-foreground">{categoryInfo?.name}</h2>
+                <p className="text-muted-foreground text-xs lg:text-sm">{categoryDocs.length} tài liệu</p>
               </div>
             </div>
           </div>
           <button
             onClick={() => setShowUploadModal(true)}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
+            className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground px-4 lg:px-6 py-2.5 lg:py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
           >
-            <Upload size={20} />
+            <Upload size={18} />
             Thêm tài liệu
           </button>
         </div>
@@ -323,63 +322,57 @@ export default function DocumentLibrary() {
             {categoryDocs.map((doc) => (
               <div
                 key={doc.id}
-                className="border border-border bg-card rounded-lg p-4 hover:shadow-md transition-all cursor-pointer group"
-                onClick={() => setPreviewDocument(doc)}
+                className="border border-border bg-card rounded-lg p-3 lg:p-4 hover:shadow-md transition-all group"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <FileText className="text-muted-foreground flex-shrink-0" size={20} />
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-card-foreground group-hover:text-primary transition-colors">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
+                  {/* Document Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start gap-2 lg:gap-3 mb-2">
+                      <FileText className="text-muted-foreground flex-shrink-0 mt-0.5" size={18} />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-card-foreground text-sm lg:text-base truncate">
                           {doc.title}
                         </h3>
                         {doc.description && (
-                          <p className="text-sm text-muted-foreground mt-1">{doc.description}</p>
+                          <p className="text-xs lg:text-sm text-muted-foreground mt-1 line-clamp-2">{doc.description}</p>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground ml-8">
-                      <span>{doc.fileName}</span>
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground ml-6 lg:ml-8">
+                      <span className="truncate max-w-[150px]">{doc.fileName}</span>
                       <span>•</span>
                       <span>{doc.formattedFileSize}</span>
                       <span>•</span>
                       <span className="flex items-center gap-1">
                         <Download size={12} />
-                        {doc.downloadCount} lượt
+                        {doc.downloadCount}
                       </span>
-                      <span>•</span>
-                      <span>{new Date(doc.createdAt).toLocaleDateString('vi-VN')}</span>
+                      <span className="hidden sm:inline">•</span>
+                      <span className="hidden sm:inline">{new Date(doc.createdAt).toLocaleDateString('vi-VN')}</span>
                     </div>
                   </div>
-                  <div className="flex gap-2 ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                  
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 lg:ml-4">
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setPreviewDocument(doc);
-                      }}
-                      className="bg-muted hover:bg-muted/80 text-foreground px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+                      onClick={() => setPreviewDocument(doc)}
+                      className="flex-1 lg:flex-none bg-muted hover:bg-muted/80 text-foreground px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm"
                       title="Xem trước"
                     >
                       <Eye size={16} />
-                      Xem
+                      <span>Xem</span>
                     </button>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDownload(doc);
-                      }}
-                      className="bg-primary/10 hover:bg-primary/20 text-primary px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+                      onClick={() => handleDownload(doc)}
+                      className="flex-1 lg:flex-none bg-primary/10 hover:bg-primary/20 text-primary px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm"
                     >
                       <Download size={16} />
-                      Tải xuống
+                      <span className="hidden sm:inline">Tải</span>
                     </button>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(doc.id);
-                      }}
+                      onClick={() => handleDelete(doc.id)}
                       className="bg-destructive/10 hover:bg-destructive/20 text-destructive p-2 rounded-lg transition-colors"
+                      title="Xóa"
                     >
                       <Trash2 size={16} />
                     </button>

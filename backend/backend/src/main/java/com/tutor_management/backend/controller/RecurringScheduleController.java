@@ -16,7 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/recurring-schedules")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
 public class RecurringScheduleController {
 
     private final RecurringScheduleService recurringScheduleService;

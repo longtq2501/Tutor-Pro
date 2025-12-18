@@ -16,7 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/sessions")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
 public class SessionRecordController {
 
     private final SessionRecordService sessionRecordService;

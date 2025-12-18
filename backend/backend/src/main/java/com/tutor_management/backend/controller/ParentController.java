@@ -14,7 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/parents")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
 public class ParentController {
 
     private final ParentService parentService;

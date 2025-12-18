@@ -85,12 +85,8 @@ public class DocumentController {
         Resource resource = documentService.previewDocument(id);
 
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(document.getFileType()))
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        buildContentDisposition("inline", document.getFileName()))
-                .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
-                .header(HttpHeaders.PRAGMA, "no-cache")
-                .header(HttpHeaders.EXPIRES, "0")
+                .contentType(MediaType.APPLICATION_PDF) // ← Hardcode PDF
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline")  // ← Simplify
                 .body(resource);
     }
 

@@ -60,25 +60,25 @@ public class SecurityConfiguration {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // ✅ Cho phép tất cả origins (hoặc list cụ thể)
-        configuration.setAllowedOriginPatterns(Arrays.asList("*")); // Thay vì setAllowedOrigins
+        // ✅ Cụ thể origins (KHÔNG dùng wildcard khi có credentials)
+        configuration.setAllowedOrigins(Arrays.asList(
+                "https://tutor-management-e7zh.vercel.app",
+                "http://localhost:3000"
+        ));
 
-        // ✅ Hoặc nếu muốn cụ thể:
-        // configuration.setAllowedOrigins(Arrays.asList(
-        //     "https://tutor-management-e7zh.vercel.app",
-        //     "http://localhost:3000"
-        // ));
+        configuration.setAllowedMethods(Arrays.asList(
+                "GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"
+        ));
 
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
+
         configuration.setExposedHeaders(Arrays.asList(
                 "Content-Disposition",
                 "Content-Type",
-                "Authorization",
-                "Cache-Control",
-                "X-Requested-With"
+                "Authorization"
         ));
-        configuration.setAllowCredentials(true);
+
+        configuration.setAllowCredentials(true); // ✅ BẬT
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

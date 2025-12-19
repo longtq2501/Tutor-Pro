@@ -33,6 +33,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // ✅ THÊM DÒNG NÀY
 });
 
 // ============================================
@@ -68,6 +69,8 @@ api.interceptors.response.use(
         }
         const response = await axios.post(`${API_URL}/auth/refresh-token`, {
           refreshToken,
+        }, {
+          withCredentials: true // ✅ THÊM DÒNG NÀY
         });
         const { accessToken } = response.data.data;
         localStorage.setItem('accessToken', accessToken);
@@ -86,7 +89,7 @@ api.interceptors.response.use(
 );
 
 // ============================================
-// 📝 ORIGINAL API CODE - GIỮ NGUYÊN HOÀN TOÀN
+// 📝 API CODE
 // ============================================
 
 // Students API
@@ -198,7 +201,7 @@ export const documentsApi = {
   },
   download: async (id: number): Promise<Blob> => {
     const response = await api.get(`/documents/${id}/download`, { 
-      responseType: 'blob' 
+      responseType: 'blob'
     });
     return response.data;
   },
@@ -359,7 +362,7 @@ export const recurringSchedulesApi = {
 };
 
 // ============================================
-// 🔑 AUTH SERVICE - PHẦN DUY NHẤT THÊM MỚI
+// 🔑 AUTH SERVICE
 // ============================================
 
 export interface UserInfo {

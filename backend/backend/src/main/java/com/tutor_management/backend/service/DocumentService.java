@@ -1,6 +1,5 @@
 package com.tutor_management.backend.service;
 
-//import com.tutor_management.backend.dto.*;
 import com.tutor_management.backend.dto.request.DocumentRequest;
 import com.tutor_management.backend.dto.response.DocumentCategoryStats;
 import com.tutor_management.backend.dto.response.DocumentResponse;
@@ -9,7 +8,6 @@ import com.tutor_management.backend.dto.response.DocumentUploadResponse;
 import com.tutor_management.backend.entity.*;
 import com.tutor_management.backend.repository.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,7 +22,7 @@ public class DocumentService {
 
     private final DocumentRepository documentRepository;
     private final StudentRepository studentRepository;
-    private final FileStorageService fileStorageService;
+    private final CloudinaryService cloudinaryService;
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
 
     public List<DocumentResponse> getAllDocuments() {
@@ -57,79 +55,119 @@ public class DocumentService {
             throw new RuntimeException("File is empty");
         }
 
-        // Validate file type (only allow PDF, DOC, DOCX, PPT, PPTX, etc.)
+        // Validate file type
         String contentType = file.getContentType();
         if (!isValidFileType(contentType)) {
-            throw new RuntimeException("Invalid file type. Only PDF, DOC, DOCX, PPT, PPTX allowed");
+            throw new RuntimeException("Invalid file type. Only PDF, DOC, DOCX, PPT, PPTX, TXT allowed");
         }
 
-        // Store file
-        String fileName = fileStorageService.storeFile(file);
+        try {
+            System.out.println("📄 Processing document upload:");
+            System.out.println("   Title: " + request.getTitle());
+            System.out.println("   Category: " + request.getCategory());
+            System.out.println("   File: " + file.getOriginalFilename());
 
-        // Get student if provided
-        Student student = null;
-        if (request.getStudentId() != null) {
-            student = studentRepository.findById(request.getStudentId())
-                    .orElse(null);
+            // Upload to Cloudinary
+            String cloudinaryUrl = cloudinaryService.uploadFile(file, "tutor-documents");
+
+            // Get student if provided
+            Student student = null;
+            if (request.getStudentId() != null) {
+                student = studentRepository.findById(request.getStudentId())
+                        .orElse(null);
+            }
+
+            // Create document entity
+            Document document = Document.builder()
+                    .title(request.getTitle())
+                    .fileName(file.getOriginalFilename())
+                    .filePath(cloudinaryUrl) // Store Cloudinary URL
+                    .fileSize(file.getSize())
+                    .fileType(contentType)
+                    .category(request.getCategory())
+                    .description(request.getDescription())
+                    .student(student)
+                    .downloadCount(0L)
+                    .build();
+
+            Document saved = documentRepository.save(document);
+
+            System.out.println("✅ Document saved to database with ID: " + saved.getId());
+
+            return DocumentUploadResponse.builder()
+                    .id(saved.getId())
+                    .title(saved.getTitle())
+                    .fileName(saved.getFileName())
+                    .message("File uploaded successfully")
+                    .build();
+
+        } catch (Exception e) {
+            System.err.println("❌ Failed to upload document: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to upload document: " + e.getMessage(), e);
         }
-
-        // Create document entity
-        Document document = Document.builder()
-                .title(request.getTitle())
-                .fileName(file.getOriginalFilename())
-                .filePath(fileName)
-                .fileSize(file.getSize())
-                .fileType(contentType)
-                .category(request.getCategory())
-                .description(request.getDescription())
-                .student(student)
-                .downloadCount(0L)
-                .build();
-
-        Document saved = documentRepository.save(document);
-
-        return DocumentUploadResponse.builder()
-                .id(saved.getId())
-                .title(saved.getTitle())
-                .fileName(saved.getFileName())
-                .message("File uploaded successfully")
-                .build();
     }
 
     public DocumentResponse getDocumentById(Long id) {
         Document document = documentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Document not found"));
+                .orElseThrow(() -> new RuntimeException("Document not found with id: " + id));
         return convertToResponse(document);
     }
 
-    public Resource downloadDocument(Long id) {
+    /**
+     * Get document URL for download (increments download count)
+     */
+    public String getDocumentUrl(Long id) {
+        System.out.println("📥 Getting download URL for document ID: " + id);
+
         Document document = documentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Document not found"));
+                .orElseThrow(() -> new RuntimeException("Document not found with id: " + id));
 
         // Increment download count
         document.setDownloadCount(document.getDownloadCount() + 1);
         documentRepository.save(document);
 
-        return fileStorageService.loadFileAsResource(document.getFilePath());
+        System.out.println("✅ Download count incremented to: " + document.getDownloadCount());
+        System.out.println("   URL: " + document.getFilePath());
+
+        return document.getFilePath();
     }
 
-    public Resource previewDocument(Long id) {
-        Document document = documentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Document not found"));
+    /**
+     * Get document URL for preview (does NOT increment download count)
+     */
+    public String getPreviewUrl(Long id) {
+        System.out.println("👁️ Getting preview URL for document ID: " + id);
 
-        // Don't increment download count for preview
-        return fileStorageService.loadFileAsResource(document.getFilePath());
+        Document document = documentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Document not found with id: " + id));
+
+        System.out.println("✅ Preview URL retrieved");
+        System.out.println("   URL: " + document.getFilePath());
+
+        return document.getFilePath();
     }
 
     public void deleteDocument(Long id) {
+        System.out.println("🗑️ Deleting document ID: " + id);
+
         Document document = documentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Document not found"));
+                .orElseThrow(() -> new RuntimeException("Document not found with id: " + id));
 
-        // Delete physical file
-        fileStorageService.deleteFile(document.getFilePath());
+        try {
+            // Delete from Cloudinary
+            cloudinaryService.deleteFile(document.getFilePath());
 
-        // Delete from database
-        documentRepository.delete(document);
+            // Delete from database
+            documentRepository.delete(document);
+
+            System.out.println("✅ Document deleted successfully");
+
+        } catch (Exception e) {
+            System.err.println("❌ Error deleting document: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to delete document: " + e.getMessage(), e);
+        }
     }
 
     public DocumentStats getStatistics() {
@@ -156,7 +194,7 @@ public class DocumentService {
         return DocumentStats.builder()
                 .totalDocuments(totalDocuments)
                 .totalSize(totalSize)
-                .formattedTotalSize(fileStorageService.formatFileSize(totalSize))
+                .formattedTotalSize(formatFileSize(totalSize != null ? totalSize : 0)) // ✅ Fixed
                 .totalDownloads(totalDownloads)
                 .categoryStats(categoryStats)
                 .build();
@@ -189,7 +227,20 @@ public class DocumentService {
                 .downloadCount(document.getDownloadCount())
                 .createdAt(document.getCreatedAt().format(formatter))
                 .updatedAt(document.getUpdatedAt().format(formatter))
-                .formattedFileSize(fileStorageService.formatFileSize(document.getFileSize()))
+                .formattedFileSize(formatFileSize(document.getFileSize())) // ✅ Fixed
                 .build();
+    }
+
+    /**
+     * Format file size for display
+     * ✅ Added this method to fix the error
+     */
+    private String formatFileSize(long size) {
+        if (size <= 0) return "0 B";
+        final String[] units = new String[] { "B", "KB", "MB", "GB" };
+        int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
+        return String.format("%.2f %s",
+                size / Math.pow(1024, digitGroups),
+                units[digitGroups]);
     }
 }

@@ -80,3 +80,9 @@ logging:
     org:
       springframework:
         security: DEBUG
+
+# Cloudinary Configuration
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:dofwiy3t}
+  api-key: ${CLOUDINARY_API_KEY:816839713568739}
+  api-secret: ${CLOUDINARY_API_SECRET:NZiSr1Kv2b3KME98NB_rWE66ybw}

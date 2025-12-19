@@ -7,18 +7,15 @@ import com.tutor_management.backend.dto.response.DocumentUploadResponse;
 import com.tutor_management.backend.entity.DocumentCategory;
 import com.tutor_management.backend.service.DocumentService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/documents")
@@ -64,30 +61,67 @@ public class DocumentController {
         return ResponseEntity.ok(documentService.uploadDocument(file, request));
     }
 
+    /**
+     * Download endpoint - Returns Cloudinary URL and increments download count
+     */
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     @GetMapping("/{id}/download")
-    public ResponseEntity<Resource> downloadDocument(@PathVariable Long id) {
-        DocumentResponse document = documentService.getDocumentById(id);
-        Resource resource = documentService.downloadDocument(id);
+    public ResponseEntity<?> downloadDocument(@PathVariable Long id) {
+        try {
+            System.out.println("📥 Download request for document ID: " + id);
 
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(document.getFileType()))
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        buildContentDisposition("attachment", document.getFileName()))
-                .body(resource);
+            DocumentResponse document = documentService.getDocumentById(id);
+            String fileUrl = documentService.getDocumentUrl(id);
+
+            System.out.println("✅ Returning download URL");
+
+            return ResponseEntity.ok()
+                    .body(Map.of(
+                            "url", fileUrl,
+                            "fileName", document.getFileName(),
+                            "fileType", document.getFileType()
+                    ));
+
+        } catch (Exception e) {
+            System.err.println("❌ Download error: " + e.getMessage());
+            e.printStackTrace();
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
+        }
     }
 
+    /**
+     * Preview endpoint - Returns Cloudinary URL without incrementing download count
+     */
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     @GetMapping("/{id}/preview")
-    public ResponseEntity<Resource> previewDocument(@PathVariable Long id) {
-        DocumentResponse document = documentService.getDocumentById(id);
-        Resource resource = documentService.previewDocument(id);
+    public ResponseEntity<?> previewDocument(@PathVariable Long id) {
+        try {
+            System.out.println("👁️ Preview request for document ID: " + id);
 
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(document.getFileType()))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + document.getFileName() + "\"")
-                .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
-                .body(resource);
+            DocumentResponse document = documentService.getDocumentById(id);
+            String fileUrl = documentService.getPreviewUrl(id);
+
+            System.out.println("✅ Returning preview URL");
+
+            return ResponseEntity.ok()
+                    .body(Map.of(
+                            "url", fileUrl,
+                            "fileName", document.getFileName(),
+                            "fileType", document.getFileType(),
+                            "fileSize", document.getFileSize()
+                    ));
+
+        } catch (Exception e) {
+            System.err.println("❌ Preview error: " + e.getMessage());
+            e.printStackTrace();
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
+        }
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -107,38 +141,5 @@ public class DocumentController {
     @GetMapping("/categories")
     public ResponseEntity<DocumentCategory[]> getCategories() {
         return ResponseEntity.ok(DocumentCategory.values());
-    }
-
-    /**
-     * Build Content-Disposition header with proper filename encoding
-     * Supports both ASCII and Unicode filenames (RFC 5987)
-     */
-    private String buildContentDisposition(String disposition, String filename) {
-        try {
-            // Encode filename for UTF-8 (RFC 5987)
-            String encodedFilename = URLEncoder.encode(filename, StandardCharsets.UTF_8.toString())
-                    .replaceAll("\\+", "%20"); // Replace + with %20 for spaces
-
-            // Build header with both ASCII fallback and UTF-8 encoded filename
-            return String.format(
-                    "%s; filename=\"%s\"; filename*=UTF-8''%s",
-                    disposition,
-                    sanitizeFilenameForAscii(filename), // ASCII fallback
-                    encodedFilename                      // UTF-8 encoded (modern browsers)
-            );
-        } catch (UnsupportedEncodingException e) {
-            // Fallback to simple format if encoding fails
-            return disposition + "; filename=\"" + sanitizeFilenameForAscii(filename) + "\"";
-        }
-    }
-
-    /**
-     * Sanitize filename to ASCII-safe characters (fallback for old browsers)
-     */
-    private String sanitizeFilenameForAscii(String filename) {
-        return filename
-                .replaceAll("[^\\x00-\\x7F]", "_")  // Replace non-ASCII with underscore
-                .replaceAll("[\\s]+", "_")           // Replace spaces with underscore
-                .replaceAll("[^a-zA-Z0-9._-]", "");  // Remove special chars
     }
 }

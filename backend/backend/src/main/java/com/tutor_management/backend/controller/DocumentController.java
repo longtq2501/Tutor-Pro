@@ -80,13 +80,15 @@ public class DocumentController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     @GetMapping("/{id}/preview")
+    @CrossOrigin(origins = "https://tutor-management-e7zh.vercel.app", allowCredentials = "true")
     public ResponseEntity<Resource> previewDocument(@PathVariable Long id) {
-        DocumentResponse document = documentService.getDocumentById(id);
+        DocumentResponse document = documentService.getDocumentById(id); // Lấy info để biết Content-Type thực tế
         Resource resource = documentService.previewDocument(id);
 
         return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_PDF) // ← Hardcode PDF
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline")  // ← Simplify
+                .contentType(MediaType.parseMediaType(document.getFileType())) // Sử dụng type thực tế thay vì hardcode PDF
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + document.getFileName() + "\"")
+                .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION) // Cho phép JS đọc header này
                 .body(resource);
     }
 

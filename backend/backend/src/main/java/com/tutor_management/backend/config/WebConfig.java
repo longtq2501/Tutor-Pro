@@ -14,6 +14,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOrigins("https://tutor-management-e7zh.vercel.app") // Link frontend của bạn
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
+                .exposedHeaders("Content-Disposition") // Rất quan trọng cho việc tải/xem file
+                .allowCredentials(true) // Thêm dòng này để hỗ trợ Authorization header
                 .maxAge(3600);
     }
 

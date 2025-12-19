@@ -172,24 +172,27 @@ export const dashboardApi = {
   },
 };
 
-// Documents API
 export const documentsApi = {
   getAll: async (): Promise<Document[]> => {
     const response = await api.get('/documents');
     return response.data;
   },
+  
   getById: async (id: number): Promise<Document> => {
     const response = await api.get(`/documents/${id}`);
     return response.data;
   },
+  
   getByCategory: async (category: DocumentCategory): Promise<Document[]> => {
     const response = await api.get(`/documents/category/${category}`);
     return response.data;
   },
+  
   search: async (keyword: string): Promise<Document[]> => {
     const response = await api.get('/documents/search', { params: { keyword } });
     return response.data;
   },
+  
   upload: async (file: File, data: DocumentUploadRequest): Promise<any> => {
     const formData = new FormData();
     formData.append('file', file);
@@ -199,41 +202,75 @@ export const documentsApi = {
     });
     return response.data;
   },
+  
+  // ✅ UPDATED: Now returns Cloudinary URL directly
   download: async (id: number): Promise<Blob> => {
-    const response = await api.get(`/documents/${id}/download`, { 
-      responseType: 'blob'
-    });
-    return response.data;
+    try {
+      // Get Cloudinary URL from backend
+      const response = await api.get(`/documents/${id}/download`);
+      const cloudinaryUrl = response.data.url;
+      
+      // Fetch file from Cloudinary
+      const fileResponse = await fetch(cloudinaryUrl);
+      if (!fileResponse.ok) {
+        throw new Error('Failed to download file from Cloudinary');
+      }
+      
+      return await fileResponse.blob();
+    } catch (error) {
+      console.error('Download error:', error);
+      throw error;
+    }
   },
+  
   downloadAndSave: async (id: number, filename: string): Promise<void> => {
-    const blob = await documentsApi.download(id);
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    try {
+      const blob = await documentsApi.download(id);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download and save error:', error);
+      throw error;
+    }
   },
+  
   delete: async (id: number): Promise<void> => {
     await api.delete(`/documents/${id}`);
   },
+  
   getStats: async (): Promise<DocumentStats> => {
     const response = await api.get('/documents/stats');
     return response.data;
   },
+  
   getCategories: async (): Promise<DocumentCategory[]> => {
     const response = await api.get('/documents/categories');
     return response.data;
   },
+  
+  // ✅ UPDATED: Now returns Cloudinary URL directly
   getPreviewUrl: async (id: number): Promise<string> => {
-    const response = await api.get(`/documents/${id}/preview`, { 
-      responseType: 'blob'
-    });
-    const blob = response.data;
-    const blobUrl = URL.createObjectURL(blob);
-    return blobUrl;
+    try {
+      // Get Cloudinary URL from backend
+      const response = await api.get(`/documents/${id}/preview`);
+      const cloudinaryUrl = response.data.url;
+      
+      console.log('📄 Cloudinary preview URL:', cloudinaryUrl);
+      
+      // For PDF files, return Cloudinary URL directly
+      // Cloudinary will serve the file properly
+      return cloudinaryUrl;
+      
+    } catch (error) {
+      console.error('Preview URL error:', error);
+      throw error;
+    }
   },
 };
 

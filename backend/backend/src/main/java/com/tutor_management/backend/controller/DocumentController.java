@@ -23,7 +23,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/documents")
 @RequiredArgsConstructor
-//@CrossOrigin(origins = "*")
 public class DocumentController {
 
     private final DocumentService documentService;
@@ -80,15 +79,14 @@ public class DocumentController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     @GetMapping("/{id}/preview")
-    @CrossOrigin(origins = "https://tutor-management-e7zh.vercel.app", allowCredentials = "true")
     public ResponseEntity<Resource> previewDocument(@PathVariable Long id) {
-        DocumentResponse document = documentService.getDocumentById(id); // Lấy info để biết Content-Type thực tế
+        DocumentResponse document = documentService.getDocumentById(id);
         Resource resource = documentService.previewDocument(id);
 
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(document.getFileType())) // Sử dụng type thực tế thay vì hardcode PDF
+                .contentType(MediaType.parseMediaType(document.getFileType()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + document.getFileName() + "\"")
-                .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION) // Cho phép JS đọc header này
+                .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
                 .body(resource);
     }
 

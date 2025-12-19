@@ -1,6 +1,5 @@
 package com.tutor_management.backend.config;
 
-//import com.tutor_management.backend.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +22,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -42,7 +42,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // ← THÊM NÀY
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
@@ -59,21 +59,27 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(
-                "https://tutor-management-e7zh.vercel.app",
-                "https://tutor-management-production.up.railway.app", // ← THÊM BACKEND URL
-                "http://localhost:3000",
-                "http://localhost:8080" // ← THÊM LOCAL
-        ));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD")); // ← THÊM HEAD
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setExposedHeaders(List.of( // ← THÊM NÀY
+
+        // ✅ Cho phép tất cả origins (hoặc list cụ thể)
+        configuration.setAllowedOriginPatterns(Arrays.asList("*")); // Thay vì setAllowedOrigins
+
+        // ✅ Hoặc nếu muốn cụ thể:
+        // configuration.setAllowedOrigins(Arrays.asList(
+        //     "https://tutor-management-e7zh.vercel.app",
+        //     "http://localhost:3000"
+        // ));
+
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setExposedHeaders(Arrays.asList(
                 "Content-Disposition",
                 "Content-Type",
-                "Cache-Control"
+                "Authorization",
+                "Cache-Control",
+                "X-Requested-With"
         ));
         configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L); // ← THÊM NÀY: Cache preflight 1 hour
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -88,8 +94,8 @@ public class SecurityConfiguration {
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);  // ← Phải đúng như này
-        authProvider.setPasswordEncoder(passwordEncoder());      // ← Phải đúng như này
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
 

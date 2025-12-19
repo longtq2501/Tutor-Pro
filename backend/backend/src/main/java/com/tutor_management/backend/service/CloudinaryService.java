@@ -18,16 +18,16 @@ public class CloudinaryService {
 
     public String uploadFile(MultipartFile file, String folder) throws IOException {
         try {
-            // Generate unique filename
-            String publicId = folder + "/" + UUID.randomUUID().toString();
+            // ✅ CHỈ dùng UUID, KHÔNG thêm folder vào public_id
+            String publicId = UUID.randomUUID().toString();
 
             Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
                     ObjectUtils.asMap(
-                            "public_id", publicId,
+                            "public_id", publicId,          // ✅ Chỉ UUID
                             "resource_type", "auto",
-                            "folder", folder,
-                            "type", "upload",            // ✅ Upload type
-                            "access_mode", "public"      // ✅ PUBLIC access - Files có thể access từ browser
+                            "folder", folder,               // ✅ Folder riêng
+                            "type", "upload",
+                            "access_mode", "public"
                     )
             );
 

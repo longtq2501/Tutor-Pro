@@ -24,7 +24,10 @@ public class CloudinaryService {
             Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
                     ObjectUtils.asMap(
                             "public_id", publicId,
-                            "resource_type", "auto"
+                            "resource_type", "auto",
+                            "folder", folder,
+                            "type", "upload",            // ✅ Upload type
+                            "access_mode", "public"      // ✅ PUBLIC access - Files có thể access từ browser
                     )
             );
 

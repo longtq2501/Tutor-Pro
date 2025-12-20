@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import React, { useState } from 'react';
@@ -43,28 +44,29 @@ export default function HomeworkDetailDialog({
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-  
+
     setUploading(true);
+    
     try {
-      const results = [];
+      // ✅ Upload từng file một (không Promise.all để debug dễ hơn)
       for (const file of Array.from(files)) {
-        // TẠO FORMDATA Ở ĐÂY
-        const formData = new FormData();
-        formData.append('file', file); // 'file' phải khớp với @RequestParam("file") ở Java
-  
-        // Gọi API với formData
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const response = await homeworkApi.student.uploadFile(formData as any);
-        results.push(response); // response lúc này là { url: string, filename: string }
+        console.log('📤 Uploading file:', file.name, file.size, file.type);
+        
+        const result = await homeworkApi.student.uploadFile(file);
+        console.log('✅ Upload success:', result);
+        
+        setUploadedFiles(prev => [...prev, result]);
       }
       
-      setUploadedFiles([...uploadedFiles, ...results]);
-      toast.success('Upload file thành công!');
-    } catch (error) {
-      console.error('Failed to upload files:', error);
-      toast.error('Không thể upload file (Lỗi 400)');
+      toast.success(`Upload thành công ${files.length} file!`);
+    } catch (error: any) {
+      console.error('❌ Upload failed:', error);
+      console.error('Error details:', error.response?.data || error.message);
+      toast.error(`Không thể upload file: ${error.response?.data?.message || error.message}`);
     } finally {
       setUploading(false);
+      // Reset input để có thể upload lại cùng file
+      e.target.value = '';
     }
   };
 
@@ -80,19 +82,26 @@ export default function HomeworkDetailDialog({
 
     setSubmitting(true);
     try {
+      console.log('📤 Submitting homework:', {
+        id: homework.id,
+        notes: submissionNotes,
+        files: uploadedFiles.map(f => f.url)
+      });
+
       await homeworkApi.student.submit(
         homework.id,
         submissionNotes,
         uploadedFiles.map(f => f.url)
       );
+      
       toast.success('Nộp bài thành công!');
       setSubmissionNotes('');
       setUploadedFiles([]);
       onUpdate();
       onClose();
-    } catch (error) {
-      console.error('Failed to submit homework:', error);
-      toast.error('Không thể nộp bài');
+    } catch (error: any) {
+      console.error('❌ Submit failed:', error);
+      toast.error(`Không thể nộp bài: ${error.response?.data?.message || error.message}`);
     } finally {
       setSubmitting(false);
     }
@@ -103,9 +112,9 @@ export default function HomeworkDetailDialog({
       await homeworkApi.student.updateStatus(homework.id, 'IN_PROGRESS');
       toast.success('Đã đánh dấu đang làm!');
       onUpdate();
-    } catch (error) {
-      console.error('Failed to update status:', error);
-      toast.error('Không thể cập nhật trạng thái');
+    } catch (error: any) {
+      console.error('❌ Update status failed:', error);
+      toast.error(`Không thể cập nhật trạng thái: ${error.response?.data?.message || error.message}`);
     }
   };
 
@@ -233,6 +242,7 @@ export default function HomeworkDetailDialog({
                 <label className="text-sm font-medium mb-2 block">Upload file bài làm</label>
                 <div className="flex items-center gap-2">
                   <Button
+                    type="button"
                     variant="outline"
                     disabled={uploading}
                     onClick={() => document.getElementById('file-upload')?.click()}
@@ -244,19 +254,27 @@ export default function HomeworkDetailDialog({
                     id="file-upload"
                     type="file"
                     multiple
+                    accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.zip"
                     onChange={handleFileUpload}
                     className="hidden"
                   />
+                  <span className="text-xs text-muted-foreground">
+                    PDF, Word, Image, ZIP (Max 50MB)
+                  </span>
                 </div>
               </div>
 
               {uploadedFiles.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-sm font-medium">File đã upload:</p>
+                  <p className="text-sm font-medium">File đã upload ({uploadedFiles.length}):</p>
                   {uploadedFiles.map((file, index) => (
                     <div key={index} className="flex items-center justify-between p-2 bg-secondary rounded">
-                      <span className="text-sm truncate flex-1">{file.filename}</span>
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <FileText className="h-4 w-4 flex-shrink-0" />
+                        <span className="text-sm truncate">{file.filename}</span>
+                      </div>
                       <Button
+                        type="button"
                         variant="ghost"
                         size="sm"
                         onClick={() => handleRemoveFile(index)}

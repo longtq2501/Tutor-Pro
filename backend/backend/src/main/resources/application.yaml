@@ -80,7 +80,10 @@ logging:
       tutor_management: DEBUG
     org:
       springframework:
+        web: DEBUG
         security: DEBUG
+      hibernate: INFO
+    com.cloudinary: DEBUG
 
 # Cloudinary Configuration
 cloudinary:

@@ -180,19 +180,35 @@ public class HomeworkService {
         return HomeworkResponse.fromEntity(homework);
     }
 
-    // Upload file for homework (submission or attachment)
     public String uploadHomeworkFile(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
+        // ✅ ADD DETAILED LOGGING
+        log.info("=== uploadHomeworkFile called ===");
+        log.info("File parameter: {}", file);
+
+        if (file == null) {
+            log.error("File parameter is NULL!");
+            throw new IllegalArgumentException("File is null");
+        }
+
+        log.info("File name: {}", file.getOriginalFilename());
+        log.info("File size: {}", file.getSize());
+        log.info("File content type: {}", file.getContentType());
+
+        if (file.isEmpty()) {
+            log.error("File is empty!");
             throw new IllegalArgumentException("File is empty");
         }
 
         try {
+            log.info("Calling cloudinaryService.uploadFile...");
             String url = cloudinaryService.uploadFile(file, "homework");
-            log.info("Uploaded homework file to Cloudinary: {}", url);
+            log.info("Cloudinary upload SUCCESS! URL: {}", url);
             return url;
         } catch (Exception e) {
-            log.error("Failed to upload file to Cloudinary", e);
-            throw new RuntimeException("Failed to upload file: " + e.getMessage());
+            log.error("❌ Cloudinary upload FAILED!", e);
+            log.error("Exception type: {}", e.getClass().getName());
+            log.error("Exception message: {}", e.getMessage());
+            throw new RuntimeException("Failed to upload to Cloudinary: " + e.getMessage(), e);
         }
     }
 

@@ -25,6 +25,7 @@ spring:
       enabled: true
       max-file-size: 50MB
       max-request-size: 50MB
+      location: /tmp  # <--- THÊM DÒNG NÀY ĐỂ FIX LỖI 500 TRÊN RAILWAY
 
   mail:
     host: smtp.gmail.com

@@ -43,18 +43,26 @@ export default function HomeworkDetailDialog({
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-
+  
     setUploading(true);
     try {
-      const uploadPromises = Array.from(files).map(file =>
-        homeworkApi.student.uploadFile(file)
-      );
-      const results = await Promise.all(uploadPromises);
+      const results = [];
+      for (const file of Array.from(files)) {
+        // TẠO FORMDATA Ở ĐÂY
+        const formData = new FormData();
+        formData.append('file', file); // 'file' phải khớp với @RequestParam("file") ở Java
+  
+        // Gọi API với formData
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const response = await homeworkApi.student.uploadFile(formData as any);
+        results.push(response); // response lúc này là { url: string, filename: string }
+      }
+      
       setUploadedFiles([...uploadedFiles, ...results]);
       toast.success('Upload file thành công!');
     } catch (error) {
       console.error('Failed to upload files:', error);
-      toast.error('Không thể upload file');
+      toast.error('Không thể upload file (Lỗi 400)');
     } finally {
       setUploading(false);
     }

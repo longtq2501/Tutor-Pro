@@ -443,16 +443,18 @@ export const homeworkApi = {
       return response.data.data;
     },
 
+    // Tìm đến homeworkApi -> student -> uploadFile
     uploadFile: async (file: File): Promise<{ url: string; filename: string }> => {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', file); // 'file' phải khớp với @RequestParam("file") bên Java
 
       const response = await api.post<ApiResponse<{ url: string; filename: string }>>(
         '/student/homeworks/upload',
         formData,
         {
           headers: {
-            'Content-Type': 'multipart/form-data',
+            // Hãy để trình duyệt tự quyết định Boundary, không nên ép cứng nếu không cần thiết
+            'Content-Type': 'multipart/form-data', 
           },
         }
       );
@@ -539,9 +541,10 @@ export const homeworkApi = {
     //   return response.data.data;
     // },
 
-    // Thêm hàm này để hết lỗi ở ảnh image_f113c4.png
+    // Trong homeworkApi -> admin
     getStudentStats: async (studentId: number): Promise<HomeworkStats> => {
-      const response = await api.get<ApiResponse<HomeworkStats>>(`/tutor/homeworks/student/${studentId}/stats`);
+      // Đổi từ /tutor/ sang /admin/ để đúng quyền hạn
+      const response = await api.get<ApiResponse<HomeworkStats>>(`/admin/homeworks/student/${studentId}/stats`);
       return response.data.data;
     },
 

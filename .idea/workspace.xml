@@ -5,7 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/frontend/components/DocumentPreviewModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/DocumentPreviewModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/exception/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/exception/GlobalExceptionHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/HomeworkDetailDialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/HomeworkDetailDialog.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/lib/api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/api.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -68,6 +70,9 @@
   }
 }</component>
   <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="com.tutor_management.backend.exception" />
+    </key>
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\tutor-management\backend\backend\src\main\resources\fonts" />
     </key>

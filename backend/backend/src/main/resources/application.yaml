@@ -71,7 +71,10 @@ server:
 
 # CORS Configuration (cho phép tất cả origins vì chỉ bạn dùng)
 cors:
-  allowed-origins: 'https://tutor-management-e7zh.vercel.app'
+  allowed-origins: "https://tutor-management-e7zh.vercel.app"
+  allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
+  allowed-headers: "*"
+  allow-credentials: true
 
 # Logging
 logging:

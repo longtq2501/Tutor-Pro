@@ -217,18 +217,45 @@ public class StudentHomeworkController {
             @RequestParam("file") MultipartFile file) {
 
         try {
-            log.info("Uploading homework file: {}", file.getOriginalFilename());
+            // ✅ THÊM DETAILED LOGGING
+            log.info("=== UPLOAD REQUEST RECEIVED ===");
+            log.info("File name: {}", file != null ? file.getOriginalFilename() : "NULL");
+            log.info("File size: {}", file != null ? file.getSize() : "NULL");
+            log.info("File type: {}", file != null ? file.getContentType() : "NULL");
+            log.info("Is empty: {}", file != null ? file.isEmpty() : "NULL");
+
+            // ✅ NULL CHECK
+            if (file == null) {
+                log.error("File parameter is NULL!");
+                return ResponseEntity.badRequest()
+                        .body(ApiResponse.error("No file uploaded - file parameter is null"));
+            }
+
+            if (file.isEmpty()) {
+                log.error("File is empty!");
+                return ResponseEntity.badRequest()
+                        .body(ApiResponse.error("Uploaded file is empty"));
+            }
+
+            log.info("Calling homeworkService.uploadHomeworkFile...");
             String url = homeworkService.uploadHomeworkFile(file);
+            log.info("Upload successful! URL: {}", url);
 
             Map<String, String> response = new HashMap<>();
             response.put("url", url);
             response.put("filename", file.getOriginalFilename());
 
             return ResponseEntity.ok(ApiResponse.success("File uploaded successfully", response));
+
         } catch (IllegalArgumentException e) {
+            log.error("Validation error: {}", e.getMessage());
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
         } catch (Exception e) {
-            log.error("Failed to upload file", e);
+            log.error("Upload failed with exception", e);
+            log.error("Exception type: {}", e.getClass().getName());
+            log.error("Exception message: {}", e.getMessage());
+            log.error("Stack trace:", e);
+
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error("Failed to upload file: " + e.getMessage()));
         }

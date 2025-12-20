@@ -5,7 +5,7 @@ import {
   GraduationCap, ChevronsLeft, X, Menu
 } from 'lucide-react';
 
-export type View = 'dashboard' | 'students' | 'monthly' | 'documents' | 'parents' | 'unpaid' | 'calendar';
+export type View = 'dashboard' | 'students' | 'monthly' | 'documents' | 'parents' | 'unpaid' | 'calendar' | 'homework';
 export type NavItem = {
     id: View;
     label: string;

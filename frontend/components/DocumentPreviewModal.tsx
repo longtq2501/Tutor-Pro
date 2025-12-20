@@ -328,7 +328,7 @@ export default function DocumentPreviewModal({
           )}
         </div>
 
-        {/* Footer Info - Responsive */}
+        {/* Footer Info - Responsive updated */}
         {doc.description && (
           <div className="p-3 sm:p-4 border-t border-border dark:border-gray-700 bg-muted/30 dark:bg-gray-800">
             <p className="text-xs sm:text-sm text-muted-foreground dark:text-gray-400 line-clamp-2">

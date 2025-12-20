@@ -27,6 +27,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import StudentHomeworkView from '@/components/StudentHomeworkView';
+import TutorHomeworkView from '@/components/TutorHomeworkView';
+import { BookCheck } from 'lucide-react'; // Add this to icon imports
 
 function AppContent() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
@@ -40,6 +43,7 @@ function AppContent() {
       { id: 'students', label: 'Học Sinh', icon: GraduationCap },
       { id: 'monthly', label: 'Thống Kê', icon: TrendingUp },
       { id: 'calendar', label: 'Lịch Dạy', icon: CalendarDays },
+      { id: 'homework', label: 'Bài Tập', icon: BookCheck },
       { id: 'unpaid', label: 'Công Nợ', icon: AlertCircle },
       { id: 'parents', label: 'Phụ Huynh', icon: UserCheck },
       { id: 'documents', label: 'Tài Liệu', icon: FileText },
@@ -47,8 +51,6 @@ function AppContent() {
 
     // Filter based on role
     return allItems.filter(item => {
-      // Dashboard: All roles (STUDENT sees StudentDashboard, ADMIN/TUTOR sees Dashboard)
-      
       // Students: ADMIN, TUTOR only
       if (item.id === 'students' && !hasAnyRole(['ADMIN', 'TUTOR'])) {
         return false;
@@ -68,12 +70,13 @@ function AppContent() {
       if (item.id === 'parents' && !hasAnyRole(['ADMIN', 'TUTOR'])) {
         return false;
       }
-
-      // Calendar: ADMIN, TUTOR only (based on your filter)
+  
+      // Calendar: ADMIN, TUTOR only
       if (item.id === 'calendar' && !hasAnyRole(['ADMIN', 'TUTOR'])) {
         return false;
       }
       
+      // Homework: All roles (different views for STUDENT vs TUTOR/ADMIN)
       // Documents: All roles
       
       return true;
@@ -192,6 +195,8 @@ function AppContent() {
             {currentView === 'unpaid' && hasAnyRole(['ADMIN', 'TUTOR']) && <UnpaidSessionsView />}
             {currentView === 'parents' && hasAnyRole(['ADMIN', 'TUTOR']) && <ParentsView />}
             {currentView === 'documents' && <DocumentLibrary />}
+            {currentView === 'homework' && hasAnyRole(['STUDENT']) && <StudentHomeworkView />}
+            {currentView === 'homework' && hasAnyRole(['ADMIN', 'TUTOR']) && <TutorHomeworkView />}
             
             {/* Fallback for unauthorized access */}
             {currentView === 'dashboard' && !hasAnyRole(['ADMIN', 'TUTOR', 'STUDENT']) && (

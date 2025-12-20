@@ -214,3 +214,84 @@ export interface RecurringScheduleRequest {
   active?: boolean;
   notes?: string;
 }
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  timestamp: string; // LocalDateTime từ Java sẽ được convert thành chuỗi ISO string khi về JS
+}
+
+export type HomeworkStatus = 'ASSIGNED' | 'IN_PROGRESS' | 'SUBMITTED' | 'GRADED' | 'OVERDUE';
+export type HomeworkPriority = 'LOW' | 'MEDIUM' | 'HIGH';
+
+export interface Homework {
+  id: number;
+  studentId: number;
+  studentName: string;
+  sessionRecordId?: number;
+  title: string;
+  description?: string;
+  dueDate: string;
+  status: HomeworkStatus;
+  priority: HomeworkPriority;
+  attachmentUrls: string[];
+  tutorNotes?: string;
+  submittedAt?: string;
+  submissionUrls: string[];
+  submissionNotes?: string;
+  score?: number;
+  feedback?: string;
+  gradedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  isOverdue: boolean;
+  daysUntilDue?: number;
+}
+
+export interface CreateHomeworkRequest {
+  studentId: number;
+  sessionRecordId?: number;
+  title: string;
+  description?: string;
+  dueDate: string;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  tutorNotes?: string;
+  attachmentUrls?: string[];
+}
+
+export interface HomeworkStats {
+  totalHomeworks: number;
+  assignedCount: number;
+  inProgressCount: number;
+  submittedCount: number;
+  gradedCount: number;
+  overdueCount: number;
+  upcomingCount: number;
+  averageScore: number;
+}
+
+export interface HomeworkRequest {
+  studentId: number;
+  sessionRecordId?: number;
+  title: string;
+  description?: string;
+  dueDate: string;
+  priority: HomeworkPriority;
+  tutorNotes?: string;
+  attachmentUrls?: string[];
+}
+
+export interface HomeworkSubmissionRequest {
+  submissionNotes?: string;
+  submissionUrls?: string[];
+}
+
+export interface HomeworkGradingRequest {
+  score: number;
+  feedback?: string;
+}
+
+export interface HomeworkStatusUpdateRequest {
+  status: HomeworkStatus;
+}

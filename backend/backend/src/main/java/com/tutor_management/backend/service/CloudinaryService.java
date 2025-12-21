@@ -3,6 +3,7 @@ package com.tutor_management.backend.service;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -11,56 +12,54 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
+@RequiredArgsConstructor  // ✅ Lombok auto-inject
+@Slf4j
 public class CloudinaryService {
 
-    private final Cloudinary cloudinary;
+    private final Cloudinary cloudinary;  // ✅ Injected from CloudinaryConfig
 
     public String uploadFile(MultipartFile file, String folder) throws IOException {
+        log.info("=== CloudinaryService.uploadFile START ===");
+        log.info("Folder: {}, File: {}", folder, file.getOriginalFilename());
+
         try {
-            // ✅ CHỈ dùng UUID, KHÔNG thêm folder vào public_id
             String publicId = UUID.randomUUID().toString();
 
             Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
                     ObjectUtils.asMap(
-                            "public_id", publicId,          // ✅ Chỉ UUID
+                            "public_id", publicId,
                             "resource_type", "auto",
-                            "folder", folder,               // ✅ Folder riêng
+                            "folder", folder,
                             "type", "upload",
                             "access_mode", "public"
                     )
             );
 
             String url = (String) uploadResult.get("secure_url");
-            System.out.println("✅ File uploaded to Cloudinary: " + url);
+            log.info("✅ File uploaded to Cloudinary: {}", url);
             return url;
 
         } catch (IOException e) {
-            System.err.println("❌ Cloudinary upload failed: " + e.getMessage());
-            throw new IOException("Failed to upload file to Cloudinary", e);
+            log.error("❌ Cloudinary upload failed", e);
+            throw new IOException("Failed to upload file to Cloudinary: " + e.getMessage(), e);
         }
     }
 
     public void deleteFile(String fileUrl) {
         try {
-            // Extract public_id from URL
             String publicId = extractPublicId(fileUrl);
             cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
-            System.out.println("✅ File deleted from Cloudinary: " + publicId);
+            log.info("✅ File deleted from Cloudinary: {}", publicId);
         } catch (Exception e) {
-            System.err.println("❌ Failed to delete file: " + e.getMessage());
+            log.error("❌ Failed to delete file", e);
         }
     }
 
     private String extractPublicId(String fileUrl) {
-        // Example URL: https://res.cloudinary.com/demo/image/upload/v1234567890/documents/abc-def.pdf
-        // Extract: documents/abc-def
         String[] parts = fileUrl.split("/upload/");
         if (parts.length > 1) {
             String afterUpload = parts[1];
-            // Remove version (v1234567890/)
             String withoutVersion = afterUpload.replaceFirst("v\\d+/", "");
-            // Remove extension
             int dotIndex = withoutVersion.lastIndexOf('.');
             if (dotIndex > 0) {
                 return withoutVersion.substring(0, dotIndex);

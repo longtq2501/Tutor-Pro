@@ -446,21 +446,21 @@ export const homeworkApi = {
     // ✅ FIXED UPLOAD METHOD
     uploadFile: async (file: File): Promise<{ url: string; filename: string }> => {
       const formData = new FormData();
-      formData.append('file', file);
-
-      console.log('📤 Uploading file:', file.name, file.size, file.type);
+      formData.append('file', file); // 'file' phải khớp với @RequestParam("file") ở Backend
 
       try {
-        // ✅ NO HEADERS - Let axios auto-detect multipart/form-data
         const response = await api.post<ApiResponse<{ url: string; filename: string }>>(
           '/student/homeworks/upload',
-          formData
+          formData,
+          {
+            headers: {
+              // QUAN TRỌNG: Ghi đè Content-Type để Axios và Browser tự xử lý Multipart
+              'Content-Type': 'multipart/form-data',
+            },
+          }
         );
-
-        console.log('✅ Upload success:', response.data);
         return response.data.data;
       } catch (error: any) {
-        console.error('❌ Upload error:', error.response?.data || error.message);
         throw error;
       }
     },

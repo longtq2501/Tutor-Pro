@@ -22,10 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Controller for Student Homework operations
- * Accessible by: STUDENT, ADMIN
- */
 @RestController
 @RequestMapping("/api/student/homeworks")
 @RequiredArgsConstructor
@@ -35,14 +31,10 @@ public class StudentHomeworkController {
 
     private final HomeworkService homeworkService;
 
-    /**
-     * Get all homeworks for current student
-     */
     @GetMapping
     public ResponseEntity<ApiResponse<List<HomeworkResponse>>> getAllHomeworks(
             @AuthenticationPrincipal User user) {
 
-        // ADMIN can view, but needs studentId parameter
         if (user.getRole().name().equals("ADMIN")) {
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error("Admin should use /api/admin/homeworks/student/{studentId}"));
@@ -59,9 +51,6 @@ public class StudentHomeworkController {
         return ResponseEntity.ok(ApiResponse.success(homeworks));
     }
 
-    /**
-     * Get homework by ID
-     */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<HomeworkResponse>> getHomeworkById(
             @PathVariable Long id,
@@ -70,7 +59,6 @@ public class StudentHomeworkController {
         log.info("Getting homework {} for user: {}", id, user.getEmail());
         HomeworkResponse homework = homeworkService.getHomeworkById(id);
 
-        // STUDENT: Verify ownership
         if (user.getRole().name().equals("STUDENT")) {
             if (user.getStudentId() == null) {
                 return ResponseEntity.badRequest()
@@ -81,14 +69,10 @@ public class StudentHomeworkController {
                         .body(ApiResponse.error("You don't have permission to access this homework"));
             }
         }
-        // ADMIN: Can view all
 
         return ResponseEntity.ok(ApiResponse.success(homework));
     }
 
-    /**
-     * Get homeworks by status
-     */
     @GetMapping("/status/{status}")
     public ResponseEntity<ApiResponse<List<HomeworkResponse>>> getHomeworksByStatus(
             @PathVariable HomeworkStatus status,
@@ -109,9 +93,6 @@ public class StudentHomeworkController {
         return ResponseEntity.ok(ApiResponse.success(homeworks));
     }
 
-    /**
-     * Get upcoming homeworks (due within X days)
-     */
     @GetMapping("/upcoming")
     public ResponseEntity<ApiResponse<List<HomeworkResponse>>> getUpcomingHomeworks(
             @RequestParam(required = false, defaultValue = "7") Integer days,
@@ -132,9 +113,6 @@ public class StudentHomeworkController {
         return ResponseEntity.ok(ApiResponse.success(homeworks));
     }
 
-    /**
-     * Get overdue homeworks
-     */
     @GetMapping("/overdue")
     public ResponseEntity<ApiResponse<List<HomeworkResponse>>> getOverdueHomeworks(
             @AuthenticationPrincipal User user) {
@@ -154,11 +132,8 @@ public class StudentHomeworkController {
         return ResponseEntity.ok(ApiResponse.success(homeworks));
     }
 
-    /**
-     * Update homework status (student marks as IN_PROGRESS)
-     */
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasRole('STUDENT')") // Only STUDENT can update their own status
+    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<ApiResponse<HomeworkResponse>> updateHomeworkStatus(
             @PathVariable Long id,
             @Valid @RequestBody HomeworkStatusUpdateRequest request,
@@ -179,11 +154,8 @@ public class StudentHomeworkController {
         }
     }
 
-    /**
-     * Submit homework
-     */
     @PostMapping("/{id}/submit")
-    @PreAuthorize("hasRole('STUDENT')") // Only STUDENT can submit
+    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<ApiResponse<HomeworkResponse>> submitHomework(
             @PathVariable Long id,
             @Valid @RequestBody HomeworkSubmissionRequest request,
@@ -210,36 +182,31 @@ public class StudentHomeworkController {
     }
 
     /**
-     * Upload file for homework submission
+     * ✅ FIXED: Upload file endpoint - giống DocumentController
      */
     @PostMapping("/upload")
     public ResponseEntity<ApiResponse<Map<String, String>>> uploadFile(
             @RequestParam("file") MultipartFile file) {
 
         try {
-            // ✅ THÊM DETAILED LOGGING
-            log.info("=== UPLOAD REQUEST RECEIVED ===");
-            log.info("File name: {}", file != null ? file.getOriginalFilename() : "NULL");
-            log.info("File size: {}", file != null ? file.getSize() : "NULL");
-            log.info("File type: {}", file != null ? file.getContentType() : "NULL");
-            log.info("Is empty: {}", file != null ? file.isEmpty() : "NULL");
+            log.info("=== HOMEWORK FILE UPLOAD REQUEST ===");
+            log.info("📁 File name: {}", file != null ? file.getOriginalFilename() : "NULL");
+            log.info("📊 File size: {}", file != null ? file.getSize() : "NULL");
+            log.info("📝 Content type: {}", file != null ? file.getContentType() : "NULL");
 
-            // ✅ NULL CHECK
-            if (file == null) {
-                log.error("File parameter is NULL!");
+            // Validate
+            if (file == null || file.isEmpty()) {
+                log.error("❌ File is null or empty");
                 return ResponseEntity.badRequest()
-                        .body(ApiResponse.error("No file uploaded - file parameter is null"));
+                        .body(ApiResponse.error("No file uploaded"));
             }
 
-            if (file.isEmpty()) {
-                log.error("File is empty!");
-                return ResponseEntity.badRequest()
-                        .body(ApiResponse.error("Uploaded file is empty"));
-            }
-
-            log.info("Calling homeworkService.uploadHomeworkFile...");
+            // Upload
+            log.info("☁️ Uploading to Cloudinary...");
             String url = homeworkService.uploadHomeworkFile(file);
-            log.info("Upload successful! URL: {}", url);
+
+            log.info("✅ Upload successful!");
+            log.info("🔗 URL: {}", url);
 
             Map<String, String> response = new HashMap<>();
             response.put("url", url);
@@ -248,22 +215,19 @@ public class StudentHomeworkController {
             return ResponseEntity.ok(ApiResponse.success("File uploaded successfully", response));
 
         } catch (IllegalArgumentException e) {
-            log.error("Validation error: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+            log.error("❌ Validation error: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error(e.getMessage()));
+
         } catch (Exception e) {
-            log.error("Upload failed with exception", e);
-            log.error("Exception type: {}", e.getClass().getName());
-            log.error("Exception message: {}", e.getMessage());
-            log.error("Stack trace:", e);
+            log.error("❌ Upload failed", e);
+            log.error("Exception: {} - {}", e.getClass().getName(), e.getMessage());
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error("Failed to upload file: " + e.getMessage()));
         }
     }
 
-    /**
-     * Get homework statistics
-     */
     @GetMapping("/stats")
     public ResponseEntity<ApiResponse<HomeworkStatsResponse>> getHomeworkStats(
             @AuthenticationPrincipal User user) {
@@ -283,9 +247,6 @@ public class StudentHomeworkController {
         return ResponseEntity.ok(ApiResponse.success(stats));
     }
 
-    /**
-     * Search homeworks
-     */
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<List<HomeworkResponse>>> searchHomeworks(
             @RequestParam String keyword,

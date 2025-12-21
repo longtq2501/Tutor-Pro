@@ -27,8 +27,6 @@ public class HomeworkService {
     private final StudentRepository studentRepository;
     private final SessionRecordRepository sessionRecordRepository;
     private final CloudinaryService cloudinaryService;
-    // EmailService là optional - nếu có thì uncomment
-    // private final EmailService emailService;
 
     // Create homework (by tutor)
     public HomeworkResponse createHomework(HomeworkRequest request) {
@@ -60,7 +58,6 @@ public class HomeworkService {
         homework = homeworkRepository.save(homework);
         log.info("Created new homework: {} for student: {}", homework.getId(), student.getName());
 
-        // Send email notification to student/parent (optional)
         try {
             sendHomeworkNotification(homework, "NEW");
         } catch (Exception e) {
@@ -73,7 +70,6 @@ public class HomeworkService {
     // Get all homeworks for a student
     @Transactional(readOnly = true)
     public List<HomeworkResponse> getStudentHomeworks(Long studentId) {
-        // Verify student exists
         if (!studentRepository.existsById(studentId)) {
             throw new ResourceNotFoundException("Student not found with id: " + studentId);
         }
@@ -127,12 +123,10 @@ public class HomeworkService {
         Homework homework = homeworkRepository.findById(homeworkId)
                 .orElseThrow(() -> new ResourceNotFoundException("Homework not found with id: " + homeworkId));
 
-        // Verify ownership
         if (!homework.getStudent().getId().equals(studentId)) {
             throw new IllegalArgumentException("You don't have permission to update this homework");
         }
 
-        // Only allow certain status transitions for students
         if (status != HomeworkStatus.IN_PROGRESS && status != HomeworkStatus.ASSIGNED) {
             throw new IllegalArgumentException("Students can only mark homework as IN_PROGRESS");
         }
@@ -150,12 +144,10 @@ public class HomeworkService {
         Homework homework = homeworkRepository.findById(homeworkId)
                 .orElseThrow(() -> new ResourceNotFoundException("Homework not found with id: " + homeworkId));
 
-        // Verify ownership
         if (!homework.getStudent().getId().equals(studentId)) {
             throw new IllegalArgumentException("You don't have permission to submit this homework");
         }
 
-        // Check if already submitted
         if (homework.getStatus() == HomeworkStatus.SUBMITTED || homework.getStatus() == HomeworkStatus.GRADED) {
             throw new IllegalArgumentException("This homework has already been submitted");
         }
@@ -170,7 +162,6 @@ public class HomeworkService {
         homework = homeworkRepository.save(homework);
         log.info("Student {} submitted homework {}", studentId, homeworkId);
 
-        // Send notification to tutor
         try {
             sendHomeworkNotification(homework, "SUBMITTED");
         } catch (Exception e) {
@@ -180,35 +171,38 @@ public class HomeworkService {
         return HomeworkResponse.fromEntity(homework);
     }
 
+    /**
+     * ✅ FIXED: Upload homework file - giống DocumentService
+     */
     public String uploadHomeworkFile(MultipartFile file) {
-        // ✅ ADD DETAILED LOGGING
-        log.info("=== uploadHomeworkFile called ===");
-        log.info("File parameter: {}", file);
+        log.info("📤 Uploading homework file: {}", file != null ? file.getOriginalFilename() : "NULL");
 
-        if (file == null) {
-            log.error("File parameter is NULL!");
-            throw new IllegalArgumentException("File is null");
-        }
-
-        log.info("File name: {}", file.getOriginalFilename());
-        log.info("File size: {}", file.getSize());
-        log.info("File content type: {}", file.getContentType());
-
-        if (file.isEmpty()) {
-            log.error("File is empty!");
+        // Validate file
+        if (file == null || file.isEmpty()) {
+            log.error("❌ File is null or empty");
             throw new IllegalArgumentException("File is empty");
         }
 
+        // Validate file type (tùy chọn - có thể bỏ nếu muốn chấp nhận mọi loại file)
+        String contentType = file.getContentType();
+        log.info("📝 Content type: {}", contentType);
+        log.info("📊 File size: {} bytes", file.getSize());
+
         try {
-            log.info("Calling cloudinaryService.uploadFile...");
+            // Upload to Cloudinary với folder "homework"
+            log.info("☁️ Uploading to Cloudinary...");
             String url = cloudinaryService.uploadFile(file, "homework");
-            log.info("Cloudinary upload SUCCESS! URL: {}", url);
+
+            log.info("✅ Homework file uploaded successfully!");
+            log.info("🔗 URL: {}", url);
+
             return url;
+
         } catch (Exception e) {
-            log.error("❌ Cloudinary upload FAILED!", e);
+            log.error("❌ Failed to upload homework file", e);
             log.error("Exception type: {}", e.getClass().getName());
             log.error("Exception message: {}", e.getMessage());
-            throw new RuntimeException("Failed to upload to Cloudinary: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to upload homework file: " + e.getMessage(), e);
         }
     }
 
@@ -217,7 +211,6 @@ public class HomeworkService {
         Homework homework = homeworkRepository.findById(homeworkId)
                 .orElseThrow(() -> new ResourceNotFoundException("Homework not found with id: " + homeworkId));
 
-        // Check if homework has been submitted
         if (homework.getStatus() != HomeworkStatus.SUBMITTED) {
             throw new IllegalArgumentException("Cannot grade homework that hasn't been submitted");
         }
@@ -234,7 +227,6 @@ public class HomeworkService {
         homework = homeworkRepository.save(homework);
         log.info("Graded homework {} with score: {}", homeworkId, score);
 
-        // Send notification to student
         try {
             sendHomeworkNotification(homework, "GRADED");
         } catch (Exception e) {
@@ -249,7 +241,6 @@ public class HomeworkService {
         Homework homework = homeworkRepository.findById(homeworkId)
                 .orElseThrow(() -> new ResourceNotFoundException("Homework not found with id: " + homeworkId));
 
-        // Update fields
         if (request.getTitle() != null) {
             homework.setTitle(request.getTitle());
         }
@@ -278,7 +269,6 @@ public class HomeworkService {
     // Get homework statistics
     @Transactional(readOnly = true)
     public HomeworkStatsResponse getHomeworkStats(Long studentId) {
-        // Verify student exists
         if (!studentRepository.existsById(studentId)) {
             throw new ResourceNotFoundException("Student not found with id: " + studentId);
         }
@@ -313,7 +303,7 @@ public class HomeworkService {
                 .gradedCount(graded)
                 .overdueCount(overdue)
                 .upcomingCount(upcoming)
-                .averageScore(Math.round(avgScore * 10.0) / 10.0) // Round to 1 decimal
+                .averageScore(Math.round(avgScore * 10.0) / 10.0)
                 .build();
     }
 
@@ -339,34 +329,8 @@ public class HomeworkService {
                 .collect(Collectors.toList());
     }
 
-    // Send email notification (placeholder - implement based on your EmailService)
+    // Send email notification (placeholder)
     private void sendHomeworkNotification(Homework homework, String type) {
-        // Uncomment and implement when EmailService is available
-        /*
-        String subject = "";
-        String message = "";
-
-        switch (type) {
-            case "NEW":
-                subject = "Bài tập mới: " + homework.getTitle();
-                message = "Bạn có bài tập mới cần hoàn thành trước " + homework.getDueDate();
-                break;
-            case "SUBMITTED":
-                subject = "Bài tập đã nộp: " + homework.getTitle();
-                message = homework.getStudent().getName() + " đã nộp bài tập";
-                break;
-            case "GRADED":
-                subject = "Bài tập đã được chấm điểm: " + homework.getTitle();
-                message = "Điểm số: " + homework.getScore() + "/100";
-                break;
-        }
-
-        // Send to student email if available
-        if (homework.getStudent().getParent() != null && homework.getStudent().getParent().getEmail() != null) {
-            emailService.sendEmail(homework.getStudent().getParent().getEmail(), subject, message);
-        }
-        */
-
         log.info("Notification [{}] for homework: {}", type, homework.getTitle());
     }
 }

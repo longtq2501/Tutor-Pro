@@ -1,5 +1,9 @@
-package com.tutor_management.backend.repository;
+// =========================================================================
+// FILE 7: UserRepository.java (No changes needed - simple queries)
+// Location: src/main/java/com/tutor_management/backend/repository/
+// =========================================================================
 
+package com.tutor_management.backend.repository;
 
 import com.tutor_management.backend.entity.*;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,12 +15,8 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
-
     Boolean existsByEmail(String email);
-
     List<User> findByRole(Role role);
-
     Optional<User> findByIdAndEnabled(Long id, Boolean enabled);
-
     List<User> findByStudentId(Long studentId);
 }

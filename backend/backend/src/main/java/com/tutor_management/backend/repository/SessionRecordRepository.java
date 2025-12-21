@@ -1,54 +1,90 @@
+// =========================================================================
+// FILE 2: SessionRecordRepository.java
+// Location: src/main/java/com/tutor_management/backend/repository/
+// =========================================================================
+
 package com.tutor_management.backend.repository;
 
 import com.tutor_management.backend.entity.SessionRecord;
 import com.tutor_management.backend.entity.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SessionRecordRepository extends JpaRepository<SessionRecord, Long> {
 
-    // Phương thức cần cho StudentService (tìm records theo StudentId)
-    List<SessionRecord> findByStudentIdOrderByCreatedAtDesc(Long studentId);
+    // ✅ OPTIMIZED: Join fetch student
+    @Query("SELECT sr FROM SessionRecord sr " +
+            "LEFT JOIN FETCH sr.student " +
+            "WHERE sr.student.id = :studentId " +
+            "ORDER BY sr.createdAt DESC")
+    List<SessionRecord> findByStudentIdOrderByCreatedAtDesc(@Param("studentId") Long studentId);
 
-    // Lấy tất cả các bản ghi, sắp xếp theo thời gian tạo giảm dần
+    // ✅ OPTIMIZED: Get all with student
+    @Query("SELECT sr FROM SessionRecord sr " +
+            "LEFT JOIN FETCH sr.student " +
+            "ORDER BY sr.createdAt DESC")
     List<SessionRecord> findAllByOrderByCreatedAtDesc();
 
-    // Lấy các bản ghi theo tháng, sắp xếp theo thời gian tạo giảm dần
-    List<SessionRecord> findByMonthOrderByCreatedAtDesc(String month);
+    // ✅ OPTIMIZED: By month with student
+    @Query("SELECT sr FROM SessionRecord sr " +
+            "LEFT JOIN FETCH sr.student " +
+            "WHERE sr.month = :month " +
+            "ORDER BY sr.createdAt DESC")
+    List<SessionRecord> findByMonthOrderByCreatedAtDesc(@Param("month") String month);
 
-    // Lấy danh sách các tháng duy nhất (BẮT BUỘC phải dùng @Query)
+    // ✅ OPTIMIZED: Get by ID with student
+    @Query("SELECT sr FROM SessionRecord sr " +
+            "LEFT JOIN FETCH sr.student " +
+            "WHERE sr.id = :id")
+    Optional<SessionRecord> findByIdWithStudent(@Param("id") Long id);
+
+    // Distinct months - không cần join
     @Query("SELECT DISTINCT sr.month FROM SessionRecord sr ORDER BY sr.month DESC")
     List<String> findDistinctMonths();
 
-    // --- CÁC HÀM TÍNH TỔNG ĐÃ SỬA LỖI BẰNG CÁCH DÙNG @Query ---
-
-    // Tính tổng số tiền đã thanh toán (Paid) cho toàn bộ thời gian.
+    // Sum queries - không cần join (chỉ aggregate)
     @Query("SELECT COALESCE(SUM(sr.totalAmount), 0) FROM SessionRecord sr WHERE sr.paid = true")
     Long sumTotalPaid();
 
-    // Tính tổng số tiền chưa thanh toán (Unpaid) cho toàn bộ thời gian.
     @Query("SELECT COALESCE(SUM(sr.totalAmount), 0) FROM SessionRecord sr WHERE sr.paid = false")
     Long sumTotalUnpaid();
 
-    // Tính tổng số tiền đã thanh toán (Paid) theo tháng.
     @Query("SELECT COALESCE(SUM(sr.totalAmount), 0) FROM SessionRecord sr WHERE sr.month = :month AND sr.paid = true")
-    Long sumTotalPaidByMonth(String month);
+    Long sumTotalPaidByMonth(@Param("month") String month);
 
-    // Tính tổng số tiền chưa thanh toán (Unpaid) theo tháng.
     @Query("SELECT COALESCE(SUM(sr.totalAmount), 0) FROM SessionRecord sr WHERE sr.month = :month AND sr.paid = false")
-    Long sumTotalUnpaidByMonth(String month);
+    Long sumTotalUnpaidByMonth(@Param("month") String month);
 
-    // Tính tổng số buổi học (Sessions) theo tháng.
     @Query("SELECT COALESCE(SUM(sr.sessions), 0) FROM SessionRecord sr WHERE sr.month = :month")
-    Integer sumSessionsByMonth(String month);
+    Integer sumSessionsByMonth(@Param("month") String month);
 
+    // ✅ OPTIMIZED: Unpaid sessions with student
+    @Query("SELECT sr FROM SessionRecord sr " +
+            "LEFT JOIN FETCH sr.student " +
+            "WHERE sr.paid = false " +
+            "ORDER BY sr.sessionDate DESC")
     List<SessionRecord> findByPaidFalseOrderBySessionDateDesc();
 
-    List<SessionRecord> findByStudentOrderByCreatedAtDesc(Student student);
+    // ✅ OPTIMIZED: By student entity
+    @Query("SELECT sr FROM SessionRecord sr " +
+            "LEFT JOIN FETCH sr.student s " +
+            "WHERE s = :student " +
+            "ORDER BY sr.createdAt DESC")
+    List<SessionRecord> findByStudentOrderByCreatedAtDesc(@Param("student") Student student);
 
-    List<SessionRecord> findByStudentAndMonthOrderByCreatedAtDesc(Student student, String month);
+    // ✅ OPTIMIZED: By student and month
+    @Query("SELECT sr FROM SessionRecord sr " +
+            "LEFT JOIN FETCH sr.student s " +
+            "WHERE s = :student AND sr.month = :month " +
+            "ORDER BY sr.createdAt DESC")
+    List<SessionRecord> findByStudentAndMonthOrderByCreatedAtDesc(
+            @Param("student") Student student,
+            @Param("month") String month
+    );
 }

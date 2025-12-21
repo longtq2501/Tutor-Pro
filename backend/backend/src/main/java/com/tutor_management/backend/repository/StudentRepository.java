@@ -1,3 +1,8 @@
+// =========================================================================
+// FILE 3: StudentRepository.java (ALREADY OPTIMIZED - kept as is)
+// Location: src/main/java/com/tutor_management/backend/repository/
+// =========================================================================
+
 package com.tutor_management.backend.repository;
 
 import com.tutor_management.backend.entity.Student;
@@ -11,23 +16,22 @@ import java.util.Optional;
 
 @Repository
 public interface StudentRepository extends JpaRepository<Student, Long> {
-//    List<Student> findByUserIdOrderByCreatedAtDesc(Long userId);
-//    Optional<Student> findByIdAndUserId(Long id, Long userId);
 
     List<Student> findAllByOrderByCreatedAtDesc();
 
     List<Student> findByActiveTrue();
 
-    // THÊM QUERY NÀY để fetch parent cùng lúc
-    // Fetch single student with parent
+    // ✅ Already optimized with JOIN FETCH
     @Query("SELECT s FROM Student s LEFT JOIN FETCH s.parent WHERE s.id = :id")
     Optional<Student> findByIdWithParent(@Param("id") Long id);
 
-    // Fetch multiple students with parent
     @Query("SELECT s FROM Student s LEFT JOIN FETCH s.parent WHERE s.id IN :ids")
     List<Student> findByIdInWithParent(@Param("ids") List<Long> ids);
 
-    // Fetch all active students with parent
     @Query("SELECT s FROM Student s LEFT JOIN FETCH s.parent WHERE s.active = true")
     List<Student> findByActiveTrueWithParent();
+
+    // ✅ ADD: Get all with parent
+    @Query("SELECT s FROM Student s LEFT JOIN FETCH s.parent ORDER BY s.createdAt DESC")
+    List<Student> findAllWithParentOrderByCreatedAtDesc();
 }

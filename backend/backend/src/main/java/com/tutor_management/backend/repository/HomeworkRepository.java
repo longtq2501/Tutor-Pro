@@ -1,3 +1,8 @@
+// =========================================================================
+// FILE 1: HomeworkRepository.java
+// Location: src/main/java/com/tutor_management/backend/repository/
+// =========================================================================
+
 package com.tutor_management.backend.repository;
 
 import com.tutor_management.backend.entity.Homework;
@@ -9,18 +14,42 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface HomeworkRepository extends JpaRepository<Homework, Long> {
 
-    // Lấy tất cả homework của một học sinh
-    List<Homework> findByStudentIdOrderByDueDateDesc(Long studentId);
+    // ✅ OPTIMIZED: Join fetch student và session để tránh N+1
+    @Query("SELECT h FROM Homework h " +
+            "LEFT JOIN FETCH h.student " +
+            "LEFT JOIN FETCH h.sessionRecord " +
+            "WHERE h.student.id = :studentId " +
+            "ORDER BY h.dueDate DESC")
+    List<Homework> findByStudentIdOrderByDueDateDesc(@Param("studentId") Long studentId);
 
-    // Lấy homework theo status
-    List<Homework> findByStudentIdAndStatusOrderByDueDateDesc(Long studentId, HomeworkStatus status);
+    // ✅ OPTIMIZED: Get by ID với relationships
+    @Query("SELECT h FROM Homework h " +
+            "LEFT JOIN FETCH h.student " +
+            "LEFT JOIN FETCH h.sessionRecord " +
+            "WHERE h.id = :id")
+    Optional<Homework> findByIdWithDetails(@Param("id") Long id);
 
-    // Lấy homework sắp đến hạn (trong vòng X ngày)
-    @Query("SELECT h FROM Homework h WHERE h.student.id = :studentId " +
+    // ✅ OPTIMIZED: By status với join fetch
+    @Query("SELECT h FROM Homework h " +
+            "LEFT JOIN FETCH h.student " +
+            "LEFT JOIN FETCH h.sessionRecord " +
+            "WHERE h.student.id = :studentId AND h.status = :status " +
+            "ORDER BY h.dueDate DESC")
+    List<Homework> findByStudentIdAndStatusOrderByDueDateDesc(
+            @Param("studentId") Long studentId,
+            @Param("status") HomeworkStatus status
+    );
+
+    // ✅ OPTIMIZED: Upcoming homeworks
+    @Query("SELECT h FROM Homework h " +
+            "LEFT JOIN FETCH h.student " +
+            "LEFT JOIN FETCH h.sessionRecord " +
+            "WHERE h.student.id = :studentId " +
             "AND h.status IN ('ASSIGNED', 'IN_PROGRESS') " +
             "AND h.dueDate BETWEEN :now AND :endDate " +
             "ORDER BY h.dueDate ASC")
@@ -30,26 +59,37 @@ public interface HomeworkRepository extends JpaRepository<Homework, Long> {
             @Param("endDate") LocalDateTime endDate
     );
 
-    // Lấy homework quá hạn
-    @Query("SELECT h FROM Homework h WHERE h.student.id = :studentId " +
+    // ✅ OPTIMIZED: Overdue homeworks
+    @Query("SELECT h FROM Homework h " +
+            "LEFT JOIN FETCH h.student " +
+            "LEFT JOIN FETCH h.sessionRecord " +
+            "WHERE h.student.id = :studentId " +
             "AND h.status = 'OVERDUE' " +
             "ORDER BY h.dueDate DESC")
     List<Homework> findOverdueHomeworks(@Param("studentId") Long studentId);
 
-    // Đếm homework theo status
+    // Count - không cần join fetch
     Long countByStudentIdAndStatus(Long studentId, HomeworkStatus status);
 
-    // Lấy homework của session cụ thể
-    List<Homework> findBySessionRecordIdOrderByCreatedAtDesc(Long sessionRecordId);
+    // ✅ OPTIMIZED: By session
+    @Query("SELECT h FROM Homework h " +
+            "LEFT JOIN FETCH h.student " +
+            "LEFT JOIN FETCH h.sessionRecord " +
+            "WHERE h.sessionRecord.id = :sessionRecordId " +
+            "ORDER BY h.createdAt DESC")
+    List<Homework> findBySessionRecordIdOrderByCreatedAtDesc(@Param("sessionRecordId") Long sessionRecordId);
 
-    // Thống kê homework
+    // Stats - không cần join fetch
     @Query("SELECT h.status, COUNT(h) FROM Homework h " +
             "WHERE h.student.id = :studentId " +
             "GROUP BY h.status")
     List<Object[]> getHomeworkStatsByStudent(@Param("studentId") Long studentId);
 
-    // Tìm kiếm homework
-    @Query("SELECT h FROM Homework h WHERE h.student.id = :studentId " +
+    // ✅ OPTIMIZED: Search
+    @Query("SELECT h FROM Homework h " +
+            "LEFT JOIN FETCH h.student " +
+            "LEFT JOIN FETCH h.sessionRecord " +
+            "WHERE h.student.id = :studentId " +
             "AND (LOWER(h.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
             "OR LOWER(h.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
             "ORDER BY h.createdAt DESC")

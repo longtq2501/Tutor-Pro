@@ -1,3 +1,8 @@
+// =========================================================================
+// FILE 5: RecurringScheduleRepository.java
+// Location: src/main/java/com/tutor_management/backend/repository/
+// =========================================================================
+
 package com.tutor_management.backend.repository;
 
 import com.tutor_management.backend.entity.RecurringSchedule;
@@ -12,28 +17,41 @@ import java.util.Optional;
 @Repository
 public interface RecurringScheduleRepository extends JpaRepository<RecurringSchedule, Long> {
 
-    // Lấy lịch theo student
-    List<RecurringSchedule> findByStudentIdAndActiveTrue(Long studentId);
+    // ✅ OPTIMIZED: Join fetch student
+    @Query("SELECT rs FROM RecurringSchedule rs " +
+            "JOIN FETCH rs.student " +
+            "WHERE rs.student.id = :studentId AND rs.active = true")
+    List<RecurringSchedule> findByStudentIdAndActiveTrue(@Param("studentId") Long studentId);
 
-    List<RecurringSchedule> findByStudentId(Long studentId);
+    @Query("SELECT rs FROM RecurringSchedule rs " +
+            "JOIN FETCH rs.student " +
+            "WHERE rs.student.id = :studentId")
+    List<RecurringSchedule> findByStudentId(@Param("studentId") Long studentId);
 
-    // Lấy lịch active theo student
-    Optional<RecurringSchedule> findByStudentIdAndActiveTrueOrderByCreatedAtDesc(Long studentId);
+    @Query("SELECT rs FROM RecurringSchedule rs " +
+            "JOIN FETCH rs.student " +
+            "WHERE rs.student.id = :studentId AND rs.active = true " +
+            "ORDER BY rs.createdAt DESC")
+    Optional<RecurringSchedule> findByStudentIdAndActiveTrueOrderByCreatedAtDesc(@Param("studentId") Long studentId);
 
-    // Lấy tất cả lịch active
+    @Query("SELECT rs FROM RecurringSchedule rs " +
+            "JOIN FETCH rs.student " +
+            "WHERE rs.active = true " +
+            "ORDER BY rs.createdAt DESC")
     List<RecurringSchedule> findByActiveTrueOrderByCreatedAtDesc();
 
-    // Lấy tất cả lịch (bao gồm inactive)
+    @Query("SELECT rs FROM RecurringSchedule rs " +
+            "JOIN FETCH rs.student " +
+            "ORDER BY rs.createdAt DESC")
     List<RecurringSchedule> findAllByOrderByCreatedAtDesc();
 
-    // Check student đã có lịch active chưa
+    // Check existence - không cần join
     boolean existsByStudentIdAndActiveTrue(Long studentId);
 
-    // Lấy lịch với thông tin student
+    // ✅ Already optimized
     @Query("SELECT rs FROM RecurringSchedule rs JOIN FETCH rs.student WHERE rs.id = :id")
     Optional<RecurringSchedule> findByIdWithStudent(@Param("id") Long id);
 
-    // Lấy tất cả lịch active với thông tin student
     @Query("SELECT rs FROM RecurringSchedule rs JOIN FETCH rs.student WHERE rs.active = true")
     List<RecurringSchedule> findAllActiveWithStudent();
 }

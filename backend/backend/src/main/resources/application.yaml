@@ -1,31 +1,50 @@
-# MySQL Database Configuration
+# ✅ THÊM/UPDATE CÁC DÒNG NÀY VÀO application.yml
+
 spring:
   datasource:
-    # URL cơ sở dữ liệu
     url: jdbc:mysql://yamanote.proxy.rlwy.net:28075/railway
-    # Tên người dùng MySQL
     username: root
-    # Mật khẩu MySQL
     password: ZxcrDghnhFCiDFGmyxcNpNeDAWwkjhMC
     driver-class-name: com.mysql.cj.jdbc.Driver
+    # ✅ HikariCP connection pool optimization
+    hikari:
+      maximum-pool-size: 10          # Max connections
+      minimum-idle: 5                # Min idle connections
+      connection-timeout: 30000      # 30s timeout
+      idle-timeout: 600000           # 10 min idle
+      max-lifetime: 1800000          # 30 min max lifetime
+      connection-test-query: SELECT 1
 
-  # JPA/Hibernate Configuration
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false  # ✅ TẮT để giảm log overhead
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
-        format_sql: true
+        format_sql: false  # ✅ TẮT formatting
+        # ✅ Batch fetching optimization
+        default_batch_fetch_size: 20
+        jdbc:
+          batch_size: 20
+          fetch_size: 20
+        order_inserts: true
+        order_updates: true
+        # ✅ Query optimization
+        query:
+          in_clause_parameter_padding: true
+        # ✅ Second-level cache (optional - uncomment if needed)
+        # cache:
+        #   use_second_level_cache: true
+        #   region:
+        #     factory_class: org.hibernate.cache.jcache.JCacheRegionFactory
 
-  # File upload configuration
   servlet:
     multipart:
       enabled: true
       max-file-size: 100MB
       max-request-size: 100MB
-      location: /tmp  # ← ADD THIS
+      location: /tmp
 
   mail:
     host: smtp.gmail.com
@@ -40,38 +59,41 @@ spring:
             enable: true
             required: true
 
-# Application specific configuration
+# Application specific
 app:
   mail:
     from: tonquynhlong@gmail.com
     from-name: Thầy Quỳnh Long
-
-  # Data Initialization Configuration
   init-data:
-    enabled: true                    # Bật/tắt tự động tạo data
-    default-password: password123    # Password mặc định cho demo accounts
+    enabled: true
+    default-password: password123
 
-# File storage location
+# File storage
 file:
   upload-dir: uploads
 
-# JWT Configuration
+# JWT
 jwt:
   secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970337336763979244226452948404D635166546A576E5A7234753778214125442A
-  expiration: 86400000              # 24 hours in milliseconds
-  refresh-expiration: 604800000     # 7 days in milliseconds
+  expiration: 86400000
+  refresh-expiration: 604800000
 
-# Server Configuration
+# Server
 server:
-  # Cổng của ứng dụng Spring Boot
   port: 8080
   error:
     include-message: always
     include-binding-errors: always
+  # ✅ Tomcat optimization
+  tomcat:
+    connection-timeout: 120000      # 2 min for large uploads
+    threads:
+      max: 200                      # Max threads
+      min-spare: 10                 # Min spare threads
 
-# CORS Configuration (cho phép tất cả origins vì chỉ bạn dùng)
+# CORS
 cors:
-  allowed-origins: "https://tutor-management-e7zh.vercel.app"
+  allowed-origins: "https://tutor-management-e7zh.vercel.app,http://localhost:3000,http://localhost:5173"
   allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
   allowed-headers: "*"
   allow-credentials: true
@@ -80,15 +102,15 @@ cors:
 logging:
   level:
     com:
-      tutor_management: DEBUG
+      tutor_management: INFO       # ✅ Giảm từ DEBUG → INFO
     org:
       springframework:
-        web: DEBUG
-        security: DEBUG
-      hibernate: INFO
-    com.cloudinary: DEBUG
+        web: INFO                   # ✅ Giảm log
+        security: WARN
+      hibernate: WARN                # ✅ Giảm Hibernate logs
+    com.cloudinary: INFO
 
-# Cloudinary Configuration
+# Cloudinary
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME:doi1wiy3t}
   api-key: ${CLOUDINARY_API_KEY:816839713568739}

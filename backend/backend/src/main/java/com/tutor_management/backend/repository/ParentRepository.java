@@ -1,3 +1,8 @@
+// =========================================================================
+// FILE 6: ParentRepository.java (No changes needed - simple queries)
+// Location: src/main/java/com/tutor_management/backend/repository/
+// =========================================================================
+
 package com.tutor_management.backend.repository;
 
 import com.tutor_management.backend.entity.Parent;
@@ -14,7 +19,6 @@ public interface ParentRepository extends JpaRepository<Parent, Long> {
     Optional<Parent> findByEmail(String email);
     Optional<Parent> findByPhone(String phone);
     boolean existsByEmail(String email);
-
     boolean existsByEmailAndIdNot(String email, Long id);
 
     @Query("SELECT p FROM Parent p WHERE " +

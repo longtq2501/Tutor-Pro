@@ -443,22 +443,26 @@ export const homeworkApi = {
       return response.data.data;
     },
 
-    // Tìm đến homeworkApi -> student -> uploadFile
+    // ✅ FIXED UPLOAD METHOD
     uploadFile: async (file: File): Promise<{ url: string; filename: string }> => {
       const formData = new FormData();
-      formData.append('file', file); // 'file' phải khớp với @RequestParam("file") bên Java
+      formData.append('file', file);
 
-      const response = await api.post<ApiResponse<{ url: string; filename: string }>>(
-        '/student/homeworks/upload',
-        formData,
-        {
-          headers: {
-            // Hãy để trình duyệt tự quyết định Boundary, không nên ép cứng nếu không cần thiết
-            'Content-Type': 'multipart/form-data', 
-          },
-        }
-      );
-      return response.data.data;
+      console.log('📤 Uploading file:', file.name, file.size, file.type);
+
+      try {
+        // ✅ NO HEADERS - Let axios auto-detect multipart/form-data
+        const response = await api.post<ApiResponse<{ url: string; filename: string }>>(
+          '/student/homeworks/upload',
+          formData
+        );
+
+        console.log('✅ Upload success:', response.data);
+        return response.data.data;
+      } catch (error: any) {
+        console.error('❌ Upload error:', error.response?.data || error.message);
+        throw error;
+      }
     },
 
     getStats: async (): Promise<HomeworkStats> => {
@@ -506,20 +510,25 @@ export const homeworkApi = {
       return response.data.data;
     },
 
+    // ✅ FIXED UPLOAD METHOD
     uploadFile: async (file: File): Promise<{ url: string; filename: string }> => {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await api.post<ApiResponse<{ url: string; filename: string }>>(
-        '/tutor/homeworks/upload',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
-      return response.data.data;
+      console.log('📤 Tutor uploading file:', file.name, file.size, file.type);
+
+      try {
+        const response = await api.post<ApiResponse<{ url: string; filename: string }>>(
+          '/tutor/homeworks/upload',
+          formData
+        );
+
+        console.log('✅ Tutor upload success:', response.data);
+        return response.data.data;
+      } catch (error: any) {
+        console.error('❌ Tutor upload error:', error.response?.data || error.message);
+        throw error;
+      }
     },
   },
 
@@ -535,15 +544,7 @@ export const homeworkApi = {
       return response.data.data;
     },
 
-    // // Thêm hàm này để hết lỗi ở ảnh image_f113c4.png
-    // getStudentHomeworks: async (studentId: number): Promise<Homework[]> => {
-    //   const response = await api.get<ApiResponse<Homework[]>>(`/tutor/homeworks/student/${studentId}`);
-    //   return response.data.data;
-    // },
-
-    // Trong homeworkApi -> admin
     getStudentStats: async (studentId: number): Promise<HomeworkStats> => {
-      // Đổi từ /tutor/ sang /admin/ để đúng quyền hạn
       const response = await api.get<ApiResponse<HomeworkStats>>(`/admin/homeworks/student/${studentId}/stats`);
       return response.data.data;
     },
@@ -595,20 +596,25 @@ export const homeworkApi = {
       return response.data.data;
     },
 
+    // ✅ FIXED UPLOAD METHOD
     uploadFile: async (file: File): Promise<{ url: string; filename: string }> => {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await api.post<ApiResponse<{ url: string; filename: string }>>(
-        '/admin/homeworks/upload',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
-      return response.data.data;
+      console.log('📤 Admin uploading file:', file.name, file.size, file.type);
+
+      try {
+        const response = await api.post<ApiResponse<{ url: string; filename: string }>>(
+          '/admin/homeworks/upload',
+          formData
+        );
+
+        console.log('✅ Admin upload success:', response.data);
+        return response.data.data;
+      } catch (error: any) {
+        console.error('❌ Admin upload error:', error.response?.data || error.message);
+        throw error;
+      }
     },
   },
 };

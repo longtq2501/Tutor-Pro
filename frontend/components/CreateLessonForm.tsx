@@ -237,29 +237,48 @@ export default function CreateLessonForm({ onSuccess, onCancel }: CreateLessonFo
     setLoading(true);
   
     try {
-      // SỬA KHỐI NÀY: Gán kiểu CreateLessonRequest
+      // ✅ Chuẩn hóa payload - loại bỏ undefined và null
       const payload: CreateLessonRequest = {
         studentIds: selectedStudents,
-        tutorName,
-        title,
-        summary,
-        content,
-        lessonDate: format(lessonDate, 'yyyy-MM-dd'), // Format này Backend LocalDate mới hiểu
-        videoUrl: videoUrl || undefined,
-        thumbnailUrl: thumbnailUrl || undefined,
-        images: images.map((img, index) => ({ ...img, displayOrder: index })),
-        resources: resources.map((res, index) => ({ ...res, displayOrder: index })),
+        tutorName: tutorName || 'Thầy Quỳnh Long',
+        title: title.trim(),
+        summary: summary?.trim() || '',  // Empty string thay vì undefined
+        content: content?.trim() || '',  // Empty string thay vì undefined
+        lessonDate: format(lessonDate, 'yyyy-MM-dd'),
+        videoUrl: videoUrl?.trim() || undefined,  // undefined nếu empty
+        thumbnailUrl: thumbnailUrl?.trim() || undefined,  // undefined nếu empty
+        images: images.map((img, index) => ({
+          imageUrl: img.imageUrl,
+          caption: img.caption || '',  // Empty string thay vì undefined
+          displayOrder: index,
+        })),
+        resources: resources.map((res, index) => ({
+          title: res.title?.trim() || '',
+          description: res.description?.trim() || '',
+          resourceUrl: res.resourceUrl,
+          resourceType: res.resourceType,
+          fileSize: res.fileSize,
+          displayOrder: index,
+        })),
         isPublished,
       };
   
+      // ✅ LOG để debug
+      console.log('📤 Submitting payload:', JSON.stringify(payload, null, 2));
+  
       const result = await adminLessonsApi.create(payload);
-      
-      // Result từ backend thường là List<Lesson> hoặc ApiResponse
-      toast.success(`Đã tạo thành công bài giảng`);
+  
+      toast.success(`Đã tạo ${result.length} bài giảng thành công`);
       onSuccess();
     } catch (error: any) {
-      console.error('Error creating lesson:', error);
-      toast.error(error.message || 'Không thể tạo bài giảng');
+      console.error('❌ Error creating lesson:', error);
+      console.error('❌ Error response:', error.response?.data);
+      
+      // Hiển thị error message từ backend
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error ||
+                          'Không thể tạo bài giảng';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

@@ -392,12 +392,12 @@ export interface AdminLesson {
 }
 
 export interface CreateLessonRequest {
-  studentIds: number[];
+  studentIds: number[];  // Frontend uses number[]
   tutorName: string;
   title: string;
   summary?: string;
   content?: string;
-  lessonDate: string;  // 'yyyy-MM-dd' format
+  lessonDate: string;  // Must be 'yyyy-MM-dd' format
   videoUrl?: string;
   thumbnailUrl?: string;
   images?: AdminLessonImage[];

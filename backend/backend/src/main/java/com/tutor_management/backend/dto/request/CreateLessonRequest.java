@@ -1,5 +1,6 @@
 package com.tutor_management.backend.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -18,7 +19,7 @@ import java.util.List;
 public class CreateLessonRequest {
 
     @NotEmpty(message = "Phải chọn ít nhất một học sinh")
-    private List<Long> studentIds;  // Multi-student assignment
+    private List<Long> studentIds;
 
     private String tutorName;
 
@@ -26,20 +27,15 @@ public class CreateLessonRequest {
     private String title;
 
     private String summary;
-
-    private String content;  // Markdown content
+    private String content;
 
     @NotNull(message = "Ngày dạy không được để trống")
+    @JsonFormat(pattern = "yyyy-MM-dd")  // ✅ THÊM DÒNG NÀY
     private LocalDate lessonDate;
 
     private String videoUrl;
     private String thumbnailUrl;
-
-    // Multiple images
     private List<LessonImageRequest> images;
-
-    // Multiple resources
     private List<LessonResourceRequest> resources;
-
-    private Boolean isPublished;  // Draft vs Published
+    private Boolean isPublished;
 }

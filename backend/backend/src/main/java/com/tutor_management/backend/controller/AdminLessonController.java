@@ -35,17 +35,17 @@ public class AdminLessonController {
     public ResponseEntity<ApiResponse<List<AdminLessonResponse>>> createLesson(
             @Valid @RequestBody CreateLessonRequest request) {
 
-        log.info("Admin creating lesson: {} for {} students",
-                request.getTitle(), request.getStudentIds().size());
+        // ✅ THÊM LOG ĐỂ DEBUG
+        log.info("📥 Received create lesson request: {}", request);
+        log.info("Student IDs: {}", request.getStudentIds());
+        log.info("Lesson Date: {}", request.getLessonDate());
 
         try {
             List<AdminLessonResponse> lessons = adminLessonService.createLessonForStudents(request);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(ApiResponse.success("Tạo bài giảng thành công cho " + lessons.size() + " học sinh", lessons));
+            return ResponseEntity.ok(ApiResponse.success(lessons));
         } catch (Exception e) {
-            log.error("Failed to create lesson", e);
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("Không thể tạo bài giảng: " + e.getMessage()));
+            log.error("❌ Error creating lesson", e);
+            throw e;
         }
     }
 

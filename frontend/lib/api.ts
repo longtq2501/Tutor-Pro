@@ -22,7 +22,8 @@ import type {
   CreateHomeworkRequest,
   ApiResponse,
   Lesson,
-  LessonStats
+  LessonStats,
+  CreateLessonRequest
 } from './types';
 
 // 1. Lấy link gốc và xóa dấu gạch chéo ở cuối nếu có
@@ -676,21 +677,19 @@ export const adminLessonsApi = {
   },
 
   // Create lessons for multiple students
-  create: async (data: {
-    studentIds: number[];
-    tutorName: string;
-    title: string;
-    summary?: string;
-    content?: string;
-    lessonDate: string;
-    videoUrl?: string;
-    thumbnailUrl?: string;
-    images?: any[];
-    resources?: any[];
-    isPublished: boolean;
-  }): Promise<any[]> => {
-    const response = await api.post('/admin/lessons', data);
-    return response.data.data;
+  create: async (data: CreateLessonRequest): Promise<any[]> => {
+    // ✅ LOG ĐỂ DEBUG
+    console.log('📤 Creating lesson - Payload:', JSON.stringify(data, null, 2));
+    
+    try {
+      const response = await api.post('/admin/lessons', data);
+      console.log('✅ Response:', response.data);
+      return response.data.data;
+    } catch (error: any) {
+      console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Error status:', error.response?.status);
+      throw error;
+    }
   },
 
   // Update lesson

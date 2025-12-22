@@ -18,6 +18,7 @@ public class CacheConfig {
     public CacheManager cacheManager() {
         return new ConcurrentMapCacheManager(
                 "students",           // Cache student data
+                "lessons",
                 "homeworks",          // Cache homework data
                 "sessions",           // Cache session records
                 "documents",          // Cache documents

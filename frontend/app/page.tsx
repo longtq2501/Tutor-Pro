@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { 
   AlertCircle, CalendarDays, GraduationCap, LayoutDashboard,
-  TrendingUp, UserCheck, FileText, LogOut, User
+  TrendingUp, UserCheck, FileText, LogOut, User, BookCheck, BookOpen // ✅ Add BookOpen
 } from 'lucide-react';
 import Dashboard from '@/components/Dashboard';
 import StudentDashboard from '@/components/StudentDashboard';
@@ -29,27 +29,28 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import StudentHomeworkView from '@/components/StudentHomeworkView';
 import TutorHomeworkView from '@/components/TutorHomeworkView';
-import { BookCheck } from 'lucide-react'; // Add this to icon imports
+// ✅ Import Wrapper instead of Timeline directly
+import LessonViewWrapper from '@/components/LessonViewWrapper';
 
 function AppContent() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { user, logout, hasAnyRole } = useAuth();
 
-  // ✅ FILTER MENU ITEMS BASED ON ROLE
+  // ✅ ADD 'lessons' TO NAVIGATION
   const navItems: NavItem[] = useMemo(() => {
     const allItems: NavItem[] = [
       { id: 'dashboard', label: 'Tổng Quan', icon: LayoutDashboard },
       { id: 'students', label: 'Học Sinh', icon: GraduationCap },
       { id: 'monthly', label: 'Thống Kê', icon: TrendingUp },
       { id: 'calendar', label: 'Lịch Dạy', icon: CalendarDays },
+      { id: 'lessons', label: 'Bài Giảng', icon: BookOpen }, // ✅ NEW
       { id: 'homework', label: 'Bài Tập', icon: BookCheck },
       { id: 'unpaid', label: 'Công Nợ', icon: AlertCircle },
       { id: 'parents', label: 'Phụ Huynh', icon: UserCheck },
       { id: 'documents', label: 'Tài Liệu', icon: FileText },
     ];
 
-    // Filter based on role
     return allItems.filter(item => {
       // Students: ADMIN, TUTOR only
       if (item.id === 'students' && !hasAnyRole(['ADMIN', 'TUTOR'])) {
@@ -75,15 +76,16 @@ function AppContent() {
       if (item.id === 'calendar' && !hasAnyRole(['ADMIN', 'TUTOR'])) {
         return false;
       }
-      
-      // Homework: All roles (different views for STUDENT vs TUTOR/ADMIN)
-      // Documents: All roles
+
+      // ✅ Lessons: STUDENT only (TUTOR/ADMIN can manage via separate admin panel)
+      if (item.id === 'lessons' && !hasAnyRole(['STUDENT'])) {
+        return false;
+      }
       
       return true;
     });
   }, [hasAnyRole]);
 
-  // ✅ SET DEFAULT VIEW - Everyone starts at dashboard
   React.useEffect(() => {
     setCurrentView('dashboard');
   }, [hasAnyRole]);
@@ -131,7 +133,6 @@ function AppContent() {
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header - Clean and simple */}
         <header className="border-b border-border">
           <div className="flex items-center justify-between h-16 lg:h-20 px-4 lg:px-8">
             <div className="flex-1 min-w-0 pl-12 lg:pl-0">
@@ -143,7 +144,6 @@ function AppContent() {
             <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
               <ModeToggle />
               
-              {/* User menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 lg:h-10 lg:w-10 rounded-full">
@@ -179,16 +179,13 @@ function AppContent() {
           </div>
         </header>
 
-        {/* Main content */}
         <main className="flex-1 overflow-y-auto animate-in fade-in-50">
           <div className="p-4 lg:p-8">
-            {/* ✅ RENDER CONTENT BASED ON CURRENT VIEW AND ROLE */}
-            
-            {/* Dashboard: Different for STUDENT vs ADMIN/TUTOR */}
+            {/* Dashboard */}
             {currentView === 'dashboard' && hasAnyRole(['ADMIN', 'TUTOR']) && <Dashboard />}
             {currentView === 'dashboard' && hasAnyRole(['STUDENT']) && <StudentDashboard />}
             
-            {/* Other views - keep your current logic */}
+            {/* Other views */}
             {currentView === 'students' && hasAnyRole(['ADMIN', 'TUTOR']) && <StudentList />}
             {currentView === 'monthly' && hasAnyRole(['ADMIN', 'TUTOR']) && <MonthlyView />}
             {currentView === 'calendar' && hasAnyRole(['ADMIN', 'TUTOR']) && <CalendarView />}
@@ -198,7 +195,10 @@ function AppContent() {
             {currentView === 'homework' && hasAnyRole(['STUDENT']) && <StudentHomeworkView />}
             {currentView === 'homework' && hasAnyRole(['ADMIN', 'TUTOR']) && <TutorHomeworkView />}
             
-            {/* Fallback for unauthorized access */}
+            {/* ✅ NEW: Learning Log - Student only (with inline detail view) */}
+            {currentView === 'lessons' && hasAnyRole(['STUDENT']) && <LessonViewWrapper />}
+            
+            {/* Fallback */}
             {currentView === 'dashboard' && !hasAnyRole(['ADMIN', 'TUTOR', 'STUDENT']) && (
               <div className="text-center py-20">
                 <p className="text-muted-foreground">Bạn không có quyền xem trang này</p>

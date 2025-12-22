@@ -20,7 +20,9 @@ import type {
   Homework,
   HomeworkStats,
   CreateHomeworkRequest,
-  ApiResponse
+  ApiResponse,
+  Lesson,
+  LessonStats
 } from './types';
 
 // 1. Lấy link gốc và xóa dấu gạch chéo ở cuối nếu có
@@ -616,6 +618,47 @@ export const homeworkApi = {
         throw error;
       }
     },
+  },
+};
+
+// Lessons API
+export const lessonsApi = {
+  // Get all lessons for current student
+  getAll: async (): Promise<Lesson[]> => {
+    const response = await api.get<ApiResponse<Lesson[]>>('/student/lessons');
+    return response.data.data;
+  },
+
+  // Get lesson by ID
+  getById: async (id: number): Promise<Lesson> => {
+    const response = await api.get<ApiResponse<Lesson>>(`/student/lessons/${id}`);
+    return response.data.data;
+  },
+
+  // Filter by month/year
+  getByMonthYear: async (year: number, month: number): Promise<Lesson[]> => {
+    const response = await api.get<ApiResponse<Lesson[]>>(
+      `/student/lessons/filter?year=${year}&month=${month}`
+    );
+    return response.data.data;
+  },
+
+  // Mark as completed
+  markCompleted: async (id: number): Promise<Lesson> => {
+    const response = await api.post<ApiResponse<Lesson>>(`/student/lessons/${id}/complete`);
+    return response.data.data;
+  },
+
+  // Mark as incomplete
+  markIncomplete: async (id: number): Promise<Lesson> => {
+    const response = await api.post<ApiResponse<Lesson>>(`/student/lessons/${id}/incomplete`);
+    return response.data.data;
+  },
+
+  // Get stats
+  getStats: async (): Promise<LessonStats> => {
+    const response = await api.get<ApiResponse<LessonStats>>('/student/lessons/stats');
+    return response.data.data;
   },
 };
 

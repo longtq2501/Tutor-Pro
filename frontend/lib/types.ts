@@ -295,3 +295,54 @@ export interface HomeworkGradingRequest {
 export interface HomeworkStatusUpdateRequest {
   status: HomeworkStatus;
 }
+
+export interface Lesson {
+  id: number;
+  studentId: number;
+  studentName: string;
+  tutorName: string;
+  
+  title: string;
+  summary: string;
+  content: string;  // Markdown
+  lessonDate: string;  // ISO date string
+  
+  videoUrl?: string;
+  thumbnailUrl?: string;
+  
+  isCompleted: boolean;
+  completedAt?: string;
+  viewCount: number;
+  lastViewedAt?: string;
+  
+  images: LessonImage[];
+  resources: LessonResource[];
+  
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LessonImage {
+  id: number;
+  imageUrl: string;
+  caption?: string;
+  displayOrder: number;
+}
+
+export interface LessonResource {
+  id: number;
+  title: string;
+  description?: string;
+  resourceUrl: string;
+  resourceType: 'PDF' | 'LINK' | 'IMAGE' | 'VIDEO' | 'DOCUMENT';
+  fileSize?: number;
+  formattedFileSize: string;
+  displayOrder: number;
+}
+
+export interface LessonStats {
+  totalLessons: number;
+  completedLessons: number;
+  inProgressLessons: number;
+  completionRate: number;
+}

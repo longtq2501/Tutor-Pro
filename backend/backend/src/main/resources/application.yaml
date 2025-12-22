@@ -115,3 +115,12 @@ cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME:doi1wiy3t}
   api-key: ${CLOUDINARY_API_KEY:816839713568739}
   api-secret: ${CLOUDINARY_API_SECRET:NZiSr1Kv2b3KME98NB_rWE66ybw}
+
+management:
+  health:
+    mail:
+      enabled: false  # ✅ Tắt kiểm tra mail để không bị lỗi treo khi khởi động
+  endpoints:
+    web:
+      exposure:
+        include: health, info  # ✅ Cho phép UptimeRobot xem trạng thái

@@ -81,8 +81,8 @@ export default function EditLessonForm({ lessonId, onSuccess, onCancel }: EditLe
   const [resources, setResources] = useState<LessonResource[]>([]);
   const [isPublished, setIsPublished] = useState(false);
 
-  const CLOUDINARY_CLOUD_NAME = 'dvp2wcvmv';
-  const CLOUDINARY_UPLOAD_PRESET = 'tutorpro_preset';
+  const CLOUDINARY_CLOUD_NAME = 'doi1wiy3t';
+  const CLOUDINARY_UPLOAD_PRESET = 'tutor_preset';
 
   useEffect(() => {
     fetchLesson();

@@ -88,8 +88,8 @@ export default function CreateLessonForm({ onSuccess, onCancel }: CreateLessonFo
   const [loading, setLoading] = useState(false);
   const [loadingStudents, setLoadingStudents] = useState(true);
 
-  const CLOUDINARY_CLOUD_NAME = 'dvp2wcvmv';
-  const CLOUDINARY_UPLOAD_PRESET = 'tutorpro_preset';
+  const CLOUDINARY_CLOUD_NAME = 'doi1wiy3t';
+  const CLOUDINARY_UPLOAD_PRESET = 'tutor_preset';
 
   useEffect(() => {
     fetchStudents();

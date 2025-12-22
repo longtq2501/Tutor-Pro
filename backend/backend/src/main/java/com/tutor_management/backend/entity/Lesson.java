@@ -3,6 +3,8 @@ package com.tutor_management.backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
@@ -73,11 +75,13 @@ public class Lesson {
     // Relationships
     @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("displayOrder ASC")
+    @Fetch(FetchMode.SUBSELECT)  // ← Add this
     @Builder.Default
     private List<LessonImage> images = new ArrayList<>();
 
     @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("displayOrder ASC")
+    @Fetch(FetchMode.SUBSELECT)  // ← Add this
     @Builder.Default
     private List<LessonResource> resources = new ArrayList<>();
 

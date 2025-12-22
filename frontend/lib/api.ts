@@ -746,11 +746,18 @@ export const authService = {
   },
   logout: async (): Promise<void> => {
     try {
+      // Try to call backend logout
       await api.post('/auth/logout');
+    } catch (error) {
+      // If backend logout fails, still clear local tokens
+      console.warn('Backend logout failed, clearing local tokens anyway', error);
     } finally {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
+      // Always clear local storage
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+      }
     }
   },
   getCurrentUser: async (): Promise<{ success: boolean; data: UserInfo }> => {

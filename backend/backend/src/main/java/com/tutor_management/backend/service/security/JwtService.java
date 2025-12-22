@@ -1,5 +1,6 @@
 package com.tutor_management.backend.service.security;
 
+import com.tutor_management.backend.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -30,6 +31,20 @@ public class JwtService {
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
+    }
+
+    // ✅ OVERLOAD METHOD - Accept User type to include custom claims
+    public String generateToken(User user) {
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("role", user.getRole().name());
+        extraClaims.put("fullName", user.getFullName());
+
+        // ✅ ADD studentId if present
+        if (user.getStudentId() != null) {
+            extraClaims.put("studentId", user.getStudentId());
+        }
+
+        return generateToken(extraClaims, user);
     }
 
     public String generateToken(UserDetails userDetails) {
@@ -70,6 +85,13 @@ public class JwtService {
 
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
+    }
+
+    // ✅ ADD method to extract studentId from token
+    public Long extractStudentId(String token) {
+        final Claims claims = extractAllClaims(token);
+        Object studentId = claims.get("studentId");
+        return studentId != null ? ((Number) studentId).longValue() : null;
     }
 
     private Claims extractAllClaims(String token) {

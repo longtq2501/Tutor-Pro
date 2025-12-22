@@ -62,6 +62,14 @@ public class Lesson {
 
     private LocalDateTime lastViewedAt;
 
+    // ✅ ADMIN FEATURES
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean isPublished = false;  // Draft vs Published
+
+    @Column(name = "published_at")
+    private LocalDateTime publishedAt;
+
     // Relationships
     @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("displayOrder ASC")
@@ -95,5 +103,16 @@ public class Lesson {
     public void markAsIncomplete() {
         this.isCompleted = false;
         this.completedAt = null;
+    }
+
+    // ✅ ADMIN METHODS
+    public void publish() {
+        this.isPublished = true;
+        this.publishedAt = LocalDateTime.now();
+    }
+
+    public void unpublish() {
+        this.isPublished = false;
+        this.publishedAt = null;
     }
 }

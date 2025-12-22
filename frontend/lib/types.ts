@@ -346,3 +346,81 @@ export interface LessonStats {
   inProgressLessons: number;
   completionRate: number;
 }
+
+export interface AdminLessonImage {
+  imageUrl: string;
+  caption?: string;
+  displayOrder: number;
+}
+
+export interface AdminLessonResource {
+  title: string;
+  description?: string;
+  resourceUrl: string;
+  resourceType: 'PDF' | 'LINK' | 'IMAGE' | 'VIDEO' | 'DOCUMENT';
+  fileSize?: number;
+  displayOrder: number;
+}
+
+export interface AdminLesson {
+  id: number;
+  studentId: number;
+  studentName: string;
+  tutorName: string;
+  
+  title: string;
+  summary?: string;
+  content?: string;  // Markdown content
+  lessonDate: string;  // ISO date string
+  
+  videoUrl?: string;
+  thumbnailUrl?: string;
+  
+  isPublished: boolean;
+  publishedAt?: string;
+  
+  isCompleted: boolean;
+  completedAt?: string;
+  viewCount: number;
+  lastViewedAt?: string;
+  
+  images: AdminLessonImage[];
+  resources: AdminLessonResource[];
+  
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateLessonRequest {
+  studentIds: number[];
+  tutorName: string;
+  title: string;
+  summary?: string;
+  content?: string;
+  lessonDate: string;  // 'yyyy-MM-dd' format
+  videoUrl?: string;
+  thumbnailUrl?: string;
+  images?: AdminLessonImage[];
+  resources?: AdminLessonResource[];
+  isPublished: boolean;
+}
+
+export interface UpdateLessonRequest {
+  tutorName?: string;
+  title?: string;
+  summary?: string;
+  content?: string;
+  lessonDate?: string;
+  videoUrl?: string;
+  thumbnailUrl?: string;
+  images?: AdminLessonImage[];
+  resources?: AdminLessonResource[];
+  isPublished?: boolean;
+}
+
+export interface AdminLessonStats {
+  totalLessons: number;
+  publishedLessons: number;
+  draftLessons: number;
+  completedLessons: number;
+}

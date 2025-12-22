@@ -662,6 +662,72 @@ export const lessonsApi = {
   },
 };
 
+export const adminLessonsApi = {
+  // Get all lessons (admin view)
+  getAll: async (): Promise<any[]> => {
+    const response = await api.get('/admin/lessons');
+    return response.data.data;
+  },
+
+  // Get lesson by ID
+  getById: async (id: number): Promise<any> => {
+    const response = await api.get(`/admin/lessons/${id}`);
+    return response.data.data;
+  },
+
+  // Create lessons for multiple students
+  create: async (data: {
+    studentIds: number[];
+    tutorName: string;
+    title: string;
+    summary?: string;
+    content?: string;
+    lessonDate: string;
+    videoUrl?: string;
+    thumbnailUrl?: string;
+    images?: any[];
+    resources?: any[];
+    isPublished: boolean;
+  }): Promise<any[]> => {
+    const response = await api.post('/admin/lessons', data);
+    return response.data.data;
+  },
+
+  // Update lesson
+  update: async (id: number, data: {
+    tutorName?: string;
+    title?: string;
+    summary?: string;
+    content?: string;
+    lessonDate?: string;
+    videoUrl?: string;
+    thumbnailUrl?: string;
+    images?: any[];
+    resources?: any[];
+    isPublished?: boolean;
+  }): Promise<any> => {
+    const response = await api.put(`/admin/lessons/${id}`, data);
+    return response.data.data;
+  },
+
+  // Delete lesson
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/admin/lessons/${id}`);
+  },
+
+  // Toggle publish status
+  togglePublish: async (id: number): Promise<any> => {
+    const response = await api.patch(`/admin/lessons/${id}/toggle-publish`);
+    return response.data.data;
+  },
+
+  // Get lessons by student (admin view)
+  getByStudent: async (studentId: number): Promise<any[]> => {
+    const response = await api.get(`/admin/lessons/student/${studentId}`);
+    return response.data.data;
+  },
+};
+
 // ============================================
 // 🔑 AUTH SERVICE
 // ============================================

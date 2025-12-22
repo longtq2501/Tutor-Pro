@@ -13,20 +13,16 @@ import java.util.Optional;
 @Repository
 public interface LessonRepository extends JpaRepository<Lesson, Long> {
 
-    // Get all lessons for a student (with eager fetch)
+    // ✅ FIX: Remove JOIN FETCH for collections - Let @Fetch annotation handle it
     @Query("SELECT l FROM Lesson l " +
             "LEFT JOIN FETCH l.student " +
-            "LEFT JOIN FETCH l.images " +
-            "LEFT JOIN FETCH l.resources " +
             "WHERE l.student.id = :studentId " +
             "ORDER BY l.lessonDate DESC")
     List<Lesson> findByStudentIdOrderByLessonDateDesc(@Param("studentId") Long studentId);
 
-    // Get lesson by ID with all relationships
+    // ✅ FIX: For detail view, fetch collections separately or use EntityGraph
     @Query("SELECT l FROM Lesson l " +
             "LEFT JOIN FETCH l.student " +
-            "LEFT JOIN FETCH l.images " +
-            "LEFT JOIN FETCH l.resources " +
             "WHERE l.id = :id")
     Optional<Lesson> findByIdWithDetails(@Param("id") Long id);
 

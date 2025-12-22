@@ -8,11 +8,11 @@ import com.tutor_management.backend.repository.LessonRepository;
 import com.tutor_management.backend.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,6 +42,12 @@ public class LessonService {
 
         log.info("✅ Found {} lessons for student {}", lessons.size(), studentId);
 
+        // ✅ Manually initialize collections due to @Fetch(FetchMode.SUBSELECT)
+        lessons.forEach(lesson -> {
+            Hibernate.initialize(lesson.getImages());
+            Hibernate.initialize(lesson.getResources());
+        });
+
         return lessons.stream()
                 .map(LessonResponse::fromEntity)
                 .collect(Collectors.toList());
@@ -58,6 +64,10 @@ public class LessonService {
         Lesson lesson = lessonRepository.findByIdWithDetails(lessonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Lesson not found with id: " + lessonId));
 
+        // ✅ Manually initialize collections
+        Hibernate.initialize(lesson.getImages());
+        Hibernate.initialize(lesson.getResources());
+
         return LessonResponse.fromEntity(lesson);
     }
 
@@ -69,6 +79,12 @@ public class LessonService {
         log.info("📅 Getting lessons for student {} - {}/{}", studentId, month, year);
 
         List<Lesson> lessons = lessonRepository.findByStudentIdAndYearMonth(studentId, year, month);
+
+        // ✅ Manually initialize collections
+        lessons.forEach(lesson -> {
+            Hibernate.initialize(lesson.getImages());
+            Hibernate.initialize(lesson.getResources());
+        });
 
         return lessons.stream()
                 .map(LessonResponse::fromEntity)
@@ -103,6 +119,10 @@ public class LessonService {
         lesson.markAsCompleted();
         lesson = lessonRepository.save(lesson);
 
+        // Initialize collections
+        Hibernate.initialize(lesson.getImages());
+        Hibernate.initialize(lesson.getResources());
+
         log.info("✅ Marked lesson {} as completed by student {}", lessonId, studentId);
 
         return LessonResponse.fromEntity(lesson);
@@ -122,6 +142,10 @@ public class LessonService {
 
         lesson.markAsIncomplete();
         lesson = lessonRepository.save(lesson);
+
+        // Initialize collections
+        Hibernate.initialize(lesson.getImages());
+        Hibernate.initialize(lesson.getResources());
 
         log.info("❌ Marked lesson {} as incomplete by student {}", lessonId, studentId);
 

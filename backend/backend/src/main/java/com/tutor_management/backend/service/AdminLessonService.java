@@ -30,7 +30,7 @@ public class AdminLessonService {
 
     /**
      * Create a lesson in library and optionally assign to students
-     *
+     * <p>
      * NEW WORKFLOW:
      * 1. Create ONE central lesson in library
      * 2. If studentIds provided, create LessonAssignment records
@@ -52,7 +52,6 @@ public class AdminLessonService {
                 .videoUrl(request.getVideoUrl())
                 .thumbnailUrl(request.getThumbnailUrl())
                 .isPublished(request.getIsPublished() != null ? request.getIsPublished() : false)
-                // ✅ isLibrary = true if no students, false if assigned
                 .isLibrary(request.getStudentIds() == null || request.getStudentIds().isEmpty())
                 .build();
 
@@ -60,12 +59,12 @@ public class AdminLessonService {
         if (request.getImages() != null && !request.getImages().isEmpty()) {
             List<LessonImage> images = request.getImages().stream()
                     .map(imgDto -> LessonImage.builder()
-                            .lesson(lesson)  // Set bidirectional relationship
+                            .lesson(lesson)
                             .imageUrl(imgDto.getImageUrl())
                             .caption(imgDto.getCaption())
                             .displayOrder(imgDto.getDisplayOrder())
                             .build())
-                    .collect(Collectors.toList());
+                    .toList();
             lesson.getImages().addAll(images);
         }
 
@@ -73,7 +72,7 @@ public class AdminLessonService {
         if (request.getResources() != null && !request.getResources().isEmpty()) {
             List<LessonResource> resources = request.getResources().stream()
                     .map(resDto -> LessonResource.builder()
-                            .lesson(lesson)  // Set bidirectional relationship
+                            .lesson(lesson)
                             .title(resDto.getTitle())
                             .description(resDto.getDescription())
                             .resourceUrl(resDto.getResourceUrl())
@@ -81,7 +80,7 @@ public class AdminLessonService {
                             .fileSize(resDto.getFileSize())
                             .displayOrder(resDto.getDisplayOrder())
                             .build())
-                    .collect(Collectors.toList());
+                    .toList();
             lesson.getResources().addAll(resources);
         }
 
@@ -101,14 +100,14 @@ public class AdminLessonService {
             // Mark as assigned (no longer pure library)
             savedLesson.markAsAssigned();
 
-            // Create assignment records
+            // ✅ Create assignment records
             List<LessonAssignment> assignments = new ArrayList<>();
 
             for (Long studentId : request.getStudentIds()) {
                 Student student = studentRepository.findById(studentId)
                         .orElseThrow(() -> new ResourceNotFoundException("Student not found: " + studentId));
 
-                // ✅ Create assignment record
+                // Create assignment
                 LessonAssignment assignment = LessonAssignment.builder()
                         .lesson(savedLesson)
                         .student(student)
@@ -121,13 +120,10 @@ public class AdminLessonService {
                 assignments.add(assignment);
             }
 
-            // Save all assignments
+            // ✅ Save all assignments at once
             assignmentRepository.saveAll(assignments);
 
-            // Update lesson's assignment collection
-            savedLesson.getAssignments().addAll(assignments);
-
-            // Save lesson again to update isLibrary flag
+            // Update lesson's isLibrary flag
             savedLesson = lessonRepository.save(savedLesson);
 
             log.info("✅ Created {} assignments for lesson {}", assignments.size(), savedLesson.getId());

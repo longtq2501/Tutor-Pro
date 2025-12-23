@@ -182,20 +182,30 @@ public class LessonLibraryService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Delete lesson from library
-     */
     @Transactional
     @CacheEvict(value = "lessons", allEntries = true)
     public void deleteLibraryLesson(Long lessonId) {
         log.info("🗑️ Deleting library lesson: {}", lessonId);
 
+        // 1. Tìm lesson
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Lesson not found"));
 
-        // Cascade will delete assignments automatically
+        // 2. QUAN TRỌNG: Ngắt quan hệ thủ công trước khi xóa để tránh ConcurrentModificationException
+        // Xóa tất cả các assignments khỏi tập hợp để Hibernate không bị xung đột khi duyệt list
+        if (lesson.getAssignments() != null) {
+            lesson.getAssignments().clear();
+        }
+        if (lesson.getImages() != null) {
+            lesson.getImages().clear();
+        }
+        if (lesson.getResources() != null) {
+            lesson.getResources().clear();
+        }
+
+        // 3. Thực hiện xóa sau khi đã dọn dẹp quan hệ trong bộ nhớ
         lessonRepository.delete(lesson);
 
-        log.info("✅ Deleted lesson {} and all its assignments", lessonId);
+        log.info("✅ Deleted lesson {} and all its associated data", lessonId);
     }
 }

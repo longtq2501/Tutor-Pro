@@ -46,8 +46,10 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
     @Query("SELECT l FROM Lesson l " +
             "LEFT JOIN FETCH l.images " +
             "LEFT JOIN FETCH l.resources " +
-            "WHERE l.id = :lessonId")
-    Optional<Lesson> findByIdWithDetails(@Param("lessonId") Long lessonId);
+            "LEFT JOIN FETCH l.assignments a " + // Thêm join assignments
+            "LEFT JOIN FETCH a.student " +       // Fetch luôn student để tránh Lazy Proxy lỗi 400
+            "WHERE l.id = :id")
+    Optional<Lesson> findByIdWithDetails(@Param("id") Long id);
 
     @Query("SELECT l FROM Lesson l LEFT JOIN FETCH l.assignments ORDER BY l.createdAt DESC")
     List<Lesson> findAllWithAssignments();

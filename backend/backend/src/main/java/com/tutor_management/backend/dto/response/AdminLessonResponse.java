@@ -3,6 +3,7 @@ package com.tutor_management.backend.dto.response;
 import com.tutor_management.backend.entity.Lesson;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -59,19 +60,15 @@ public class AdminLessonResponse {
      * ⚠️ IMPORTANT: Handles lazy-loaded collections safely
      */
     public static AdminLessonResponse fromEntity(Lesson lesson) {
-        // ✅ Safe computation of stats (handles null/uninitialized collections)
         int assignedCount = 0;
         int totalViews = 0;
         double completionRate = 0.0;
 
-        try {
-            // Try to get stats from entity helper methods
+        // Kiểm tra xem assignments đã được load chưa trước khi dùng helper methods
+        if (Hibernate.isInitialized(lesson.getAssignments()) && lesson.getAssignments() != null) {
             assignedCount = lesson.getAssignedStudentCount();
             totalViews = lesson.getTotalViewCount();
             completionRate = lesson.getCompletionRate();
-        } catch (Exception e) {
-            // If lazy-load fails, use safe defaults
-            log.warn("Could not load assignment stats for lesson {}: {}", lesson.getId(), e.getMessage());
         }
 
         return AdminLessonResponse.builder()
@@ -86,24 +83,15 @@ public class AdminLessonResponse {
                 .isPublished(lesson.getIsPublished())
                 .isLibrary(lesson.getIsLibrary())
                 .publishedAt(lesson.getPublishedAt())
-
-                // ✅ Use safely computed stats
                 .assignedStudentCount(assignedCount)
                 .totalViewCount(totalViews)
                 .completionRate(completionRate)
-
-                // ✅ Safe image/resource handling
-                .images(lesson.getImages() != null && !lesson.getImages().isEmpty()
-                        ? lesson.getImages().stream()
-                        .map(LessonImageDTO::fromEntity)
-                        .collect(Collectors.toList())
+                .images(Hibernate.isInitialized(lesson.getImages()) && lesson.getImages() != null
+                        ? lesson.getImages().stream().map(LessonImageDTO::fromEntity).toList()
                         : new ArrayList<>())
-                .resources(lesson.getResources() != null && !lesson.getResources().isEmpty()
-                        ? lesson.getResources().stream()
-                        .map(LessonResourceDTO::fromEntity)
-                        .collect(Collectors.toList())
+                .resources(Hibernate.isInitialized(lesson.getResources()) && lesson.getResources() != null
+                        ? lesson.getResources().stream().map(LessonResourceDTO::fromEntity).toList()
                         : new ArrayList<>())
-
                 .createdAt(lesson.getCreatedAt())
                 .updatedAt(lesson.getUpdatedAt())
                 .build();

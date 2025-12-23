@@ -1,15 +1,19 @@
 package com.tutor_management.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "students")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Ngăn lỗi ByteBuddyProxy
 public class Student {
 
     @Id
@@ -40,6 +44,7 @@ public class Student {
     // ===== THÊM QUAN HỆ VỚI PARENT =====
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
+    @JsonIgnore
     private Parent parent;
 
     @Column(nullable = false, updatable = false)

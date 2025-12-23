@@ -1,5 +1,6 @@
 package com.tutor_management.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -26,10 +27,12 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "lessons")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"assignments", "images", "resources"})
 public class Lesson {
 
     @Id
@@ -159,6 +162,7 @@ public class Lesson {
     /**
      * Get total view count across all students
      */
+    @JsonIgnore
     public int getTotalViewCount() {
         return assignments != null
                 ? assignments.stream().mapToInt(LessonAssignment::getViewCount).sum()

@@ -157,7 +157,7 @@ public class AdminLessonService {
     @Transactional(readOnly = true)
     public AdminLessonResponse getLessonById(Long id) {
         log.info("📖 Getting lesson: {}", id);
-        Lesson lesson = lessonRepository.findByIdWithDetails(id)
+        Lesson lesson = lessonRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Lesson not found: " + id));
 
         return AdminLessonResponse.fromEntity(lesson);
@@ -165,40 +165,32 @@ public class AdminLessonService {
 
     /**
      * Update lesson (affects all assigned students)
+     * Fixed: MultipleBagFetchException by using findById instead of Join Fetch
      */
     @CacheEvict(value = "lessons", allEntries = true)
     public AdminLessonResponse updateLesson(Long id, CreateLessonRequest request) {
-        log.info("✏️ Updating lesson: {}", id);
+        log.info("✏️ Updating lesson: {}", id); //
 
-        Lesson lesson = lessonRepository.findByIdWithDetails(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Lesson not found: " + id));
+        // ✅ SỬA: Dùng findById mặc định của JpaRepository để tránh MultipleBagFetchException
+        // Hibernate sẽ nạp các collection (images, resources) một cách tuần tự khi cần
+        Lesson lesson = lessonRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài giảng ID: " + id));
 
-        // Update basic fields
-        if (request.getTutorName() != null) {
-            lesson.setTutorName(request.getTutorName());
-        }
-        if (request.getTitle() != null) {
-            lesson.setTitle(request.getTitle());
-        }
-        if (request.getSummary() != null) {
-            lesson.setSummary(request.getSummary());
-        }
-        if (request.getContent() != null) {
-            lesson.setContent(request.getContent());
-        }
-        if (request.getLessonDate() != null) {
-            lesson.setLessonDate(request.getLessonDate());
-        }
-        if (request.getVideoUrl() != null) {
-            lesson.setVideoUrl(request.getVideoUrl());
-        }
-        if (request.getThumbnailUrl() != null) {
-            lesson.setThumbnailUrl(request.getThumbnailUrl());
-        }
+        // Cập nhật các trường thông tin cơ bản (Basic fields)
+        if (request.getTutorName() != null) lesson.setTutorName(request.getTutorName());
+        if (request.getTitle() != null) lesson.setTitle(request.getTitle());
+        if (request.getSummary() != null) lesson.setSummary(request.getSummary());
+        if (request.getContent() != null) lesson.setContent(request.getContent());
+        if (request.getLessonDate() != null) lesson.setLessonDate(request.getLessonDate());
+        if (request.getVideoUrl() != null) lesson.setVideoUrl(request.getVideoUrl());
+        if (request.getThumbnailUrl() != null) lesson.setThumbnailUrl(request.getThumbnailUrl());
 
-        // Update images if provided
+        // ✅ Cập nhật danh sách Images (Cần orphanRemoval = true trong Entity)
         if (request.getImages() != null) {
+            // Xóa danh sách cũ (Hibernate sẽ tự động delete các bản ghi mồ côi)
             lesson.getImages().clear();
+
+            // Thêm danh sách mới
             request.getImages().forEach(imgDto -> {
                 LessonImage image = LessonImage.builder()
                         .lesson(lesson)
@@ -210,9 +202,10 @@ public class AdminLessonService {
             });
         }
 
-        // Update resources if provided
+        // ✅ Cập nhật danh sách Resources
         if (request.getResources() != null) {
             lesson.getResources().clear();
+
             request.getResources().forEach(resDto -> {
                 LessonResource resource = LessonResource.builder()
                         .lesson(lesson)
@@ -227,9 +220,12 @@ public class AdminLessonService {
             });
         }
 
+        // Lưu lại thay đổi
         Lesson updatedLesson = lessonRepository.save(lesson);
-        log.info("✅ Updated lesson {} - affects {} students", id, updatedLesson.getAssignedStudentCount());
 
+        log.info("✅ Updated lesson {} successfully", id);
+
+        // Trả về DTO (fromEntity đã an toàn với Lazy Loading)
         return AdminLessonResponse.fromEntity(updatedLesson);
     }
 

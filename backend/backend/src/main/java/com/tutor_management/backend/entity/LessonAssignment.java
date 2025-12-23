@@ -1,5 +1,6 @@
 package com.tutor_management.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -17,7 +18,8 @@ import java.time.LocalDateTime;
 @Table(name = "lesson_assignments",
         uniqueConstraints = @UniqueConstraint(columnNames = {"lesson_id", "student_id"})
 )
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -30,6 +32,7 @@ public class LessonAssignment {
     // ===== RELATIONSHIPS =====
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lesson_id", nullable = false)
+    @JsonIgnore // <--- THÊM DÒNG NÀY ĐỂ NGẮT VÒNG LẶP JSON
     private Lesson lesson;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -89,13 +89,6 @@ export default function LessonCard({ lesson, onClick }: LessonCardProps) {
                 <Eye className="h-4 w-4" />
                 <span>{lesson.viewCount} lượt xem</span>
               </div>
-
-              {lesson.lastViewedAt && (
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  <span>Xem {format(new Date(lesson.lastViewedAt), 'dd/MM HH:mm', { locale: vi })}</span>
-                </div>
-              )}
             </div>
           </CardHeader>
 

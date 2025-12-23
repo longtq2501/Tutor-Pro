@@ -23,7 +23,8 @@ import type {
   ApiResponse,
   Lesson,
   LessonStats,
-  CreateLessonRequest
+  CreateLessonRequest,
+  UpdateLessonRequest
 } from './types';
 
 // 1. Lấy link gốc và xóa dấu gạch chéo ở cuối nếu có
@@ -664,33 +665,37 @@ export const lessonsApi = {
 };
 
 export const adminLessonsApi = {
-  // Trỏ về đúng Controller AdminLessonController.java (/api/admin/lessons)
+  // Lấy danh sách bài giảng cho Admin
   getAll: async (): Promise<Lesson[]> => {
     const response = await api.get('/admin/lessons');
     return response.data.data;
   },
   
+  // Lấy chi tiết bài giảng
   getById: async (id: number): Promise<Lesson> => {
     const response = await api.get(`/admin/lessons/${id}`);
     return response.data.data;
   },
 
+  // Tạo mới bài giảng - Sử dụng đúng interface CreateLessonRequest
   create: async (data: CreateLessonRequest): Promise<Lesson> => {
     const response = await api.post('/admin/lessons', data);
     return response.data.data;
   },
 
-  update: async (id: number, data: any): Promise<Lesson> => {
+  // Cập nhật bài giảng - Đổi 'any' thành 'UpdateLessonRequest'
+  update: async (id: number, data: UpdateLessonRequest): Promise<Lesson> => {
     const response = await api.put(`/admin/lessons/${id}`, data);
     return response.data.data;
   },
 
+  // Xóa bài giảng
   delete: async (id: number): Promise<void> => {
     await api.delete(`/admin/lessons/${id}`);
   },
 
+  // Bật/Tắt trạng thái xuất bản
   togglePublish: async (id: number): Promise<Lesson> => {
-    // Đổi PATCH thành PUT để khớp với @PutMapping("/{id}/toggle-publish")
     const response = await api.put(`/admin/lessons/${id}/toggle-publish`);
     return response.data.data;
   },

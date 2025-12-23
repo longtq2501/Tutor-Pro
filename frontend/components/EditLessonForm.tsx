@@ -222,10 +222,11 @@ export default function EditLessonForm({ lessonId, onSuccess, onCancel }: EditLe
         content,
         lessonDate: format(lessonDate, 'yyyy-MM-dd'),
         // Dùng undefined thay vì null để tránh lỗi mapping nếu Backend không cho phép null
-        videoUrl: videoUrl || undefined, 
-        thumbnailUrl: thumbnailUrl || undefined,
+        videoUrl: videoUrl.trim() || undefined, 
+        thumbnailUrl: thumbnailUrl.trim() || undefined,
         // Đảm bảo mapping đúng danh sách ảnh và tài liệu
         images: images.map((img, index) => ({ 
+          id: img.id, // <--- Thêm dòng này
           imageUrl: img.imageUrl, 
           caption: img.caption, 
           displayOrder: index 

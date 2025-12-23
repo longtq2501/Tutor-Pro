@@ -403,16 +403,19 @@ export interface AdminLesson {
 }
 
 export interface CreateLessonRequest {
-  studentIds?: number[];  // ✅ OPTIONAL - for library mode
+  studentIds?: number[];
   tutorName: string;
   title: string;
   summary?: string;
   content?: string;
-  lessonDate: string;
+  lessonDate: string; // Định dạng YYYY-MM-DD
   videoUrl?: string;
   thumbnailUrl?: string;
-  images?: AdminLessonImage[];
-  resources?: AdminLessonResource[];
+  
+  // ✅ Đổi về LessonImage và LessonResource để khớp với State trong Form
+  images?: LessonImage[]; 
+  resources?: LessonResource[];
+  
   isPublished?: boolean;
 }
 
@@ -424,8 +427,9 @@ export interface UpdateLessonRequest {
   lessonDate?: string;
   videoUrl?: string;
   thumbnailUrl?: string;
-  images?: AdminLessonImage[];
-  resources?: AdminLessonResource[];
+  // ✅ Đảm bảo dùng LessonImage/LessonResource (không phải bản Admin...)
+  images?: LessonImage[]; 
+  resources?: LessonResource[];
   isPublished?: boolean;
 }
 

@@ -140,7 +140,11 @@ public class AdminLessonService {
     @Transactional(readOnly = true)
     public List<AdminLessonResponse> getAllLessons() {
         log.info("📚 Getting all lessons from library");
-        List<Lesson> lessons = lessonRepository.findAll();
+
+        // ✅ Use query with JOIN FETCH
+        List<Lesson> lessons = lessonRepository.findAllWithAssignments();
+
+        log.info("✅ Loaded {} lessons with assignments", lessons.size());
 
         return lessons.stream()
                 .map(AdminLessonResponse::fromEntity)

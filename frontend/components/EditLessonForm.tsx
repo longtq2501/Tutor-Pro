@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -18,7 +18,6 @@ import {
   Plus,
   Image as ImageIcon,
   FileText,
-  Video,
   Link as LinkIcon,
   Save,
 } from 'lucide-react';
@@ -30,13 +29,25 @@ import dynamic from 'next/dynamic';
 import '@uiw/react-md-editor/markdown-editor.css';
 import '@uiw/react-markdown-preview/markdown.css';
 import { adminLessonsApi } from '@/lib/api';
-import { Lesson, LessonImage, LessonResource, UpdateLessonRequest } from '@/lib/types';
+import { 
+  LessonImage,      // ✅ Import from types
+  LessonResource,   // ✅ Import from types
+  UpdateLessonRequest,
+  formatBytes       // ✅ Import helper function
+} from '@/lib/types';
 
-// Thêm "as any" vào cuối dòng import để đánh lừa TypeScript
+// ❌ REMOVED LOCAL INTERFACES - Use types.ts instead
+
 const MDEditor = dynamic(
   () => import('@uiw/react-md-editor').then((mod) => mod.default as any), 
   { ssr: false }
 );
+
+declare global {
+  interface Window {
+    cloudinary: any;
+  }
+}
 
 interface EditLessonFormProps {
   lessonId: number;
@@ -48,7 +59,8 @@ export default function EditLessonForm({ lessonId, onSuccess, onCancel }: EditLe
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [studentName, setStudentName] = useState('');
+  
+  // Form fields
   const [tutorName, setTutorName] = useState('');
   const [title, setTitle] = useState('');
   const [summary, setSummary] = useState('');
@@ -56,6 +68,8 @@ export default function EditLessonForm({ lessonId, onSuccess, onCancel }: EditLe
   const [lessonDate, setLessonDate] = useState<Date>();
   const [videoUrl, setVideoUrl] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
+  
+  // ✅ Use proper types from types.ts
   const [images, setImages] = useState<LessonImage[]>([]);
   const [resources, setResources] = useState<LessonResource[]>([]);
   const [isPublished, setIsPublished] = useState(false);
@@ -68,25 +82,36 @@ export default function EditLessonForm({ lessonId, onSuccess, onCancel }: EditLe
     loadCloudinaryWidget();
   }, [lessonId]);
 
+  /**
+   * ✅ FIXED: Fetch lesson with proper type handling
+   */
   const fetchLesson = async () => {
     try {
       setLoading(true);
       const data = await adminLessonsApi.getById(lessonId);
       
-      // setStudentName(data.studentName);
-      setTutorName(data.tutorName);
-      setTitle(data.title);
+      console.log('📖 Fetched lesson data:', data);
+      
+      // Set basic fields
+      setTutorName(data.tutorName || 'Thầy Quỳnh Long');
+      setTitle(data.title || '');
       setSummary(data.summary || '');
       setContent(data.content || '');
-      setLessonDate(new Date(data.lessonDate));
+      setLessonDate(data.lessonDate ? new Date(data.lessonDate) : undefined);
       setVideoUrl(data.videoUrl || '');
       setThumbnailUrl(data.thumbnailUrl || '');
-      setImages(data.images || []);
-      setResources(data.resources || []);
-      setIsPublished(data.isPublished);
-    } catch (error) {
-      console.error('Error fetching lesson:', error);
-      toast.error('Không thể tải thông tin bài giảng');
+      setIsPublished(data.isPublished || false);
+      
+      // ✅ FIXED: Use type assertion to handle backend response
+      setImages((data.images || []) as LessonImage[]);
+      setResources((data.resources || []) as LessonResource[]);
+      
+      console.log('✅ Loaded images:', data.images?.length || 0);
+      console.log('✅ Loaded resources:', data.resources?.length || 0);
+    } catch (error: any) {
+      console.error('❌ Error fetching lesson:', error);
+      console.error('❌ Error response:', error.response?.data);
+      toast.error(error.response?.data?.message || 'Không thể tải thông tin bài giảng');
     } finally {
       setLoading(false);
     }
@@ -107,10 +132,10 @@ export default function EditLessonForm({ lessonId, onSuccess, onCancel }: EditLe
     onSuccess: (url: string) => void
   ) => {
     if (!window.cloudinary) {
-      toast.error('Cloudinary Widget không thể tải');
+      toast.error('Cloudinary widget chưa được tải');
       return;
     }
-  
+
     const widget = window.cloudinary.createUploadWidget(
       {
         cloudName: CLOUDINARY_CLOUD_NAME,
@@ -118,38 +143,37 @@ export default function EditLessonForm({ lessonId, onSuccess, onCancel }: EditLe
         resourceType: resourceType,
         multiple: false,
         maxFileSize: 50000000,
+        clientAllowedFormats: resourceType === 'image' ? ['png', 'jpg', 'jpeg', 'gif', 'webp'] : 
+                             resourceType === 'video' ? ['mp4', 'mov', 'avi'] : null,
       },
       (error: any, result: any) => {
         if (error) {
-          // Sonner: Dùng toast.error
-          toast.error('Lỗi upload', {
-            description: error.message || 'Không thể upload file',
-          });
+          toast.error('Lỗi upload: ' + (error.message || 'Không thể upload file'));
           return;
         }
-  
+
         if (result.event === 'success') {
           onSuccess(result.info.secure_url);
-          // Sonner: Dùng toast.success
-          toast.success('Thành công', {
-            description: 'Upload file thành công',
-          });
+          toast.success('Upload file thành công');
         }
       }
     );
-  
+
     widget.open();
   };
+
+  /**
+   * ✅ FIXED: Add image with proper type
+   */
   const addImage = () => {
     openCloudinaryWidget('image', (url) => {
-      setImages((prev) => [
-        ...prev,
-        {
-          imageUrl: url,
-          caption: '',
-          displayOrder: prev.length,
-        },
-      ]);
+      const newImage: LessonImage = {
+        // ✅ No id - it's optional for new images
+        imageUrl: url,
+        caption: '',      // ✅ Optional but provide empty string
+        displayOrder: images.length,
+      };
+      setImages((prev) => [...prev, newImage]);
     });
   };
 
@@ -158,35 +182,38 @@ export default function EditLessonForm({ lessonId, onSuccess, onCancel }: EditLe
   };
 
   const updateImageCaption = (index: number, caption: string) => {
-    setImages((prev) => prev.map((img, i) => (i === index ? { ...img, caption } : img)));
+    setImages((prev) => prev.map((img, i) => 
+      i === index ? { ...img, caption } : img
+    ));
   };
 
+  /**
+   * ✅ FIXED: Add resource with proper type handling
+   */
   const addResource = (type: LessonResource['resourceType']) => {
-    const resourceType = type === 'LINK' ? 'auto' : type.toLowerCase() as any;
-    
     if (type === 'LINK') {
-      setResources((prev) => [
-        ...prev,
-        {
+      const newResource: LessonResource = {
+        // ✅ No id - it's optional for new resources
+        title: '',
+        description: '',  // ✅ Optional but provide empty string
+        resourceUrl: '',
+        resourceType: 'LINK',
+        displayOrder: resources.length,
+      };
+      setResources((prev) => [...prev, newResource]);
+    } else {
+      const resourceType = type.toLowerCase() as 'image' | 'video' | 'raw';
+      
+      openCloudinaryWidget(resourceType, (url) => {
+        const newResource: LessonResource = {
+          // ✅ No id - it's optional
           title: '',
           description: '',
-          resourceUrl: '',
-          resourceType: 'LINK',
-          displayOrder: prev.length,
-        },
-      ]);
-    } else {
-      openCloudinaryWidget(resourceType, (url) => {
-        setResources((prev) => [
-          ...prev,
-          {
-            title: '',
-            description: '',
-            resourceUrl: url,
-            resourceType: type,
-            displayOrder: prev.length,
-          },
-        ]);
+          resourceUrl: url,
+          resourceType: type,
+          displayOrder: resources.length,
+        };
+        setResources((prev) => [...prev, newResource]);
       });
     }
   };
@@ -201,52 +228,86 @@ export default function EditLessonForm({ lessonId, onSuccess, onCancel }: EditLe
     );
   };
 
+  /**
+   * ✅ COMPLETELY FIXED: Handle form submission with proper data sanitization
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
-    // Kiểm tra các trường bắt buộc
+
+    console.log('🔍 Form validation starting...');
+
+    // Validate required fields
     if (!title || !lessonDate) {
       toast.error('Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
-  
+
+    // ✅ Validate date is valid
+    if (isNaN(lessonDate.getTime())) {
+      toast.error('Ngày dạy không hợp lệ');
+      return;
+    }
+
     setSaving(true);
-  
+
     try {
-      // 1. Ép kiểu UpdateLessonRequest từ types.ts để hết báo đỏ
-      // 2. Sử dụng format yyyy-MM-dd cho lessonDate để Backend LocalDate nhận diện được
+      // ✅ STEP 1: Format lesson date properly
+      const formattedDate = format(lessonDate, 'yyyy-MM-dd');
+      console.log('📅 Formatted date:', formattedDate);
+
+      // ✅ STEP 2: Sanitize URLs (empty string → undefined)
+      const cleanVideoUrl = videoUrl.trim() || undefined;
+      const cleanThumbnailUrl = thumbnailUrl.trim() || undefined;
+
+      // ✅ STEP 3: Prepare images array (keep id if exists, reindex displayOrder)
+      const cleanImages: LessonImage[] = images.map((img, index) => ({
+        ...(img.id && { id: img.id }),  // Keep id if exists
+        imageUrl: img.imageUrl,
+        caption: img.caption?.trim() || '',  // Empty string if no caption
+        displayOrder: index,
+      }));
+
+      // ✅ STEP 4: Prepare resources array (keep id if exists, reindex displayOrder)
+      const cleanResources: LessonResource[] = resources.map((res, index) => ({
+        ...(res.id && { id: res.id }),  // Keep id if exists
+        title: res.title.trim() || '',
+        description: res.description?.trim() || '',
+        resourceUrl: res.resourceUrl,
+        resourceType: res.resourceType,
+        ...(res.fileSize && { fileSize: res.fileSize }),  // Include if exists
+        displayOrder: index,
+      }));
+
+      // ✅ STEP 5: Build payload with proper types
       const payload: UpdateLessonRequest = {
-        tutorName,
-        title,
-        summary,
-        content,
-        lessonDate: format(lessonDate, 'yyyy-MM-dd'),
-        // Dùng undefined thay vì null để tránh lỗi mapping nếu Backend không cho phép null
-        videoUrl: videoUrl.trim() || undefined, 
-        thumbnailUrl: thumbnailUrl.trim() || undefined,
-        // Đảm bảo mapping đúng danh sách ảnh và tài liệu
-        images: images.map((img, index) => ({ 
-          id: img.id, // <--- Thêm dòng này
-          imageUrl: img.imageUrl, 
-          caption: img.caption, 
-          displayOrder: index 
-        })),
-        resources: resources.map((res, index) => ({ 
-          ...res, 
-          displayOrder: index 
-        })),
+        tutorName: tutorName.trim() || 'Thầy Quỳnh Long',
+        title: title.trim(),
+        summary: summary.trim() || undefined,
+        content: content.trim() || undefined,
+        lessonDate: formattedDate,
+        videoUrl: cleanVideoUrl,
+        thumbnailUrl: cleanThumbnailUrl,
+        images: cleanImages,
+        resources: cleanResources,
         isPublished,
       };
-  
-      // Gọi API update với lessonId và payload đã chuẩn hóa
+
+      console.log('📤 Sending payload:', JSON.stringify(payload, null, 2));
+
+      // ✅ STEP 6: Send update request
       await adminLessonsApi.update(lessonId, payload);
-  
-      toast.success('Đã cập nhật bài giảng');
+
+      console.log('✅ Update successful!');
+      toast.success('Đã cập nhật bài giảng thành công');
       onSuccess();
     } catch (error: any) {
-      console.error('Error updating lesson:', error);
-      // Hiển thị lỗi chi tiết từ backend nếu có
-      toast.error(error.response?.data?.message || 'Không thể cập nhật bài giảng');
+      console.error('❌ Error updating lesson:', error);
+      console.error('❌ Error response:', error.response?.data);
+      
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error ||
+                          'Không thể cập nhật bài giảng';
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -262,19 +323,6 @@ export default function EditLessonForm({ lessonId, onSuccess, onCancel }: EditLe
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Student Info (Read-only) */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Thông Tin Học Sinh</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-sm">
-            <span className="text-muted-foreground">Học sinh: </span>
-            <span className="font-medium">{studentName}</span>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Basic Info */}
       <Card>
         <CardHeader>
@@ -288,6 +336,7 @@ export default function EditLessonForm({ lessonId, onSuccess, onCancel }: EditLe
                 id="tutorName"
                 value={tutorName}
                 onChange={(e) => setTutorName(e.target.value)}
+                placeholder="Thầy Quỳnh Long"
               />
             </div>
 
@@ -324,6 +373,7 @@ export default function EditLessonForm({ lessonId, onSuccess, onCancel }: EditLe
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              placeholder="Ví dụ: Bài 1: Giới thiệu về Đại số"
               required
             />
           </div>
@@ -334,6 +384,7 @@ export default function EditLessonForm({ lessonId, onSuccess, onCancel }: EditLe
               id="summary"
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
+              placeholder="Mô tả ngắn gọn về bài giảng..."
               rows={3}
             />
           </div>
@@ -348,7 +399,7 @@ export default function EditLessonForm({ lessonId, onSuccess, onCancel }: EditLe
         <CardContent>
           <div data-color-mode="dark">
             {(() => {
-              const Editor = MDEditor as any; // Biến trung gian này sẽ xóa sạch lỗi đỏ
+              const Editor = MDEditor as any;
               return (
                 <Editor
                   value={content}
@@ -408,7 +459,7 @@ export default function EditLessonForm({ lessonId, onSuccess, onCancel }: EditLe
         </CardContent>
       </Card>
 
-      {/* Images - Similar to Create Form */}
+      {/* Images */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -436,7 +487,7 @@ export default function EditLessonForm({ lessonId, onSuccess, onCancel }: EditLe
                   />
                   <div className="flex-1 space-y-2">
                     <Input
-                      value={image.caption}
+                      value={image.caption || ''}
                       onChange={(e) => updateImageCaption(index, e.target.value)}
                       placeholder="Mô tả hình ảnh..."
                     />
@@ -456,7 +507,7 @@ export default function EditLessonForm({ lessonId, onSuccess, onCancel }: EditLe
         </CardContent>
       </Card>
 
-      {/* Resources - Similar to Create Form */}
+      {/* Resources */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -485,27 +536,43 @@ export default function EditLessonForm({ lessonId, onSuccess, onCancel }: EditLe
                 <div key={index} className="p-4 border rounded-lg space-y-3">
                   <div className="flex items-center justify-between">
                     <Badge>{resource.resourceType}</Badge>
-                    <Button type="button" variant="ghost" size="icon" onClick={() => removeResource(index)}>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => removeResource(index)}
+                    >
                       <X className="w-4 h-4" />
                     </Button>
                   </div>
                   <Input
                     value={resource.title}
                     onChange={(e) => updateResource(index, 'title', e.target.value)}
-                    placeholder="Tiêu đề"
+                    placeholder="Tiêu đề tài liệu"
                   />
                   <Textarea
-                    value={resource.description}
+                    value={resource.description || ''}
                     onChange={(e) => updateResource(index, 'description', e.target.value)}
-                    placeholder="Mô tả"
+                    placeholder="Mô tả (tùy chọn)"
                     rows={2}
                   />
-                  {resource.resourceType === 'LINK' && (
+                  {resource.resourceType === 'LINK' ? (
                     <Input
                       value={resource.resourceUrl}
                       onChange={(e) => updateResource(index, 'resourceUrl', e.target.value)}
                       placeholder="https://..."
                     />
+                  ) : (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground truncate flex-1">
+                        {resource.resourceUrl}
+                      </span>
+                      {resource.fileSize && (
+                        <Badge variant="secondary">
+                          {formatBytes(resource.fileSize)}
+                        </Badge>
+                      )}
+                    </div>
                   )}
                 </div>
               ))}
@@ -521,13 +588,17 @@ export default function EditLessonForm({ lessonId, onSuccess, onCancel }: EditLe
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
-            <div>
+            <div className="space-y-0.5">
               <Label htmlFor="publish">Xuất bản</Label>
               <p className="text-sm text-muted-foreground">
                 Bài giảng sẽ hiển thị cho học sinh
               </p>
             </div>
-            <Switch id="publish" checked={isPublished} onCheckedChange={setIsPublished} />
+            <Switch 
+              id="publish" 
+              checked={isPublished} 
+              onCheckedChange={setIsPublished} 
+            />
           </div>
         </CardContent>
       </Card>

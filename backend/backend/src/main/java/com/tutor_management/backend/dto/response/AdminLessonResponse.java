@@ -2,6 +2,7 @@ package com.tutor_management.backend.dto.response;
 
 import com.tutor_management.backend.entity.Lesson;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Slf4j
 public class AdminLessonResponse {
     // Lesson basic info
     private Long id;
@@ -53,8 +55,25 @@ public class AdminLessonResponse {
     /**
      * Create admin response from lesson entity
      * Includes aggregated statistics from all assignments
+     *
+     * ⚠️ IMPORTANT: Handles lazy-loaded collections safely
      */
     public static AdminLessonResponse fromEntity(Lesson lesson) {
+        // ✅ Safe computation of stats (handles null/uninitialized collections)
+        int assignedCount = 0;
+        int totalViews = 0;
+        double completionRate = 0.0;
+
+        try {
+            // Try to get stats from entity helper methods
+            assignedCount = lesson.getAssignedStudentCount();
+            totalViews = lesson.getTotalViewCount();
+            completionRate = lesson.getCompletionRate();
+        } catch (Exception e) {
+            // If lazy-load fails, use safe defaults
+            log.warn("Could not load assignment stats for lesson {}: {}", lesson.getId(), e.getMessage());
+        }
+
         return AdminLessonResponse.builder()
                 .id(lesson.getId())
                 .tutorName(lesson.getTutorName())
@@ -68,15 +87,23 @@ public class AdminLessonResponse {
                 .isLibrary(lesson.getIsLibrary())
                 .publishedAt(lesson.getPublishedAt())
 
-                // ✅ Sử dụng helper methods từ Entity nhưng bọc trong check null
-                .assignedStudentCount(lesson.getAssignedStudentCount())
-                .totalViewCount(lesson.getTotalViewCount())
-                .completionRate(lesson.getCompletionRate())
+                // ✅ Use safely computed stats
+                .assignedStudentCount(assignedCount)
+                .totalViewCount(totalViews)
+                .completionRate(completionRate)
 
-                .images(lesson.getImages() != null ? lesson.getImages().stream()
-                        .map(LessonImageDTO::fromEntity).collect(Collectors.toList()) : new ArrayList<>())
-                .resources(lesson.getResources() != null ? lesson.getResources().stream()
-                        .map(LessonResourceDTO::fromEntity).collect(Collectors.toList()) : new ArrayList<>())
+                // ✅ Safe image/resource handling
+                .images(lesson.getImages() != null && !lesson.getImages().isEmpty()
+                        ? lesson.getImages().stream()
+                        .map(LessonImageDTO::fromEntity)
+                        .collect(Collectors.toList())
+                        : new ArrayList<>())
+                .resources(lesson.getResources() != null && !lesson.getResources().isEmpty()
+                        ? lesson.getResources().stream()
+                        .map(LessonResourceDTO::fromEntity)
+                        .collect(Collectors.toList())
+                        : new ArrayList<>())
+
                 .createdAt(lesson.getCreatedAt())
                 .updatedAt(lesson.getUpdatedAt())
                 .build();

@@ -7,14 +7,13 @@
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/dto/response/AdminLessonResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/dto/response/AdminLessonResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/entity/Lesson.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/entity/Lesson.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/repository/LessonRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/repository/LessonRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/service/AdminLessonService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/service/AdminLessonService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/components/AdminLessonManagement.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/AdminLessonManagement.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/components/CreateLessonForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/CreateLessonForm.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/components/EditLessonForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/EditLessonForm.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/components/LessonDetailView.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/LessonDetailView.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/lib/api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/api.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/lib/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/types.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,9 +45,6 @@
     &quot;accountId&quot;: &quot;737b3edf-d20a-46b6-9e6d-bbc4dbbba437&quot;
   }
 }</component>
-  <component name="HttpClientEndpointsTabState">
-    <option name="cachedRequestData" value="&lt;CachedHttpClientTabRequests&gt;&#10;  &lt;entry key=&quot;695ff6030426734d27f18a9f8133244dd9d334f4&quot; value=&quot;###&amp;#10;GET http://localhost:8080/api/student/lessons&quot; /&gt;&#10;&lt;/CachedHttpClientTabRequests&gt;" />
-  </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 0
@@ -146,7 +142,7 @@
       <workItem from="1766412207134" duration="160000" />
       <workItem from="1766412791406" duration="778000" />
       <workItem from="1766416869434" duration="5655000" />
-      <workItem from="1766459552764" duration="8318000" />
+      <workItem from="1766459552764" duration="9502000" />
     </task>
     <servers />
   </component>

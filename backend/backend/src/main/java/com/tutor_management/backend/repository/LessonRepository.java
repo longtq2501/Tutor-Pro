@@ -49,6 +49,9 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
             "WHERE l.id = :lessonId")
     Optional<Lesson> findByIdWithDetails(@Param("lessonId") Long lessonId);
 
+    @Query("SELECT l FROM Lesson l LEFT JOIN FETCH l.assignments ORDER BY l.createdAt DESC")
+    List<Lesson> findAllWithAssignments();
+
     // ===== STATS =====
 
     // Count library lessons

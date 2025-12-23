@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface Parent {
   id: number;
   name: string;
@@ -296,61 +297,89 @@ export interface HomeworkStatusUpdateRequest {
   status: HomeworkStatus;
 }
 
+/**
+ * LessonImage - Images associated with a lesson
+ * 
+ * ⚠️ IMPORTANT:
+ * - id is OPTIONAL because new images don't have IDs yet
+ * - caption is OPTIONAL because it's not always provided
+ */
+export interface LessonImage {
+  id?: number;              // ✅ Optional - new images from frontend don't have ID
+  imageUrl: string;         // Required - must have image URL
+  caption?: string;         // ✅ Optional - caption can be empty
+  displayOrder: number;     // Required - for sorting
+}
+
+/**
+ * LessonResource - Resources (PDFs, links, videos) associated with a lesson
+ * 
+ * ⚠️ IMPORTANT:
+ * - id is OPTIONAL for same reason as images
+ * - description is OPTIONAL
+ * - fileSize is OPTIONAL (only for uploaded files, not links)
+ */
+export interface LessonResource {
+  id?: number;              // ✅ Optional - new resources don't have ID
+  title: string;            // Required
+  description?: string;     // ✅ Optional - description can be empty
+  resourceUrl: string;      // Required
+  resourceType: 'PDF' | 'LINK' | 'IMAGE' | 'VIDEO' | 'DOCUMENT';
+  fileSize?: number;        // ✅ Optional - bytes, only for uploaded files
+  formattedFileSize?: string; // ✅ Optional - backend-calculated
+  displayOrder: number;     // Required - for sorting
+}
+
+/**
+ * Lesson - Main lesson entity (STUDENT VIEW)
+ * 
+ * ⚠️ SCHEMA CHANGES (Dec 2025):
+ * - REMOVED: studentId, studentName (moved to LessonAssignment)
+ * - REMOVED: totalViewCount (now just viewCount from assignment)
+ * - ADDED: isLibrary (true = unassigned, false = assigned to students)
+ * - Student-specific fields (viewCount, isCompleted) come from LessonAssignment
+ */
 export interface Lesson {
+  // Core fields
   id: number;
-  title: string;
   tutorName: string;
+  title: string;
   summary?: string;
-  content?: string;
-  lessonDate: string;
+  content?: string;          // Markdown content
+  lessonDate: string;        // ISO date string (YYYY-MM-DD)
   
+  // Media
   videoUrl?: string;
   thumbnailUrl?: string;
   
-  isLibrary: boolean;
+  // Status flags
+  isLibrary: boolean;        // ✅ NEW: true if not assigned to any student
   isPublished: boolean;
   publishedAt?: string;
-
-  // --- Cập nhật đoạn này để khớp với UI ---
-  viewCount: number;         // UI dùng .viewCount (thay vì totalViewCount)
-  isCompleted: boolean;      // UI dùng .isCompleted để check trạng thái học sinh
-  completedAt?: string;      // UI dùng hiển thị ngày hoàn thành
-  images: LessonImage[];     // UI dùng .images.length và .map()
-  resources: LessonResource[]; // UI dùng .resources.length và .map()
-  // ---------------------------------------
-
-  assignedStudentCount: number; 
-  totalViewCount: number;    // Có thể giữ cả hai nếu Backend trả về cả hai
-  completionRate: number;
   
+  // ❌ REMOVED: studentId, studentName (no longer in Many-to-Many)
+  
+  // Student-specific fields (from LessonAssignment)
+  viewCount: number;         // ✅ RENAMED from totalViewCount
+  isCompleted: boolean;
+  completedAt?: string;
+  
+  // Relationships
+  images: LessonImage[];
+  resources: LessonResource[];
+  
+  // Aggregated statistics (for admin view)
+  assignedStudentCount: number;  // How many students have this lesson
+  completionRate: number;        // % of students who completed it
+  
+  // Timestamps
   createdAt: string;
   updatedAt: string;
 }
 
-export interface LessonImage {
-  id?: number;      // Thêm dấu ? vì ảnh mới thêm chưa có id
-  imageUrl: string;
-  caption?: string; // <--- THÊM DẤU ? Ở ĐÂY
-  displayOrder: number;
-}
-
-export interface LessonResource {
-  id?: number;
-  title: string;
-  description?: string;
-  resourceUrl: string;
-  // ✅ Đảm bảo IMAGE có trong list này nếu bạn muốn dùng nó
-  resourceType: 'PDF' | 'LINK' | 'IMAGE' | 'VIDEO' | 'DOCUMENT'; 
-  
-  fileSize?: number; // Dùng cho hàm formatBytes trong UI
-  
-  // ✅ UI của bạn đang dùng: {resource.formattedFileSize || formatBytes(resource.fileSize)}
-  // Vì vậy trường này nên là Optional (?) để tránh lỗi nếu Backend chưa tính toán sẵn
-  formattedFileSize?: string; 
-  
-  displayOrder: number;
-}
-
+/**
+ * LessonStats - Statistics for student's lessons
+ */
 export interface LessonStats {
   totalLessons: number;
   completedLessons: number;
@@ -373,62 +402,75 @@ export interface AdminLessonResource {
   displayOrder: number;
 }
 
+/**
+ * AdminLesson - Lesson entity for admin/library view
+ * 
+ * ⚠️ DIFFERENCE FROM Lesson:
+ * - No student-specific fields (viewCount, isCompleted)
+ * - Shows aggregated statistics instead
+ * - Used in lesson library management
+ */
 export interface AdminLesson {
   id: number;
-  studentId: number;
-  studentName: string;
   tutorName: string;
-  
   title: string;
   summary?: string;
-  content?: string;  // Markdown content
-  lessonDate: string;  // ISO date string
+  content?: string;
+  lessonDate: string;
   
   videoUrl?: string;
   thumbnailUrl?: string;
   
+  isLibrary: boolean;
   isPublished: boolean;
   publishedAt?: string;
   
-  isCompleted: boolean;
-  completedAt?: string;
-  viewCount: number;
-  lastViewedAt?: string;
+  // Aggregated statistics
+  assignedStudentCount: number;
+  totalViewCount: number;      // ✅ Sum of all students' view counts
+  completionRate: number;
   
-  images: AdminLessonImage[];
-  resources: AdminLessonResource[];
+  images: LessonImage[];
+  resources: LessonResource[];
   
   createdAt: string;
   updatedAt: string;
 }
 
+/**
+ * CreateLessonRequest - Payload for creating new lesson
+ * 
+ * ⚠️ CHANGES:
+ * - studentIds is now OPTIONAL (can create library lesson without students)
+ * - Uses LessonImage/LessonResource (not Admin versions)
+ */
 export interface CreateLessonRequest {
-  studentIds?: number[];
+  studentIds?: number[];     // ✅ Optional - for library lessons
   tutorName: string;
   title: string;
   summary?: string;
   content?: string;
-  lessonDate: string; // Định dạng YYYY-MM-DD
+  lessonDate: string;        // Format: YYYY-MM-DD
   videoUrl?: string;
   thumbnailUrl?: string;
-  
-  // ✅ Đổi về LessonImage và LessonResource để khớp với State trong Form
-  images?: LessonImage[]; 
-  resources?: LessonResource[];
-  
+  images?: LessonImage[];    // ✅ NOT AdminLessonImage
+  resources?: LessonResource[]; // ✅ NOT AdminLessonResource
   isPublished?: boolean;
 }
 
+/**
+ * UpdateLessonRequest - Payload for updating lesson
+ * All fields optional except what you want to change
+ */
 export interface UpdateLessonRequest {
   tutorName?: string;
   title?: string;
   summary?: string;
   content?: string;
-  lessonDate?: string;
+  lessonDate?: string;       // Format: YYYY-MM-DD
   videoUrl?: string;
   thumbnailUrl?: string;
-  // ✅ Đảm bảo dùng LessonImage/LessonResource (không phải bản Admin...)
-  images?: LessonImage[]; 
+  images?: LessonImage[];
   resources?: LessonResource[];
   isPublished?: boolean;
 }
@@ -440,6 +482,9 @@ export interface AdminLessonStats {
   completedLessons: number;
 }
 
+/**
+ * LibraryLesson - Simplified lesson info for library view
+ */
 export interface LibraryLesson {
   id: number;
   tutorName: string;
@@ -454,4 +499,109 @@ export interface LibraryLesson {
   completionRate: number;
   createdAt: string;
   updatedAt: string;
+}
+
+// ============================================
+// 🛠️ HELPER FUNCTIONS
+// ============================================
+
+/**
+ * Format file size from bytes to human-readable string
+ * 
+ * @example
+ * formatBytes(1024) → "1 KB"
+ * formatBytes(1048576) → "1 MB"
+ */
+export function formatBytes(bytes: number | undefined | null): string {
+  if (!bytes || bytes === 0) return '0 B';
+  
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return `${Math.round((bytes / Math.pow(k, i)) * 100) / 100} ${sizes[i]}`;
+}
+
+/**
+ * Validate if a date string is in YYYY-MM-DD format
+ */
+export function isValidDateFormat(dateStr: string): boolean {
+  const regex = /^\d{4}-\d{2}-\d{2}$/;
+  return regex.test(dateStr);
+}
+
+/**
+ * Sanitize lesson data before sending to backend
+ * - Removes undefined fields
+ * - Converts empty strings to undefined
+ * - Trims all string values
+ */
+export function sanitizeLessonPayload<T extends Record<string, any>>(data: T): T {
+  const sanitized: any = { ...data };  // ✅ Use 'any' for intermediate object
+  
+  Object.keys(sanitized).forEach((key: string) => {
+    const value = sanitized[key];
+    
+    // Remove undefined
+    if (value === undefined) {
+      delete sanitized[key];
+      return;
+    }
+    
+    // Convert empty strings to undefined
+    if (value === '') {
+      sanitized[key] = undefined;
+      return;
+    }
+    
+    // Trim strings
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      sanitized[key] = trimmed || undefined;
+    }
+  });
+  
+  return sanitized as T;  // ✅ Cast back to T
+}
+
+/**
+ * Type guard to check if lesson is library lesson
+ */
+export function isLibraryLesson(lesson: Lesson | AdminLesson): boolean {
+  return lesson.isLibrary === true;
+}
+
+/**
+ * Type guard to check if lesson is assigned
+ */
+export function isAssignedLesson(lesson: Lesson | AdminLesson): boolean {
+  return lesson.assignedStudentCount > 0;
+}
+
+// ============================================
+// 📊 TYPE GUARDS & VALIDATORS
+// ============================================
+
+/**
+ * Validate LessonImage data
+ */
+export function isValidLessonImage(img: any): img is LessonImage {
+  return (
+    typeof img === 'object' &&
+    typeof img.imageUrl === 'string' &&
+    typeof img.displayOrder === 'number'
+  );
+}
+
+/**
+ * Validate LessonResource data
+ */
+export function isValidLessonResource(res: any): res is LessonResource {
+  return (
+    typeof res === 'object' &&
+    typeof res.title === 'string' &&
+    typeof res.resourceUrl === 'string' &&
+    ['PDF', 'LINK', 'IMAGE', 'VIDEO', 'DOCUMENT'].includes(res.resourceType) &&
+    typeof res.displayOrder === 'number'
+  );
 }

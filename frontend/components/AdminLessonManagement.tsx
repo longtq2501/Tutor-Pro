@@ -160,7 +160,7 @@ export default function AdminLessonManagement() {
   // Show create form
   if (viewMode === 'create') {
     return (
-      <div className="space-y-6">
+      <div className="min-h-screen space-y-6 pb-20">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => setViewMode('list')}>
             <ArrowLeft className="w-5 h-5" />

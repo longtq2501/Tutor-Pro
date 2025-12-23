@@ -664,65 +664,65 @@ export const lessonsApi = {
 };
 
 export const adminLessonsApi = {
-  // Get all lessons (admin view)
+  // Now delegates to lesson library
+  getAll: () => lessonLibraryApi.getAll(),
+  getById: (id: number) => api.get(`/api/admin/lessons/${id}`).then(r => r.data.data),
+  create: (data: CreateLessonRequest) => lessonLibraryApi.create(data),
+  update: (id: number, data: any) => lessonLibraryApi.update(id, data),
+  delete: (id: number) => lessonLibraryApi.delete(id),
+  togglePublish: async (id: number) => {
+    const response = await api.patch(`/api/admin/lessons/${id}/toggle-publish`);
+    return response.data.data;
+  },
+};
+
+export const lessonLibraryApi = {
+  // Get all lessons in library
   getAll: async (): Promise<any[]> => {
-    const response = await api.get('/admin/lessons');
+    const response = await api.get('/api/admin/lesson-library');
     return response.data.data;
   },
 
-  // Get lesson by ID
-  getById: async (id: number): Promise<any> => {
-    const response = await api.get(`/admin/lessons/${id}`);
+  // Get unassigned lessons only
+  getUnassigned: async (): Promise<any[]> => {
+    const response = await api.get('/api/admin/lesson-library/unassigned');
     return response.data.data;
   },
 
-  // Create lessons for multiple students
-  create: async (data: CreateLessonRequest): Promise<any[]> => {
-    // ✅ LOG ĐỂ DEBUG
-    console.log('📤 Creating lesson - Payload:', JSON.stringify(data, null, 2));
-    
-    try {
-      const response = await api.post('/admin/lessons', data);
-      console.log('✅ Response:', response.data);
-      return response.data.data;
-    } catch (error: any) {
-      console.error('❌ Error response:', error.response?.data);
-      console.error('❌ Error status:', error.response?.status);
-      throw error;
-    }
-  },
-
-  // Update lesson
-  update: async (id: number, data: {
-    tutorName?: string;
-    title?: string;
-    summary?: string;
-    content?: string;
-    lessonDate?: string;
-    videoUrl?: string;
-    thumbnailUrl?: string;
-    images?: any[];
-    resources?: any[];
-    isPublished?: boolean;
-  }): Promise<any> => {
-    const response = await api.put(`/admin/lessons/${id}`, data);
+  // Create lesson in library (no student assignment required)
+  create: async (data: CreateLessonRequest): Promise<any> => {
+    const response = await api.post('/api/admin/lesson-library', data);
     return response.data.data;
   },
 
-  // Delete lesson
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/admin/lessons/${id}`);
+  // Assign lesson to students
+  assignToStudents: async (lessonId: number, studentIds: number[]): Promise<void> => {
+    await api.post(`/api/admin/lesson-library/${lessonId}/assign`, {
+      studentIds
+    });
   },
 
-  // Toggle publish status
-  togglePublish: async (id: number): Promise<any> => {
-    const response = await api.patch(`/admin/lessons/${id}/toggle-publish`);
+  // Unassign lesson from students
+  unassignFromStudents: async (lessonId: number, studentIds: number[]): Promise<void> => {
+    await api.post(`/api/admin/lesson-library/${lessonId}/unassign`, {
+      studentIds
+    });
+  },
+
+  // Get students assigned to a lesson
+  getAssignedStudents: async (lessonId: number): Promise<Student[]> => {
+    const response = await api.get(`/api/admin/lesson-library/${lessonId}/students`);
     return response.data.data;
   },
 
-  // Get lessons by student (admin view)
-  getByStudent: async (studentId: number): Promise<any[]> => {
-    const response = await api.get(`/admin/lessons/student/${studentId}`);
+  // Delete lesson from library
+  delete: async (lessonId: number): Promise<void> => {
+    await api.delete(`/api/admin/lesson-library/${lessonId}`);
+  },
+
+  // Update lesson (affects all assigned students)
+  update: async (lessonId: number, data: Partial<CreateLessonRequest>): Promise<any> => {
+    const response = await api.put(`/api/admin/lesson-library/${lessonId}`, data);
     return response.data.data;
   },
 };

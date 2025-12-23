@@ -10,8 +10,20 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+/**
+ * Lesson Entity - Central content repository
+ * Now supports Many-to-Many relationship with Students via LessonAssignment
+ *
+ * KEY CHANGES:
+ * - Removed @ManyToOne Student relationship
+ * - Added @OneToMany LessonAssignment relationship
+ * - Added isLibrary flag for unassigned lessons
+ * - Removed student-specific progress fields (moved to LessonAssignment)
+ */
 @Entity
 @Table(name = "lessons")
 @Data
@@ -24,14 +36,10 @@ public class Lesson {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "student_id", nullable = false)
-    private Student student;
-
+    // ===== BASIC INFO =====
     @Column(nullable = false, length = 255)
     private String tutorName;
 
-    // Basic Info
     @Column(nullable = false, length = 500)
     private String title;
 
@@ -44,48 +52,64 @@ public class Lesson {
     @Column(nullable = false)
     private LocalDate lessonDate;
 
-    // Media URLs
+    // ===== MEDIA URLs =====
     @Column(length = 1000)
     private String videoUrl;
 
     @Column(length = 1000)
     private String thumbnailUrl;
 
-    // Progress Tracking
-    @Column(nullable = false)
+    // ===== LIBRARY FEATURE =====
+    /**
+     * isLibrary = true: Lesson exists in library but not assigned to any student yet
+     * isLibrary = false: Lesson has been assigned to at least one student
+     *
+     * This flag helps distinguish between:
+     * - Library lessons (prepared content, not yet distributed)
+     * - Assigned lessons (actively used by students)
+     */
+    @Column(name = "is_library", nullable = false)
     @Builder.Default
-    private Boolean isCompleted = false;
+    private Boolean isLibrary = true;
 
-    private LocalDateTime completedAt;
-
-    @Column(nullable = false)
-    @Builder.Default
-    private Integer viewCount = 0;
-
-    private LocalDateTime lastViewedAt;
-
-    // ✅ ADMIN FEATURES
-    @Column(nullable = false)
+    // ===== PUBLISH STATUS =====
+    @Column(name = "is_published", nullable = false)
     @Builder.Default
     private Boolean isPublished = false;  // Draft vs Published
 
     @Column(name = "published_at")
     private LocalDateTime publishedAt;
 
-    // Relationships
+    // ===== RELATIONSHIPS =====
+
+    /**
+     * Many-to-Many relationship with Students via LessonAssignment
+     * This allows one lesson to be assigned to multiple students
+     * Student progress is tracked in LessonAssignment entity
+     */
+    @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<LessonAssignment> assignments = new HashSet<>();
+
+    /**
+     * Images associated with this lesson
+     */
     @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("displayOrder ASC")
-    @Fetch(FetchMode.SUBSELECT)  // ← Add this
+    @Fetch(FetchMode.SUBSELECT)
     @Builder.Default
     private List<LessonImage> images = new ArrayList<>();
 
+    /**
+     * Resources (PDFs, links, etc.) associated with this lesson
+     */
     @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("displayOrder ASC")
-    @Fetch(FetchMode.SUBSELECT)  // ← Add this
+    @Fetch(FetchMode.SUBSELECT)
     @Builder.Default
     private List<LessonResource> resources = new ArrayList<>();
 
-    // Timestamps
+    // ===== TIMESTAMPS =====
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
@@ -93,30 +117,64 @@ public class Lesson {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    // Helper methods
-    public void incrementViewCount() {
-        this.viewCount++;
-        this.lastViewedAt = LocalDateTime.now();
-    }
+    // ===== HELPER METHODS =====
 
-    public void markAsCompleted() {
-        this.isCompleted = true;
-        this.completedAt = LocalDateTime.now();
-    }
-
-    public void markAsIncomplete() {
-        this.isCompleted = false;
-        this.completedAt = null;
-    }
-
-    // ✅ ADMIN METHODS
+    /**
+     * Publish this lesson (make it visible in library)
+     */
     public void publish() {
         this.isPublished = true;
         this.publishedAt = LocalDateTime.now();
     }
 
+    /**
+     * Unpublish this lesson (hide from library)
+     */
     public void unpublish() {
         this.isPublished = false;
         this.publishedAt = null;
+    }
+
+    /**
+     * Mark as library lesson (not assigned yet)
+     */
+    public void markAsLibrary() {
+        this.isLibrary = true;
+    }
+
+    /**
+     * Mark as assigned (has at least one student)
+     */
+    public void markAsAssigned() {
+        this.isLibrary = false;
+    }
+
+    /**
+     * Get total number of students assigned to this lesson
+     */
+    public int getAssignedStudentCount() {
+        return assignments != null ? assignments.size() : 0;
+    }
+
+    /**
+     * Get total view count across all students
+     */
+    public int getTotalViewCount() {
+        return assignments != null
+                ? assignments.stream().mapToInt(LessonAssignment::getViewCount).sum()
+                : 0;
+    }
+
+    /**
+     * Get completion rate across all assigned students
+     */
+    public double getCompletionRate() {
+        if (assignments == null || assignments.isEmpty()) {
+            return 0.0;
+        }
+        long completedCount = assignments.stream()
+                .filter(LessonAssignment::getIsCompleted)
+                .count();
+        return (completedCount * 100.0) / assignments.size();
     }
 }

@@ -392,17 +392,17 @@ export interface AdminLesson {
 }
 
 export interface CreateLessonRequest {
-  studentIds: number[];  // Frontend uses number[]
+  studentIds?: number[];  // ✅ OPTIONAL - for library mode
   tutorName: string;
   title: string;
   summary?: string;
   content?: string;
-  lessonDate: string;  // Must be 'yyyy-MM-dd' format
+  lessonDate: string;
   videoUrl?: string;
   thumbnailUrl?: string;
   images?: AdminLessonImage[];
   resources?: AdminLessonResource[];
-  isPublished: boolean;
+  isPublished?: boolean;
 }
 
 export interface UpdateLessonRequest {
@@ -423,4 +423,20 @@ export interface AdminLessonStats {
   publishedLessons: number;
   draftLessons: number;
   completedLessons: number;
+}
+
+export interface LibraryLesson {
+  id: number;
+  tutorName: string;
+  title: string;
+  summary?: string;
+  lessonDate: string;
+  thumbnailUrl?: string;
+  isPublished: boolean;
+  isLibrary: boolean;
+  assignedStudentCount: number;
+  totalViewCount: number;
+  completionRate: number;
+  createdAt: string;
+  updatedAt: string;
 }

@@ -4,56 +4,56 @@ import com.tutor_management.backend.entity.Lesson;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface LessonRepository extends JpaRepository<Lesson, Long> {
 
-    // ✅ FIX: Remove JOIN FETCH for collections - Let @Fetch annotation handle it
+    // ===== LIBRARY QUERIES =====
+
+    // Get all library lessons (not assigned yet)
+    List<Lesson> findByIsLibraryTrueOrderByCreatedAtDesc();
+
+    // Get all published library lessons
+    List<Lesson> findByIsLibraryTrueAndIsPublishedTrueOrderByCreatedAtDesc();
+
+    // Get all assigned lessons
+    List<Lesson> findByIsLibraryFalseOrderByCreatedAtDesc();
+
+    // Search library lessons
+    @Query("SELECT l FROM Lesson l WHERE l.isLibrary = true AND " +
+            "(LOWER(l.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(l.summary) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    List<Lesson> searchLibraryLessons(@Param("keyword") String keyword);
+
+    // ===== ASSIGNMENT QUERIES =====
+
+    // Get lessons assigned to a student (via assignments)
+    @Query("SELECT DISTINCT l FROM Lesson l " +
+            "JOIN l.assignments a " +
+            "WHERE a.student.id = :studentId " +
+            "ORDER BY a.assignedDate DESC")
+    List<Lesson> findByStudentId(@Param("studentId") Long studentId);
+
+    // Get lesson with assignments
     @Query("SELECT l FROM Lesson l " +
-            "LEFT JOIN FETCH l.student " +
-            "WHERE l.student.id = :studentId " +
-            "ORDER BY l.lessonDate DESC")
-    List<Lesson> findByStudentIdOrderByLessonDateDesc(@Param("studentId") Long studentId);
+            "LEFT JOIN FETCH l.assignments " +
+            "WHERE l.id = :lessonId")
+    Optional<Lesson> findByIdWithAssignments(@Param("lessonId") Long lessonId);
 
-    // ✅ FIX: For detail view, fetch collections separately or use EntityGraph
+    // Get lesson with all details
     @Query("SELECT l FROM Lesson l " +
-            "LEFT JOIN FETCH l.student " +
-            "WHERE l.id = :id")
-    Optional<Lesson> findByIdWithDetails(@Param("id") Long id);
+            "LEFT JOIN FETCH l.images " +
+            "LEFT JOIN FETCH l.resources " +
+            "WHERE l.id = :lessonId")
+    Optional<Lesson> findByIdWithDetails(@Param("lessonId") Long lessonId);
 
-    // Get lessons by student and date range
-    @Query("SELECT l FROM Lesson l " +
-            "LEFT JOIN FETCH l.student " +
-            "WHERE l.student.id = :studentId " +
-            "AND l.lessonDate BETWEEN :startDate AND :endDate " +
-            "ORDER BY l.lessonDate DESC")
-    List<Lesson> findByStudentIdAndDateRange(
-            @Param("studentId") Long studentId,
-            @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate
-    );
+    // ===== STATS =====
 
-    // Get lessons by month/year
-    @Query("SELECT l FROM Lesson l " +
-            "LEFT JOIN FETCH l.student " +
-            "WHERE l.student.id = :studentId " +
-            "AND YEAR(l.lessonDate) = :year " +
-            "AND MONTH(l.lessonDate) = :month " +
-            "ORDER BY l.lessonDate DESC")
-    List<Lesson> findByStudentIdAndYearMonth(
-            @Param("studentId") Long studentId,
-            @Param("year") int year,
-            @Param("month") int month
-    );
+    // Count library lessons
+    long countByIsLibraryTrue();
 
-    // Count total lessons for student
-    Long countByStudentId(Long studentId);
-
-    // Count completed lessons
-    Long countByStudentIdAndIsCompletedTrue(Long studentId);
+    // Count assigned lessons
+    long countByIsLibraryFalse();
 }

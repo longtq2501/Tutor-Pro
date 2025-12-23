@@ -30,7 +30,7 @@ import dynamic from 'next/dynamic';
 import {toast} from 'sonner';
 import '@uiw/react-md-editor/markdown-editor.css';
 import '@uiw/react-markdown-preview/markdown.css';
-import { studentsApi, adminLessonsApi } from '@/lib/api';
+import { studentsApi, adminLessonsApi, lessonLibraryApi } from '@/lib/api';
 // SỬA DÒNG NÀY:
 import type { 
   Student, 
@@ -224,10 +224,11 @@ export default function CreateLessonForm({ onSuccess, onCancel }: CreateLessonFo
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
   
-    if (selectedStudents.length === 0) {
-      toast.error('Vui lòng chọn ít nhất một học sinh');
-      return;
-    }
+    // ✅ NO LONGER REQUIRE STUDENTS
+    // if (selectedStudents.length === 0) {
+    //   toast.error('Vui lòng chọn ít nhất một học sinh');
+    //   return;
+    // }
   
     if (!title || !lessonDate) {
       toast.error('Vui lòng điền đầy đủ thông tin bắt buộc');
@@ -237,19 +238,19 @@ export default function CreateLessonForm({ onSuccess, onCancel }: CreateLessonFo
     setLoading(true);
   
     try {
-      // ✅ Chuẩn hóa payload - loại bỏ undefined và null
       const payload: CreateLessonRequest = {
-        studentIds: selectedStudents,
+        // ✅ Only include studentIds if selected
+        ...(selectedStudents.length > 0 && { studentIds: selectedStudents }),
         tutorName: tutorName || 'Thầy Quỳnh Long',
         title: title.trim(),
-        summary: summary?.trim() || '',  // Empty string thay vì undefined
-        content: content?.trim() || '',  // Empty string thay vì undefined
+        summary: summary?.trim() || '',
+        content: content?.trim() || '',
         lessonDate: format(lessonDate, 'yyyy-MM-dd'),
-        videoUrl: videoUrl?.trim() || undefined,  // undefined nếu empty
-        thumbnailUrl: thumbnailUrl?.trim() || undefined,  // undefined nếu empty
+        videoUrl: videoUrl?.trim() || undefined,
+        thumbnailUrl: thumbnailUrl?.trim() || undefined,
         images: images.map((img, index) => ({
           imageUrl: img.imageUrl,
-          caption: img.caption || '',  // Empty string thay vì undefined
+          caption: img.caption || '',
           displayOrder: index,
         })),
         resources: resources.map((res, index) => ({
@@ -263,22 +264,17 @@ export default function CreateLessonForm({ onSuccess, onCancel }: CreateLessonFo
         isPublished,
       };
   
-      // ✅ LOG để debug
-      console.log('📤 Submitting payload:', JSON.stringify(payload, null, 2));
+      await lessonLibraryApi.create(payload);
   
-      const result = await adminLessonsApi.create(payload);
-  
-      toast.success(`Đã tạo ${result.length} bài giảng thành công`);
+      toast.success(
+        selectedStudents.length > 0
+          ? `Đã tạo và giao cho ${selectedStudents.length} học sinh`
+          : 'Đã tạo bài giảng trong kho'
+      );
       onSuccess();
     } catch (error: any) {
-      console.error('❌ Error creating lesson:', error);
-      console.error('❌ Error response:', error.response?.data);
-      
-      // Hiển thị error message từ backend
-      const errorMessage = error.response?.data?.message || 
-                          error.response?.data?.error ||
-                          'Không thể tạo bài giảng';
-      toast.error(errorMessage);
+      console.error('Error creating lesson:', error);
+      toast.error('Không thể tạo bài giảng');
     } finally {
       setLoading(false);
     }
@@ -290,7 +286,9 @@ export default function CreateLessonForm({ onSuccess, onCancel }: CreateLessonFo
       <Card>
         <CardHeader>
           <CardTitle>Chọn Học Sinh</CardTitle>
-          <CardDescription>Chọn một hoặc nhiều học sinh để gán bài giảng</CardDescription>
+          <CardDescription>
+            Chọn học sinh để giao bài ngay (có thể bỏ qua và giao sau)
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {loadingStudents ? (

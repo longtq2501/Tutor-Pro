@@ -666,12 +666,12 @@ export const lessonsApi = {
 export const adminLessonsApi = {
   // Now delegates to lesson library
   getAll: () => lessonLibraryApi.getAll(),
-  getById: (id: number) => api.get(`/api/admin/lessons/${id}`).then(r => r.data.data),
+  getById: (id: number) => api.get(`/admin/lessons/${id}`).then(r => r.data.data),  // ✅ Remove /api
   create: (data: CreateLessonRequest) => lessonLibraryApi.create(data),
   update: (id: number, data: any) => lessonLibraryApi.update(id, data),
   delete: (id: number) => lessonLibraryApi.delete(id),
   togglePublish: async (id: number) => {
-    const response = await api.patch(`/api/admin/lessons/${id}/toggle-publish`);
+    const response = await api.patch(`/admin/lessons/${id}/toggle-publish`);  // ✅ Remove /api
     return response.data.data;
   },
 };
@@ -679,50 +679,50 @@ export const adminLessonsApi = {
 export const lessonLibraryApi = {
   // Get all lessons in library
   getAll: async (): Promise<any[]> => {
-    const response = await api.get('/api/admin/lesson-library');
+    const response = await api.get('/admin/lesson-library');  // ✅ Remove /api
     return response.data.data;
   },
 
   // Get unassigned lessons only
   getUnassigned: async (): Promise<any[]> => {
-    const response = await api.get('/api/admin/lesson-library/unassigned');
+    const response = await api.get('/admin/lesson-library/unassigned');  // ✅ Remove /api
     return response.data.data;
   },
 
   // Create lesson in library (no student assignment required)
   create: async (data: CreateLessonRequest): Promise<any> => {
-    const response = await api.post('/api/admin/lesson-library', data);
+    const response = await api.post('/admin/lesson-library', data);  // ✅ Remove /api
     return response.data.data;
   },
 
   // Assign lesson to students
   assignToStudents: async (lessonId: number, studentIds: number[]): Promise<void> => {
-    await api.post(`/api/admin/lesson-library/${lessonId}/assign`, {
+    await api.post(`/admin/lesson-library/${lessonId}/assign`, {  // ✅ Remove /api
       studentIds
     });
   },
 
   // Unassign lesson from students
   unassignFromStudents: async (lessonId: number, studentIds: number[]): Promise<void> => {
-    await api.post(`/api/admin/lesson-library/${lessonId}/unassign`, {
+    await api.post(`/admin/lesson-library/${lessonId}/unassign`, {  // ✅ Remove /api
       studentIds
     });
   },
 
   // Get students assigned to a lesson
   getAssignedStudents: async (lessonId: number): Promise<Student[]> => {
-    const response = await api.get(`/api/admin/lesson-library/${lessonId}/students`);
+    const response = await api.get(`/admin/lesson-library/${lessonId}/students`);  // ✅ Remove /api
     return response.data.data;
   },
 
   // Delete lesson from library
   delete: async (lessonId: number): Promise<void> => {
-    await api.delete(`/api/admin/lesson-library/${lessonId}`);
+    await api.delete(`/admin/lesson-library/${lessonId}`);  // ✅ Remove /api
   },
 
   // Update lesson (affects all assigned students)
   update: async (lessonId: number, data: Partial<CreateLessonRequest>): Promise<any> => {
-    const response = await api.put(`/api/admin/lesson-library/${lessonId}`, data);
+    const response = await api.put(`/admin/lesson-library/${lessonId}`, data);  // ✅ Remove /api
     return response.data.data;
   },
 };

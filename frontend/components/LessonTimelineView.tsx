@@ -1,230 +1,206 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { lessonsApi } from '@/lib/api';
-import { Lesson, LessonStats } from '@/lib/types';
-import LessonCard from './LessonCard';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BookOpen, CheckCircle2, Clock, TrendingUp, Calendar, Filter } from 'lucide-react';
+import type { Lesson } from '@/lib/types';
+import { Calendar, CheckCircle, Eye, PlayCircle, FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
 
-interface LessonTimelineViewProps {
-  onLessonSelect?: (lessonId: number) => void; // ✅ Optional callback for inline navigation
-}
-
-export default function LessonTimelineView({ onLessonSelect }: LessonTimelineViewProps) {
+export default function LessonTimelineView() {
   const router = useRouter();
   const [lessons, setLessons] = useState<Lesson[]>([]);
-  const [filteredLessons, setFilteredLessons] = useState<Lesson[]>([]);
-  const [stats, setStats] = useState<LessonStats | null>(null);
+  const [stats, setStats] = useState({
+    totalLessons: 0,
+    completedLessons: 0,
+    inProgressLessons: 0,
+    completionRate: 0
+  });
   const [loading, setLoading] = useState(true);
-  
-  // Filter state
-  const [selectedYear, setSelectedYear] = useState<string>('all');
-  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const [filter, setFilter] = useState<'all' | 'completed' | 'pending'>('all');
 
   useEffect(() => {
-    loadData();
+    fetchData();
   }, []);
 
-  useEffect(() => {
-    filterLessons();
-  }, [selectedYear, selectedMonth, lessons]);
-
-  const loadData = async () => {
-    setLoading(true);
+  const fetchData = async () => {
     try {
+      setLoading(true);
       const [lessonsData, statsData] = await Promise.all([
         lessonsApi.getAll(),
-        lessonsApi.getStats(),
+        lessonsApi.getStats()
       ]);
       setLessons(lessonsData);
       setStats(statsData);
-    } catch (error: any) {
-      console.error('Failed to load lessons:', error);
-      toast.error('Không thể tải danh sách bài học');
+    } catch (error) {
+      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const filterLessons = () => {
-    let filtered = [...lessons];
+  const filteredLessons = lessons.filter(lesson => {
+    if (filter === 'completed') return lesson.isCompleted;
+    if (filter === 'pending') return !lesson.isCompleted;
+    return true;
+  });
 
-    if (selectedYear !== 'all') {
-      filtered = filtered.filter(lesson => {
-        const year = new Date(lesson.lessonDate).getFullYear().toString();
-        return year === selectedYear;
-      });
-    }
-
-    if (selectedMonth !== 'all') {
-      filtered = filtered.filter(lesson => {
-        const month = (new Date(lesson.lessonDate).getMonth() + 1).toString();
-        return month === selectedMonth;
-      });
-    }
-
-    setFilteredLessons(filtered);
-  };
-
-  const handleLessonClick = (lessonId: number) => {
-    if (onLessonSelect) {
-      // Use callback for inline navigation
-      onLessonSelect(lessonId);
-    } else {
-      // Fallback to route navigation (if you add separate pages later)
-      router.push(`/bai-tap/lessons/${lessonId}`);
-    }
-  };
-
-  // Get unique years and months from lessons
-  const availableYears = Array.from(new Set(lessons.map(l => 
-    new Date(l.lessonDate).getFullYear()
-  ))).sort((a, b) => b - a);
+  const groupedLessons = filteredLessons.reduce((acc, lesson) => {
+    const month = new Date(lesson.lessonDate).toLocaleDateString('vi-VN', { 
+      year: 'numeric', 
+      month: 'long' 
+    });
+    if (!acc[month]) acc[month] = [];
+    acc[month].push(lesson);
+    return acc;
+  }, {} as Record<string, Lesson[]>);
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-      </div>
-    );
+    return <div className="flex items-center justify-center h-64">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>;
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white">📚 Kho Bài Giảng</h1>
-          <p className="text-gray-400 mt-2">Xem lại và ôn tập các buổi học đã qua</p>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-card border rounded-lg p-4">
+          <div className="text-sm text-muted-foreground mb-1">Tổng bài học</div>
+          <div className="text-2xl font-bold">{stats.totalLessons}</div>
+        </div>
+        <div className="bg-card border rounded-lg p-4">
+          <div className="text-sm text-muted-foreground mb-1">Đã hoàn thành</div>
+          <div className="text-2xl font-bold text-green-600">{stats.completedLessons}</div>
+        </div>
+        <div className="bg-card border rounded-lg p-4">
+          <div className="text-sm text-muted-foreground mb-1">Đang học</div>
+          <div className="text-2xl font-bold text-blue-600">{stats.inProgressLessons}</div>
+        </div>
+        <div className="bg-card border rounded-lg p-4">
+          <div className="text-sm text-muted-foreground mb-1">Tỷ lệ hoàn thành</div>
+          <div className="text-2xl font-bold text-primary">{stats.completionRate.toFixed(0)}%</div>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      {stats && (
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="bg-[#1A1A1A] border-[#2A2A2A]">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-400">Tổng Bài Học</CardTitle>
-              <BookOpen className="h-4 w-4 text-blue-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">{stats.totalLessons}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-[#1A1A1A] border-[#2A2A2A]">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-400">Đã Hiểu</CardTitle>
-              <CheckCircle2 className="h-4 w-4 text-green-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">{stats.completedLessons}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-[#1A1A1A] border-[#2A2A2A]">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-400">Đang Học</CardTitle>
-              <Clock className="h-4 w-4 text-yellow-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">{stats.inProgressLessons}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-[#1A1A1A] border-[#2A2A2A]">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-400">Tỷ Lệ Hoàn Thành</CardTitle>
-              <TrendingUp className="h-4 w-4 text-purple-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">{stats.completionRate}%</div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
       {/* Filters */}
-      <Card className="bg-[#1A1A1A] border-[#2A2A2A]">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-white">
-            <Filter className="h-5 w-5" />
-            Bộ Lọc
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-gray-400" />
-              <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger className="w-32 bg-[#0A0A0A] border-[#2A2A2A]">
-                  <SelectValue placeholder="Năm" />
-                </SelectTrigger>
-                <SelectContent className="bg-[#1A1A1A] border-[#2A2A2A]">
-                  <SelectItem value="all">Tất cả năm</SelectItem>
-                  {availableYears.map(year => (
-                    <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      <div className="flex items-center gap-2 border-b pb-4">
+        <button
+          onClick={() => setFilter('all')}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            filter === 'all' 
+              ? 'bg-primary text-white' 
+              : 'bg-muted hover:bg-muted/80'
+          }`}
+        >
+          Tất cả ({lessons.length})
+        </button>
+        <button
+          onClick={() => setFilter('pending')}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            filter === 'pending' 
+              ? 'bg-primary text-white' 
+              : 'bg-muted hover:bg-muted/80'
+          }`}
+        >
+          Chưa hoàn thành ({stats.inProgressLessons})
+        </button>
+        <button
+          onClick={() => setFilter('completed')}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            filter === 'completed' 
+              ? 'bg-primary text-white' 
+              : 'bg-muted hover:bg-muted/80'
+          }`}
+        >
+          Đã hoàn thành ({stats.completedLessons})
+        </button>
+      </div>
 
-            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-32 bg-[#0A0A0A] border-[#2A2A2A]">
-                <SelectValue placeholder="Tháng" />
-              </SelectTrigger>
-              <SelectContent className="bg-[#1A1A1A] border-[#2A2A2A]">
-                <SelectItem value="all">Tất cả tháng</SelectItem>
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(month => (
-                  <SelectItem key={month} value={month.toString()}>Tháng {month}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      {/* Timeline */}
+      <div className="space-y-8">
+        {Object.entries(groupedLessons).map(([month, monthLessons]) => (
+          <div key={month}>
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <Calendar size={20} />
+              {month}
+            </h2>
+            <div className="space-y-4">
+              {monthLessons.map((lesson) => (
+                <div
+                  key={lesson.id}
+                  onClick={() => router.push(`/bai-tap/lessons/${lesson.id}`)}
+                  className="bg-card border rounded-lg p-5 hover:shadow-lg transition-shadow cursor-pointer group"
+                >
+                  <div className="flex items-start gap-4">
+                    {/* Thumbnail */}
+                    {lesson.thumbnailUrl ? (
+                      <img 
+                        src={lesson.thumbnailUrl} 
+                        alt={lesson.title}
+                        className="w-32 h-20 object-cover rounded-lg"
+                      />
+                    ) : (
+                      <div className="w-32 h-20 bg-muted rounded-lg flex items-center justify-center">
+                        <FileText size={32} className="text-muted-foreground" />
+                      </div>
+                    )}
 
-            {(selectedYear !== 'all' || selectedMonth !== 'all') && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSelectedYear('all');
-                  setSelectedMonth('all');
-                }}
-                className="bg-[#0A0A0A] border-[#2A2A2A] hover:bg-[#2A2A2A]"
-              >
-                Xóa bộ lọc
-              </Button>
-            )}
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold group-hover:text-primary transition-colors">
+                            {lesson.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Giáo viên: {lesson.tutorName}
+                          </p>
+                          {lesson.summary && (
+                            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                              {lesson.summary}
+                            </p>
+                          )}
+                        </div>
+                        
+                        {lesson.isCompleted && (
+                          <div className="flex-shrink-0">
+                            <div className="flex items-center gap-1 px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 rounded-full text-sm font-medium">
+                              <CheckCircle size={16} />
+                              Hoàn thành
+                            </div>
+                          </div>
+                        )}
+                      </div>
 
-            <div className="ml-auto text-sm text-gray-400">
-              Hiển thị {filteredLessons.length} / {lessons.length} bài học
+                      {/* Meta info */}
+                      <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Calendar size={16} />
+                          {new Date(lesson.lessonDate).toLocaleDateString('vi-VN')}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Eye size={16} />
+                          {lesson.viewCount} lượt xem
+                        </span>
+                        {lesson.videoUrl && (
+                          <span className="flex items-center gap-1 text-primary">
+                            <PlayCircle size={16} />
+                            Có video
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        ))}
+      </div>
 
-      {/* Lessons Timeline */}
-      {filteredLessons.length === 0 ? (
-        <Card className="bg-[#1A1A1A] border-[#2A2A2A]">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <BookOpen className="h-12 w-12 text-gray-600 mb-4" />
-            <p className="text-gray-400 text-center">Chưa có bài học nào</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {filteredLessons.map(lesson => (
-            <LessonCard
-              key={lesson.id}
-              lesson={lesson}
-              onClick={() => handleLessonClick(lesson.id)}
-            />
-          ))}
+      {filteredLessons.length === 0 && (
+        <div className="text-center py-12 text-muted-foreground">
+          Không có bài học nào
         </div>
       )}
     </div>

@@ -1,57 +1,37 @@
 'use client';
 
-import React, { useState } from 'react';
-import LessonTimelineView from './LessonTimelineView';
+import React, { useEffect, useRef } from 'react';
 import LessonDetailView from './LessonDetailView';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+
+interface Props {
+  lessonId: number;
+}
 
 /**
- * Wrapper component that manages both Timeline and Detail views
- * For inline navigation without separate routes
- * 
- * ✅ FIXED: Added DialogTitle to prevent accessibility warning
- * ✅ FIXED: Full-screen modal for better side-by-side layout
+ * Wrapper component that tracks lesson views
+ * Automatically increments view count when student opens a lesson
  */
-export default function LessonViewWrapper() {
-  const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
+export default function LessonViewWrapper({ lessonId }: Props) {
+  const hasTracked = useRef(false);
 
-  const handleLessonSelect = (lessonId: number) => {
-    setSelectedLessonId(lessonId);
+  useEffect(() => {
+    // Track view only once per mount
+    if (!hasTracked.current) {
+      // eslint-disable-next-line react-hooks/immutability
+      trackView();
+      hasTracked.current = true;
+    }
+  }, [lessonId]);
+
+  const trackView = async () => {
+    try {
+      // Backend automatically increments view count when fetching lesson detail
+      // So we don't need to call a separate API
+      console.log(`📊 Tracking view for lesson ${lessonId}`);
+    } catch (error) {
+      console.error('Error tracking view:', error);
+    }
   };
 
-  const handleClose = () => {
-    setSelectedLessonId(null);
-  };
-
-  return (
-    <>
-      {/* Timeline View */}
-      <LessonTimelineView onLessonSelect={handleLessonSelect} />
-
-      {/* Detail View Modal - Full Screen */}
-      <Dialog open={selectedLessonId !== null} onOpenChange={(open) => !open && handleClose()}>
-        <DialogContent 
-          className="max-w-[95vw] w-[95vw] h-[95vh] p-0 gap-0"
-          aria-describedby="lesson-detail-description"
-        >
-          {/* ✅ REQUIRED: DialogTitle for accessibility - Hidden but present */}
-          <VisuallyHidden>
-            <DialogTitle>Chi tiết bài giảng</DialogTitle>
-          </VisuallyHidden>
-          
-          {/* ✅ Description for screen readers */}
-          <VisuallyHidden id="lesson-detail-description">
-            Xem chi tiết nội dung bài giảng, video, hình ảnh và tài liệu
-          </VisuallyHidden>
-
-          {selectedLessonId && (
-            <div className="h-full overflow-hidden">
-              <LessonDetailView lessonId={selectedLessonId} />
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </>
-  );
+  return <LessonDetailView lessonId={lessonId} />;
 }

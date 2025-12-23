@@ -664,14 +664,34 @@ export const lessonsApi = {
 };
 
 export const adminLessonsApi = {
-  // Now delegates to lesson library
-  getAll: () => lessonLibraryApi.getAll(),
-  getById: (id: number) => api.get(`/admin/lessons/${id}`).then(r => r.data.data),  // ✅ Remove /api
-  create: (data: CreateLessonRequest) => lessonLibraryApi.create(data),
-  update: (id: number, data: any) => lessonLibraryApi.update(id, data),
-  delete: (id: number) => lessonLibraryApi.delete(id),
-  togglePublish: async (id: number) => {
-    const response = await api.patch(`/admin/lessons/${id}/toggle-publish`);  // ✅ Remove /api
+  // Trỏ về đúng Controller AdminLessonController.java (/api/admin/lessons)
+  getAll: async (): Promise<Lesson[]> => {
+    const response = await api.get('/admin/lessons');
+    return response.data.data;
+  },
+  
+  getById: async (id: number): Promise<Lesson> => {
+    const response = await api.get(`/admin/lessons/${id}`);
+    return response.data.data;
+  },
+
+  create: async (data: CreateLessonRequest): Promise<Lesson> => {
+    const response = await api.post('/admin/lessons', data);
+    return response.data.data;
+  },
+
+  update: async (id: number, data: any): Promise<Lesson> => {
+    const response = await api.put(`/admin/lessons/${id}`, data);
+    return response.data.data;
+  },
+
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/admin/lessons/${id}`);
+  },
+
+  togglePublish: async (id: number): Promise<Lesson> => {
+    // Đổi PATCH thành PUT để khớp với @PutMapping("/{id}/toggle-publish")
+    const response = await api.put(`/admin/lessons/${id}/toggle-publish`);
     return response.data.data;
   },
 };

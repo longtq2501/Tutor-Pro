@@ -298,45 +298,56 @@ export interface HomeworkStatusUpdateRequest {
 
 export interface Lesson {
   id: number;
-  studentId: number;
-  studentName: string;
-  tutorName: string;
-  
   title: string;
-  summary: string;
-  content: string;  // Markdown
-  lessonDate: string;  // ISO date string
+  tutorName: string;
+  summary?: string;
+  content?: string;
+  lessonDate: string;
   
   videoUrl?: string;
   thumbnailUrl?: string;
   
-  isCompleted: boolean;
-  completedAt?: string;
-  viewCount: number;
-  lastViewedAt?: string;
-  
-  images: LessonImage[];
-  resources: LessonResource[];
+  isLibrary: boolean;
+  isPublished: boolean;
+  publishedAt?: string;
+
+  // --- Cập nhật đoạn này để khớp với UI ---
+  viewCount: number;         // UI dùng .viewCount (thay vì totalViewCount)
+  isCompleted: boolean;      // UI dùng .isCompleted để check trạng thái học sinh
+  completedAt?: string;      // UI dùng hiển thị ngày hoàn thành
+  images: LessonImage[];     // UI dùng .images.length và .map()
+  resources: LessonResource[]; // UI dùng .resources.length và .map()
+  // ---------------------------------------
+
+  assignedStudentCount: number; 
+  totalViewCount: number;    // Có thể giữ cả hai nếu Backend trả về cả hai
+  completionRate: number;
   
   createdAt: string;
   updatedAt: string;
 }
 
 export interface LessonImage {
-  id: number;
+  id?: number;      // Thêm dấu ? vì ảnh mới thêm chưa có id
   imageUrl: string;
-  caption?: string;
+  caption?: string; // <--- THÊM DẤU ? Ở ĐÂY
   displayOrder: number;
 }
 
 export interface LessonResource {
-  id: number;
+  id?: number;
   title: string;
   description?: string;
   resourceUrl: string;
-  resourceType: 'PDF' | 'LINK' | 'IMAGE' | 'VIDEO' | 'DOCUMENT';
-  fileSize?: number;
-  formattedFileSize: string;
+  // ✅ Đảm bảo IMAGE có trong list này nếu bạn muốn dùng nó
+  resourceType: 'PDF' | 'LINK' | 'IMAGE' | 'VIDEO' | 'DOCUMENT'; 
+  
+  fileSize?: number; // Dùng cho hàm formatBytes trong UI
+  
+  // ✅ UI của bạn đang dùng: {resource.formattedFileSize || formatBytes(resource.fileSize)}
+  // Vì vậy trường này nên là Optional (?) để tránh lỗi nếu Backend chưa tính toán sẵn
+  formattedFileSize?: string; 
+  
   displayOrder: number;
 }
 

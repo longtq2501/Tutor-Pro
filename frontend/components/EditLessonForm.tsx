@@ -30,7 +30,7 @@ import dynamic from 'next/dynamic';
 import '@uiw/react-md-editor/markdown-editor.css';
 import '@uiw/react-markdown-preview/markdown.css';
 import { adminLessonsApi } from '@/lib/api';
-import { UpdateLessonRequest } from '@/lib/types';
+import { Lesson, LessonImage, LessonResource, UpdateLessonRequest } from '@/lib/types';
 
 // Thêm "as any" vào cuối dòng import để đánh lừa TypeScript
 const MDEditor = dynamic(
@@ -42,27 +42,6 @@ interface EditLessonFormProps {
   lessonId: number;
   onSuccess: () => void;
   onCancel: () => void;
-}
-
-interface LessonImage {
-  imageUrl: string;
-  caption: string;
-  displayOrder: number;
-}
-
-interface LessonResource {
-  title: string;
-  description: string;
-  resourceUrl: string;
-  resourceType: 'PDF' | 'LINK' | 'IMAGE' | 'VIDEO' | 'DOCUMENT';
-  fileSize?: number;
-  displayOrder: number;
-}
-
-declare global {
-  interface Window {
-    cloudinary: any;
-  }
 }
 
 export default function EditLessonForm({ lessonId, onSuccess, onCancel }: EditLessonFormProps) {
@@ -94,7 +73,7 @@ export default function EditLessonForm({ lessonId, onSuccess, onCancel }: EditLe
       setLoading(true);
       const data = await adminLessonsApi.getById(lessonId);
       
-      setStudentName(data.studentName);
+      // setStudentName(data.studentName);
       setTutorName(data.tutorName);
       setTitle(data.title);
       setSummary(data.summary || '');

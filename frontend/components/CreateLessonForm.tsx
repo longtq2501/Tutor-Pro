@@ -239,32 +239,37 @@ export default function CreateLessonForm({ onSuccess, onCancel }: CreateLessonFo
   
     try {
       const payload: CreateLessonRequest = {
-        // ✅ Only include studentIds if selected
-        ...(selectedStudents.length > 0 && { studentIds: selectedStudents }),
+        // THAY ĐỔI Ở ĐÂY: Luôn gán mảng, không dùng spread có điều kiện nữa
+        studentIds: selectedStudents, 
+        
         tutorName: tutorName || 'Thầy Quỳnh Long',
         title: title.trim(),
         summary: summary?.trim() || '',
         content: content?.trim() || '',
         lessonDate: format(lessonDate, 'yyyy-MM-dd'),
-        videoUrl: videoUrl?.trim() || undefined,
-        thumbnailUrl: thumbnailUrl?.trim() || undefined,
+        videoUrl: videoUrl?.trim() || "", 
+        thumbnailUrl: thumbnailUrl?.trim() || "",
+        
+        // Ánh xạ mảng images
         images: images.map((img, index) => ({
           imageUrl: img.imageUrl,
           caption: img.caption || '',
           displayOrder: index,
         })),
+        
+        // Ánh xạ mảng resources
         resources: resources.map((res, index) => ({
           title: res.title?.trim() || '',
           description: res.description?.trim() || '',
           resourceUrl: res.resourceUrl,
-          resourceType: res.resourceType,
-          fileSize: res.fileSize,
+          resourceType: res.resourceType.toUpperCase() as any,
+          fileSize: res.fileSize || 0,
           displayOrder: index,
         })),
         isPublished,
       };
   
-      await lessonLibraryApi.create(payload);
+      await adminLessonsApi.create(payload);
   
       toast.success(
         selectedStudents.length > 0

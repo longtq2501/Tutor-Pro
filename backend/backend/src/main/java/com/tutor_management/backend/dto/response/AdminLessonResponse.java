@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -66,17 +67,16 @@ public class AdminLessonResponse {
                 .isPublished(lesson.getIsPublished())
                 .isLibrary(lesson.getIsLibrary())
                 .publishedAt(lesson.getPublishedAt())
-                // ✅ Assignment statistics
+
+                // ✅ Sử dụng helper methods từ Entity nhưng bọc trong check null
                 .assignedStudentCount(lesson.getAssignedStudentCount())
                 .totalViewCount(lesson.getTotalViewCount())
                 .completionRate(lesson.getCompletionRate())
-                // Media
-                .images(lesson.getImages().stream()
-                        .map(LessonImageDTO::fromEntity)
-                        .collect(Collectors.toList()))
-                .resources(lesson.getResources().stream()
-                        .map(LessonResourceDTO::fromEntity)
-                        .collect(Collectors.toList()))
+
+                .images(lesson.getImages() != null ? lesson.getImages().stream()
+                        .map(LessonImageDTO::fromEntity).collect(Collectors.toList()) : new ArrayList<>())
+                .resources(lesson.getResources() != null ? lesson.getResources().stream()
+                        .map(LessonResourceDTO::fromEntity).collect(Collectors.toList()) : new ArrayList<>())
                 .createdAt(lesson.getCreatedAt())
                 .updatedAt(lesson.getUpdatedAt())
                 .build();

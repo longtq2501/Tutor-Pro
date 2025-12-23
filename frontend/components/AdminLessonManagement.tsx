@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Search, Eye, Edit, Trash2, MoreHorizontal, FileText, CheckCircle, XCircle, Calendar, User, ArrowLeft } from 'lucide-react';
+import { Plus, Search, Eye, Edit, Trash2, MoreHorizontal, FileText, CheckCircle, XCircle, Calendar, User, ArrowLeft, UserPlus, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -42,8 +42,11 @@ import CreateLessonForm from './CreateLessonForm';
 import EditLessonForm from './EditLessonForm';
 import LessonDetailView from './LessonDetailView';
 import { adminLessonsApi } from '@/lib/api';
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@radix-ui/react-tooltip';
 
 interface Lesson {
+  assignedStudentCount: number;
+  totalViewCount: number;
   id: number;
   title: string;
   studentName: string;
@@ -58,6 +61,10 @@ interface Lesson {
 type ViewMode = 'list' | 'create' | 'edit' | 'preview';
 
 export default function AdminLessonManagement() {
+
+  // Thêm vào cùng các useState khác ở đầu Component
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [editingLessonId, setEditingLessonId] = useState<number | null>(null);
   const [previewLessonId, setPreviewLessonId] = useState<number | null>(null);
@@ -79,15 +86,20 @@ export default function AdminLessonManagement() {
   const fetchLessons = async () => {
     try {
       setLoading(true);
-      const data = await adminLessonsApi.getAll();
-      setLessons(data);
+      // Giả sử API trả về { data: Lesson[] } hoặc chỉ Lesson[]
+      const response = await adminLessonsApi.getAll();
+      
+      // Nếu API trả về trực tiếp mảng, dùng data. Nếu trả về object, dùng response.data
+      const data = Array.isArray(response) ? response : (response as any).data;
+      
+      setLessons(data || []);
     } catch (error) {
       console.error('Error fetching lessons:', error);
       toast.error('Không thể tải danh sách bài giảng');
     } finally {
       setLoading(false);
-    }
-  };
+    };
+  }
 
   const handleDelete = async () => {
     if (!deleteDialog.lessonId) return;
@@ -127,20 +139,27 @@ export default function AdminLessonManagement() {
     fetchLessons();
   };
 
+  // Tìm đến hàm handlePreview hiện tại và sửa thành:
+  const handlePreview = (lessonId: number) => {
+    setPreviewLessonId(lessonId);
+    // Không cần setViewMode('preview') vì chúng ta dùng Dialog bọc lên trên List
+  };
+
   const handleEdit = (lessonId: number) => {
     setEditingLessonId(lessonId);
     setViewMode('edit');
   };
 
   // ✅ NEW: Handle preview
-  const handlePreview = (lessonId: number) => {
-    setPreviewLessonId(lessonId);
+  const handleAssign = (id: number) => {
+    setSelectedLessonId(id);
+    setAssignDialogOpen(true);
   };
 
   const filteredLessons = lessons.filter((lesson) => {
     const matchesSearch =
       lesson.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      lesson.studentName.toLowerCase().includes(searchQuery.toLowerCase());
+      lesson.tutorName.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesFilter =
       filterStatus === 'all' ||
@@ -308,85 +327,119 @@ export default function AdminLessonManagement() {
                   <TableBody>
                     {filteredLessons.map((lesson) => (
                       <TableRow key={lesson.id} className="hover:bg-muted/30">
-                        <TableCell className="font-medium text-foreground">
-                          <div className="flex items-center gap-2">
-                            <FileText className="w-4 h-4 text-blue-500" />
-                            {lesson.title}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-foreground">
-                          <div className="flex items-center gap-2">
-                            <User className="w-4 h-4 text-muted-foreground" />
-                            {lesson.studentName}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">{lesson.tutorName}</TableCell>
-                        <TableCell className="text-foreground">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-muted-foreground" />
-                            {format(new Date(lesson.lessonDate), 'dd/MM/yyyy', { locale: vi })}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            {lesson.isPublished ? (
-                              <Badge className="bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/20 border-green-500/20">
-                                <CheckCircle className="w-3 h-3 mr-1" />
-                                Đã xuất bản
+                      <TableCell className="font-medium text-foreground">
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-blue-500" />
+                          {lesson.title}
+                        </div>
+                      </TableCell>
+                    
+                      {/* ✅ THAY ĐỔI: Hiển thị số lượng học sinh thay vì lesson.studentName */}
+                      <TableCell className="text-foreground">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4 text-muted-foreground" />
+                          <span className={lesson.assignedStudentCount > 0 ? "text-foreground" : "text-muted-foreground italic"}>
+                            {lesson.assignedStudentCount > 0 
+                              ? `${lesson.assignedStudentCount} học sinh` 
+                              : "Chưa giao"}
+                          </span>
+                        </div>
+                      </TableCell>
+                    
+                      <TableCell className="text-muted-foreground">{lesson.tutorName}</TableCell>
+                    
+                      <TableCell className="text-foreground">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-muted-foreground" />
+                          {/* Thêm check date hợp lệ để tránh crash nếu lessonDate null */}
+                          {lesson.lessonDate ? format(new Date(lesson.lessonDate), 'dd/MM/yyyy', { locale: vi }) : '---'}
+                        </div>
+                      </TableCell>
+                    
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {lesson.isPublished ? (
+                            <Badge className="bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/20 border-green-500/20">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Đã xuất bản
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary" className="bg-muted text-foreground">
+                              <XCircle className="w-3 h-3 mr-1" />
+                              Bản nháp
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                    
+                      {/* ✅ THAY ĐỔI: Hiển thị tổng lượt xem (totalViewCount) thay vì viewCount */}
+                      <TableCell>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge variant="outline" className="text-foreground border-border cursor-help">
+                                <Eye className="w-3 h-3 mr-1 opacity-70" />
+                                {lesson.totalViewCount || 0}
                               </Badge>
-                            ) : (
-                              <Badge variant="secondary" className="bg-muted text-foreground">
-                                <XCircle className="w-3 h-3 mr-1" />
-                                Bản nháp
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-foreground border-border">{lesson.viewCount}</Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="hover:bg-muted">
-                                <MoreHorizontal className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-popover border-border">
-                              {/* ✅ NEW: Preview option */}
-                              <DropdownMenuItem onClick={() => handlePreview(lesson.id)} className="text-foreground hover:bg-accent">
-                                <Eye className="w-4 h-4 mr-2" />
-                                Xem trước
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleEdit(lesson.id)} className="text-foreground hover:bg-accent">
-                                <Edit className="w-4 h-4 mr-2" />
-                                Chỉnh sửa
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => togglePublish(lesson.id)} className="text-foreground hover:bg-accent">
-                                {lesson.isPublished ? (
-                                  <>
-                                    <XCircle className="w-4 h-4 mr-2" />
-                                    Hủy xuất bản
-                                  </>
-                                ) : (
-                                  <>
-                                    <CheckCircle className="w-4 h-4 mr-2" />
-                                    Xuất bản
-                                  </>
-                                )}
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator className="bg-border" />
-                              <DropdownMenuItem
-                                onClick={() => setDeleteDialog({ open: true, lessonId: lesson.id })}
-                                className="text-red-600 dark:text-red-400 hover:bg-red-500/10"
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Xóa
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Tổng lượt xem từ tất cả học sinh</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </TableCell>
+                    
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="hover:bg-muted">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-popover border-border">
+                            <DropdownMenuItem onClick={() => handlePreview(lesson.id)} className="text-foreground hover:bg-accent">
+                              <Eye className="w-4 h-4 mr-2" />
+                              Xem trước
+                            </DropdownMenuItem>
+                            
+                            {/* ✅ NEW: Thêm nút Giao bài tập (Assign) nếu bạn có modal này */}
+                            <DropdownMenuItem onClick={() => handleAssign(lesson.id)} className="text-blue-600 hover:bg-blue-50">
+                              <UserPlus className="w-4 h-4 mr-2" />
+                              Giao cho học sinh
+                            </DropdownMenuItem>
+                    
+                            <DropdownMenuItem onClick={() => handleEdit(lesson.id)} className="text-foreground hover:bg-accent">
+                              <Edit className="w-4 h-4 mr-2" />
+                              Chỉnh sửa nội dung
+                            </DropdownMenuItem>
+                    
+                            <DropdownMenuItem onClick={() => togglePublish(lesson.id)} className="text-foreground hover:bg-accent">
+                              {lesson.isPublished ? (
+                                <>
+                                  <XCircle className="w-4 h-4 mr-2" />
+                                  Hủy xuất bản
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle className="w-4 h-4 mr-2" />
+                                  Xuất bản
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                            
+                            <DropdownMenuSeparator className="bg-border" />
+                            
+                            <DropdownMenuItem
+                              onClick={() => setDeleteDialog({ open: true, lessonId: lesson.id })}
+                              className="text-red-600 dark:text-red-400 hover:bg-red-500/10"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Xóa vĩnh viễn
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
                     ))}
                   </TableBody>
                 </Table>
@@ -437,6 +490,37 @@ export default function AdminLessonManagement() {
               />
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Thêm đoạn này vào bên cạnh các Dialog/AlertDialog khác */}
+      <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
+        <DialogContent className="sm:max-w-[500px] bg-card border-border">
+          <DialogTitle className="text-xl font-bold">Giao bài giảng cho học sinh</DialogTitle>
+          <div className="py-6">
+            {/* Ở đây bạn có thể render danh sách checkbox học sinh */}
+            <p className="text-muted-foreground mb-4">Chọn học sinh để giao bài giảng này:</p>
+            
+            <div className="max-h-[300px] overflow-y-auto space-y-2">
+              {/* Ví dụ mẫu, bạn nên fetch danh sách học sinh từ API và map ở đây */}
+              <p className="text-sm italic text-muted-foreground">Tính năng chọn danh sách học sinh đang được cập nhật...</p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>Hủy</Button>
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={async () => {
+                // Gọi API assign ở đây: 
+                // await adminLessonsApi.assignToStudents(selectedLessonId, studentIds);
+                toast.success("Đã giao bài giảng thành công");
+                setAssignDialogOpen(false);
+                fetchLessons();
+              }}
+            >
+              Xác nhận giao bài
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>

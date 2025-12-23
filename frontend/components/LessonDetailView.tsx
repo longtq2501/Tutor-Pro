@@ -48,6 +48,15 @@ export default function LessonDetailView({ lessonId, onClose, isAdminPreview = f
     }
   };
 
+  const formatBytes = (bytes: number, decimals = 1) => {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  };
+
   const handleToggleComplete = async () => {
     if (!lesson || isAdminPreview) return; // ✅ Disable for admin preview
 
@@ -190,6 +199,7 @@ export default function LessonDetailView({ lessonId, onClose, isAdminPreview = f
                         <video
                           src={lesson.videoUrl}
                           controls
+                          preload="metadata" // Thêm dòng này
                           controlsList="nodownload"
                           className="w-full h-full object-contain"
                           poster={lesson.thumbnailUrl}
@@ -366,32 +376,35 @@ export default function LessonDetailView({ lessonId, onClose, isAdminPreview = f
                           ">
                             <CardContent className="flex items-start gap-3 p-3">
                               <div className={`p-2 rounded-lg flex-shrink-0 transition-colors ${
-                                resource.resourceType === 'PDF' ? 
+                                // Sử dụng toUpperCase() để chắc chắn khớp với Enum Backend
+                                resource.resourceType?.toUpperCase() === 'PDF' ? 
                                   'bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400 group-hover:bg-red-500/20' :
-                                resource.resourceType === 'LINK' ? 
+                                resource.resourceType?.toUpperCase() === 'LINK' ? 
                                   'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 group-hover:bg-blue-500/20' :
-                                resource.resourceType === 'VIDEO' ? 
+                                resource.resourceType?.toUpperCase() === 'VIDEO' ? 
                                   'bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400 group-hover:bg-purple-500/20' :
                                   'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400 group-hover:bg-green-500/20'
                               }`}>
                                 <FileText className="h-4 w-4" />
                               </div>
+
                               <div className="flex-1 min-w-0">
                                 <h4 className="font-medium text-sm text-foreground group-hover:text-primary transition-colors">
                                   {resource.title}
                                 </h4>
-                                {resource.description && (
-                                  <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
-                                    {resource.description}
-                                  </p>
-                                )}
+                                {/* ... description ... */}
                                 <div className="flex items-center gap-2 mt-1.5">
-                                  <Badge variant="secondary" className="text-xs font-normal">
+                                  <Badge variant="secondary" className="text-[10px] font-normal uppercase">
                                     {resource.resourceType}
                                   </Badge>
-                                  {resource.fileSize && (
+                                  {/* Ưu tiên dùng formattedFileSize từ API, nếu không có thì tự tính từ fileSize */}
+                                  {(resource.formattedFileSize || resource.fileSize) && (
                                     <span className="text-xs text-muted-foreground">
-                                      {resource.formattedFileSize}
+                                      {resource.formattedFileSize ? (
+                                          <span>{resource.formattedFileSize}</span>
+                                        ) : resource.fileSize ? (
+                                          <span>{formatBytes(resource.fileSize)}</span>
+                                        ) : null}
                                     </span>
                                   )}
                                 </div>

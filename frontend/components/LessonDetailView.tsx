@@ -8,29 +8,28 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  Calendar, User, ArrowLeft, CheckCircle2, XCircle,
-  BookOpen, FileText, Image as ImageIcon, Video, Eye
+  Calendar, User, X, CheckCircle2, XCircle,
+  BookOpen, FileText, Image as ImageIcon, Eye, Maximize2, Minimize2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-// ✅ Removed ReactPlayer - using native video tag instead
 import ReactMarkdown from 'react-markdown';
 import Image from 'next/image';
 
 interface LessonDetailViewProps {
   lessonId: number;
+  onClose?: () => void;
+  isAdminPreview?: boolean; // ✅ NEW: For admin preview mode
 }
 
-export default function LessonDetailView({ lessonId }: LessonDetailViewProps) {
-  const router = useRouter();
+export default function LessonDetailView({ lessonId, onClose, isAdminPreview = false }: LessonDetailViewProps) {
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
   const [markingComplete, setMarkingComplete] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     loadLesson();
@@ -50,7 +49,7 @@ export default function LessonDetailView({ lessonId }: LessonDetailViewProps) {
   };
 
   const handleToggleComplete = async () => {
-    if (!lesson) return;
+    if (!lesson || isAdminPreview) return; // ✅ Disable for admin preview
 
     setMarkingComplete(true);
     try {
@@ -74,246 +73,342 @@ export default function LessonDetailView({ lessonId }: LessonDetailViewProps) {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="flex justify-center items-center h-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (!lesson) {
     return (
-      <Card className="bg-[#1A1A1A] border-[#2A2A2A]">
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <BookOpen className="h-12 w-12 text-gray-600 mb-4" />
-          <p className="text-gray-400">Không tìm thấy bài học</p>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+        <BookOpen className="h-12 w-12 mb-4" />
+        <p>Không tìm thấy bài học</p>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.back()}
-            className="mb-4 hover:bg-[#2A2A2A]"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Quay lại
-          </Button>
-
-          <h1 className="text-3xl font-bold text-white mb-2">{lesson.title}</h1>
-          
-          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              <span>{lesson.tutorName}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span>{format(new Date(lesson.lessonDate), 'dd MMMM yyyy', { locale: vi })}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Eye className="h-4 w-4" />
-              <span>{lesson.viewCount} lượt xem</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Completion Toggle */}
-        <Button
-          onClick={handleToggleComplete}
-          disabled={markingComplete}
-          className={
-            lesson.isCompleted
-              ? 'bg-green-600 hover:bg-green-700'
-              : 'bg-blue-600 hover:bg-blue-700'
-          }
-        >
-          {lesson.isCompleted ? (
-            <>
-              <CheckCircle2 className="h-4 w-4 mr-2" />
-              Đã Hiểu Bài
-            </>
-          ) : (
-            <>
-              <XCircle className="h-4 w-4 mr-2" />
-              Đánh Dấu Đã Hiểu
-            </>
-          )}
-        </Button>
-      </div>
-
-      {/* Summary */}
-      {lesson.summary && (
-        <Card className="bg-blue-600/10 border-blue-600/30">
-          <CardContent className="pt-6">
-            <p className="text-blue-200">{lesson.summary}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Video Player */}
-      {lesson.videoUrl && (
-        <Card className="bg-[#1A1A1A] border-[#2A2A2A] overflow-hidden">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
-              <Video className="h-5 w-5 text-blue-400" />
-              Video Bài Giảng
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="aspect-video bg-black">
-              <video
-                src={lesson.videoUrl}
-                controls
-                controlsList="nodownload"
-                className="w-full h-full object-contain"
-                poster={lesson.thumbnailUrl}
-              >
-                Trình duyệt của bạn không hỗ trợ phát video.
-              </video>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Tabs: Content, Images, Resources */}
-      <Tabs defaultValue="content" className="space-y-4">
-        <TabsList className="bg-[#1A1A1A] border border-[#2A2A2A]">
-          <TabsTrigger value="content" className="data-[state=active]:bg-blue-600">
-            <BookOpen className="h-4 w-4 mr-2" />
-            Nội Dung Bài Học
-          </TabsTrigger>
-          <TabsTrigger value="images" className="data-[state=active]:bg-purple-600">
-            <ImageIcon className="h-4 w-4 mr-2" />
-            Hình Ảnh ({lesson.images.length})
-          </TabsTrigger>
-          <TabsTrigger value="resources" className="data-[state=active]:bg-green-600">
-            <FileText className="h-4 w-4 mr-2" />
-            Tài Liệu ({lesson.resources.length})
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Content Tab */}
-        <TabsContent value="content">
-          <Card className="bg-[#1A1A1A] border-[#2A2A2A]">
-            <CardContent className="pt-6">
-              <ScrollArea className="h-[600px] pr-4">
-                <div className="prose prose-invert prose-blue max-w-none">
-                  <ReactMarkdown>{lesson.content}</ReactMarkdown>
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Images Tab */}
-        <TabsContent value="images">
-          <Card className="bg-[#1A1A1A] border-[#2A2A2A]">
-            <CardContent className="pt-6">
-              {lesson.images.length === 0 ? (
-                <div className="text-center text-gray-400 py-12">
-                  <ImageIcon className="h-12 w-12 mx-auto mb-4 text-gray-600" />
-                  <p>Chưa có hình ảnh nào</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {lesson.images.map(image => (
-                    <div key={image.id} className="space-y-2">
-                      <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
-                        <Image
-                          src={image.imageUrl}
-                          alt={image.caption || 'Lesson image'}
-                          fill
-                          className="object-contain"
-                        />
-                      </div>
-                      {image.caption && (
-                        <p className="text-sm text-gray-400 text-center">{image.caption}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
+    <div className="h-full flex flex-col bg-background">
+      {/* ✅ HEADER - Compact & Fixed */}
+      <div className="flex-none px-4 md:px-6 py-3 md:py-4 border-b border-border bg-background/95 backdrop-blur-sm">
+        <div className="flex items-start justify-between gap-3 md:gap-4">
+          {/* Title & Meta */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2">
+              <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-foreground line-clamp-2">
+                {lesson.title}
+              </h1>
+              {/* ✅ Admin Preview Badge */}
+              {isAdminPreview && (
+                <Badge variant="secondary" className="text-xs flex-shrink-0">
+                  <Eye className="h-3 w-3 mr-1" />
+                  Preview
+                </Badge>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Resources Tab */}
-        <TabsContent value="resources">
-          <Card className="bg-[#1A1A1A] border-[#2A2A2A]">
-            <CardContent className="pt-6">
-              {lesson.resources.length === 0 ? (
-                <div className="text-center text-gray-400 py-12">
-                  <FileText className="h-12 w-12 mx-auto mb-4 text-gray-600" />
-                  <p>Chưa có tài liệu nào</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {lesson.resources.map(resource => (
-                    <a
-                      key={resource.id}
-                      href={resource.resourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block"
-                    >
-                      <Card className="bg-[#0A0A0A] border-[#2A2A2A] hover:border-blue-500/50 transition-colors cursor-pointer">
-                        <CardContent className="flex items-center gap-4 p-4">
-                          <div className={`p-3 rounded-lg ${
-                            resource.resourceType === 'PDF' ? 'bg-red-600/20' :
-                            resource.resourceType === 'LINK' ? 'bg-blue-600/20' :
-                            resource.resourceType === 'VIDEO' ? 'bg-purple-600/20' :
-                            'bg-green-600/20'
-                          }`}>
-                            <FileText className="h-5 w-5" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-white">{resource.title}</h4>
-                            {resource.description && (
-                              <p className="text-sm text-gray-400 line-clamp-1">{resource.description}</p>
-                            )}
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge variant="outline" className="text-xs">
-                                {resource.resourceType}
-                              </Badge>
-                              {resource.fileSize && (
-                                <span className="text-xs text-gray-500">{resource.formattedFileSize}</span>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </a>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Completion Status Card */}
-      {lesson.isCompleted && lesson.completedAt && (
-        <Card className="bg-green-600/10 border-green-600/30">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="h-6 w-6 text-green-400" />
-              <div>
-                <p className="text-green-200 font-medium">Bạn đã hoàn thành bài học này!</p>
-                <p className="text-sm text-green-300/70">
-                  Hoàn thành lúc: {format(new Date(lesson.completedAt), 'dd/MM/yyyy HH:mm', { locale: vi })}
-                </p>
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-2 md:gap-3 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <User className="h-3.5 w-3.5 flex-shrink-0" />
+                <span className="truncate">{lesson.tutorName}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
+                <span>{format(new Date(lesson.lessonDate), 'dd/MM/yyyy', { locale: vi })}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Eye className="h-3.5 w-3.5 flex-shrink-0" />
+                <span>{lesson.viewCount} lượt xem</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
+
+            {/* Summary - Compact */}
+            {lesson.summary && (
+              <div className="mt-2 bg-primary/5 dark:bg-primary/10 border border-primary/10 dark:border-primary/20 rounded-md px-3 py-2">
+                <p className="text-xs text-foreground/80 line-clamp-2">{lesson.summary}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
+            {!isAdminPreview && (
+              <Button
+                onClick={handleToggleComplete}
+                disabled={markingComplete}
+                size="sm"
+                variant={lesson.isCompleted ? "default" : "outline"}
+                className={lesson.isCompleted ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
+              >
+                {lesson.isCompleted ? (
+                  <>
+                    <CheckCircle2 className="h-3.5 w-3.5 md:mr-1.5" />
+                    <span className="hidden sm:inline">Đã Hiểu</span>
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="h-3.5 w-3.5 md:mr-1.5" />
+                    <span className="hidden sm:inline">Đánh Dấu</span>
+                  </>
+                )}
+              </Button>
+            )}
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              className="hidden lg:flex"
+            >
+              {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            </Button>
+
+            {onClose && (
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ✅ MAIN CONTENT - Side by Side Layout */}
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full flex flex-col lg:flex-row">
+          
+          {/* ========== LEFT SIDE: Video & Images (60%) ========== */}
+          <div className="w-full lg:w-[60%] h-1/2 lg:h-full overflow-y-auto border-b lg:border-b-0 lg:border-r border-border bg-background">
+            <div className="p-3 md:p-4 space-y-3 md:space-y-4">
+              
+              {/* Video Player */}
+              {lesson.videoUrl && (
+                <div className="lg:sticky lg:top-0 z-10 bg-background pb-2">
+                  <Card className="bg-card border-border overflow-hidden shadow-sm">
+                    <CardContent className="p-0">
+                      <div className="aspect-video bg-black">
+                        <video
+                          src={lesson.videoUrl}
+                          controls
+                          controlsList="nodownload"
+                          className="w-full h-full object-contain"
+                          poster={lesson.thumbnailUrl}
+                        >
+                          Trình duyệt của bạn không hỗ trợ phát video.
+                        </video>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {/* Images Grid */}
+              {lesson.images.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground mb-2 md:mb-3 flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4 text-primary" />
+                    Hình Ảnh ({lesson.images.length})
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">
+                    {lesson.images.map(image => (
+                      <Card key={image.id} className="bg-card border-border overflow-hidden hover:shadow-md transition-shadow">
+                        <CardContent className="p-0">
+                          <div className="relative aspect-video bg-muted">
+                            <Image
+                              src={image.imageUrl}
+                              alt={image.caption || 'Lesson image'}
+                              fill
+                              className="object-contain"
+                              sizes="(max-width: 768px) 100vw, 50vw"
+                            />
+                          </div>
+                          {image.caption && (
+                            <div className="p-2 bg-muted/30 border-t border-border">
+                              <p className="text-xs text-muted-foreground text-center">{image.caption}</p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Completion Status */}
+              {!isAdminPreview && lesson.isCompleted && lesson.completedAt && (
+                <Card className="bg-green-500/5 dark:bg-green-500/10 border-green-500/20 dark:border-green-500/30">
+                  <CardContent className="p-3">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-500 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs font-medium text-foreground">Đã hoàn thành bài học!</p>
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(lesson.completedAt), 'dd/MM/yyyy HH:mm', { locale: vi })}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+
+          {/* ========== RIGHT SIDE: Content & Resources (40%) ========== */}
+          <div className="w-full lg:w-[40%] h-1/2 lg:h-full overflow-hidden bg-background">
+            <Tabs defaultValue="content" className="h-full flex flex-col">
+              
+              {/* Tab Headers */}
+              <div className="flex-none px-3 md:px-4 pt-3 md:pt-4 pb-2 border-b border-border bg-background">
+                <TabsList className="grid w-full grid-cols-2 bg-muted/50">
+                  <TabsTrigger 
+                    value="content" 
+                    className="
+                      text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground
+                      data-[state=inactive]:text-foreground/70 hover:text-foreground
+                    "
+                  >
+                    <BookOpen className="h-3.5 w-3.5 mr-1.5" />
+                    Lý Thuyết
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="resources"
+                    className="
+                      text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground
+                      data-[state=inactive]:text-foreground/70 hover:text-foreground
+                    "
+                  >
+                    <FileText className="h-3.5 w-3.5 mr-1.5" />
+                    Tài Liệu ({lesson.resources.length})
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+
+              {/* ✅ Content Tab - FIXED for Light/Dark Mode */}
+              <TabsContent value="content" className="flex-1 overflow-hidden mt-0 px-3 md:px-4 pb-3 md:pb-4 data-[state=inactive]:hidden">
+                <ScrollArea className="h-full pr-2 md:pr-3">
+                  <article className="
+                    prose prose-sm md:prose-base max-w-none
+                    
+                    /* ✅ Core theme colors */
+                    prose-headings:text-foreground prose-headings:font-semibold prose-headings:scroll-mt-20
+                    prose-p:text-foreground/90 prose-p:leading-relaxed
+                    prose-strong:text-foreground prose-strong:font-semibold
+                    prose-em:text-foreground/80 prose-em:italic
+                    
+                    /* ✅ Links */
+                    prose-a:text-primary prose-a:font-medium prose-a:no-underline 
+                    hover:prose-a:underline hover:prose-a:text-primary/80
+                    
+                    /* ✅ Code blocks */
+                    prose-code:text-primary prose-code:bg-muted/50 prose-code:px-1.5 prose-code:py-0.5 
+                    prose-code:rounded prose-code:text-sm prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
+                    prose-pre:bg-muted/50 prose-pre:text-foreground prose-pre:border prose-pre:border-border 
+                    prose-pre:shadow-sm prose-pre:overflow-x-auto
+                    
+                    /* ✅ Blockquotes */
+                    prose-blockquote:border-l-4 prose-blockquote:border-l-primary 
+                    prose-blockquote:bg-muted/30 prose-blockquote:py-1 prose-blockquote:px-4
+                    prose-blockquote:text-foreground/80 prose-blockquote:italic prose-blockquote:not-italic
+                    prose-blockquote:my-4
+                    
+                    /* ✅ Lists */
+                    prose-ul:text-foreground/90 prose-ul:list-disc prose-ul:pl-6
+                    prose-ol:text-foreground/90 prose-ol:list-decimal prose-ol:pl-6
+                    prose-li:text-foreground/90 prose-li:my-1
+                    prose-li:marker:text-primary prose-li:marker:font-medium
+                    
+                    /* ✅ Horizontal rules */
+                    prose-hr:border-border prose-hr:my-6
+                    
+                    /* ✅ Tables */
+                    prose-table:text-foreground/90 prose-table:border-collapse prose-table:w-full
+                    prose-thead:border-b-2 prose-thead:border-border
+                    prose-th:text-foreground prose-th:font-semibold prose-th:text-left prose-th:p-2
+                    prose-td:text-foreground/90 prose-td:border-t prose-td:border-border prose-td:p-2
+                    prose-tr:border-b prose-tr:border-border
+                    
+                    /* ✅ Images in markdown */
+                    prose-img:rounded-lg prose-img:shadow-md prose-img:my-4
+                    
+                    /* ✅ Dark mode variant */
+                    dark:prose-invert
+                  ">
+                    <ReactMarkdown>
+                      {lesson.content || '# Chưa có nội dung\n\nBài học này chưa có nội dung lý thuyết.'}
+                    </ReactMarkdown>
+                  </article>
+                </ScrollArea>
+              </TabsContent>
+
+              {/* ✅ Resources Tab - Scrollable */}
+              <TabsContent value="resources" className="flex-1 overflow-hidden mt-0 px-3 md:px-4 pb-3 md:pb-4 data-[state=inactive]:hidden">
+                <ScrollArea className="h-full pr-2 md:pr-3">
+                  {lesson.resources.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-12">
+                      <FileText className="h-10 w-10 mb-3 opacity-50" />
+                      <p className="text-sm">Chưa có tài liệu nào</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {lesson.resources.map(resource => (
+                        <a
+                          key={resource.id}
+                          href={resource.resourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block group"
+                        >
+                          <Card className="
+                            bg-card border-border 
+                            hover:border-primary/50 hover:shadow-sm 
+                            dark:hover:bg-card/80
+                            transition-all duration-200
+                          ">
+                            <CardContent className="flex items-start gap-3 p-3">
+                              <div className={`p-2 rounded-lg flex-shrink-0 transition-colors ${
+                                resource.resourceType === 'PDF' ? 
+                                  'bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400 group-hover:bg-red-500/20' :
+                                resource.resourceType === 'LINK' ? 
+                                  'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 group-hover:bg-blue-500/20' :
+                                resource.resourceType === 'VIDEO' ? 
+                                  'bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400 group-hover:bg-purple-500/20' :
+                                  'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400 group-hover:bg-green-500/20'
+                              }`}>
+                                <FileText className="h-4 w-4" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-medium text-sm text-foreground group-hover:text-primary transition-colors">
+                                  {resource.title}
+                                </h4>
+                                {resource.description && (
+                                  <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+                                    {resource.description}
+                                  </p>
+                                )}
+                                <div className="flex items-center gap-2 mt-1.5">
+                                  <Badge variant="secondary" className="text-xs font-normal">
+                                    {resource.resourceType}
+                                  </Badge>
+                                  {resource.fileSize && (
+                                    <span className="text-xs text-muted-foreground">
+                                      {resource.formattedFileSize}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+              </TabsContent>
+            </Tabs>
+          </div>
+
+        </div>
+      </div>
     </div>
   );
 }

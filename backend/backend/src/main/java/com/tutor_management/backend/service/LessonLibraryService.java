@@ -35,11 +35,34 @@ public class LessonLibraryService {
     @Transactional(readOnly = true)
     public List<LibraryLessonResponse> getAllLibraryLessons() {
         log.info("📚 Getting all library lessons");
-        List<Lesson> lessons = lessonRepository.findAll();
 
-        return lessons.stream()
-                .map(LibraryLessonResponse::fromEntity)
-                .collect(Collectors.toList());
+        try {
+            List<Lesson> lessons = lessonRepository.findAll();
+            log.info("✅ Found {} lessons", lessons.size());
+
+            // ✅ Force initialize collections inside transaction
+            for (Lesson lesson : lessons) {
+                try {
+                    if (lesson.getAssignments() != null) {
+                        int size = lesson.getAssignments().size();
+                        log.debug("Lesson {} has {} assignments", lesson.getId(), size);
+                    }
+                } catch (Exception e) {
+                    log.warn("Could not load assignments for lesson {}", lesson.getId());
+                }
+            }
+
+            List<LibraryLessonResponse> responses = lessons.stream()
+                    .map(LibraryLessonResponse::fromEntity)
+                    .collect(Collectors.toList());
+
+            log.info("✅ Returning {} responses", responses.size());
+            return responses;
+
+        } catch (Exception e) {
+            log.error("❌ Error in getAllLibraryLessons: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to get library lessons", e);
+        }
     }
 
     /**

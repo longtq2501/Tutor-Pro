@@ -204,7 +204,7 @@ function AppContent() {
             {currentView === 'homework' && hasAnyRole(['ADMIN', 'TUTOR']) && <TutorHomeworkView />}
             
             {/* ✅ NEW: Learning Log - Student only (with inline detail view) */}
-            {currentView === 'lessons' && hasAnyRole(['STUDENT']) && <LessonViewWrapper />}
+            {currentView === 'lessons' && hasAnyRole(['STUDENT']) && <LessonViewWrapper lessonId={0} />}
             
             {/* Fallback */}
             {currentView === 'dashboard' && !hasAnyRole(['ADMIN', 'TUTOR', 'STUDENT']) && (

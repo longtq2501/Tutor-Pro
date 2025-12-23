@@ -1,37 +1,40 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useState } from 'react';
+import LessonTimelineView from './LessonTimelineView';
 import LessonDetailView from './LessonDetailView';
-
-interface Props {
-  lessonId: number;
-}
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 /**
- * Wrapper component that tracks lesson views
- * Automatically increments view count when student opens a lesson
+ * Wrapper component that manages both Timeline and Detail views
+ * For inline navigation without separate routes
  */
-export default function LessonViewWrapper({ lessonId }: Props) {
-  const hasTracked = useRef(false);
+export default function LessonViewWrapper() {
+  const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
 
-  useEffect(() => {
-    // Track view only once per mount
-    if (!hasTracked.current) {
-      // eslint-disable-next-line react-hooks/immutability
-      trackView();
-      hasTracked.current = true;
-    }
-  }, [lessonId]);
-
-  const trackView = async () => {
-    try {
-      // Backend automatically increments view count when fetching lesson detail
-      // So we don't need to call a separate API
-      console.log(`📊 Tracking view for lesson ${lessonId}`);
-    } catch (error) {
-      console.error('Error tracking view:', error);
-    }
+  const handleLessonSelect = (lessonId: number) => {
+    setSelectedLessonId(lessonId);
   };
 
-  return <LessonDetailView lessonId={lessonId} />;
+  const handleClose = () => {
+    setSelectedLessonId(null);
+  };
+
+  return (
+    <>
+      {/* Timeline View */}
+      <LessonTimelineView onLessonSelect={handleLessonSelect} />
+
+      {/* Detail View Modal */}
+      <Dialog open={selectedLessonId !== null} onOpenChange={(open) => !open && handleClose()}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto p-0">
+          {selectedLessonId && (
+            <div className="p-6">
+              <LessonDetailView lessonId={selectedLessonId} />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 }

@@ -22,10 +22,7 @@ import type {
   CreateHomeworkRequest,
   ApiResponse,
   Lesson,
-  LessonStats,
-  CreateLessonRequest,
-  UpdateLessonRequest,
-  AdminLesson
+  LessonStats
 } from './types';
 
 // 1. Lấy link gốc và xóa dấu gạch chéo ở cuối nếu có
@@ -624,295 +621,44 @@ export const homeworkApi = {
   },
 };
 
-/**
- * Student Lessons API - For student view
- * 
- * ⚠️ IMPORTANT:
- * - Returns Lesson[] (not AdminLesson[])
- * - Includes student-specific data (viewCount, isCompleted)
- * - Data comes from LessonAssignment join
- */
+// Lessons API
 export const lessonsApi = {
-  /**
-   * Get all lessons for current student
-   * Returns: Lesson[] with assignment data
-   */
+  // Get all lessons for current student
   getAll: async (): Promise<Lesson[]> => {
-    try {
-      const response = await api.get('/student/lessons');
-      return response.data.data || [];
-    } catch (error: any) {
-      console.error('❌ Error fetching student lessons:', error.response?.data);
-      throw error;
-    }
+    const response = await api.get<ApiResponse<Lesson[]>>('/student/lessons');
+    return response.data.data;
   },
 
-  /**
-   * Get single lesson by ID (for current student)
-   */
+  // Get lesson by ID
   getById: async (id: number): Promise<Lesson> => {
-    try {
-      const response = await api.get(`/student/lessons/${id}`);
-      return response.data.data;
-    } catch (error: any) {
-      console.error('❌ Error fetching lesson:', error.response?.data);
-      throw error;
-    }
+    const response = await api.get<ApiResponse<Lesson>>(`/student/lessons/${id}`);
+    return response.data.data;
   },
 
-  /**
-   * Filter lessons by month/year
-   */
+  // Filter by month/year
   getByMonthYear: async (year: number, month: number): Promise<Lesson[]> => {
-    try {
-      const response = await api.get(`/student/lessons/filter?year=${year}&month=${month}`);
-      return response.data.data || [];
-    } catch (error: any) {
-      console.error('❌ Error filtering lessons:', error.response?.data);
-      throw error;
-    }
+    const response = await api.get<ApiResponse<Lesson[]>>(
+      `/student/lessons/filter?year=${year}&month=${month}`
+    );
+    return response.data.data;
   },
 
-  /**
-   * Mark lesson as completed
-   */
+  // Mark as completed
   markCompleted: async (id: number): Promise<Lesson> => {
-    try {
-      const response = await api.post(`/student/lessons/${id}/complete`);
-      return response.data.data;
-    } catch (error: any) {
-      console.error('❌ Error marking lesson completed:', error.response?.data);
-      throw error;
-    }
+    const response = await api.post<ApiResponse<Lesson>>(`/student/lessons/${id}/complete`);
+    return response.data.data;
   },
 
-  /**
-   * Mark lesson as incomplete
-   */
+  // Mark as incomplete
   markIncomplete: async (id: number): Promise<Lesson> => {
-    try {
-      const response = await api.post(`/student/lessons/${id}/incomplete`);
-      return response.data.data;
-    } catch (error: any) {
-      console.error('❌ Error marking lesson incomplete:', error.response?.data);
-      throw error;
-    }
+    const response = await api.post<ApiResponse<Lesson>>(`/student/lessons/${id}/incomplete`);
+    return response.data.data;
   },
 
-  /**
-   * Get lesson statistics for current student
-   */
+  // Get stats
   getStats: async (): Promise<LessonStats> => {
-    try {
-      const response = await api.get('/student/lessons/stats');
-      return response.data.data;
-    } catch (error: any) {
-      console.error('❌ Error fetching lesson stats:', error.response?.data);
-      throw error;
-    }
-  },
-};
-
-
-/**
- * Admin Lessons API - For lesson management (library view)
- * 
- * ⚠️ IMPORTANT:
- * - Returns AdminLesson[] (not Lesson[])
- * - No student-specific data
- * - Shows aggregated statistics
- */
-export const adminLessonsApi = {
-  /**
-   * Get all lessons (library view)
-   * Returns: AdminLesson[] with aggregated stats
-   */
-  getAll: async (): Promise<AdminLesson[]> => {
-    try {
-      console.log('📚 Fetching all lessons from library...');
-      const response = await api.get('/admin/lesson-library');
-      console.log('✅ Received lessons:', response.data.data?.length || 0);
-      return response.data.data || [];
-    } catch (error: any) {
-      console.error('❌ Error fetching lessons:', error.response?.data);
-      throw error;
-    }
-  },
-
-  /**
-   * Get single lesson by ID
-   * Returns: AdminLesson with full details
-   */
-  getById: async (id: number): Promise<AdminLesson> => {
-    try {
-      console.log(`📖 Fetching lesson ${id}...`);
-      const response = await api.get(`/admin/lessons/${id}`);
-      console.log('✅ Received lesson:', response.data.data);
-      return response.data.data;
-    } catch (error: any) {
-      console.error(`❌ Error fetching lesson ${id}:`, error.response?.data);
-      throw error;
-    }
-  },
-
-  /**
-   * Create new lesson (with optional student assignment)
-   * 
-   * ⚠️ BEHAVIOR:
-   * - If studentIds empty/null → creates library lesson (isLibrary=true)
-   * - If studentIds provided → creates + assigns (isLibrary=false)
-   */
-  create: async (data: CreateLessonRequest): Promise<AdminLesson> => {
-    try {
-      console.log('📝 Creating lesson...', {
-        title: data.title,
-        students: data.studentIds?.length || 0,
-      });
-      
-      const response = await api.post('/admin/lesson-library', data);
-      console.log('✅ Lesson created:', response.data.data);
-      
-      // Backend returns array, take first element
-      return Array.isArray(response.data.data) 
-        ? response.data.data[0] 
-        : response.data.data;
-    } catch (error: any) {
-      console.error('❌ Error creating lesson:', error.response?.data);
-      throw error;
-    }
-  },
-
-  /**
-   * Update existing lesson
-   * Updates shared content - affects all assigned students
-   */
-  update: async (id: number, data: UpdateLessonRequest): Promise<AdminLesson> => {
-    try {
-      console.log(`✏️ Updating lesson ${id}...`);
-      const response = await api.put(`/admin/lesson-library/${id}`, data);
-      console.log('✅ Lesson updated:', response.data.data);
-      return response.data.data;
-    } catch (error: any) {
-      console.error(`❌ Error updating lesson ${id}:`, error.response?.data);
-      throw error;
-    }
-  },
-
-  /**
-   * Delete lesson from library
-   * Cascades: deletes all assignments too
-   */
-  delete: async (id: number): Promise<void> => {
-    try {
-      console.log(`🗑️ Deleting lesson ${id}...`);
-      await api.delete(`/admin/lesson-library/${id}`);
-      console.log('✅ Lesson deleted');
-    } catch (error: any) {
-      console.error(`❌ Error deleting lesson ${id}:`, error.response?.data);
-      throw error;
-    }
-  },
-
-  /**
-   * Toggle publish status
-   */
-  togglePublish: async (id: number): Promise<AdminLesson> => {
-    try {
-      console.log(`🔄 Toggling publish status for lesson ${id}...`);
-      const response = await api.patch(`/admin/lessons/${id}/toggle-publish`);
-      console.log('✅ Publish status toggled:', response.data.data);
-      return response.data.data;
-    } catch (error: any) {
-      console.error(`❌ Error toggling publish:`, error.response?.data);
-      throw error;
-    }
-  },
-};
-
-/**
- * Lesson Library API - For assignment management
- */
-export const lessonLibraryApi = {
-  /**
-   * Get all lessons in library
-   */
-  getAll: async (): Promise<AdminLesson[]> => {
-    return adminLessonsApi.getAll();
-  },
-
-  /**
-   * Get only unassigned lessons
-   */
-  getUnassigned: async (): Promise<AdminLesson[]> => {
-    try {
-      const response = await api.get('/admin/lesson-library/unassigned');
-      return response.data.data || [];
-    } catch (error: any) {
-      console.error('❌ Error fetching unassigned lessons:', error.response?.data);
-      throw error;
-    }
-  },
-
-  /**
-   * Create lesson in library
-   */
-  create: async (data: CreateLessonRequest): Promise<AdminLesson> => {
-    return adminLessonsApi.create(data);
-  },
-
-  /**
-   * Assign lesson to students
-   */
-  assignToStudents: async (lessonId: number, studentIds: number[]): Promise<void> => {
-    try {
-      console.log(`🎯 Assigning lesson ${lessonId} to ${studentIds.length} students...`);
-      await api.post(`/admin/lesson-library/${lessonId}/assign`, { studentIds });
-      console.log('✅ Lesson assigned');
-    } catch (error: any) {
-      console.error('❌ Error assigning lesson:', error.response?.data);
-      throw error;
-    }
-  },
-
-  /**
-   * Unassign lesson from students
-   */
-  unassignFromStudents: async (lessonId: number, studentIds: number[]): Promise<void> => {
-    try {
-      console.log(`🔄 Unassigning lesson ${lessonId} from ${studentIds.length} students...`);
-      await api.post(`/admin/lesson-library/${lessonId}/unassign`, { studentIds });
-      console.log('✅ Lesson unassigned');
-    } catch (error: any) {
-      console.error('❌ Error unassigning lesson:', error.response?.data);
-      throw error;
-    }
-  },
-
-  /**
-   * Get students assigned to a lesson
-   */
-  getAssignedStudents: async (lessonId: number): Promise<Student[]> => {
-    try {
-      const response = await api.get(`/admin/lesson-library/${lessonId}/students`);
-      return response.data.data || [];
-    } catch (error: any) {
-      console.error('❌ Error fetching assigned students:', error.response?.data);
-      throw error;
-    }
-  },
-
-  /**
-   * Delete lesson
-   */
-  delete: async (lessonId: number): Promise<void> => {
-    return adminLessonsApi.delete(lessonId);
-  },
-
-  /**
-   * Update lesson
-   */
-  update: async (lessonId: number, data: UpdateLessonRequest): Promise<AdminLesson> => {
-    return adminLessonsApi.update(lessonId, data);
+    const response = await api.get<ApiResponse<LessonStats>>('/student/lessons/stats');
+    return response.data.data;
   },
 };
 
@@ -935,18 +681,11 @@ export const authService = {
   },
   logout: async (): Promise<void> => {
     try {
-      // Try to call backend logout
       await api.post('/auth/logout');
-    } catch (error) {
-      // If backend logout fails, still clear local tokens
-      console.warn('Backend logout failed, clearing local tokens anyway', error);
     } finally {
-      // Always clear local storage
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
-      }
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
     }
   },
   getCurrentUser: async (): Promise<{ success: boolean; data: UserInfo }> => {
@@ -954,36 +693,5 @@ export const authService = {
     return response.data;
   },
 };
-
-// ============================================
-// 🔍 DEBUG HELPERS
-// ============================================
-
-/**
- * Log API response for debugging
- */
-function logApiResponse(endpoint: string, data: any) {
-  if (process.env.NODE_ENV === 'development') {
-    console.group(`📡 API Response: ${endpoint}`);
-    console.log('Data:', data);
-    console.log('Type:', Array.isArray(data) ? `Array[${data.length}]` : typeof data);
-    console.groupEnd();
-  }
-}
-
-/**
- * Validate AdminLesson response structure
- */
-function validateAdminLesson(data: any): data is AdminLesson {
-  return (
-    typeof data === 'object' &&
-    typeof data.id === 'number' &&
-    typeof data.title === 'string' &&
-    typeof data.isLibrary === 'boolean' &&
-    typeof data.assignedStudentCount === 'number' &&
-    Array.isArray(data.images) &&
-    Array.isArray(data.resources)
-  );
-}
 
 export default api;

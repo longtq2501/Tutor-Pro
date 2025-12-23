@@ -31,7 +31,6 @@ import StudentHomeworkView from '@/components/StudentHomeworkView';
 import TutorHomeworkView from '@/components/TutorHomeworkView';
 // ✅ Import Wrapper instead of Timeline directly
 import LessonViewWrapper from '@/components/LessonViewWrapper';
-import AdminLessonManagement from '@/components/AdminLessonManagement';
 
 function AppContent() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
@@ -45,7 +44,6 @@ function AppContent() {
       { id: 'students', label: 'Học Sinh', icon: GraduationCap },
       { id: 'monthly', label: 'Thống Kê', icon: TrendingUp },
       { id: 'calendar', label: 'Lịch Dạy', icon: CalendarDays },
-      { id: 'lessons-admin', label: 'Quản Lý Bài Giảng', icon: BookOpen },
       { id: 'lessons', label: 'Bài Giảng', icon: BookOpen }, // ✅ NEW
       { id: 'homework', label: 'Bài Tập', icon: BookCheck },
       { id: 'unpaid', label: 'Công Nợ', icon: AlertCircle },
@@ -76,11 +74,6 @@ function AppContent() {
   
       // Calendar: ADMIN, TUTOR only
       if (item.id === 'calendar' && !hasAnyRole(['ADMIN', 'TUTOR'])) {
-        return false;
-      }
-
-      // ✅ ADD THIS - Admin Lessons: ADMIN and TUTOR only
-      if (item.id === 'lessons-admin' && !hasAnyRole(['ADMIN', 'TUTOR'])) {
         return false;
       }
 
@@ -193,7 +186,6 @@ function AppContent() {
             {currentView === 'dashboard' && hasAnyRole(['STUDENT']) && <StudentDashboard />}
             
             {/* Other views */}
-            {currentView === 'lessons-admin' && hasAnyRole(['ADMIN', 'TUTOR']) && <AdminLessonManagement />}
             {currentView === 'students' && hasAnyRole(['ADMIN', 'TUTOR']) && <StudentList />}
             {currentView === 'monthly' && hasAnyRole(['ADMIN', 'TUTOR']) && <MonthlyView />}
             {currentView === 'calendar' && hasAnyRole(['ADMIN', 'TUTOR']) && <CalendarView />}
@@ -204,7 +196,7 @@ function AppContent() {
             {currentView === 'homework' && hasAnyRole(['ADMIN', 'TUTOR']) && <TutorHomeworkView />}
             
             {/* ✅ NEW: Learning Log - Student only (with inline detail view) */}
-            {currentView === 'lessons' && hasAnyRole(['STUDENT']) && <LessonViewWrapper lessonId={0} />}
+            {currentView === 'lessons' && hasAnyRole(['STUDENT']) && <LessonViewWrapper />}
             
             {/* Fallback */}
             {currentView === 'dashboard' && !hasAnyRole(['ADMIN', 'TUTOR', 'STUDENT']) && (

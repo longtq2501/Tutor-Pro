@@ -1,10 +1,10 @@
 package com.tutor_management.backend.service;
 
 import com.tutor_management.backend.dto.request.CreateLessonRequest;
-import com.tutor_management.backend.dto.request.UpdateLessonRequest;
 import com.tutor_management.backend.dto.response.AdminLessonResponse;
 import com.tutor_management.backend.entity.*;
 import com.tutor_management.backend.exception.ResourceNotFoundException;
+import com.tutor_management.backend.repository.LessonAssignmentRepository;
 import com.tutor_management.backend.repository.LessonRepository;
 import com.tutor_management.backend.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +13,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,209 +25,298 @@ import java.util.stream.Collectors;
 public class AdminLessonService {
 
     private final LessonRepository lessonRepository;
+    private final LessonAssignmentRepository assignmentRepository;
     private final StudentRepository studentRepository;
 
     /**
-     * Create lesson for multiple students
+     * Create a lesson in library and optionally assign to students
+     *
+     * NEW WORKFLOW:
+     * 1. Create ONE central lesson in library
+     * 2. If studentIds provided, create LessonAssignment records
+     * 3. Return the created lesson
      */
     @CacheEvict(value = "lessons", allEntries = true)
     public List<AdminLessonResponse> createLessonForStudents(CreateLessonRequest request) {
-        log.info("📝 Creating lesson '{}' for {} students", request.getTitle(), request.getStudentIds().size());
+        log.info("📝 Creating library lesson '{}' for {} students",
+                request.getTitle(),
+                request.getStudentIds() != null ? request.getStudentIds().size() : 0);
 
-        List<Lesson> createdLessons = new ArrayList<>();
+        // ===== STEP 1: Create central library lesson =====
+        Lesson lesson = Lesson.builder()
+                .tutorName(request.getTutorName() != null ? request.getTutorName() : "Thầy Quỳnh Long")
+                .title(request.getTitle())
+                .summary(request.getSummary())
+                .content(request.getContent())
+                .lessonDate(request.getLessonDate())
+                .videoUrl(request.getVideoUrl())
+                .thumbnailUrl(request.getThumbnailUrl())
+                .isPublished(request.getIsPublished() != null ? request.getIsPublished() : false)
+                // ✅ isLibrary = true if no students, false if assigned
+                .isLibrary(request.getStudentIds() == null || request.getStudentIds().isEmpty())
+                .build();
 
-        for (Long studentId : request.getStudentIds()) {
-            Student student = studentRepository.findById(studentId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Student not found: " + studentId));
-
-            // Create lesson instance for this student
-            Lesson lesson = Lesson.builder()
-                    .student(student)
-                    .tutorName(request.getTutorName() != null ? request.getTutorName() : "Thầy Quỳnh Long")
-                    .title(request.getTitle())
-                    .summary(request.getSummary())
-                    .content(request.getContent())
-                    .lessonDate(request.getLessonDate())
-                    .videoUrl(request.getVideoUrl())
-                    .thumbnailUrl(request.getThumbnailUrl())
-                    .isPublished(request.getIsPublished() != null ? request.getIsPublished() : false)
-                    .build();
-
-            // Add images
-            if (request.getImages() != null) {
-                request.getImages().forEach(imgReq -> {
-                    LessonImage image = LessonImage.builder()
-                            .lesson(lesson)
-                            .imageUrl(imgReq.getImageUrl())
-                            .caption(imgReq.getCaption())
-                            .displayOrder(imgReq.getDisplayOrder() != null ? imgReq.getDisplayOrder() : 0)
-                            .build();
-                    lesson.getImages().add(image);
-                });
-            }
-
-            // Add resources
-            if (request.getResources() != null) {
-                request.getResources().forEach(resReq -> {
-                    LessonResource resource = LessonResource.builder()
-                            .lesson(lesson)
-                            .title(resReq.getTitle())
-                            .description(resReq.getDescription())
-                            .resourceUrl(resReq.getResourceUrl())
-                            .resourceType(LessonResource.ResourceType.valueOf(resReq.getResourceType()))
-                            .fileSize(resReq.getFileSize())
-                            .displayOrder(resReq.getDisplayOrder() != null ? resReq.getDisplayOrder() : 0)
-                            .build();
-                    lesson.getResources().add(resource);
-                });
-            }
-
-            if (request.getIsPublished() != null && request.getIsPublished()) {
-                lesson.publish();
-            }
-
-            createdLessons.add(lessonRepository.save(lesson));
+        // ===== Add Images =====
+        if (request.getImages() != null && !request.getImages().isEmpty()) {
+            List<LessonImage> images = request.getImages().stream()
+                    .map(imgDto -> LessonImage.builder()
+                            .lesson(lesson)  // Set bidirectional relationship
+                            .imageUrl(imgDto.getImageUrl())
+                            .caption(imgDto.getCaption())
+                            .displayOrder(imgDto.getDisplayOrder())
+                            .build())
+                    .collect(Collectors.toList());
+            lesson.getImages().addAll(images);
         }
 
-        log.info("✅ Created {} lessons successfully", createdLessons.size());
+        // ===== Add Resources =====
+        if (request.getResources() != null && !request.getResources().isEmpty()) {
+            List<LessonResource> resources = request.getResources().stream()
+                    .map(resDto -> LessonResource.builder()
+                            .lesson(lesson)  // Set bidirectional relationship
+                            .title(resDto.getTitle())
+                            .description(resDto.getDescription())
+                            .resourceUrl(resDto.getResourceUrl())
+                            .resourceType(LessonResource.ResourceType.valueOf(resDto.getResourceType()))
+                            .fileSize(resDto.getFileSize())
+                            .displayOrder(resDto.getDisplayOrder())
+                            .build())
+                    .collect(Collectors.toList());
+            lesson.getResources().addAll(resources);
+        }
 
-        return createdLessons.stream()
-                .map(AdminLessonResponse::fromEntity)
-                .collect(Collectors.toList());
+        // ===== Publish if requested =====
+        if (request.getIsPublished() != null && request.getIsPublished()) {
+            lesson.publish();
+        }
+
+        // ===== STEP 2: Save lesson first to get ID =====
+        Lesson savedLesson = lessonRepository.save(lesson);
+        log.info("✅ Created library lesson with ID: {}", savedLesson.getId());
+
+        // ===== STEP 3: Create assignments for students =====
+        if (request.getStudentIds() != null && !request.getStudentIds().isEmpty()) {
+            log.info("🎯 Assigning lesson to {} students", request.getStudentIds().size());
+
+            // Mark as assigned (no longer pure library)
+            savedLesson.markAsAssigned();
+
+            // Create assignment records
+            List<LessonAssignment> assignments = new ArrayList<>();
+
+            for (Long studentId : request.getStudentIds()) {
+                Student student = studentRepository.findById(studentId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Student not found: " + studentId));
+
+                // ✅ Create assignment record
+                LessonAssignment assignment = LessonAssignment.builder()
+                        .lesson(savedLesson)
+                        .student(student)
+                        .assignedDate(LocalDate.now())
+                        .assignedBy("Thầy Quỳnh Long")
+                        .isCompleted(false)
+                        .viewCount(0)
+                        .build();
+
+                assignments.add(assignment);
+            }
+
+            // Save all assignments
+            assignmentRepository.saveAll(assignments);
+
+            // Update lesson's assignment collection
+            savedLesson.getAssignments().addAll(assignments);
+
+            // Save lesson again to update isLibrary flag
+            savedLesson = lessonRepository.save(savedLesson);
+
+            log.info("✅ Created {} assignments for lesson {}", assignments.size(), savedLesson.getId());
+        }
+
+        // ===== STEP 4: Return response =====
+        AdminLessonResponse response = AdminLessonResponse.fromEntity(savedLesson);
+        return List.of(response);
     }
 
     /**
-     * Update existing lesson
-     */
-    @CacheEvict(value = "lessons", allEntries = true)
-    public AdminLessonResponse updateLesson(Long lessonId, UpdateLessonRequest request) {
-        log.info("📝 Updating lesson: {}", lessonId);
-
-        Lesson lesson = lessonRepository.findByIdWithDetails(lessonId)
-                .orElseThrow(() -> new ResourceNotFoundException("Lesson not found: " + lessonId));
-
-        // Update basic fields
-        if (request.getTutorName() != null) lesson.setTutorName(request.getTutorName());
-        if (request.getTitle() != null) lesson.setTitle(request.getTitle());
-        if (request.getSummary() != null) lesson.setSummary(request.getSummary());
-        if (request.getContent() != null) lesson.setContent(request.getContent());
-        if (request.getLessonDate() != null) lesson.setLessonDate(request.getLessonDate());
-        if (request.getVideoUrl() != null) lesson.setVideoUrl(request.getVideoUrl());
-        if (request.getThumbnailUrl() != null) lesson.setThumbnailUrl(request.getThumbnailUrl());
-
-        // Update images (replace all)
-        if (request.getImages() != null) {
-            lesson.getImages().clear();
-            Lesson finalLesson = lesson;
-            request.getImages().forEach(imgReq -> {
-                LessonImage image = LessonImage.builder()
-                        .lesson(finalLesson)
-                        .imageUrl(imgReq.getImageUrl())
-                        .caption(imgReq.getCaption())
-                        .displayOrder(imgReq.getDisplayOrder() != null ? imgReq.getDisplayOrder() : 0)
-                        .build();
-                finalLesson.getImages().add(image);
-            });
-        }
-
-        // Update resources (replace all)
-        if (request.getResources() != null) {
-            lesson.getResources().clear();
-            Lesson finalLesson1 = lesson;
-            request.getResources().forEach(resReq -> {
-                LessonResource resource = LessonResource.builder()
-                        .lesson(finalLesson1)
-                        .title(resReq.getTitle())
-                        .description(resReq.getDescription())
-                        .resourceUrl(resReq.getResourceUrl())
-                        .resourceType(LessonResource.ResourceType.valueOf(resReq.getResourceType()))
-                        .fileSize(resReq.getFileSize())
-                        .displayOrder(resReq.getDisplayOrder() != null ? resReq.getDisplayOrder() : 0)
-                        .build();
-                finalLesson1.getResources().add(resource);
-            });
-        }
-
-        // Handle publish status
-        if (request.getIsPublished() != null) {
-            if (request.getIsPublished() && !lesson.getIsPublished()) {
-                lesson.publish();
-            } else if (!request.getIsPublished() && lesson.getIsPublished()) {
-                lesson.unpublish();
-            }
-        }
-
-        lesson = lessonRepository.save(lesson);
-        log.info("✅ Updated lesson: {}", lessonId);
-
-        return AdminLessonResponse.fromEntity(lesson);
-    }
-
-    /**
-     * Get all lessons (admin view - includes drafts)
+     * Get all lessons (library view)
      */
     @Transactional(readOnly = true)
     public List<AdminLessonResponse> getAllLessons() {
-        log.info("📚 Getting all lessons (admin view)");
+        log.info("📚 Getting all lessons from library");
         List<Lesson> lessons = lessonRepository.findAll();
+
         return lessons.stream()
                 .map(AdminLessonResponse::fromEntity)
                 .collect(Collectors.toList());
     }
 
     /**
-     * Get lesson by ID (admin view)
+     * Get lesson by ID
      */
     @Transactional(readOnly = true)
-    public AdminLessonResponse getLessonById(Long lessonId) {
-        Lesson lesson = lessonRepository.findByIdWithDetails(lessonId)
-                .orElseThrow(() -> new ResourceNotFoundException("Lesson not found: " + lessonId));
+    public AdminLessonResponse getLessonById(Long id) {
+        log.info("📖 Getting lesson: {}", id);
+        Lesson lesson = lessonRepository.findByIdWithDetails(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Lesson not found: " + id));
+
         return AdminLessonResponse.fromEntity(lesson);
     }
 
     /**
-     * Delete lesson
+     * Update lesson (affects all assigned students)
      */
     @CacheEvict(value = "lessons", allEntries = true)
-    public void deleteLesson(Long lessonId) {
-        log.info("🗑️ Deleting lesson: {}", lessonId);
+    public AdminLessonResponse updateLesson(Long id, CreateLessonRequest request) {
+        log.info("✏️ Updating lesson: {}", id);
 
-        if (!lessonRepository.existsById(lessonId)) {
-            throw new ResourceNotFoundException("Lesson not found: " + lessonId);
+        Lesson lesson = lessonRepository.findByIdWithDetails(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Lesson not found: " + id));
+
+        // Update basic fields
+        if (request.getTutorName() != null) {
+            lesson.setTutorName(request.getTutorName());
+        }
+        if (request.getTitle() != null) {
+            lesson.setTitle(request.getTitle());
+        }
+        if (request.getSummary() != null) {
+            lesson.setSummary(request.getSummary());
+        }
+        if (request.getContent() != null) {
+            lesson.setContent(request.getContent());
+        }
+        if (request.getLessonDate() != null) {
+            lesson.setLessonDate(request.getLessonDate());
+        }
+        if (request.getVideoUrl() != null) {
+            lesson.setVideoUrl(request.getVideoUrl());
+        }
+        if (request.getThumbnailUrl() != null) {
+            lesson.setThumbnailUrl(request.getThumbnailUrl());
         }
 
-        lessonRepository.deleteById(lessonId);
-        log.info("✅ Deleted lesson: {}", lessonId);
+        // Update images if provided
+        if (request.getImages() != null) {
+            lesson.getImages().clear();
+            request.getImages().forEach(imgDto -> {
+                LessonImage image = LessonImage.builder()
+                        .lesson(lesson)
+                        .imageUrl(imgDto.getImageUrl())
+                        .caption(imgDto.getCaption())
+                        .displayOrder(imgDto.getDisplayOrder())
+                        .build();
+                lesson.getImages().add(image);
+            });
+        }
+
+        // Update resources if provided
+        if (request.getResources() != null) {
+            lesson.getResources().clear();
+            request.getResources().forEach(resDto -> {
+                LessonResource resource = LessonResource.builder()
+                        .lesson(lesson)
+                        .title(resDto.getTitle())
+                        .description(resDto.getDescription())
+                        .resourceUrl(resDto.getResourceUrl())
+                        .resourceType(LessonResource.ResourceType.valueOf(resDto.getResourceType()))
+                        .fileSize(resDto.getFileSize())
+                        .displayOrder(resDto.getDisplayOrder())
+                        .build();
+                lesson.getResources().add(resource);
+            });
+        }
+
+        Lesson updatedLesson = lessonRepository.save(lesson);
+        log.info("✅ Updated lesson {} - affects {} students", id, updatedLesson.getAssignedStudentCount());
+
+        return AdminLessonResponse.fromEntity(updatedLesson);
+    }
+
+    /**
+     * Delete lesson from library (cascades to all assignments)
+     */
+    @CacheEvict(value = "lessons", allEntries = true)
+    public void deleteLesson(Long id) {
+        log.info("🗑️ Deleting lesson: {}", id);
+
+        Lesson lesson = lessonRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Lesson not found: " + id));
+
+        int assignmentCount = lesson.getAssignedStudentCount();
+
+        // Delete lesson (cascade will handle assignments)
+        lessonRepository.delete(lesson);
+
+        log.info("✅ Deleted lesson {} and {} assignments", id, assignmentCount);
+    }
+
+    /**
+     * Toggle publish status
+     *
+     * @param id Lesson ID
+     * @return Updated lesson response
+     */
+    @CacheEvict(value = "lessons", allEntries = true)
+    public AdminLessonResponse togglePublishStatus(Long id) {
+        log.info("🔄 Toggling publish status for lesson: {}", id);
+
+        Lesson lesson = lessonRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Lesson not found: " + id));
+
+        // Toggle logic
+        if (lesson.getIsPublished()) {
+            lesson.unpublish();
+            log.info("📦 Lesson {} unpublished (draft mode)", id);
+        } else {
+            lesson.publish();
+            log.info("🚀 Lesson {} published", id);
+        }
+
+        Lesson updatedLesson = lessonRepository.save(lesson);
+
+        return AdminLessonResponse.fromEntity(updatedLesson);
     }
 
     /**
      * Toggle publish status
      */
     @CacheEvict(value = "lessons", allEntries = true)
-    public AdminLessonResponse togglePublishStatus(Long lessonId) {
-        Lesson lesson = lessonRepository.findById(lessonId)
-                .orElseThrow(() -> new ResourceNotFoundException("Lesson not found: " + lessonId));
+    public AdminLessonResponse togglePublish(Long id) {
+        log.info("🔄 Toggling publish status for lesson: {}", id);
+
+        Lesson lesson = lessonRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Lesson not found: " + id));
 
         if (lesson.getIsPublished()) {
             lesson.unpublish();
-            log.info("📝 Unpublished lesson: {}", lessonId);
         } else {
             lesson.publish();
-            log.info("📢 Published lesson: {}", lessonId);
         }
 
-        lesson = lessonRepository.save(lesson);
-        return AdminLessonResponse.fromEntity(lesson);
+        Lesson updatedLesson = lessonRepository.save(lesson);
+        log.info("✅ Lesson {} is now {}", id, updatedLesson.getIsPublished() ? "PUBLISHED" : "DRAFT");
+
+        return AdminLessonResponse.fromEntity(updatedLesson);
     }
 
     /**
-     * Get lessons by student (admin view)
+     * Get lessons by student (for admin view)
      */
     @Transactional(readOnly = true)
     public List<AdminLessonResponse> getLessonsByStudent(Long studentId) {
-        List<Lesson> lessons = lessonRepository.findByStudentIdOrderByLessonDateDesc(studentId);
-        return lessons.stream()
-                .map(AdminLessonResponse::fromEntity)
+        log.info("📚 Getting lessons for student: {}", studentId);
+
+        // Verify student exists
+        if (!studentRepository.existsById(studentId)) {
+            throw new ResourceNotFoundException("Student not found: " + studentId);
+        }
+
+        // Get all assignments for this student
+        List<LessonAssignment> assignments = assignmentRepository.findByStudentIdOrderByAssignedDateDesc(studentId);
+
+        return assignments.stream()
+                .map(assignment -> AdminLessonResponse.fromEntity(assignment.getLesson()))
                 .collect(Collectors.toList());
     }
 }

@@ -55,7 +55,7 @@ public class AdminLessonController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<AdminLessonResponse>> updateLesson(
             @PathVariable Long id,
-            @Valid @RequestBody UpdateLessonRequest request) {
+            @Valid @RequestBody CreateLessonRequest request) {
 
         log.info("Admin updating lesson: {}", id);
 

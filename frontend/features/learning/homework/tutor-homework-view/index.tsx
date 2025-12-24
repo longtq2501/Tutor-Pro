@@ -15,8 +15,8 @@ import { StudentSelector } from './components/StudentSelector';
 import { HomeworkStats } from './components/HomeworkStats';
 import { HomeworkCard } from './components/HomeworkCard';
 import { EmptyState } from './components/EmptyState';
-import CreateHomeworkDialog from '@/features/create-homework-dialog';
-import TutorHomeworkDetailDialog from '@/features/tutor-homework-detail';
+import CreateHomeworkDialog from '@/features/learning/homework/create-homework-dialog';
+import TutorHomeworkDetailDialog from '@/features/learning/homework/tutor-homework-detail';
 
 export default function TutorHomeworkView() {
   const { hasAnyRole } = useAuth();

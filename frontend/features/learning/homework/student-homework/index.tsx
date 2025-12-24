@@ -8,7 +8,7 @@ import type { Homework } from '@/lib/types';
 import { useHomeworks } from './hooks/useHomeworks';
 import { HomeworkStats } from './components/HomeworkStats';
 import { HomeworkTabs } from './components/HomeworkTabs';
-import HomeworkDetailDialog from '@/features/homework-detail-dialog';
+import HomeworkDetailDialog from '@/features/learning/homework/homework-detail-dialog';
 
 export default function StudentHomeworkView() {
   const { homeworks, stats, loading, selectedTab, setSelectedTab, loadData } = useHomeworks();

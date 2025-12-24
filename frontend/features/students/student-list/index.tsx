@@ -12,9 +12,9 @@ import { StudentListHeader } from './components/StudentListHeader';
 import { FilterTabs } from './components/FilterTabs';
 import { StudentCard } from './components/StudentCard';
 import { EmptyState } from './components/EmptyState';
-import StudentModal from '@/features/student-modal';
-import AddSessionModal from '@/features/add-session-modal';
-import { RecurringScheduleModal } from '@/features/recurring-schedule';
+import StudentModal from '@/features/students/student-modal';
+import AddSessionModal from '@/features/calendar/add-session-modal';
+import { RecurringScheduleModal } from '@/features/calendar/recurring-schedule';
 
 export default function StudentList() {
   const { students, loading, loadStudents, deleteStudent } = useStudents();

@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import { recurringSchedulesApi, sessionsApi } from '@/lib/services';
-import AddSessionModal from '@/features/add-session-modal';
+import AddSessionModal from '@/features/calendar/add-session-modal';
 import { useCalendarData } from './hooks/useCalendarData';
 import { useCalendarDays } from './hooks/useCalendarDays';
 import { useCalendarStats } from './hooks/useCalendarStats';

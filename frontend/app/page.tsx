@@ -9,17 +9,17 @@ import {
 // ============================================================================
 // FEATURE-BASED IMPORTS (All refactored)
 // ============================================================================
-import AdminDashboard from '@/features/admin-dashboard';
-import StudentDashboard from '@/features/student-dashboard';
-import StudentList from '@/features/student-list';
-import MonthlyView from '@/features/monthly-view';
-import ParentsView from '@/features/parents-view';
-import UnpaidSessionsView from '@/features/unpaid-sessions';
-import StudentHomeworkView from '@/features/student-homework';
-import TutorHomeworkView from '@/features/tutor-homework-view';
-import DocumentLibrary from '@/features/document-library';
-import CalendarView from '@/features/calendar-view';
-import LessonViewWrapper from '@/features/lesson-view-wrapper';
+import AdminDashboard from '@/features/dashboard/admin-dashboard';
+import StudentDashboard from '@/features/dashboard/student-dashboard';
+import StudentList from '@/features/students/student-list';
+import MonthlyView from '@/features/finance/monthly-view';
+import ParentsView from '@/features/students/parents-view';
+import UnpaidSessionsView from '@/features/finance/unpaid-sessions';
+import StudentHomeworkView from '@/features/learning/homework/student-homework';
+import TutorHomeworkView from '@/features/learning/homework/tutor-homework-view';
+import DocumentLibrary from '@/features/documents/document-library';
+import CalendarView from '@/features/calendar/calendar-view';
+import LessonViewWrapper from '@/features/learning/lessons/lesson-view-wrapper';
 
 // ============================================================================
 // UI COMPONENTS (Keep in /components - not feature-specific)

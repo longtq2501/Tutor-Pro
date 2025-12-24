@@ -13,8 +13,8 @@ import { StatsCards } from './components/StatsCards';
 import { SearchBar } from './components/SearchBar';
 import { CategoryGrid } from './components/CategoryGrid';
 import { CategoryView } from './components/CategoryView';
-import DocumentUploadModal from '@/features/document-upload-modal';
-import DocumentPreviewModal from '@/features/document-preview-modal';
+import DocumentUploadModal from '@/features/documents/document-upload-modal';
+import DocumentPreviewModal from '@/features/documents/document-preview-modal';
 
 export default function DocumentLibrary() {
   const {

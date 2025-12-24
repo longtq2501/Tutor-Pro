@@ -1,0 +1,49 @@
+export interface Lesson {
+  id: number; // ID BÀI HỌC
+  tutorName: string; // TÊN GIA SƯ GIẢNG DẠY
+  title: string; // TIÊU ĐỀ BÀI HỌC
+  summary?: string; // TÓM TẮT NGẮN GỌN NỘI DUNG
+  content?: string; // NỘI DUNG CHI TIẾT (DẠNG MARKDOWN/HTML)
+  lessonDate: string; // NGÀY DIỄN RA BUỔI HỌC
+  videoUrl?: string; // ĐƯỜNG DẪN VIDEO BÀI GIẢNG (NẾU CÓ)
+  thumbnailUrl?: string; // ẢNH ĐẠI DIỆN CỦA BÀI HỌC
+
+  // DỮ LIỆU RIÊNG CỦA HỌC SINH (KHỚP VỚI LESSONRESPONSE DTO)
+  studentId: number; // ID HỌC SINH ĐANG XEM
+  studentName: string; // TÊN HỌC SINH ĐANG XEM
+  isCompleted: boolean; // TRẠNG THÁI HỌC SINH ĐÃ ĐÁNH DẤU HOÀN THÀNH
+  completedAt?: string; // THỜI ĐIỂM HỌC SINH HOÀN THÀNH BÀI HỌC
+  viewCount: number; // TỔNG SỐ LẦN HỌC SINH ĐÃ TRUY CẬP BÀI NÀY
+  lastViewedAt?: string; // LẦN CUỐI CÙNG HỌC SINH XEM BÀI
+
+  // MEDIA & TIMESTAMPS
+  images: LessonImage[]; // DANH SÁCH ẢNH MINH HỌA TRONG BÀI HỌC
+  resources: LessonResource[]; // DANH SÁCH TÀI LIỆU ĐÍNH KÈM (PDF, LINK...)
+  createdAt: string; // THỜI GIAN TẠO BÀI HỌC TRÊN HỆ THỐNG
+  updatedAt: string; // THỜI GIAN CẬP NHẬT BÀI HỌC GẦN NHẤT
+}
+
+export interface LessonImage {
+  id: number; // ID ẢNH
+  imageUrl: string; // ĐƯỜNG DẪN ẢNH (CLOUDINARY)
+  caption?: string; // CHÚ THÍCH CHO ẢNH
+  displayOrder: number; // THỨ TỰ HIỂN THỊ CỦA ẢNH
+}
+
+export interface LessonResource {
+  id: number; // ID TÀI LIỆU
+  title: string; // TÊN TÀI LIỆU
+  description?: string; // MÔ TẢ TÀI LIỆU
+  resourceUrl: string; // ĐƯỜNG DẪN TẢI HOẶC TRUY CẬP TÀI LIỆU
+  resourceType: 'PDF' | 'LINK' | 'IMAGE' | 'VIDEO' | 'DOCUMENT'; // LOẠI ĐỊNH DẠNG TÀI LIỆU
+  fileSize?: number; // DUNG LƯỢNG FILE (BYTE)
+  formattedFileSize?: string; // DUNG LƯỢNG FILE ĐÃ ĐỊNH DẠNG (VÍ DỤ: 1.2 MB)
+  displayOrder: number; // THỨ TỰ HIỂN THỊ TRONG DANH SÁCH
+}
+
+export interface LessonStats {
+  totalLessons: number; // TỔNG SỐ BÀI HỌC ĐÃ GIAO
+  completedLessons: number; // SỐ BÀI ĐÃ HOÀN THÀNH
+  inProgressLessons: number; // SỐ BÀI ĐANG HỌC DANG DỞ
+  completionRate: number; // TỶ LỆ PHẦN TRĂM HOÀN THÀNH (%)
+}

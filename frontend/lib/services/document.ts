@@ -1,0 +1,115 @@
+import api from './axios-instance';
+import type { 
+  Document as AppDocument, 
+  DocumentCategory, 
+  DocumentUploadRequest, 
+  DocumentStats 
+} from '../types';
+
+export const documentsApi = {
+  /** * LẤY DANH SÁCH TẤT CẢ TÀI LIỆU */
+  getAll: async (): Promise<AppDocument[]> => {
+    const response = await api.get('/documents');
+    return response.data;
+  },
+  
+  /** * LẤY CHI TIẾT TÀI LIỆU THEO ID */
+  getById: async (id: number): Promise<AppDocument> => {
+    const response = await api.get(`/documents/${id}`);
+    return response.data;
+  },
+  
+  /** * LẤY DANH SÁCH TÀI LIỆU THEO DANH MỤC */
+  getByCategory: async (category: DocumentCategory): Promise<AppDocument[]> => {
+    const response = await api.get(`/documents/category/${category}`);
+    return response.data;
+  },
+  
+  /** * TÌM KIẾM TÀI LIỆU THEO TỪ KHÓA */
+  search: async (keyword: string): Promise<AppDocument[]> => {
+    const response = await api.get('/documents/search', { params: { keyword } });
+    return response.data;
+  },
+  
+  /** * TẢI TÀI LIỆU MỚI LÊN HỆ THỐNG (LƯU TRỮ QUA CLOUDINARY)
+   * @param {File} file - File vật lý cần upload
+   * @param {DocumentUploadRequest} data - Thông tin mô tả tài liệu
+   */
+  upload: async (file: File, data: DocumentUploadRequest): Promise<any> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+    const response = await api.post('/documents', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  },
+  
+  /** * TẢI DỮ LIỆU FILE TỪ CLOUDINARY VỀ DƯỚI DẠNG BLOB */
+  download: async (id: number): Promise<Blob> => {
+    try {
+      // LẤY URL CLOUDINARY TỪ BACKEND
+      const response = await api.get(`/documents/${id}/download`);
+      const cloudinaryUrl = response.data.url;
+      
+      // TRUY XUẤT FILE TRỰC TIẾP TỪ CLOUDINARY
+      const fileResponse = await fetch(cloudinaryUrl);
+      if (!fileResponse.ok) {
+        throw new Error('Failed to download file from Cloudinary');
+      }
+      
+      return await fileResponse.blob();
+    } catch (error) {
+      console.error('Download error:', error);
+      throw error;
+    }
+  },
+  
+  /** * TẢI VỀ VÀ TỰ ĐỘNG LƯU FILE XUỐNG MÁY NGƯỜI DÙNG */
+  downloadAndSave: async (id: number, filename: string): Promise<void> => {
+    try {
+      const blob = await documentsApi.download(id);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download and save error:', error);
+      throw error;
+    }
+  },
+  
+  /** * XÓA TÀI LIỆU KHỎI HỆ THỐNG */
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/documents/${id}`);
+  },
+  
+  /** * LẤY THỐNG KÊ VỀ KHO TÀI LIỆU (SỐ LƯỢNG, DUNG LƯỢNG...) */
+  getStats: async (): Promise<DocumentStats> => {
+    const response = await api.get('/documents/stats');
+    return response.data;
+  },
+  
+  /** * LẤY DANH SÁCH CÁC DANH MỤC TÀI LIỆU HIỆN CÓ */
+  getCategories: async (): Promise<DocumentCategory[]> => {
+    const response = await api.get('/documents/categories');
+    return response.data;
+  },
+  
+  /** * LẤY ĐƯỜNG DẪN XEM TRƯỚC (PREVIEW) TRỰC TIẾP TỪ CLOUDINARY */
+  getPreviewUrl: async (id: number): Promise<string> => {
+    try {
+      const response = await api.get(`/documents/${id}/preview`);
+      const cloudinaryUrl = response.data.url;
+      console.log('📄 Cloudinary preview URL:', cloudinaryUrl);
+      return cloudinaryUrl;
+    } catch (error) {
+      console.error('Preview URL error:', error);
+      throw error;
+    }
+  },
+};

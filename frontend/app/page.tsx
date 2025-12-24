@@ -3,16 +3,27 @@
 import React, { useState, useMemo } from 'react';
 import { 
   AlertCircle, CalendarDays, GraduationCap, LayoutDashboard,
-  TrendingUp, UserCheck, FileText, LogOut, User, BookCheck, BookOpen // ✅ Add BookOpen
+  TrendingUp, UserCheck, FileText, LogOut, BookCheck, BookOpen
 } from 'lucide-react';
-import Dashboard from '@/components/Dashboard';
-import StudentDashboard from '@/components/StudentDashboard';
-import StudentList from '@/components/StudentList';
-import MonthlyView from '@/components/MonthlyView';
-import DocumentLibrary from '@/components/DocumentLibrary';
-import ParentsView from '@/components/ParentsView';
-import UnpaidSessionsView from '@/components/UnpaidSessionsView';
-import CalendarView from '@/components/CalendarView';
+
+// ============================================================================
+// FEATURE-BASED IMPORTS (All refactored)
+// ============================================================================
+import AdminDashboard from '@/features/admin-dashboard';
+import StudentDashboard from '@/features/student-dashboard';
+import StudentList from '@/features/student-list';
+import MonthlyView from '@/features/monthly-view';
+import ParentsView from '@/features/parents-view';
+import UnpaidSessionsView from '@/features/unpaid-sessions';
+import StudentHomeworkView from '@/features/student-homework';
+import TutorHomeworkView from '@/features/tutor-homework-view';
+import DocumentLibrary from '@/features/document-library';
+import CalendarView from '@/features/calendar-view';
+import LessonViewWrapper from '@/features/lesson-view-wrapper';
+
+// ============================================================================
+// UI COMPONENTS (Keep in /components - not feature-specific)
+// ============================================================================
 import { Sidebar, View, NavItem } from '@/components/Sidebar';
 import { ModeToggle } from '@/components/ModeToggle';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -27,24 +38,19 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import StudentHomeworkView from '@/components/StudentHomeworkView';
-import TutorHomeworkView from '@/components/TutorHomeworkView';
-// ✅ Import Wrapper instead of Timeline directly
-import LessonViewWrapper from '@/components/LessonViewWrapper';
 
 function AppContent() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { user, logout, hasAnyRole } = useAuth();
 
-  // ✅ ADD 'lessons' TO NAVIGATION
   const navItems: NavItem[] = useMemo(() => {
     const allItems: NavItem[] = [
       { id: 'dashboard', label: 'Tổng Quan', icon: LayoutDashboard },
       { id: 'students', label: 'Học Sinh', icon: GraduationCap },
       { id: 'monthly', label: 'Thống Kê', icon: TrendingUp },
       { id: 'calendar', label: 'Lịch Dạy', icon: CalendarDays },
-      { id: 'lessons', label: 'Bài Giảng', icon: BookOpen }, // ✅ NEW
+      { id: 'lessons', label: 'Bài Giảng', icon: BookOpen },
       { id: 'homework', label: 'Bài Tập', icon: BookCheck },
       { id: 'unpaid', label: 'Công Nợ', icon: AlertCircle },
       { id: 'parents', label: 'Phụ Huynh', icon: UserCheck },
@@ -52,36 +58,12 @@ function AppContent() {
     ];
 
     return allItems.filter(item => {
-      // Students: ADMIN, TUTOR only
-      if (item.id === 'students' && !hasAnyRole(['ADMIN', 'TUTOR'])) {
-        return false;
-      }
-      
-      // Monthly Stats: ADMIN, TUTOR only
-      if (item.id === 'monthly' && !hasAnyRole(['ADMIN', 'TUTOR'])) {
-        return false;
-      }
-      
-      // Unpaid: ADMIN, TUTOR only
-      if (item.id === 'unpaid' && !hasAnyRole(['ADMIN', 'TUTOR'])) {
-        return false;
-      }
-      
-      // Parents: ADMIN, TUTOR only
-      if (item.id === 'parents' && !hasAnyRole(['ADMIN', 'TUTOR'])) {
-        return false;
-      }
-  
-      // Calendar: ADMIN, TUTOR only
-      if (item.id === 'calendar' && !hasAnyRole(['ADMIN', 'TUTOR'])) {
-        return false;
-      }
-
-      // ✅ Lessons: STUDENT only (TUTOR/ADMIN can manage via separate admin panel)
-      if (item.id === 'lessons' && !hasAnyRole(['STUDENT'])) {
-        return false;
-      }
-      
+      if (item.id === 'students' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
+      if (item.id === 'monthly' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
+      if (item.id === 'unpaid' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
+      if (item.id === 'parents' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
+      if (item.id === 'calendar' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
+      if (item.id === 'lessons' && !hasAnyRole(['STUDENT'])) return false;
       return true;
     });
   }, [hasAnyRole]);
@@ -182,21 +164,19 @@ function AppContent() {
         <main className="flex-1 overflow-y-auto animate-in fade-in-50">
           <div className="p-4 lg:p-8">
             {/* Dashboard */}
-            {currentView === 'dashboard' && hasAnyRole(['ADMIN', 'TUTOR']) && <Dashboard />}
+            {currentView === 'dashboard' && hasAnyRole(['ADMIN', 'TUTOR']) && <AdminDashboard />}
             {currentView === 'dashboard' && hasAnyRole(['STUDENT']) && <StudentDashboard />}
             
-            {/* Other views */}
+            {/* All feature-based views */}
             {currentView === 'students' && hasAnyRole(['ADMIN', 'TUTOR']) && <StudentList />}
             {currentView === 'monthly' && hasAnyRole(['ADMIN', 'TUTOR']) && <MonthlyView />}
             {currentView === 'calendar' && hasAnyRole(['ADMIN', 'TUTOR']) && <CalendarView />}
+            {currentView === 'lessons' && hasAnyRole(['STUDENT']) && <LessonViewWrapper />}
+            {currentView === 'homework' && hasAnyRole(['STUDENT']) && <StudentHomeworkView />}
+            {currentView === 'homework' && hasAnyRole(['ADMIN', 'TUTOR']) && <TutorHomeworkView />}
             {currentView === 'unpaid' && hasAnyRole(['ADMIN', 'TUTOR']) && <UnpaidSessionsView />}
             {currentView === 'parents' && hasAnyRole(['ADMIN', 'TUTOR']) && <ParentsView />}
             {currentView === 'documents' && <DocumentLibrary />}
-            {currentView === 'homework' && hasAnyRole(['STUDENT']) && <StudentHomeworkView />}
-            {currentView === 'homework' && hasAnyRole(['ADMIN', 'TUTOR']) && <TutorHomeworkView />}
-            
-            {/* ✅ NEW: Learning Log - Student only (with inline detail view) */}
-            {currentView === 'lessons' && hasAnyRole(['STUDENT']) && <LessonViewWrapper />}
             
             {/* Fallback */}
             {currentView === 'dashboard' && !hasAnyRole(['ADMIN', 'TUTOR', 'STUDENT']) && (

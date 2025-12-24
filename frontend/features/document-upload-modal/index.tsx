@@ -1,0 +1,133 @@
+// 📁 document-upload-modal/index.tsx
+'use client';
+
+import { useState } from 'react';
+import { X, Upload } from 'lucide-react';
+import type { DocumentCategory, DocumentUploadRequest } from '@/lib/types';
+import { useFileUpload } from './hooks/useFileUpload';
+import { validateFile } from './utils';
+import { FileUploadZone } from './components/FileUploadZone';
+import { CategorySelect } from './components/CategorySelect';
+import { UploadProgress } from './components/UploadProgress';
+
+interface DocumentUploadModalProps {
+  onClose: () => void;
+  onSuccess: () => void;
+  defaultCategory?: DocumentCategory;
+}
+
+export default function DocumentUploadModal({
+  onClose,
+  onSuccess,
+  defaultCategory,
+}: DocumentUploadModalProps) {
+  const [formData, setFormData] = useState<DocumentUploadRequest>({
+    title: '',
+    category: defaultCategory || 'GRAMMAR',
+    description: '',
+  });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const { upload, loading, progress } = useFileUpload();
+
+  const handleFileSelect = (file: File) => {
+    const error = validateFile(file);
+    if (error) {
+      alert(error);
+      return;
+    }
+    setSelectedFile(file);
+    if (!formData.title) {
+      setFormData({ ...formData, title: file.name.replace(/\.[^/.]+$/, '') });
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedFile) {
+      alert('Vui lòng chọn file!');
+      return;
+    }
+    if (!formData.title) {
+      alert('Vui lòng nhập tiêu đề!');
+      return;
+    }
+
+    try {
+      await upload(selectedFile, formData);
+      setTimeout(onSuccess, 500);
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Không thể tải lên tài liệu!');
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      
+      <div className="relative bg-card rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-border">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-card-foreground">Tải lên tài liệu</h2>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
+            <X size={24} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <FileUploadZone file={selectedFile} onFileSelect={handleFileSelect} />
+
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">Tiêu đề *</label>
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                className="w-full px-4 py-2 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
+                placeholder="Tên tài liệu"
+                required
+              />
+            </div>
+
+            <CategorySelect
+              value={formData.category}
+              onChange={(category) => setFormData({ ...formData, category })}
+            />
+
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">Mô tả</label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="w-full px-4 py-2 border border-border bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
+                placeholder="Mô tả ngắn về tài liệu..."
+                rows={3}
+              />
+            </div>
+
+            {loading && <UploadProgress progress={progress} />}
+          </div>
+
+          <div className="flex gap-3 mt-6">
+            <button
+              type="submit"
+              disabled={loading || !selectedFile}
+              className="flex-1 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
+            >
+              <Upload size={20} />
+              {loading ? 'Đang tải lên...' : 'Tải lên'}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="flex-1 bg-secondary hover:bg-secondary/80 disabled:opacity-50 text-secondary-foreground px-6 py-3 rounded-lg font-medium transition-colors"
+            >
+              Hủy
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

@@ -6,8 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/dto/response/LibraryLessonResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/dto/response/LibraryLessonResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/service/LessonLibraryService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/service/LessonLibraryService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,7 +51,7 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
-    &quot;Application.BackendApplication.executor&quot;: &quot;Debug&quot;,
+    &quot;Application.BackendApplication.executor&quot;: &quot;Run&quot;,
     &quot;Maven.backend [clean].executor&quot;: &quot;Run&quot;,
     &quot;Maven.backend [install].executor&quot;: &quot;Run&quot;,
     &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
@@ -136,7 +134,9 @@
       <workItem from="1766412207134" duration="160000" />
       <workItem from="1766412791406" duration="778000" />
       <workItem from="1766416869434" duration="5655000" />
-      <workItem from="1766459552764" duration="11230000" />
+      <workItem from="1766459552764" duration="17983000" />
+      <workItem from="1766491719391" duration="310000" />
+      <workItem from="1766494192412" duration="25000" />
     </task>
     <servers />
   </component>
@@ -150,6 +150,11 @@
           <url>file://$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/controller/LessonLibraryController.java</url>
           <line>33</line>
           <option name="timeStamp" value="3" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/controller/AdminLessonController.java</url>
+          <line>89</line>
+          <option name="timeStamp" value="4" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

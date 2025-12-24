@@ -9,10 +9,10 @@ interface VideoPlayerProps {
 
 export function VideoPlayer({ videoUrl, thumbnailUrl }: VideoPlayerProps) {
   return (
-    <Card className="bg-[#1A1A1A] border-[#2A2A2A] overflow-hidden">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-white">
-          <Video className="h-5 w-5 text-blue-400" />
+    <Card className="overflow-hidden">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white text-lg">
+          <Video className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           Video Bài Giảng
         </CardTitle>
       </CardHeader>

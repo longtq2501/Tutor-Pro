@@ -9,14 +9,12 @@ interface LessonContentTabProps {
 
 export function LessonContentTab({ content }: LessonContentTabProps) {
   return (
-    <Card className="bg-[#1A1A1A] border-[#2A2A2A]">
-      <CardContent className="pt-6">
-        <ScrollArea className="h-[600px] pr-4">
-          <div className="prose prose-invert prose-blue max-w-none">
-            <ReactMarkdown>{content}</ReactMarkdown>
-          </div>
-        </ScrollArea>
-      </CardContent>
-    </Card>
+    <div className="h-full">
+      <ScrollArea className="h-full px-6 py-4">
+        <div className="prose prose-gray dark:prose-invert max-w-none pb-6">
+          <ReactMarkdown>{content}</ReactMarkdown>
+        </div>
+      </ScrollArea>
+    </div>
   );
 }

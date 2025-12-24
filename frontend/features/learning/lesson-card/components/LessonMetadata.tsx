@@ -11,7 +11,7 @@ interface LessonMetadataProps {
 
 export function LessonMetadata({ lessonDate, viewCount, lastViewedAt }: LessonMetadataProps) {
   return (
-    <div className="flex flex-wrap items-center gap-3 mt-3 text-sm text-gray-500">
+    <div className="flex flex-wrap items-center gap-3 mt-3 text-sm text-gray-600 dark:text-gray-500">
       <div className="flex items-center gap-1">
         <Calendar className="h-4 w-4" />
         <span>{format(new Date(lessonDate), 'dd/MM/yyyy', { locale: vi })}</span>

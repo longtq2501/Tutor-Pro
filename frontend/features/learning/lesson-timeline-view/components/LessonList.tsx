@@ -12,10 +12,10 @@ interface LessonListProps {
 export function LessonList({ lessons, onLessonClick }: LessonListProps) {
   if (lessons.length === 0) {
     return (
-      <Card className="bg-[#1A1A1A] border-[#2A2A2A]">
+      <Card className="bg-white dark:bg-[#1A1A1A] border-gray-200 dark:border-[#2A2A2A]">
         <CardContent className="flex flex-col items-center justify-center py-12">
-          <BookOpen className="h-12 w-12 text-gray-600 mb-4" />
-          <p className="text-gray-400 text-center">Chưa có bài học nào</p>
+          <BookOpen className="h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" />
+          <p className="text-gray-600 dark:text-gray-400 text-center">Chưa có bài học nào</p>
         </CardContent>
       </Card>
     );

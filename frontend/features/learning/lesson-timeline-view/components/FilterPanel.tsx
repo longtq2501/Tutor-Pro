@@ -28,9 +28,9 @@ export function FilterPanel({
   onClearFilters,
 }: FilterPanelProps) {
   return (
-    <Card className="bg-[#1A1A1A] border-[#2A2A2A]">
+    <Card className="bg-white dark:bg-[#1A1A1A] border-gray-200 dark:border-[#2A2A2A]">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-white">
+        <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
           <Filter className="h-5 w-5" />
           Bộ Lọc
         </CardTitle>
@@ -38,12 +38,12 @@ export function FilterPanel({
       <CardContent>
         <div className="flex flex-wrap gap-4">
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-gray-400" />
+            <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
             <Select value={selectedYear} onValueChange={onYearChange}>
-              <SelectTrigger className="w-32 bg-[#0A0A0A] border-[#2A2A2A]">
+              <SelectTrigger className="w-32 bg-gray-50 dark:bg-[#0A0A0A] border-gray-200 dark:border-[#2A2A2A]">
                 <SelectValue placeholder="Năm" />
               </SelectTrigger>
-              <SelectContent className="bg-[#1A1A1A] border-[#2A2A2A]">
+              <SelectContent className="bg-white dark:bg-[#1A1A1A] border-gray-200 dark:border-[#2A2A2A]">
                 <SelectItem value="all">Tất cả năm</SelectItem>
                 {availableYears.map(year => (
                   <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
@@ -53,10 +53,10 @@ export function FilterPanel({
           </div>
 
           <Select value={selectedMonth} onValueChange={onMonthChange}>
-            <SelectTrigger className="w-32 bg-[#0A0A0A] border-[#2A2A2A]">
+            <SelectTrigger className="w-32 bg-gray-50 dark:bg-[#0A0A0A] border-gray-200 dark:border-[#2A2A2A]">
               <SelectValue placeholder="Tháng" />
             </SelectTrigger>
-            <SelectContent className="bg-[#1A1A1A] border-[#2A2A2A]">
+            <SelectContent className="bg-white dark:bg-[#1A1A1A] border-gray-200 dark:border-[#2A2A2A]">
               <SelectItem value="all">Tất cả tháng</SelectItem>
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(month => (
                 <SelectItem key={month} value={month.toString()}>Tháng {month}</SelectItem>
@@ -69,13 +69,13 @@ export function FilterPanel({
               variant="outline"
               size="sm"
               onClick={onClearFilters}
-              className="bg-[#0A0A0A] border-[#2A2A2A] hover:bg-[#2A2A2A]"
+              className="bg-gray-50 dark:bg-[#0A0A0A] border-gray-200 dark:border-[#2A2A2A] hover:bg-gray-100 dark:hover:bg-[#2A2A2A]"
             >
               Xóa bộ lọc
             </Button>
           )}
 
-          <div className="ml-auto text-sm text-gray-400">
+          <div className="ml-auto text-sm text-gray-600 dark:text-gray-400">
             Hiển thị {filteredCount} / {totalCount} bài học
           </div>
         </div>

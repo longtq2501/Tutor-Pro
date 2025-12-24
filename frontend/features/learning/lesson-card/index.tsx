@@ -15,7 +15,7 @@ interface LessonCardProps {
 export default function LessonCard({ lesson, onClick }: LessonCardProps) {
   return (
     <Card
-      className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-[1.02] bg-[#1A1A1A] border-[#2A2A2A] overflow-hidden"
+      className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-[1.02] bg-white dark:bg-[#1A1A1A] border-gray-200 dark:border-[#2A2A2A] overflow-hidden"
       onClick={onClick}
     >
       <div className="flex flex-col md:flex-row">
@@ -30,10 +30,10 @@ export default function LessonCard({ lesson, onClick }: LessonCardProps) {
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1">
-                <CardTitle className="text-xl group-hover:text-blue-400 transition-colors line-clamp-2">
+                <CardTitle className="text-xl text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
                   {lesson.title}
                 </CardTitle>
-                <CardDescription className="mt-2 text-gray-400">
+                <CardDescription className="mt-2 text-gray-600 dark:text-gray-400">
                   {lesson.tutorName}
                 </CardDescription>
               </div>
@@ -48,7 +48,7 @@ export default function LessonCard({ lesson, onClick }: LessonCardProps) {
 
           <CardContent>
             {lesson.summary && (
-              <p className="text-sm text-gray-400 line-clamp-2 mb-3">
+              <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
                 {lesson.summary}
               </p>
             )}

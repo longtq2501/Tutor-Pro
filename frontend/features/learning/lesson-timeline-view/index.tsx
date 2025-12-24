@@ -47,8 +47,10 @@ export default function LessonTimelineView({ onLessonSelect }: LessonTimelineVie
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">📚 Kho Bài Giảng</h1>
-          <p className="text-gray-400 mt-2">Xem lại và ôn tập các buổi học đã qua</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">📚 Kho Bài Giảng</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            Xem lại và ôn tập các buổi học đã qua
+          </p>
         </div>
       </div>
 

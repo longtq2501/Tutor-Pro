@@ -9,4 +9,5 @@ export * from './homework';
 export * from './document';
 export * from './dashboard';
 export * from './auth';
+export * from './lesson-admin';
 export { default as api } from './axios-instance';

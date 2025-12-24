@@ -78,7 +78,7 @@ const createLessonFormSchema = (mode: LessonFormMode) => {
     isPublished: z.boolean(),
   };
 
-  // Library mode không bắt buộc lessonDate
+  // Library mode không bắt buộc lessonDate (vì sẽ tự động dùng ngày hiện tại)
   if (mode === 'library') {
     return z.object({
       ...baseSchema,
@@ -169,7 +169,13 @@ export function LessonForm({
       title: values.title.trim(),
       summary: values.summary?.trim() || undefined,
       content: values.content.trim(),
-      lessonDate: values.lessonDate ? formatDateForBackend(values.lessonDate) : undefined,
+      // Nếu là library mode và không có lessonDate, sử dụng ngày hiện tại
+      // Backend yêu cầu lessonDate bắt buộc cho mọi bài giảng
+      lessonDate: values.lessonDate 
+        ? formatDateForBackend(values.lessonDate) 
+        : mode === 'library' 
+          ? formatDateForBackend(new Date())
+          : undefined,
       videoUrl: values.videoUrl?.trim() || undefined,
       thumbnailUrl: values.thumbnailUrl?.trim() || undefined,
       isPublished: values.isPublished,
@@ -364,6 +370,16 @@ export function LessonForm({
                   </FormItem>
                 )}
               />
+            )}
+
+            {/* Thông báo cho library mode */}
+            {mode === 'library' && (
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+                <p className="text-sm text-blue-800">
+                  💡 <strong>Lưu ý:</strong> Bài giảng trong kho sẽ tự động sử dụng ngày hiện tại. 
+                  Bạn có thể chỉnh sửa ngày học sau khi giao bài cho học sinh.
+                </p>
+              </div>
             )}
 
             {/* Thumbnail Upload - Thay thế Input URL bằng CloudinaryUploader */}

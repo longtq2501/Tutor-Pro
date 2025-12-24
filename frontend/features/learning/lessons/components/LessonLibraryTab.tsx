@@ -45,6 +45,7 @@ import {
   UserPlus,
   Loader2,
   User,
+  UserMinus,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -56,11 +57,13 @@ import {
 import type { LessonLibraryDTO } from '../types';
 import { LessonForm } from './LessonForm';
 import { AssignStudentsDialog } from './AssignStudentsDialog';
+import { UnassignStudentsDialog } from './UnassignStudentsDialog';
 
 export function LessonLibraryTab() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [isUnassignDialogOpen, setIsUnassignDialogOpen] = useState(false);
   const [selectedLesson, setSelectedLesson] = useState<LessonLibraryDTO | null>(
     null
   );
@@ -105,6 +108,11 @@ export function LessonLibraryTab() {
   const handleAssignClick = (lesson: LessonLibraryDTO) => {
     setSelectedLesson(lesson);
     setIsAssignDialogOpen(true);
+  };
+
+  const handleUnassignClick = (lesson: LessonLibraryDTO) => {
+    setSelectedLesson(lesson);
+    setIsUnassignDialogOpen(true);
   };
 
   const handleDeleteClick = (lesson: LessonLibraryDTO) => {
@@ -214,6 +222,16 @@ export function LessonLibraryTab() {
                               <UserPlus className="mr-2 h-4 w-4" />
                               Giao cho học sinh
                             </DropdownMenuItem>
+                            {lesson.assignedStudentCount && lesson.assignedStudentCount > 0 && (
+                              <DropdownMenuItem
+                                onClick={() => handleUnassignClick(lesson)}
+                                className="text-orange-600"
+                              >
+                                <UserMinus className="mr-2 h-4 w-4" />
+                                Thu hồi bài giảng
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-destructive"
                               onClick={() => handleDeleteClick(lesson)}
@@ -247,6 +265,15 @@ export function LessonLibraryTab() {
         <AssignStudentsDialog
           open={isAssignDialogOpen}
           onOpenChange={setIsAssignDialogOpen}
+          lesson={selectedLesson}
+        />
+      )}
+
+      {/* Unassign Students Dialog */}
+      {selectedLesson && (
+        <UnassignStudentsDialog
+          open={isUnassignDialogOpen}
+          onOpenChange={setIsUnassignDialogOpen}
           lesson={selectedLesson}
         />
       )}

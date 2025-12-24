@@ -163,7 +163,7 @@ export default function LessonDetailView({ lessonId }: LessonDetailViewProps) {
                 <Card className="h-full">
                   <CardContent className="h-full p-0">
                     <div className="h-full">
-                      <LessonContentTab content={lesson.content} />
+                      <LessonContentTab content={lesson.content || ''} />
                     </div>
                   </CardContent>
                 </Card>

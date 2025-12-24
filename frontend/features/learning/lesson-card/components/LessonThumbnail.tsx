@@ -9,11 +9,24 @@ interface LessonThumbnailProps {
   isCompleted: boolean;
 }
 
-export function LessonThumbnail({ thumbnailUrl, title, videoUrl, isCompleted }: LessonThumbnailProps) {
+export function LessonThumbnail({ 
+  thumbnailUrl, 
+  title, 
+  videoUrl, 
+  isCompleted 
+}: LessonThumbnailProps) {
   return (
     <div className="relative w-full md:w-48 h-48 md:h-auto bg-gradient-to-br from-blue-600/20 to-purple-600/20 flex-shrink-0">
       {thumbnailUrl ? (
-        <Image src={thumbnailUrl} alt={title} fill className="object-cover" />
+        <Image 
+          src={thumbnailUrl} 
+          alt={title} 
+          fill 
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, 192px"
+          priority={false}
+          unoptimized={false}
+        />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center">
           <PlayCircle className="h-16 w-16 text-blue-400/50" />

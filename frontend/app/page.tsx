@@ -19,7 +19,10 @@ import StudentHomeworkView from '@/features/learning/homework/student-homework';
 import TutorHomeworkView from '@/features/learning/homework/tutor-homework-view';
 import DocumentLibrary from '@/features/documents/document-library';
 import CalendarView from '@/features/calendar/calendar-view';
-import LessonViewWrapper from '@/features/learning/lessons/lesson-view-wrapper';
+
+// Lesson Views - Different components for different roles
+import LessonViewWrapper from '@/features/learning/lesson-view-wrapper'; // STUDENT - Xem bài giảng
+import AdminLessonManager from '@/features/learning/lessons'; // ADMIN/TUTOR - Quản lý bài giảng
 
 // ============================================================================
 // UI COMPONENTS (Keep in /components - not feature-specific)
@@ -50,7 +53,7 @@ function AppContent() {
       { id: 'students', label: 'Học Sinh', icon: GraduationCap },
       { id: 'monthly', label: 'Thống Kê', icon: TrendingUp },
       { id: 'calendar', label: 'Lịch Dạy', icon: CalendarDays },
-      { id: 'lessons', label: 'Bài Giảng', icon: BookOpen },
+      { id: 'lessons', label: 'Bài Giảng', icon: BookOpen }, // Hiển thị cho tất cả roles
       { id: 'homework', label: 'Bài Tập', icon: BookCheck },
       { id: 'unpaid', label: 'Công Nợ', icon: AlertCircle },
       { id: 'parents', label: 'Phụ Huynh', icon: UserCheck },
@@ -63,7 +66,7 @@ function AppContent() {
       if (item.id === 'unpaid' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
       if (item.id === 'parents' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
       if (item.id === 'calendar' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
-      if (item.id === 'lessons' && !hasAnyRole(['STUDENT'])) return false;
+      // lessons: Hiển thị cho tất cả roles nhưng nội dung khác nhau
       return true;
     });
   }, [hasAnyRole]);
@@ -171,9 +174,21 @@ function AppContent() {
             {currentView === 'students' && hasAnyRole(['ADMIN', 'TUTOR']) && <StudentList />}
             {currentView === 'monthly' && hasAnyRole(['ADMIN', 'TUTOR']) && <MonthlyView />}
             {currentView === 'calendar' && hasAnyRole(['ADMIN', 'TUTOR']) && <CalendarView />}
+            
+            {/* ============================================================ */}
+            {/* LESSONS - Different views for different roles                */}
+            {/* ============================================================ */}
+            {/* ADMIN/TUTOR: Quản lý bài giảng (tạo, sửa, xóa, giao bài) */}
+            {currentView === 'lessons' && hasAnyRole(['ADMIN', 'TUTOR']) && <AdminLessonManager />}
+            
+            {/* STUDENT: Xem bài giảng (timeline + detail modal) */}
             {currentView === 'lessons' && hasAnyRole(['STUDENT']) && <LessonViewWrapper />}
+            
+            {/* Homework */}
             {currentView === 'homework' && hasAnyRole(['STUDENT']) && <StudentHomeworkView />}
             {currentView === 'homework' && hasAnyRole(['ADMIN', 'TUTOR']) && <TutorHomeworkView />}
+            
+            {/* Other views */}
             {currentView === 'unpaid' && hasAnyRole(['ADMIN', 'TUTOR']) && <UnpaidSessionsView />}
             {currentView === 'parents' && hasAnyRole(['ADMIN', 'TUTOR']) && <ParentsView />}
             {currentView === 'documents' && <DocumentLibrary />}

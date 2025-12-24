@@ -15,7 +15,14 @@ export default function LessonViewWrapper() {
   return (
     <>
       <LessonTimelineView onLessonSelect={open} />
-      <LessonDetailModal lessonId={selectedLessonId} open={isOpen} onClose={close} />
+      
+      {selectedLessonId && (
+        <LessonDetailModal 
+          lessonId={selectedLessonId} 
+          open={isOpen} 
+          onClose={close} 
+        />
+      )}
     </>
   );
 }

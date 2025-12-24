@@ -1,0 +1,131 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { adminLessonsApi } from '@/lib/services/lesson-admin';
+import type {
+  CreateLessonRequest,
+  UpdateLessonRequest,
+} from '@/features/learning/lessons/types';
+import { toast } from 'sonner';
+
+// Query keys
+export const adminLessonKeys = {
+  all: ['admin-lessons'] as const,
+  lists: () => [...adminLessonKeys.all, 'list'] as const,
+  detail: (id: number) => [...adminLessonKeys.all, 'detail', id] as const,
+  byStudent: (studentId: number) =>
+    [...adminLessonKeys.all, 'student', studentId] as const,
+};
+
+/**
+ * Hook để lấy tất cả bài giảng đang dạy
+ */
+export const useAdminLessons = () => {
+  return useQuery({
+    queryKey: adminLessonKeys.lists(),
+    queryFn: adminLessonsApi.getAll,
+  });
+};
+
+/**
+ * Hook để lấy chi tiết bài giảng
+ */
+export const useAdminLessonById = (id: number) => {
+  return useQuery({
+    queryKey: adminLessonKeys.detail(id),
+    queryFn: () => adminLessonsApi.getById(id),
+    enabled: !!id,
+  });
+};
+
+/**
+ * Hook để lấy bài giảng theo học sinh
+ */
+export const useAdminLessonsByStudent = (studentId: number) => {
+  return useQuery({
+    queryKey: adminLessonKeys.byStudent(studentId),
+    queryFn: () => adminLessonsApi.getByStudent(studentId),
+    enabled: !!studentId,
+  });
+};
+
+/**
+ * Hook để tạo bài giảng mới và giao trực tiếp
+ */
+export const useCreateAdminLesson = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateLessonRequest) => adminLessonsApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminLessonKeys.lists() });
+      toast.success('Tạo và giao bài giảng thành công!');
+    },
+    onError: (error: any) => {
+      toast.error(
+        error?.response?.data?.message || 'Có lỗi xảy ra khi tạo bài giảng'
+      );
+    },
+  });
+};
+
+/**
+ * Hook để cập nhật bài giảng
+ */
+export const useUpdateAdminLesson = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: UpdateLessonRequest }) =>
+      adminLessonsApi.update(id, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: adminLessonKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: adminLessonKeys.detail(variables.id) });
+      toast.success('Cập nhật bài giảng thành công!');
+    },
+    onError: (error: any) => {
+      toast.error(
+        error?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật bài giảng'
+      );
+    },
+  });
+};
+
+/**
+ * Hook để toggle publish status
+ */
+export const useTogglePublishLesson = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => adminLessonsApi.togglePublish(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: adminLessonKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: adminLessonKeys.detail(id) });
+      toast.success('Cập nhật trạng thái thành công!');
+    },
+    onError: (error: any) => {
+      toast.error(
+        error?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật trạng thái'
+      );
+    },
+  });
+};
+
+/**
+ * Hook để xóa bài giảng
+ */
+export const useDeleteAdminLesson = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => adminLessonsApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminLessonKeys.lists() });
+      toast.success('Xóa bài giảng thành công!');
+    },
+    onError: (error: any) => {
+      toast.error(
+        error?.response?.data?.message || 'Có lỗi xảy ra khi xóa bài giảng'
+      );
+    },
+  });
+};

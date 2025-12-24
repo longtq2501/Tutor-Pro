@@ -3,6 +3,8 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/contexts/AuthContext';
+// 1. Import QueryProvider bạn vừa tạo
+import QueryProvider from '@/providers/QueryProvider'; 
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -25,9 +27,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          {/* 2. Bọc QueryProvider ở đây */}
+          <QueryProvider>
+            <AuthProvider>
+              {children}
+            </AuthProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

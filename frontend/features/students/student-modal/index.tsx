@@ -4,6 +4,7 @@
 'use client';
 
 import { Calendar } from 'lucide-react';
+import { DatePicker } from '@/components/ui/date-picker';
 import type { Student } from '@/lib/types';
 import { useParents } from './hooks/useParents';
 import { useStudentForm } from './hooks/useStudentForm';
@@ -25,19 +26,19 @@ export default function StudentModal({ student, onClose, onSuccess }: StudentMod
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div 
+      <div
         className="absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
-      
+
       <div className="relative bg-card rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300 border border-border">
-        
+
         <StudentModalHeader isEdit={!!student} onClose={onClose} />
 
         {/* Scrollable Form */}
         <div className="px-8 py-6 overflow-y-auto custom-scrollbar flex-1 bg-muted/20">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
+
             {/* Left Column */}
             <BasicInfoFields
               name={formData.name}
@@ -62,18 +63,24 @@ export default function StudentModal({ student, onClose, onSuccess }: StudentMod
                   <Calendar size={16} className="text-primary" />
                   Tháng bắt đầu
                 </label>
-                <input
-                  type="month"
-                  value={formData.startMonth || new Date().toISOString().slice(0, 7)}
-                  onChange={(e) => updateField('startMonth', e.target.value || new Date().toISOString().slice(0, 7))}
-                  className="w-full px-4 py-3 bg-background border border-input rounded-xl focus:border-ring focus:ring-1 focus:ring-ring outline-none transition-all text-foreground font-medium"
+                <DatePicker
+                  value={formData.startMonth ? new Date(formData.startMonth + '-01') : undefined}
+                  onChange={(date) => {
+                    if (date) {
+                      const year = date.getFullYear();
+                      const month = String(date.getMonth() + 1).padStart(2, '0');
+                      updateField('startMonth', `${year}-${month}`);
+                    }
+                  }}
+                  placeholder="Chọn tháng bắt đầu"
+                  className="w-full"
                 />
               </div>
 
               <StatusToggle
                 active={formData.active ?? true}
                 onChange={(active: boolean) => updateField('active', active)}
-                />
+              />
             </div>
 
             {/* Notes - Full Width */}

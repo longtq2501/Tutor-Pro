@@ -2,16 +2,27 @@
 // FILE: add-session-modal/components/FormField.tsx
 // ============================================================================
 import { Calendar, Clock } from 'lucide-react';
+import { DatePicker } from '@/components/ui/date-picker';
+import { format } from 'date-fns';
 
-const inputClass = "w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:focus:ring-indigo-500/20 outline-none transition-all font-medium text-slate-800 dark:text-white";
+const inputClass = "w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:border-slate-400 focus:ring-4 focus:ring-slate-500/10 dark:focus:ring-slate-500/20 outline-none transition-all font-medium text-slate-800 dark:text-white";
 
 export const DateField = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
   <div>
     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
-      <Calendar size={16} className="text-indigo-500 dark:text-indigo-400" />
+      <Calendar size={16} className="text-foreground" />
       Ngày dạy
     </label>
-    <input type="date" value={value} onChange={(e) => onChange(e.target.value)} className={inputClass} required />
+    <DatePicker
+      value={value ? new Date(value) : undefined}
+      onChange={(date) => {
+        if (date) {
+          onChange(format(date, 'yyyy-MM-dd'));
+        }
+      }}
+      placeholder="Chọn ngày dạy"
+      className="w-full"
+    />
   </div>
 );
 

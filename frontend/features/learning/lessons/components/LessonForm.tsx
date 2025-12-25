@@ -25,6 +25,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
+import { DatePicker } from '@/components/ui/date-picker';
 import {
   Popover,
   PopoverContent,
@@ -35,9 +36,9 @@ import { CalendarIcon, Loader2, BookOpen, FileText, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import type { 
-  LessonDTO, 
-  LessonLibraryDTO, 
+import type {
+  LessonDTO,
+  LessonLibraryDTO,
   LessonFormMode,
   LessonFormData,
 } from '../types';
@@ -171,9 +172,9 @@ export function LessonForm({
       content: values.content.trim(),
       // Nếu là library mode và không có lessonDate, sử dụng ngày hiện tại
       // Backend yêu cầu lessonDate bắt buộc cho mọi bài giảng
-      lessonDate: values.lessonDate 
-        ? formatDateForBackend(values.lessonDate) 
-        : mode === 'library' 
+      lessonDate: values.lessonDate
+        ? formatDateForBackend(values.lessonDate)
+        : mode === 'library'
           ? formatDateForBackend(new Date())
           : undefined,
       videoUrl: values.videoUrl?.trim() || undefined,
@@ -182,7 +183,7 @@ export function LessonForm({
       images: [], // Default empty array
       resources: [], // Default empty array
     };
-    
+
     onSubmit(formattedData);
   };
 
@@ -336,36 +337,13 @@ export function LessonForm({
                     <FormLabel>
                       Ngày học <span className="text-destructive">*</span>
                     </FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              'w-full pl-3 text-left font-normal',
-                              !field.value && 'text-muted-foreground'
-                            )}
-                            disabled={isLoading}
-                          >
-                            {field.value ? (
-                              format(field.value, 'PPP', { locale: vi })
-                            ) : (
-                              <span>Chọn ngày học</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value || undefined}
-                          onSelect={field.onChange}
-                          disabled={(date) => date < new Date('1900-01-01')}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <FormControl>
+                      <DatePicker
+                        value={field.value || undefined}
+                        onChange={field.onChange}
+                        placeholder="Chọn ngày học"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -376,7 +354,7 @@ export function LessonForm({
             {mode === 'library' && (
               <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
                 <p className="text-sm text-blue-800">
-                  💡 <strong>Lưu ý:</strong> Bài giảng trong kho sẽ tự động sử dụng ngày hiện tại. 
+                  💡 <strong>Lưu ý:</strong> Bài giảng trong kho sẽ tự động sử dụng ngày hiện tại.
                   Bạn có thể chỉnh sửa ngày học sau khi giao bài cho học sinh.
                 </p>
               </div>

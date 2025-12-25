@@ -5,7 +5,7 @@ export const SummaryCard = ({ totalHours, month }: { totalHours: number; month: 
   <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-800/50 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
     <div className="flex justify-between items-center mb-3">
       <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Tổng thời lượng</span>
-      <span className="text-2xl font-black text-indigo-600 dark:text-indigo-400 tracking-tight">
+      <span className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">
         {totalHours.toFixed(1)} <span className="text-sm font-medium text-slate-400 dark:text-slate-500">giờ</span>
       </span>
     </div>

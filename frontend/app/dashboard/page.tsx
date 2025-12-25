@@ -41,6 +41,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { BackgroundBeams } from '@/components/ui/background-beams';
 
 function AppContent() {
     const [currentView, setCurrentView] = useState<View>('dashboard');
@@ -100,13 +101,18 @@ function AppContent() {
     const roleBadge = user ? getRoleBadge(user.role) : null;
 
     return (
-        <div className="flex h-screen bg-background transition-colors duration-300">
+        <div className="flex h-screen relative isolate">
 
-            {/* Animated gradient background */}
-            <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-                <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-background dark:from-primary/20 dark:via-purple-900/20 dark:to-background rounded-b-[80px] transition-all duration-500" />
-                <div className="absolute top-20 -right-40 w-96 h-96 bg-purple-500/10 dark:bg-purple-500/20 rounded-full blur-3xl" />
-                <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-3xl" />
+            {/* Animated gradient background - Hidden in light mode for pure white look */}
+            <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none hidden dark:block">
+                <div className="absolute top-0 left-0 w-full h-[500px] dark:h-full bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-background dark:from-primary/10 dark:via-purple-900/10 dark:to-transparent rounded-b-[80px] dark:rounded-none transition-all duration-500" />
+                <div className="absolute top-20 -right-40 w-96 h-96 bg-purple-500/10 dark:bg-purple-500/10 rounded-full blur-[100px]" />
+                <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500/10 dark:bg-blue-500/10 rounded-full blur-[100px]" />
+
+                {/* Background Beams - Only visible in dark mode */}
+                <div className="hidden dark:flex absolute inset-0 z-0">
+                    <BackgroundBeams />
+                </div>
             </div>
 
             <Sidebar
@@ -117,7 +123,7 @@ function AppContent() {
                 setIsCollapsed={setIsCollapsed}
             />
 
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col overflow-hidden relative z-10">
                 <header className="border-b border-border">
                     <div className="flex items-center justify-between h-16 lg:h-20 px-4 lg:px-8">
                         <div className="flex-1 min-w-0 pl-12 lg:pl-0">

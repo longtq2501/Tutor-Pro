@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (accessToken && storedUser) {
           setUser(JSON.parse(storedUser));
-          
+
           // Verify token is still valid
           try {
             const response = await authService.getCurrentUser();
@@ -58,18 +58,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       const response = await authService.login({ email, password });
-      
+
       const { accessToken, refreshToken, user: userData } = response.data;
-      
+
       // Store tokens and user data
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', refreshToken);
       localStorage.setItem('user', JSON.stringify(userData));
-      
+
       setUser(userData);
-      
+
       // Redirect to dashboard
-      router.push('/');
+      router.push('/dashboard');
     } catch (error: any) {
       console.error('Login error:', error);
       throw new Error(error.response?.data?.message || 'Đăng nhập thất bại');

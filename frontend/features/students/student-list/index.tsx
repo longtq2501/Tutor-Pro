@@ -30,24 +30,31 @@ export default function StudentList() {
   const modals = useStudentModals();
 
   const handleAddSessionSubmit = async (
+    studentId: number,
     sessionsCount: number,
     hoursPerSession: number,
     sessionDate: string,
     month: string,
+    subject?: string,
+    startTime?: string,
+    endTime?: string
   ) => {
-    if (!modals.selectedStudentIdForSession) return;
     try {
       const requestData: SessionRecordRequest = {
-        studentId: modals.selectedStudentIdForSession,
-        month: month,
+        studentId,
+        month,
         sessions: sessionsCount,
-        sessionDate: sessionDate,
-        hoursPerSession: hoursPerSession
+        sessionDate,
+        hoursPerSession,
+        subject,
+        startTime,
+        endTime,
+        status: 'SCHEDULED'
       };
-      
+
       await sessionsApi.create(requestData);
       modals.closeAddSession();
-      await loadStudents(); 
+      await loadStudents();
       alert(`Đã thêm buổi học thành công!`);
     } catch (error) {
       console.error('Error adding session:', error);
@@ -114,6 +121,8 @@ export default function StudentList() {
         <AddSessionModal
           onClose={modals.closeAddSession}
           onSubmit={handleAddSessionSubmit}
+          students={students}
+          initialStudentId={modals.selectedStudentIdForSession}
         />
       )}
 

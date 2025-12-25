@@ -1,33 +1,42 @@
+'use client';
+
 import type { SessionRecord } from '@/lib/types/finance';
 import type { LessonStatus } from '@/lib/types/lesson-status';
-import { Check, DollarSign, FileText, X, Copy, Calendar } from 'lucide-react';
+import {
+    Check,
+    DollarSign,
+    X,
+    Copy,
+    Ellipsis,
+    Pencil
+} from 'lucide-react';
 import { useState } from 'react';
-import { sessionApi } from '../api/sessionApi';
+import { sessionsApi } from '@/lib/services';
+import {
+    DropdownMenu,
+    DropdownMenuArrow,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 interface QuickActionsProps {
     session: SessionRecord;
     onUpdate?: (updated: SessionRecord) => void;
+    onEdit?: () => void;
 }
 
-/**
- * QuickActions Component
- * 
- * Hover-based quick actions for lesson cards:
- * - Mark as Taught (COMPLETED)
- * - Confirm Payment (PAID)
- * - Add Note
- * - Cancel
- * - Duplicate
- */
-export function QuickActions({ session, onUpdate }: QuickActionsProps) {
+export function QuickActions({ session, onUpdate, onEdit }: QuickActionsProps) {
     const [loading, setLoading] = useState(false);
 
     const handleStatusUpdate = async (newStatus: LessonStatus) => {
-        if (!session.version) return;
+        if (session.version === undefined || session.version === null) return;
 
         setLoading(true);
         try {
-            const updated = await sessionApi.updateStatus(session.id, newStatus, session.version);
+            const updated = await sessionsApi.updateStatus(session.id, newStatus, session.version);
             onUpdate?.(updated);
         } catch (error) {
             console.error('Failed to update status:', error);
@@ -40,7 +49,7 @@ export function QuickActions({ session, onUpdate }: QuickActionsProps) {
     const handleDuplicate = async () => {
         setLoading(true);
         try {
-            const duplicated = await sessionApi.duplicate(session.id);
+            const duplicated = await sessionsApi.duplicate(session.id);
             onUpdate?.(duplicated);
         } catch (error) {
             console.error('Failed to duplicate:', error);
@@ -53,66 +62,98 @@ export function QuickActions({ session, onUpdate }: QuickActionsProps) {
     const currentStatus = session.status || 'SCHEDULED';
 
     return (
-        <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity bg-card border border-border rounded-md shadow-lg p-1 flex gap-1 z-10">
-            {/* Mark as Taught */}
-            {(currentStatus === 'SCHEDULED' || currentStatus === 'CONFIRMED') && (
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        handleStatusUpdate('COMPLETED');
-                    }}
-                    disabled={loading}
-                    className="p-1.5 hover:bg-green-100 dark:hover:bg-green-900/30 rounded text-green-600 dark:text-green-400 transition-colors"
-                    title="Đánh dấu đã dạy"
+        <div className="absolute top-1 right-1 z-50 opacity-0 group-hover:opacity-100 transition-opacity">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur shadow-sm border border-slate-200 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-800"
+                        disabled={loading}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <Ellipsis size={16} strokeWidth={2.5} className="text-slate-600 dark:text-slate-400" />
+                        <span className="sr-only">Mở menu thao tác</span>
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                    side="bottom"
+                    align="end"
+                    className="w-48"
+                    sideOffset={2}
                 >
-                    <Check size={14} />
-                </button>
-            )}
+                    <DropdownMenuArrow />
+                    <DropdownMenuItem
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit?.();
+                        }}
+                        className="gap-2 cursor-pointer"
+                    >
+                        <Pencil size={14} className="text-slate-500" />
+                        <span>Chỉnh sửa</span>
+                    </DropdownMenuItem>
 
-            {/* Confirm Payment */}
-            {(currentStatus === 'COMPLETED' || currentStatus === 'PENDING_PAYMENT') && (
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        handleStatusUpdate('PAID');
-                    }}
-                    disabled={loading}
-                    className="p-1.5 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded text-emerald-600 dark:text-emerald-400 transition-colors"
-                    title="Xác nhận thanh toán"
-                >
-                    <DollarSign size={14} />
-                </button>
-            )}
+                    <DropdownMenuSeparator />
 
-            {/* Duplicate */}
-            <button
-                onClick={(e) => {
-                    e.stopPropagation();
-                    handleDuplicate();
-                }}
-                disabled={loading}
-                className="p-1.5 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded text-blue-600 dark:text-blue-400 transition-colors"
-                title="Nhân bản buổi học"
-            >
-                <Copy size={14} />
-            </button>
+                    {/* Mark as Taught */}
+                    {(currentStatus === 'SCHEDULED' || currentStatus === 'CONFIRMED') && (
+                        <DropdownMenuItem
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleStatusUpdate('COMPLETED');
+                            }}
+                            className="gap-2 cursor-pointer text-green-600 dark:text-green-400"
+                        >
+                            <Check size={14} />
+                            <span>Đánh dấu đã dạy</span>
+                        </DropdownMenuItem>
+                    )}
 
-            {/* Cancel */}
-            {currentStatus !== 'PAID' && currentStatus !== 'CANCELLED_BY_TUTOR' && currentStatus !== 'CANCELLED_BY_STUDENT' && (
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        if (confirm('Bạn có chắc muốn hủy buổi học này?')) {
-                            handleStatusUpdate('CANCELLED_BY_TUTOR');
-                        }
-                    }}
-                    disabled={loading}
-                    className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded text-red-600 dark:text-red-400 transition-colors"
-                    title="Hủy buổi học"
-                >
-                    <X size={14} />
-                </button>
-            )}
+                    {/* Confirm Payment */}
+                    {(currentStatus === 'COMPLETED' || currentStatus === 'PENDING_PAYMENT') && (
+                        <DropdownMenuItem
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleStatusUpdate('PAID');
+                            }}
+                            className="gap-2 cursor-pointer text-emerald-600 dark:text-emerald-400"
+                        >
+                            <DollarSign size={14} />
+                            <span>Xác nhận thanh toán</span>
+                        </DropdownMenuItem>
+                    )}
+
+                    <DropdownMenuItem
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleDuplicate();
+                        }}
+                        className="gap-2 cursor-pointer transition-colors"
+                    >
+                        <Copy size={14} className="text-blue-500" />
+                        <span>Nhân bản buổi học</span>
+                    </DropdownMenuItem>
+
+                    {currentStatus !== 'PAID' && currentStatus !== 'CANCELLED_BY_TUTOR' && currentStatus !== 'CANCELLED_BY_STUDENT' && (
+                        <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (confirm('Bạn có chắc muốn hủy buổi học này?')) {
+                                        handleStatusUpdate('CANCELLED_BY_TUTOR');
+                                    }
+                                }}
+                                className="gap-2 cursor-pointer text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-900/10 focus:text-red-700"
+                            >
+                                <X size={14} />
+                                <span>Hủy buổi học</span>
+                            </DropdownMenuItem>
+                        </>
+                    )}
+                </DropdownMenuContent>
+            </DropdownMenu>
         </div>
     );
 }

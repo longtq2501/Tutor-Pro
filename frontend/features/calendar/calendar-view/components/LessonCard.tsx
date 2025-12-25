@@ -1,7 +1,6 @@
 import type { SessionRecord } from '@/lib/types/finance';
 import { getStatusColors, formatCurrency } from '../utils/statusColors';
 import { QuickActions } from './QuickActions';
-import { useState } from 'react';
 
 interface LessonCardProps {
     session: SessionRecord;
@@ -9,6 +8,7 @@ interface LessonCardProps {
     onClick?: () => void;
     onContextMenu?: (e: React.MouseEvent, session: SessionRecord) => void;
     onUpdate?: (updated: SessionRecord) => void;
+    onEdit?: (session: SessionRecord) => void;
 }
 
 /**
@@ -25,9 +25,7 @@ interface LessonCardProps {
  * Format: • BẢO HÂN
  *           14:00-15:30 • Toán 10 • 300k
  */
-export function LessonCard({ session, compact = false, onClick, onContextMenu, onUpdate }: LessonCardProps) {
-    const [showQuickActions, setShowQuickActions] = useState(false);
-
+export function LessonCard({ session, compact = false, onClick, onContextMenu, onUpdate, onEdit }: LessonCardProps) {
     // Get colors based on new status or fallback to legacy
     const colors = session.status
         ? getStatusColors(session.status)
@@ -56,10 +54,8 @@ export function LessonCard({ session, compact = false, onClick, onContextMenu, o
         <div
             onClick={onClick}
             onContextMenu={handleContextMenu}
-            onMouseEnter={() => setShowQuickActions(true)}
-            onMouseLeave={() => setShowQuickActions(false)}
             className={`
-        text-xs px-1.5 py-0.5 rounded-md truncate font-semibold border 
+        text-xs px-1.5 py-0.5 rounded-md font-semibold border 
         flex flex-col gap-0.5 transition-all cursor-pointer relative group
         hover:shadow-sm hover:scale-[1.02]
         ${colors.bg} ${colors.border} ${colors.text}
@@ -79,7 +75,7 @@ export function LessonCard({ session, compact = false, onClick, onContextMenu, o
             )}
 
             {/* Quick Actions (hover) */}
-            {showQuickActions && <QuickActions session={session} onUpdate={onUpdate} />}
+            <QuickActions session={session} onUpdate={onUpdate} onEdit={() => onEdit?.(session)} />
         </div>
     );
 }

@@ -52,35 +52,55 @@ export const DayDetailModal = ({ day, onClose, onAddSession, onDelete, onToggleP
             >
               <div className="flex justify-between items-start mb-3">
                 <div>
-                  <h4 className="font-bold text-card-foreground text-lg flex items-center gap-2">
+                  <h4 className="font-bold text-card-foreground text-base md:text-lg flex flex-wrap items-center gap-2">
                     {session.studentName}
-                    {!session.completed && <span className="text-xs font-normal px-2 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full">Dự kiến</span>}
+                    {session.subject && <span className="text-muted-foreground font-normal">• {session.subject}</span>}
+                    {!session.completed && <span className="text-[10px] uppercase font-bold px-2 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full">Dự kiến</span>}
                   </h4>
-                  <div className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
-                    <Clock size={14} />
-                    <span>{session.hours}h ({formatCurrency(session.pricePerHour)}/h)</span>
+                  <div className="text-sm text-muted-foreground flex flex-col gap-1 mt-1">
+                    <div className="flex items-center gap-2">
+                      <Clock size={14} />
+                      <span className="font-medium text-foreground">
+                        {session.startTime && session.endTime
+                          ? `${session.startTime} - ${session.endTime}`
+                          : `${session.hours}h`}
+                      </span>
+                      <span className="text-[11px] opacity-70">({formatCurrency(session.pricePerHour)}/h)</span>
+                    </div>
                   </div>
                 </div>
-                <div className={`font-bold text-lg ${session.completed ? 'text-primary' : 'text-muted-foreground'}`}>
+                <div className={`font-bold text-base md:text-lg ${session.completed ? 'text-primary' : 'text-muted-foreground'}`}>
                   {formatCurrency(session.totalAmount)}
                 </div>
               </div>
 
               <div className="pt-3 border-t border-border flex justify-between items-center mt-auto gap-2">
                 <div className="flex gap-2">
-                  <button onClick={() => onToggleComplete(session.id)} className={`text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors ${session.completed ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'}`}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onToggleComplete(session.id); }}
+                    className={`text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors ${session.completed ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'}`}
+                  >
                     {session.completed ? <BookOpen size={14} /> : <BookDashed size={14} />}
-                    {session.completed ? 'Đã Dạy' : 'Chưa Dạy'}
+                    <span className="hidden sm:inline">{session.completed ? 'Đã Dạy' : 'Chưa Dạy'}</span>
+                    <span className="sm:hidden">{session.completed ? 'Dạy' : 'Dự kiến'}</span>
                   </button>
 
-                  <button onClick={() => onTogglePayment(session.id)} disabled={!session.completed} className={`text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors ${!session.completed ? 'opacity-50 cursor-not-allowed bg-muted text-muted-foreground' : session.paid ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50'}`}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onTogglePayment(session.id); }}
+                    disabled={!session.completed}
+                    className={`text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors ${!session.completed ? 'opacity-50 cursor-not-allowed bg-muted text-muted-foreground' : session.paid ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50'}`}
+                  >
                     {session.paid ? <CheckSquare size={14} /> : <Square size={14} />}
-                    {session.paid ? 'Đã TT' : 'Chưa TT'}
+                    <span className="hidden sm:inline">{session.paid ? 'Đã Thanh Toán' : 'Chưa Thanh Toán'}</span>
+                    <span className="sm:hidden">{session.paid ? 'Đã TT' : 'TT'}</span>
                   </button>
                 </div>
 
-                <button onClick={() => onDelete(session.id)} className="text-muted-foreground hover:text-destructive p-2 rounded-full hover:bg-destructive/10 transition-colors">
-                  <Trash2 size={16} />
+                <button
+                  onClick={(e) => { e.stopPropagation(); onDelete(session.id); }}
+                  className="text-muted-foreground hover:text-destructive p-2.5 rounded-full hover:bg-destructive/10 transition-colors"
+                >
+                  <Trash2 size={18} />
                 </button>
               </div>
             </div>

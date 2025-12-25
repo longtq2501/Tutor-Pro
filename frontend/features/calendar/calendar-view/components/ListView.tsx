@@ -7,6 +7,7 @@ import { formatCurrency, STATUS_COLORS } from '../utils/statusColors';
 interface ListViewProps {
     sessions: SessionRecord[];
     onSessionClick?: (session: SessionRecord) => void;
+    onSessionEdit?: (session: SessionRecord) => void;
     onUpdate?: (updated: SessionRecord) => void;
 }
 
@@ -15,7 +16,7 @@ interface ListViewProps {
  * 
  * Displays a searchable, filterable list of sessions.
  */
-export function ListView({ sessions, onSessionClick, onUpdate }: ListViewProps) {
+export function ListView({ sessions, onSessionClick, onSessionEdit, onUpdate }: ListViewProps) {
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
 
@@ -80,7 +81,7 @@ export function ListView({ sessions, onSessionClick, onUpdate }: ListViewProps) 
             </div>
 
             {/* List Summary */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3">
                 <div className="bg-card p-3 rounded-xl border border-border shadow-sm flex items-center gap-3">
                     <div className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg">
                         <Filter size={18} />
@@ -131,6 +132,7 @@ export function ListView({ sessions, onSessionClick, onUpdate }: ListViewProps) 
                                             session={session}
                                             onClick={() => onSessionClick?.(session)}
                                             onUpdate={onUpdate}
+                                            onEdit={onSessionEdit}
                                         />
                                     ))}
                                 </div>

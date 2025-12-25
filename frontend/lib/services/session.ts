@@ -1,5 +1,5 @@
 import api from './axios-instance';
-import type { SessionRecord, SessionRecordRequest } from '../types';
+import type { SessionRecord, SessionRecordRequest, SessionRecordUpdateRequest } from '../types';
 
 export const sessionsApi = {
   /** * LẤY DANH SÁCH TẤT CẢ CÁC BUỔI HỌC
@@ -41,7 +41,7 @@ export const sessionsApi = {
    * @param {Partial<SessionRecordRequest>} data - Dữ liệu cập nhật một phần
    * @returns {Promise<SessionRecord>}
    */
-  update: async (id: number, data: Partial<SessionRecordRequest>): Promise<SessionRecord> => {
+  update: async (id: number, data: SessionRecordUpdateRequest): Promise<SessionRecord> => {
     const response = await api.put(`/sessions/${id}`, data);
     return response.data;
   },

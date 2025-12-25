@@ -8,6 +8,7 @@ interface DayViewProps {
     day: CalendarDay | null;
     onAddSession: (dateStr: string) => void;
     onSessionClick?: (session: SessionRecord) => void;
+    onSessionEdit?: (session: SessionRecord) => void;
     onUpdate?: (updated: SessionRecord) => void;
 }
 
@@ -17,7 +18,7 @@ interface DayViewProps {
  * Displays a detailed vertical timeline for a single day.
  * Hours from 7:00 to 22:00.
  */
-export function DayView({ day, onAddSession, onSessionClick, onUpdate }: DayViewProps) {
+export function DayView({ day, onAddSession, onSessionClick, onSessionEdit, onUpdate }: DayViewProps) {
     const hours = Array.from({ length: 16 }, (_, i) => i + 7); // 7:00 to 22:00
 
     // Calculate position for session box
@@ -99,6 +100,7 @@ export function DayView({ day, onAddSession, onSessionClick, onUpdate }: DayView
                                     session={session}
                                     onClick={() => onSessionClick?.(session)}
                                     onUpdate={onUpdate}
+                                    onEdit={onSessionEdit}
                                 />
                             </div>
                         ))

@@ -1,13 +1,13 @@
 import type { SessionRecord } from '@/lib/types/finance';
 import { Edit, Copy, Trash2, Check, DollarSign, X } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import { sessionApi } from '../api/sessionApi';
+import { sessionsApi } from '@/lib/services';
 
 interface ContextMenuProps {
     session: SessionRecord;
     position: { x: number; y: number };
     onClose: () => void;
-    onEdit?: () => void;
+    onEdit?: (session: SessionRecord) => void;
     onUpdate?: (updated: SessionRecord) => void;
 }
 
@@ -71,7 +71,7 @@ export function ContextMenu({ session, position, onClose, onEdit, onUpdate }: Co
             {/* Edit */}
             <button
                 onClick={() => {
-                    onEdit?.();
+                    onEdit?.(session);
                     onClose();
                 }}
                 className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center gap-2"
@@ -83,7 +83,7 @@ export function ContextMenu({ session, position, onClose, onEdit, onUpdate }: Co
             {/* Duplicate */}
             <button
                 onClick={() => handleAction(async () => {
-                    const duplicated = await sessionApi.duplicate(session.id);
+                    const duplicated = await sessionsApi.duplicate(session.id);
                     onUpdate?.(duplicated);
                 })}
                 disabled={loading}
@@ -99,8 +99,8 @@ export function ContextMenu({ session, position, onClose, onEdit, onUpdate }: Co
             {(currentStatus === 'SCHEDULED' || currentStatus === 'CONFIRMED') && (
                 <button
                     onClick={() => handleAction(async () => {
-                        if (!session.version) return;
-                        const updated = await sessionApi.updateStatus(session.id, 'COMPLETED', session.version);
+                        if (session.version === undefined || session.version === null) return;
+                        const updated = await sessionsApi.updateStatus(session.id, 'COMPLETED', session.version);
                         onUpdate?.(updated);
                     })}
                     disabled={loading}
@@ -115,8 +115,8 @@ export function ContextMenu({ session, position, onClose, onEdit, onUpdate }: Co
             {(currentStatus === 'COMPLETED' || currentStatus === 'PENDING_PAYMENT') && (
                 <button
                     onClick={() => handleAction(async () => {
-                        if (!session.version) return;
-                        const updated = await sessionApi.updateStatus(session.id, 'PAID', session.version);
+                        if (session.version === undefined || session.version === null) return;
+                        const updated = await sessionsApi.updateStatus(session.id, 'PAID', session.version);
                         onUpdate?.(updated);
                     })}
                     disabled={loading}
@@ -136,8 +136,8 @@ export function ContextMenu({ session, position, onClose, onEdit, onUpdate }: Co
                             if (!confirm('Bạn có chắc muốn hủy buổi học này?')) {
                                 throw new Error('Cancelled by user');
                             }
-                            if (!session.version) return;
-                            const updated = await sessionApi.updateStatus(session.id, 'CANCELLED_BY_TUTOR', session.version);
+                            if (session.version === undefined || session.version === null) return;
+                            const updated = await sessionsApi.updateStatus(session.id, 'CANCELLED_BY_TUTOR', session.version);
                             onUpdate?.(updated);
                         })}
                         disabled={loading}
@@ -156,7 +156,7 @@ export function ContextMenu({ session, position, onClose, onEdit, onUpdate }: Co
                     if (!confirm('Bạn có chắc muốn XÓA VĨNH VIỄN buổi học này?')) {
                         throw new Error('Cancelled by user');
                     }
-                    await sessionApi.delete(session.id);
+                    await sessionsApi.delete(session.id);
                     onUpdate?.(session); // Signal deletion
                 })}
                 disabled={loading}

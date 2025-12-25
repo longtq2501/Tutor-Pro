@@ -12,10 +12,12 @@ interface Props {
   onDayClick: (day: CalendarDay) => void;
   onAddSession: (dateStr: string) => void;
   onSessionClick?: (session: SessionRecord) => void;
+  onSessionEdit?: (session: SessionRecord) => void;
+  onUpdate?: (updated: SessionRecord) => void;
   onContextMenu?: (e: React.MouseEvent, session: SessionRecord) => void;
 }
 
-export const CalendarGrid = ({ days, onDayClick, onAddSession, onSessionClick, onContextMenu }: Props) => (
+export const CalendarGrid = ({ days, onDayClick, onAddSession, onSessionClick, onSessionEdit, onUpdate, onContextMenu }: Props) => (
 
   <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
     <div className="grid grid-cols-7 bg-slate-50 dark:bg-slate-800 border-b border-border">
@@ -28,7 +30,7 @@ export const CalendarGrid = ({ days, onDayClick, onAddSession, onSessionClick, o
 
     <div className="grid grid-cols-7 auto-rows-fr bg-background dark:bg-slate-900">
       {days.map((day, idx) => (
-        <div key={idx} onClick={() => onDayClick(day)} className={`min-h-[90px] p-1.5 relative group cursor-pointer transition-all border-b border-r border-border ${!day.isCurrentMonth ? 'bg-slate-50/20 dark:bg-slate-900/40' : 'bg-card hover:bg-slate-50/60 dark:hover:bg-slate-800/60'} ${day.isToday ? 'ring-1 ring-inset ring-primary/30 bg-primary/5' : ''} ${(idx + 1) % 7 === 0 ? 'border-r-0' : ''}`}>
+        <div key={idx} onClick={() => onDayClick(day)} className={`min-h-[60px] md:min-h-[90px] p-1.5 relative group cursor-pointer transition-all border-b border-r border-border ${!day.isCurrentMonth ? 'bg-slate-50/20 dark:bg-slate-900/40' : 'bg-card hover:bg-slate-50/60 dark:hover:bg-slate-800/60'} ${day.isToday ? 'ring-1 ring-inset ring-primary/30 bg-primary/5' : ''} ${(idx + 1) % 7 === 0 ? 'border-r-0' : ''}`}>
           <div className="flex justify-between items-start mb-1">
             <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold transition-all ${day.isToday ? 'bg-primary text-primary-foreground shadow-sm' : day.date.getDay() === 0 ? 'text-rose-500' : !day.isCurrentMonth ? 'text-muted-foreground/40' : 'text-card-foreground'}`}>
               {day.date.getDate()}
@@ -42,6 +44,8 @@ export const CalendarGrid = ({ days, onDayClick, onAddSession, onSessionClick, o
           <CompactLessonList
             sessions={day.sessions}
             onSessionClick={onSessionClick}
+            onSessionEdit={onSessionEdit}
+            onUpdate={onUpdate}
             onContextMenu={onContextMenu}
           />
         </div>

@@ -25,8 +25,8 @@ export default function CalendarView() {
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
   const [selectedSession, setSelectedSession] = useState<SessionRecord | null>(null);
   const [showAddSessionModal, setShowAddSessionModal] = useState(false);
-  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
   const [selectedDateStr, setSelectedDateStr] = useState('');
+  const [modalMode, setModalMode] = useState<'view' | 'edit'>('view');
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; session: SessionRecord } | null>(null);
 
   const { sessions, setSessions, students, loading, loadData } = useCalendarData(currentDate);
@@ -88,6 +88,16 @@ export default function CalendarView() {
     }
   };
 
+  const handleSessionClick = (session: SessionRecord) => {
+    setModalMode('view');
+    setSelectedSession(session);
+  };
+
+  const handleSessionEdit = (session: SessionRecord) => {
+    setModalMode('edit');
+    setSelectedSession(session);
+  };
+
   // Re-mapping functions to handle status-based updates if needed, 
   // but for now we keep the simple ones as legacy
   const handleTogglePayment = async (sessionId: number) => {
@@ -116,7 +126,9 @@ export default function CalendarView() {
             days={calendarDays} // Simplified: useCalendarDays would need enhancement for direct week access
             onDayClick={setSelectedDay}
             onAddSession={(dateStr) => { setSelectedDateStr(dateStr); setShowAddSessionModal(true); }}
-            onSessionClick={setSelectedSession}
+            onSessionClick={handleSessionClick}
+            onSessionEdit={handleSessionEdit}
+            onUpdate={handleUpdateSession}
           />
         );
       case 'day':
@@ -124,14 +136,18 @@ export default function CalendarView() {
           <DayView
             day={currentDayInfo}
             onAddSession={(dateStr) => { setSelectedDateStr(dateStr); setShowAddSessionModal(true); }}
-            onSessionClick={setSelectedSession}
+            onSessionClick={handleSessionClick}
+            onSessionEdit={handleSessionEdit}
+            onUpdate={handleUpdateSession}
           />
         );
       case 'list':
         return (
           <ListView
             sessions={sessions}
-            onSessionClick={setSelectedSession}
+            onSessionClick={handleSessionClick}
+            onSessionEdit={handleSessionEdit}
+            onUpdate={handleUpdateSession}
           />
         );
       case 'month':
@@ -141,7 +157,9 @@ export default function CalendarView() {
             days={calendarDays}
             onDayClick={setSelectedDay}
             onAddSession={(dateStr) => { setSelectedDateStr(dateStr); setShowAddSessionModal(true); }}
-            onSessionClick={setSelectedSession}
+            onSessionClick={handleSessionClick}
+            onSessionEdit={handleSessionEdit}
+            onUpdate={handleUpdateSession}
             onContextMenu={(e, session) => setContextMenu({ x: e.clientX, y: e.clientY, session })}
           />
         );
@@ -183,6 +201,7 @@ export default function CalendarView() {
           session={selectedSession}
           onClose={() => setSelectedSession(null)}
           onUpdate={handleUpdateSession}
+          initialMode={modalMode}
         />
       )}
 
@@ -191,17 +210,37 @@ export default function CalendarView() {
           session={contextMenu.session}
           position={{ x: contextMenu.x, y: contextMenu.y }}
           onClose={() => setContextMenu(null)}
-          onEdit={() => setSelectedSession(contextMenu.session)}
+          onEdit={handleSessionEdit}
           onUpdate={handleUpdateSession}
         />
       )}
 
       {showAddSessionModal && (
         <AddSessionModal
-          onClose={() => { setShowAddSessionModal(false); setSelectedStudentId(null); setSelectedDateStr(''); }}
-          // Note: AddSessionModal would need update to support student selection if not passed from context
-          onSubmit={async (sessionsCount: any, hoursPerSession: any, sessionDate: any, month: any) => {
-            // ... original implementation ...
+          onClose={() => { setShowAddSessionModal(false); setSelectedDateStr(''); }}
+          students={students}
+          initialStudentId={null}
+          onSubmit={async (studentId, sessionsCount, hoursPerSession, sessionDate, month, subject, startTime, endTime) => {
+            try {
+              await sessionsApi.create({
+                studentId,
+                sessions: sessionsCount,
+                hoursPerSession,
+                sessionDate,
+                month,
+                subject,
+                startTime,
+                endTime,
+                status: 'SCHEDULED'
+              });
+
+              alert('✅ Đã thêm buổi học thành công!');
+              setShowAddSessionModal(false);
+              loadData();
+            } catch (error) {
+              console.error('Failed to create session:', error);
+              alert('❌ Lỗi khi thêm buổi học. Vui lòng thử lại.');
+            }
           }}
           initialDate={selectedDateStr}
         />

@@ -9,6 +9,7 @@ interface WeekViewProps {
     onDayClick: (day: CalendarDay) => void;
     onAddSession: (dateStr: string) => void;
     onSessionClick?: (session: SessionRecord) => void;
+    onSessionEdit?: (session: SessionRecord) => void;
     onUpdate?: (updated: SessionRecord) => void;
 }
 
@@ -17,7 +18,7 @@ interface WeekViewProps {
  * 
  * Displays a 7-day grid of sessions.
  */
-export function WeekView({ days, onDayClick, onAddSession, onSessionClick, onUpdate }: WeekViewProps) {
+export function WeekView({ days, onDayClick, onAddSession, onSessionClick, onSessionEdit, onUpdate }: WeekViewProps) {
     // Find current week (the one containing today, or just the first 7 if not found)
     const weekDays = useMemo(() => {
         const todayIdx = days.findIndex(d => d.isToday);
@@ -82,6 +83,7 @@ export function WeekView({ days, onDayClick, onAddSession, onSessionClick, onUpd
                                         compact
                                         onClick={() => onSessionClick?.(session)}
                                         onUpdate={onUpdate}
+                                        onEdit={onSessionEdit}
                                     />
                                 ))
                             )}

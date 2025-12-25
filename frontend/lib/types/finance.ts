@@ -33,6 +33,24 @@ export interface SessionRecordRequest {
   hoursPerSession: number; // SỐ GIỜ DẠY
   notes?: string; // NỘI DUNG GHI CHÚ
   completed?: boolean; // XÁC NHẬN HOÀN THÀNH
+  startTime?: string;
+  endTime?: string;
+  subject?: string;
+  status?: LessonStatus;
+}
+
+export interface SessionRecordUpdateRequest {
+  month?: string;
+  sessions?: number;
+  sessionDate?: string;
+  hoursPerSession?: number;
+  notes?: string;
+  completed?: boolean;
+  startTime?: string;
+  endTime?: string;
+  subject?: string;
+  status?: LessonStatus;
+  version?: number;
 }
 
 export interface InvoiceRequest {

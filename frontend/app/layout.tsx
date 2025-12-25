@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     siteName: 'Tutor Pro',
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/thumbnail.jpg',
         width: 1200,
         height: 630,
         alt: 'Tutor Pro Dashboard',

@@ -1,6 +1,6 @@
 package com.tutor_management.backend.config;
 
-import com.tutor_management.backend.service.security.JwtService;
+import com.tutor_management.backend.modules.auth.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

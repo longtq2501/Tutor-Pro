@@ -71,7 +71,7 @@ public class SecurityConfiguration {
                 "GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"
         ));
 
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowedHeaders(List.of("*"));
 
         configuration.setExposedHeaders(Arrays.asList(
                 "Content-Disposition",
@@ -79,7 +79,7 @@ public class SecurityConfiguration {
                 "Authorization"
         ));
 
-        configuration.setAllowCredentials(true); // ✅ BẬT
+        configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

@@ -1,8 +1,8 @@
 package com.tutor_management.backend.config;
 
-import com.tutor_management.backend.entity.User;
-import com.tutor_management.backend.entity.Role;
-import com.tutor_management.backend.repository.UserRepository;
+import com.tutor_management.backend.modules.auth.User;
+import com.tutor_management.backend.modules.auth.Role;
+import com.tutor_management.backend.modules.auth.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

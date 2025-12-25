@@ -18,7 +18,12 @@ public class DashboardController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @GetMapping("/stats")
-    public ResponseEntity<DashboardStats> getDashboardStats(@RequestParam String currentMonth) {
+    public ResponseEntity<DashboardStats> getDashboardStats(
+            @RequestParam(required = false) String currentMonth) {
+        // If currentMonth not provided, use current month
+        if (currentMonth == null || currentMonth.isEmpty()) {
+            currentMonth = java.time.YearMonth.now().toString();
+        }
         return ResponseEntity.ok(dashboardService.getDashboardStats(currentMonth));
     }
 

@@ -55,6 +55,15 @@ public class SessionRecordService {
                 .paid(false)
                 .notes(request.getNotes())
                 .sessionDate(LocalDate.parse(request.getSessionDate()))
+                .startTime(request.getStartTime() != null && !request.getStartTime().isEmpty()
+                        ? java.time.LocalTime.parse(request.getStartTime())
+                        : null)
+                .endTime(request.getEndTime() != null && !request.getEndTime().isEmpty()
+                        ? java.time.LocalTime.parse(request.getEndTime())
+                        : null)
+                .subject(request.getSubject() != null && !request.getSubject().isEmpty() ? request.getSubject() : null)
+                .status(request.getStatus() != null ? LessonStatus.valueOf(request.getStatus())
+                        : LessonStatus.SCHEDULED)
                 .build();
 
         SessionRecord saved = sessionRecordRepository.save(record);
@@ -95,26 +104,24 @@ public class SessionRecordService {
         SessionRecord record = sessionRecordRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Record not found"));
 
-        // Update fields nếu có trong request
+        // Optimistic locking
+        if (request.getVersion() != null && !record.getVersion().equals(request.getVersion())) {
+            throw new RuntimeException("Concurrent update detected. Please refresh and try again.");
+        }
+
+        // Update fields if present in request
         if (request.getMonth() != null) {
             record.setMonth(request.getMonth());
         }
 
         if (request.getSessions() != null) {
             record.setSessions(request.getSessions());
-            // Recalculate hours and total
-            Double hours = request.getSessions() * 2.0; // Default to 2.0 if not specified, or logic needs adjustment.
-                                                        // Wait, update doesn't have hoursPerSession in request?
-            // Checking logic: updateRecord request might not have hoursPerSession info if
-            // it's just updating sessions count.
-            // Assuming 2.0 for now as it was * 2 before, but this is risky.
-            // Better to keep existing hoursPerSession ratio if possible, or just default to
-            // * 2.0 for now as requested.
-            // Actually, request object for update might need hoursPerSession or we derive
-            // it.
-            // Looking at the code, it hardcoded * 2 before.
-            record.setHours(hours);
-            record.setTotalAmount((long) (hours * record.getPricePerHour()));
+            // Maintain hours based on new sessions count if hoursPerSession is provided or
+            // use existing ratio
+            double ratio = request.getHoursPerSession() != null ? request.getHoursPerSession()
+                    : (record.getHours() / record.getSessions());
+            record.setHours(request.getSessions() * ratio);
+            record.setTotalAmount((long) (record.getHours() * record.getPricePerHour()));
         }
 
         if (request.getSessionDate() != null) {
@@ -127,6 +134,47 @@ public class SessionRecordService {
 
         if (request.getCompleted() != null) {
             record.setCompleted(request.getCompleted());
+        }
+
+        // New Calendar Fields
+        if (request.getStartTime() != null) {
+            record.setStartTime(
+                    request.getStartTime().isEmpty() ? null : java.time.LocalTime.parse(request.getStartTime()));
+        }
+        if (request.getEndTime() != null) {
+            record.setEndTime(request.getEndTime().isEmpty() ? null : java.time.LocalTime.parse(request.getEndTime()));
+        }
+
+        // Auto-recalculate hours based on time if both provided/available
+        if (record.getStartTime() != null && record.getEndTime() != null) {
+            java.time.Duration duration = java.time.Duration.between(record.getStartTime(), record.getEndTime());
+            if (duration.isNegative())
+                duration = duration.plusDays(1); // Handle overnight
+            double newHours = duration.toMinutes() / 60.0;
+            if (newHours > 0) {
+                record.setHours(newHours);
+                record.setTotalAmount((long) (newHours * record.getPricePerHour()));
+            }
+        }
+
+        if (request.getSubject() != null) {
+            record.setSubject(request.getSubject().isEmpty() ? null : request.getSubject());
+        }
+        if (request.getStatus() != null) {
+            LessonStatus newStatus = LessonStatus.valueOf(request.getStatus());
+            // Optional: validate transition if needed
+            // statusTransitionValidator.validate(record.getStatus(), newStatus);
+            record.setStatus(newStatus);
+
+            // Sync legacy fields
+            if (newStatus == LessonStatus.PAID) {
+                record.setPaid(true);
+                record.setCompleted(true);
+                if (record.getPaidAt() == null)
+                    record.setPaidAt(java.time.LocalDateTime.now());
+            } else if (newStatus == LessonStatus.COMPLETED) {
+                record.setCompleted(true);
+            }
         }
 
         SessionRecord updated = sessionRecordRepository.save(record);

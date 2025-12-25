@@ -20,12 +20,18 @@ public class SessionRecordRequest {
     @Min(value = 1, message = "Sessions must be at least 1")
     private Integer sessions;
 
-    @NotNull(message = "Hours per session is required")  // 🆕 Thêm validation
+    @NotNull(message = "Hours per session is required") // 🆕 Thêm validation
     @DecimalMin(value = "0.5", message = "Hours per session must be at least 0.5")
-    private Double hoursPerSession;  // 🆕 Thêm field này
+    private Double hoursPerSession; // 🆕 Thêm field này
 
     @NotBlank(message = "Session date is required")
     private String sessionDate;
 
     private String notes;
+
+    // 🆕 New Calendar Fields
+    private String startTime;
+    private String endTime;
+    private String subject;
+    private String status;
 }

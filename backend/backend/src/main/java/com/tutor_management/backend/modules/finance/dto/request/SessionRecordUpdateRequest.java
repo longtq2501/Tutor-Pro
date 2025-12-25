@@ -15,4 +15,9 @@ public class SessionRecordUpdateRequest {
     private String sessionDate;
     private String notes;
     private Boolean completed;
+    private String startTime;
+    private String endTime;
+    private String subject;
+    private String status;
+    private Integer version;
 }

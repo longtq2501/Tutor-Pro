@@ -6,7 +6,7 @@ export interface UserInfo {
   email: string;
   fullName: string;
   role: 'ADMIN' | 'TUTOR' | 'STUDENT';
-  studentId?: number; 
+  studentId?: number;
 }
 
 export const authService = {
@@ -25,6 +25,9 @@ export const authService = {
   logout: async (): Promise<void> => {
     try {
       await api.post('/auth/logout');
+    } catch (error) {
+      // Ignore logout errors (e.g. 401 if already expired)
+      console.warn('Logout API failed, continuing with client cleanup:', error);
     } finally {
       // LUÔN LUÔN XÓA DỮ LIỆU Ở CLIENT SAU KHI LOGOUT
       localStorage.removeItem('accessToken');

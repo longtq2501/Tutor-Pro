@@ -22,11 +22,12 @@ const api = axios.create({
  */
 api.interceptors.request.use(
   (config) => {
-    // KHÔNG ĐÍNH KÈM TOKEN VỚI CÁC API XÁC THỰC (LOGIN/REGISTER)
-    if (config.url?.includes('/auth/')) {
+    // KHÔNG ĐÍNH KÈM TOKEN VỚI CÁC API PUBLIC (LOGIN/REGISTER/REFRESH)
+    const publicAuthPaths = ['/auth/login', '/auth/register', '/auth/refresh-token'];
+    if (config.url && publicAuthPaths.some(path => config.url?.includes(path))) {
       return config;
     }
-    
+
     const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -49,7 +50,7 @@ api.interceptors.response.use(
     // KIỂM TRA NẾU LỖI LÀ 401 (UNAUTHORIZED) VÀ CHƯA THỬ LẠI
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      
+
       try {
         const refreshToken = localStorage.getItem('refreshToken');
         if (!refreshToken) {
@@ -60,7 +61,7 @@ api.interceptors.response.use(
         const response = await axios.post(`${API_URL}/auth/refresh-token`, {
           refreshToken,
         }, {
-          withCredentials: true 
+          withCredentials: true
         });
 
         // LẤY ACCESS TOKEN MỚI VÀ LƯU VÀO STORAGE
@@ -80,7 +81,7 @@ api.interceptors.response.use(
         return Promise.reject(refreshError);
       }
     }
-    
+
     return Promise.reject(error);
   }
 );

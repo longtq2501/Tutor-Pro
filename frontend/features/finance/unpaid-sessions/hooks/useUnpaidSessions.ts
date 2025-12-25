@@ -17,7 +17,9 @@ export function useUnpaidSessions() {
     try {
       setLoading(true);
       const response = await sessionsApi.getUnpaid();
-      setRecords(response);
+      // Only show taught sessions (completed = true)
+      const completedSessions = response.filter(r => r.completed);
+      setRecords(completedSessions);
     } catch (error) {
       console.error('Error loading unpaid records:', error);
       alert('Không thể tải danh sách buổi học chưa thanh toán!');

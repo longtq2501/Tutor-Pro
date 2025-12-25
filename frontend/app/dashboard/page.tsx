@@ -109,8 +109,8 @@ function AppContent() {
                 <div className="absolute top-20 -right-40 w-96 h-96 bg-purple-500/10 dark:bg-purple-500/10 rounded-full blur-[100px]" />
                 <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500/10 dark:bg-blue-500/10 rounded-full blur-[100px]" />
 
-                {/* Background Beams - Only visible in dark mode */}
-                <div className="hidden dark:flex absolute inset-0 z-0">
+                {/* Background Beams - Only visible in dark mode, desktop only for performance */}
+                <div className="hidden dark:hidden lg:dark:flex absolute inset-0 z-0">
                     <BackgroundBeams />
                 </div>
             </div>

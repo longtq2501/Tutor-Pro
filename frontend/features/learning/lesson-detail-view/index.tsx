@@ -19,13 +19,13 @@ export default function LessonDetailView({ lessonId }: LessonDetailViewProps) {
   const [sidebarWidth, setSidebarWidth] = useState(45);
   const [isResizing, setIsResizing] = useState(false);
 
-  // Loading Skeleton - Matches Desktop Flex Layout
+  // Loading Skeleton - Matches Responsive Layout
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex flex-col overflow-hidden">
         <div className="flex-1 flex flex-col lg:flex-row h-full">
-          {/* Skeleton Sidebar (45%) */}
-          <div className="hidden lg:block w-[45%] border-r border-border bg-background">
+          {/* Skeleton Sidebar (100% on mobile, 45% on desktop) */}
+          <div className="w-full lg:w-[45%] border-b lg:border-b-0 lg:border-r border-border bg-background">
             <div className="p-6 space-y-6">
               <div className="h-10 w-3/4 bg-muted/60 rounded-md animate-pulse" />
               <div className="aspect-video bg-muted/60 rounded-xl animate-pulse" />
@@ -34,7 +34,7 @@ export default function LessonDetailView({ lessonId }: LessonDetailViewProps) {
             </div>
           </div>
 
-          {/* Skeleton Content (55%) */}
+          {/* Skeleton Content (Hidden on mobile initially or stacked? Let's stack) */}
           <div className="flex-1 bg-background p-6 space-y-4">
             <div className="h-8 w-48 bg-muted/60 rounded-md animate-pulse" />
             <div className="h-full bg-card rounded-xl border border-input shadow-sm animate-pulse" />
@@ -60,9 +60,9 @@ export default function LessonDetailView({ lessonId }: LessonDetailViewProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col" style={{ '--sidebar-width': `${sidebarWidth}%` } as React.CSSProperties}>
       <div
-        className="flex-1 flex flex-col lg:flex-row overflow-hidden"
+        className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden scroll-smooth"
         onMouseMove={(e) => {
           if (isResizing) {
             const newWidth = (e.clientX / window.innerWidth) * 100;
@@ -77,13 +77,12 @@ export default function LessonDetailView({ lessonId }: LessonDetailViewProps) {
 
         {/* Left Column (Sidebar) */}
         <div
-          className="lg:h-[calc(100vh)] overflow-y-auto bg-background border-r border-border
+          className="w-full lg:w-[var(--sidebar-width)] h-auto lg:h-[calc(100vh)] lg:overflow-y-auto bg-background border-b lg:border-b-0 lg:border-r border-border shrink-0
           [&::-webkit-scrollbar]:w-1.5
           [&::-webkit-scrollbar-track]:bg-transparent
           [&::-webkit-scrollbar-thumb]:bg-muted-foreground/10
           [&::-webkit-scrollbar-thumb]:rounded-full
           hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/20"
-          style={{ width: `${sidebarWidth}%` }}
         >
           <div className="p-6 space-y-6">
             {/* Header in Sidebar */}
@@ -155,21 +154,23 @@ export default function LessonDetailView({ lessonId }: LessonDetailViewProps) {
 
         {/* Right Column (Reference Content) */}
         <div
-          className="flex-1 lg:h-[calc(100vh)] overflow-y-auto bg-muted/40 dark:bg-background
+          className="flex-1 h-auto lg:h-[calc(100vh)] lg:overflow-y-auto bg-muted/40 dark:bg-background
           [&::-webkit-scrollbar]:w-1.5
           [&::-webkit-scrollbar-track]:bg-transparent
           [&::-webkit-scrollbar-thumb]:bg-muted-foreground/10
           [&::-webkit-scrollbar-thumb]:rounded-full
           hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/20"
         >
-          <div className="p-6 pb-8 min-h-full flex flex-col">
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-primary">
-              <BookOpen className="h-5 w-5" />
-              Nội Dung Bài Học
-            </h2>
+          <div className="p-6 pb-8 min-h-0 lg:min-h-full flex flex-col relative">
+            <div className="sticky top-0 z-20 -mx-6 px-6 py-4 bg-muted/40 dark:bg-background/95 backdrop-blur-md mb-4 border-b border-border/10 lg:static lg:bg-transparent lg:p-0 lg:m-0 lg:border-none">
+              <h2 className="text-lg font-bold flex items-center gap-2 text-primary">
+                <BookOpen className="h-5 w-5" />
+                Nội Dung Bài Học
+              </h2>
+            </div>
             <LessonContentTab
               content={lesson.content || ''}
-              className="flex-1 bg-card rounded-xl border border-input shadow-sm active:shadow-md transition-shadow"
+              className="w-full h-auto lg:flex-1 bg-card rounded-xl border border-input shadow-sm active:shadow-md transition-shadow"
             />
           </div>
         </div>

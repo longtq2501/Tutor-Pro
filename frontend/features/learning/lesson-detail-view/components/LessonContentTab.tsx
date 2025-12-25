@@ -132,7 +132,7 @@ export function LessonContentTab({ content, className }: LessonContentTabProps) 
           ref={iframeRef}
           srcDoc={iframeContent}
           className="w-full border-0 block"
-          style={{ minHeight: '600px' }}
+          style={{ minHeight: '200px' }}
           title="Lesson Content"
           sandbox="allow-same-origin allow-scripts" // allow-scripts needed for any resizing logic inside if we added it
         />

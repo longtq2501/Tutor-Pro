@@ -12,11 +12,10 @@ public class InvoiceResponse {
     private String studentName;
     private String month;
     private Integer totalSessions;
-    private Integer totalHours;
+    private Double totalHours;
     private Long totalAmount;
     private List<InvoiceItem> items;
     private BankInfo bankInfo;
     private String qrCodeUrl;
     private String createdDate;
 }
-

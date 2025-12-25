@@ -10,7 +10,7 @@ public class InvoiceItem {
     private String date; // DD/MM/YYYY
     private String description; // "Buổi học tiếng Anh"
     private Integer sessions;
-    private Integer hours;
+    private Double hours;
     private Long pricePerHour;
     private Long amount;
 }

@@ -30,7 +30,7 @@ public class SessionRecord {
     private Integer sessions;
 
     @Column(nullable = false)
-    private Integer hours;
+    private Double hours;
 
     @Column(nullable = false)
     private Long pricePerHour;

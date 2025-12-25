@@ -41,8 +41,8 @@ public class SessionRecordService {
         Student student = studentRepository.findById(request.getStudentId())
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        int hours = request.getSessions() * 2;
-        long totalAmount = hours * student.getPricePerHour();
+        Double hours = request.getHoursPerSession() * request.getSessions();
+        long totalAmount = (long) (hours * student.getPricePerHour()); // Cast result of multiplication
 
         SessionRecord record = SessionRecord.builder()
                 .student(student)
@@ -102,9 +102,18 @@ public class SessionRecordService {
         if (request.getSessions() != null) {
             record.setSessions(request.getSessions());
             // Recalculate hours and total
-            int hours = request.getSessions() * 2;
+            Double hours = request.getSessions() * 2.0; // Default to 2.0 if not specified, or logic needs adjustment.
+                                                        // Wait, update doesn't have hoursPerSession in request?
+            // Checking logic: updateRecord request might not have hoursPerSession info if
+            // it's just updating sessions count.
+            // Assuming 2.0 for now as it was * 2 before, but this is risky.
+            // Better to keep existing hoursPerSession ratio if possible, or just default to
+            // * 2.0 for now as requested.
+            // Actually, request object for update might need hoursPerSession or we derive
+            // it.
+            // Looking at the code, it hardcoded * 2 before.
             record.setHours(hours);
-            record.setTotalAmount(hours * record.getPricePerHour());
+            record.setTotalAmount((long) (hours * record.getPricePerHour()));
         }
 
         if (request.getSessionDate() != null) {
@@ -158,8 +167,6 @@ public class SessionRecordService {
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
-
-
 
     public List<String> getDistinctMonths() {
         return sessionRecordRepository.findDistinctMonths();

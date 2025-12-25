@@ -1,7 +1,7 @@
 package com.tutor_management.backend.modules.schedule;
 
 import com.tutor_management.backend.modules.schedule.dto.request.RecurringScheduleRequest;
-import com.tutor_management.backend.modules.finance.SessionRecordService;
+
 import com.tutor_management.backend.modules.schedule.dto.response.RecurringScheduleResponse;
 import com.tutor_management.backend.modules.finance.SessionRecord;
 import com.tutor_management.backend.modules.student.Student;
@@ -130,7 +130,7 @@ public class RecurringScheduleService {
     /**
      * Tạo tự động các buổi học cho 1 tháng theo lịch cố định
      *
-     * @param month Tháng cần tạo (YYYY-MM)
+     * @param month      Tháng cần tạo (YYYY-MM)
      * @param studentIds Danh sách student IDs (null = tất cả)
      * @return Số buổi học đã tạo
      */
@@ -203,8 +203,7 @@ public class RecurringScheduleService {
                 // Check if session already exists for this date
                 LocalDate finalDate = date;
                 boolean exists = sessionRecordRepository.findByStudentIdOrderByCreatedAtDesc(
-                                schedule.getStudent().getId()
-                        ).stream()
+                        schedule.getStudent().getId()).stream()
                         .anyMatch(sr -> sr.getSessionDate().equals(finalDate) && sr.getMonth().equals(month));
 
                 if (!exists) {
@@ -213,10 +212,10 @@ public class RecurringScheduleService {
                             .student(schedule.getStudent())
                             .month(month)
                             .sessions(1) // 1 buổi học
-                            .hours((int) (schedule.getHoursPerSession() * 1)) // Tính giờ
+                            .hours(schedule.getHoursPerSession() * 1) // Tính giờ (Double)
                             .pricePerHour(schedule.getStudent().getPricePerHour())
-                            .totalAmount(schedule.getStudent().getPricePerHour() *
-                                    (long)(schedule.getHoursPerSession() * 1))
+                            .totalAmount((long) (schedule.getStudent().getPricePerHour() *
+                                    (schedule.getHoursPerSession() * 1)))
                             .paid(false)
                             .sessionDate(date)
                             .notes("Auto-generated from recurring schedule")
@@ -322,7 +321,7 @@ public class RecurringScheduleService {
             return "";
         }
 
-        String[] dayNames = {"", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN"};
+        String[] dayNames = { "", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN" };
 
         return Arrays.stream(days)
                 .map(day -> dayNames[day])

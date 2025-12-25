@@ -15,7 +15,7 @@ public class SessionRecordResponse {
     private String studentName;
     private String month;
     private Integer sessions;
-    private Integer hours;
+    private Double hours;
     private Long pricePerHour;
     private Long totalAmount;
     private Boolean paid;
@@ -23,5 +23,5 @@ public class SessionRecordResponse {
     private String notes;
     private String sessionDate; // 🆕 Ngày dạy (String để dễ serialize)
     private String createdAt;
-    private Boolean completed;  // Trạng thái đã dạy
+    private Boolean completed; // Trạng thái đã dạy
 }

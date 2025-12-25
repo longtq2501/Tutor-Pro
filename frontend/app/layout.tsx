@@ -9,6 +9,7 @@ import QueryProvider from '@/providers/QueryProvider';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://tutor-management-e7zh.vercel.app'),
   title: 'Tutor Pro - Quản lý gia sư',
   description: 'Hệ thống quản lý gia sư chuyên nghiệp, tối ưu hóa quy trình dạy và học.',
   openGraph: {

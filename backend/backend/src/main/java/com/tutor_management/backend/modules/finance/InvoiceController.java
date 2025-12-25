@@ -246,7 +246,7 @@ public class InvoiceController {
             } else {
                 // Fallback: dùng studentIds và month (cho 1 tháng)
                 combinedRequest = InvoiceRequest.builder()
-                        .studentId(studentIds.get(0))
+                        .studentId(studentIds.getFirst())
                         .month(request.getMonth())
                         .multipleStudents(true)
                         .selectedStudentIds(studentIds)

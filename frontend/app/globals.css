@@ -234,3 +234,26 @@ body {
     @apply bg-slate-400 dark:bg-slate-600;
   }
 }
+
+/* ==========================================================================
+   PRINT STYLES
+   ========================================================================== */
+
+@media print {
+  nav, aside, header:not(.calendar-header), footer, button, .no-print {
+    display: none !important;
+  }
+  body, main, #root, .container {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: white !important;
+    color: black !important;
+  }
+  .bg-card { border: none !important; box-shadow: none !important; background: white !important; }
+  .grid { border: 1px solid #e2e8f0 !important; }
+  .overflow-hidden, .overflow-y-auto { overflow: visible !important; max-height: none !important; }
+  .page-break { page-break-after: always; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+}

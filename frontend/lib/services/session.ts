@@ -79,4 +79,48 @@ export const sessionsApi = {
     const response = await api.put(`/sessions/${id}/toggle-completed`);
     return response.data;
   },
+
+  /**
+   * Lấy thông tin chi tiết của một buổi học
+   */
+  getById: async (id: number): Promise<SessionRecord> => {
+    const response = await api.get(`/sessions/${id}`);
+    return response.data;
+  },
+
+  /**
+   * Cập nhật trạng thái buổi học (Optimistic Locking)
+   */
+  updateStatus: async (id: number, newStatus: string, version: number): Promise<SessionRecord> => {
+    const response = await api.patch(`/sessions/${id}/status`, null, {
+      params: { newStatus, version }
+    });
+    return response.data;
+  },
+
+  /**
+   * Nhân bản một buổi học
+   */
+  duplicate: async (id: number): Promise<SessionRecord> => {
+    const response = await api.post(`/sessions/${id}/duplicate`);
+    return response.data;
+  },
+
+  /**
+   * Xuất danh sách buổi học ra file Excel
+   */
+  exportToExcel: async (month?: string, studentId?: number): Promise<void> => {
+    const response = await api.get('/sessions/export/excel', {
+      params: { month, studentId },
+      responseType: 'blob'
+    });
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Sessions_Export_${month || 'All'}.xlsx`);
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode?.removeChild(link);
+  },
 };

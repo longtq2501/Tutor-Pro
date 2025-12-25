@@ -6,7 +6,20 @@
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/student/StudentApiController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/student/StudentApiController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.vscode/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/.vscode/settings.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/InvoiceController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/InvoiceController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecord.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecord.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/dto/response/SessionRecordResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/dto/response/SessionRecordResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/globals.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarGrid.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarGrid.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarHeader.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/DayDetailModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/DayDetailModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/services/session.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/session.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/types/finance.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/types/finance.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -115,6 +128,14 @@
       </list>
     </recent_temporary>
   </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-fbdcb00ec9e3-intellij.indexing.shared.core-IU-251.25410.129" />
+        <option value="bundled-js-predefined-d6986cc7102b-6a121458b545-JavaScript-IU-251.25410.129" />
+      </set>
+    </attachedChunks>
+  </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="" />
@@ -137,6 +158,8 @@
       <workItem from="1766649695864" duration="2152000" />
       <workItem from="1766671475384" duration="189000" />
       <workItem from="1766671818559" duration="82000" />
+      <workItem from="1766671939767" duration="38000" />
+      <workItem from="1766689746735" duration="327000" />
     </task>
     <servers />
   </component>

@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "session_records")
@@ -52,8 +53,29 @@ public class SessionRecord {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Builder.Default
     @Column(nullable = false)
-    private Boolean completed = false; // Trạng thái đã dạy hay chưa
+    private Boolean completed = false; // Trạng thái đã dạy hay chưa (deprecated, use status instead)
+
+    // ========== NEW FIELDS FOR CALENDAR OPTIMIZATION ==========
+
+    @Column(name = "start_time")
+    private LocalTime startTime; // Giờ bắt đầu buổi học (e.g., 14:00)
+
+    @Column(name = "end_time")
+    private LocalTime endTime; // Giờ kết thúc buổi học (e.g., 15:30)
+
+    @Column(length = 100)
+    private String subject; // Môn học (e.g., Toán 10, Lý 11)
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(length = 50)
+    private LessonStatus status = LessonStatus.SCHEDULED; // Trạng thái chi tiết
+
+    @Builder.Default
+    @Version
+    private Integer version = 0; // Optimistic locking to prevent concurrent updates
 
     @PrePersist
     protected void onCreate() {
@@ -61,8 +83,14 @@ public class SessionRecord {
         if (paid == null) {
             paid = false;
         }
-        if (completed == null) { // ← THÊM
+        if (completed == null) {
             completed = false;
+        }
+        if (status == null) {
+            status = LessonStatus.SCHEDULED;
+        }
+        if (version == null) {
+            version = 0;
         }
     }
 }

@@ -21,6 +21,7 @@ public class SessionRecordService {
 
     private final SessionRecordRepository sessionRecordRepository;
     private final StudentRepository studentRepository;
+    private final StatusTransitionValidator statusTransitionValidator;
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
 
     public List<SessionRecordResponse> getAllRecords() {
@@ -188,6 +189,103 @@ public class SessionRecordService {
                 .sessionDate(record.getSessionDate().toString()) // Format YYYY-MM-DD
                 .createdAt(record.getCreatedAt().format(formatter))
                 .completed(record.getCompleted())
+                // New calendar optimization fields
+                .startTime(record.getStartTime() != null
+                        ? record.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm"))
+                        : null)
+                .endTime(record.getEndTime() != null ? record.getEndTime().format(DateTimeFormatter.ofPattern("HH:mm"))
+                        : null)
+                .subject(record.getSubject())
+                .status(record.getStatus() != null ? record.getStatus().name() : null)
+                .version(record.getVersion())
                 .build();
+    }
+
+    // ========== NEW METHODS FOR PHASE 2 ==========
+
+    /**
+     * Get a single session by ID
+     */
+    public SessionRecordResponse getSessionById(Long id) {
+        SessionRecord record = sessionRecordRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Session not found with id: " + id));
+        return convertToResponse(record);
+    }
+
+    /**
+     * Update session status with optimistic locking
+     * 
+     * @param id              Session ID
+     * @param newStatus       Target status
+     * @param expectedVersion Expected version for optimistic locking
+     * @return Updated session
+     * @throws RuntimeException                 if version mismatch (concurrent
+     *                                          update detected)
+     * @throws InvalidStatusTransitionException if transition is not allowed
+     */
+    public SessionRecordResponse updateStatus(Long id, LessonStatus newStatus, Integer expectedVersion) {
+        SessionRecord record = sessionRecordRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Session not found with id: " + id));
+
+        // Optimistic locking check
+        if (!record.getVersion().equals(expectedVersion)) {
+            throw new RuntimeException(
+                    String.format(
+                            "Concurrent update detected. Expected version %d but found %d. Please refresh and try again.",
+                            expectedVersion, record.getVersion()));
+        }
+
+        // Validate status transition
+        LessonStatus currentStatus = record.getStatus();
+        statusTransitionValidator.validate(currentStatus, newStatus);
+
+        // Update status
+        record.setStatus(newStatus);
+
+        // Auto-update legacy fields for backward compatibility
+        if (newStatus == LessonStatus.COMPLETED || newStatus == LessonStatus.PENDING_PAYMENT) {
+            record.setCompleted(true);
+        }
+        if (newStatus == LessonStatus.PAID) {
+            record.setCompleted(true);
+            record.setPaid(true);
+            if (record.getPaidAt() == null) {
+                record.setPaidAt(java.time.LocalDateTime.now());
+            }
+        }
+
+        // Version will auto-increment due to @Version annotation
+        SessionRecord updated = sessionRecordRepository.save(record);
+        return convertToResponse(updated);
+    }
+
+    /**
+     * Duplicate a session
+     * Creates a copy with SCHEDULED status and incremented date
+     */
+    public SessionRecordResponse duplicateSession(Long id) {
+        SessionRecord original = sessionRecordRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Session not found with id: " + id));
+
+        // Create duplicate with SCHEDULED status
+        SessionRecord duplicate = SessionRecord.builder()
+                .student(original.getStudent())
+                .month(original.getMonth())
+                .sessions(original.getSessions())
+                .hours(original.getHours())
+                .pricePerHour(original.getPricePerHour())
+                .totalAmount(original.getTotalAmount())
+                .paid(false)
+                .completed(false)
+                .notes(original.getNotes())
+                .sessionDate(original.getSessionDate().plusDays(7)) // Next week by default
+                .startTime(original.getStartTime())
+                .endTime(original.getEndTime())
+                .subject(original.getSubject())
+                .status(LessonStatus.SCHEDULED)
+                .build();
+
+        SessionRecord saved = sessionRecordRepository.save(duplicate);
+        return convertToResponse(saved);
     }
 }

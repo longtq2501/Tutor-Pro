@@ -1,3 +1,5 @@
+import type { LessonStatus } from './lesson-status';
+
 export interface SessionRecord {
   id: number; // ID BUỔI HỌC
   studentId: number; // ID HỌC SINH
@@ -8,12 +10,19 @@ export interface SessionRecord {
   pricePerHour: number; // ĐƠN GIÁ TRÊN MỖI GIỜ TẠI THỜI ĐIỂM ĐÓ
   totalAmount: number; // TỔNG TIỀN CỦA BUỔI HỌC (HOURS * PRICE)
   paid: boolean; // TRẠNG THÁI ĐÃ THANH TOÁN HAY CHƯA
-  completed?: boolean; // TRẠNG THÁI ĐÃ HOÀN THÀNH BUỔI HỌC
+  completed?: boolean; // TRẠNG THÁI ĐÃ HOÀN THÀNH BUỔI HỌC (deprecated, use status instead)
   paidAt?: string; // THỜI ĐIỂM THANH TOÁN
   notes?: string; // GHI CHÚ NỘI DUNG BUỔI HỌC
   sessionDate: string; // NGÀY DIỄN RA BUỔI HỌC (YYYY-MM-DD)
   hoursPerSession: number; // SỐ GIỜ ĐỊNH MỨC CỦA MỖI BUỔI
   createdAt: string; // NGÀY TẠO BẢN GHI
+
+  // ========== NEW FIELDS FOR CALENDAR OPTIMIZATION ==========
+  startTime?: string; // GIỜ BẮT ĐẦU (HH:mm format, e.g., "14:00")
+  endTime?: string; // GIỜ KẾT THÚC (HH:mm format, e.g., "15:30")
+  subject?: string; // MÔN HỌC (e.g., "Toán 10", "Lý 11")
+  status?: LessonStatus; // TRẠNG THÁI CHI TIẾT (SCHEDULED, CONFIRMED, COMPLETED, PAID, etc.)
+  version?: number; // VERSION FOR OPTIMISTIC LOCKING
 }
 
 export interface SessionRecordRequest {

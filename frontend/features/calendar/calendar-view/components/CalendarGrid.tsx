@@ -4,14 +4,19 @@
 import { Plus } from 'lucide-react';
 import { DAYS } from '../constants';
 import type { CalendarDay } from '../types';
+import { CompactLessonList } from './CompactLessonList';
+import type { SessionRecord } from '@/lib/types/finance';
 
 interface Props {
   days: CalendarDay[];
   onDayClick: (day: CalendarDay) => void;
   onAddSession: (dateStr: string) => void;
+  onSessionClick?: (session: SessionRecord) => void;
+  onContextMenu?: (e: React.MouseEvent, session: SessionRecord) => void;
 }
 
-export const CalendarGrid = ({ days, onDayClick, onAddSession }: Props) => (
+export const CalendarGrid = ({ days, onDayClick, onAddSession, onSessionClick, onContextMenu }: Props) => (
+
   <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
     <div className="grid grid-cols-7 bg-slate-50 dark:bg-slate-800 border-b border-border">
       {DAYS.map((day, i) => (
@@ -33,19 +38,12 @@ export const CalendarGrid = ({ days, onDayClick, onAddSession }: Props) => (
             </button>
           </div>
 
-          <div className="space-y-0.5">
-            {day.sessions.slice(0, 1).map((session) => (
-              <div key={session.id} className={`text-xs px-1.5 py-0.5 rounded-md truncate font-semibold border flex items-center gap-1.5 transition-all ${!session.completed ? 'bg-white border-slate-200 text-slate-500 dark:bg-slate-800/70 dark:border-slate-700 dark:text-slate-400' : session.paid ? 'bg-emerald-50/70 border-emerald-200/80 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-800/70 dark:text-emerald-500/90' : 'bg-orange-50/70 border-orange-200/80 text-orange-700 dark:bg-orange-900/30 dark:border-orange-800/70 dark:text-orange-500/90'}`}>
-                <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${!session.completed ? 'bg-slate-300' : session.paid ? 'bg-emerald-500' : 'bg-orange-500'}`}></span>
-                <span className="truncate">{session.studentName}</span>
-              </div>
-            ))}
-            {day.sessions.length > 1 && (
-              <div className="text-xs text-primary font-medium pl-1 hover:underline pt-0.5">
-                + {day.sessions.length - 1} nữa...
-              </div>
-            )}
-          </div>
+          {/* Use CompactLessonList component */}
+          <CompactLessonList
+            sessions={day.sessions}
+            onSessionClick={onSessionClick}
+            onContextMenu={onContextMenu}
+          />
         </div>
       ))}
     </div>

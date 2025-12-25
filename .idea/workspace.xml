@@ -6,6 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/student/StudentApiController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/student/StudentApiController.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -114,14 +115,6 @@
       </list>
     </recent_temporary>
   </component>
-  <component name="SharedIndexes">
-    <attachedChunks>
-      <set>
-        <option value="bundled-jdk-9823dce3aa75-fbdcb00ec9e3-intellij.indexing.shared.core-IU-251.25410.129" />
-        <option value="bundled-js-predefined-d6986cc7102b-6a121458b545-JavaScript-IU-251.25410.129" />
-      </set>
-    </attachedChunks>
-  </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="" />
@@ -142,6 +135,8 @@
       <workItem from="1766638051077" duration="285000" />
       <workItem from="1766640906667" duration="3830000" />
       <workItem from="1766649695864" duration="2152000" />
+      <workItem from="1766671475384" duration="189000" />
+      <workItem from="1766671818559" duration="82000" />
     </task>
     <servers />
   </component>

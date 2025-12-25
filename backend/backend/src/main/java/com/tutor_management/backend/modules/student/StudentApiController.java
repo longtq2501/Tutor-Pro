@@ -86,7 +86,7 @@ public class StudentApiController {
         // Calculate stats
         int totalSessions = sessions.size();
         long completedSessions = sessions.stream().filter(SessionRecordResponse::getCompleted).count();
-        int totalHours = sessions.stream().mapToInt(SessionRecordResponse::getHours).sum();
+        double totalHours = sessions.stream().mapToDouble(SessionRecordResponse::getHours).sum();
         long totalAmount = sessions.stream().mapToLong(SessionRecordResponse::getTotalAmount).sum();
         long paidAmount = sessions.stream()
                 .filter(SessionRecordResponse::getPaid)

@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://tutor-management-e7zh.vercel.app/sitemap.xml

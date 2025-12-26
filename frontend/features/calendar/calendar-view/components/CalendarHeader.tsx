@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Zap, Loader2, Calendar as CalendarIcon, FileDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Zap, Loader2, Calendar as CalendarIcon, FileDown, Trash2 } from 'lucide-react';
 import { MONTHS } from '../constants';
 import { formatCurrency } from '../utils';
 import type { CalendarStats } from '../types';
@@ -14,6 +14,7 @@ interface Props {
   onAutoGenerate: () => void;
   onViewChange: (view: CalendarViewType) => void;
   onExport?: () => void;
+  onDeleteAll: () => void;
 }
 
 export const CalendarHeader = ({
@@ -25,9 +26,10 @@ export const CalendarHeader = ({
   onToday,
   onAutoGenerate,
   onViewChange,
-  onExport
+  onExport,
+  onDeleteAll
 }: Props) => (
-  <div className="flex flex-col gap-3 bg-card text-card-foreground p-3 md:p-4 rounded-2xl shadow-sm border border-border mb-4">
+  <div className="flex flex-col gap-3 bg-card/95 text-card-foreground p-3 md:p-4 rounded-2xl shadow-sm border border-border">
     {/* Top Row: Navigation and Statistics */}
     <div className="flex flex-col xl:flex-row justify-between items-center gap-4">
       {/* Navigation Group */}
@@ -82,12 +84,19 @@ export const CalendarHeader = ({
       </div>
     </div>
 
-    {/* Bottom Row: Full-width CTA Button */}
-    <div className="w-full pt-1">
+    {/* Bottom Row: CTA Buttons */}
+    <div className="w-full pt-1 flex gap-3">
+      <button
+        onClick={onDeleteAll}
+        className="w-12 md:w-14 flex items-center justify-center bg-red-50 dark:bg-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 rounded-xl font-bold transition-all border border-red-200 dark:border-red-800/50 shadow-sm active:scale-[0.99]"
+        title="Xóa tất cả buổi học trong tháng này"
+      >
+        <Trash2 size={18} />
+      </button>
       <button
         onClick={onAutoGenerate}
         disabled={isGenerating}
-        className="w-full py-2.5 md:py-3 bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded-xl font-bold transition-all flex items-center justify-center gap-2 border border-emerald-200 dark:border-emerald-800/50 shadow-sm active:scale-[0.99] disabled:opacity-50"
+        className="flex-1 py-2.5 md:py-3 bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded-xl font-bold transition-all flex items-center justify-center gap-2 border border-emerald-200 dark:border-emerald-800/50 shadow-sm active:scale-[0.99] disabled:opacity-50"
       >
         {isGenerating ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} fill="currentColor" />}
         <span className="text-sm md:text-base">Tạo Lịch Dạy Tự Động</span>

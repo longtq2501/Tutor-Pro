@@ -16,12 +16,13 @@ export function useStudents() {
 
   const loadStudents = async () => {
     try {
+      // Use react-query queryClient to get data if available, or fetch
+      // But here we are just simple hook. Let's keep it simple or migrate to query if desired. 
+      // User only asked to fix auto-select.
       const data = await studentsApi.getAll();
       const activeStudents = data.filter(s => s.active);
       setStudents(activeStudents);
-      if (activeStudents.length > 0) {
-        setSelectedStudent(activeStudents[0].id);
-      }
+      // Removed auto-select logic
     } catch (error) {
       console.error('Failed to load students:', error);
       toast.error('Không thể tải danh sách học sinh');

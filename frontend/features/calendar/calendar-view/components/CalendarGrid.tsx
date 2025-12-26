@@ -14,10 +14,11 @@ interface Props {
   onSessionClick?: (session: SessionRecord) => void;
   onSessionEdit?: (session: SessionRecord) => void;
   onUpdate?: (updated: SessionRecord) => void;
+  onDelete?: (id: number) => void;
   onContextMenu?: (e: React.MouseEvent, session: SessionRecord) => void;
 }
 
-export const CalendarGrid = ({ days, onDayClick, onAddSession, onSessionClick, onSessionEdit, onUpdate, onContextMenu }: Props) => (
+export const CalendarGrid = ({ days, onDayClick, onAddSession, onSessionClick, onSessionEdit, onUpdate, onDelete, onContextMenu }: Props) => (
 
   <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
     <div className="grid grid-cols-7 bg-slate-50 dark:bg-slate-800 border-b border-border">
@@ -46,6 +47,7 @@ export const CalendarGrid = ({ days, onDayClick, onAddSession, onSessionClick, o
             onSessionClick={onSessionClick}
             onSessionEdit={onSessionEdit}
             onUpdate={onUpdate}
+            onDelete={onDelete}
             onContextMenu={onContextMenu}
           />
         </div>

@@ -1,18 +1,15 @@
-// ============================================================================
-// FILE: add-session-modal/components/SummaryCard.tsx
-// ============================================================================
 export const SummaryCard = ({ totalHours, month }: { totalHours: number; month: string }) => (
-  <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-800/50 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-    <div className="flex justify-between items-center mb-3">
-      <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Tổng thời lượng</span>
-      <span className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">
-        {totalHours.toFixed(1)} <span className="text-sm font-medium text-slate-400 dark:text-slate-500">giờ</span>
+  <div className="bg-muted/50 rounded-lg p-4 border border-border">
+    <div className="flex justify-between items-center mb-2">
+      <span className="text-sm font-semibold text-muted-foreground">Tổng thời lượng</span>
+      <span className="text-2xl font-black text-foreground tracking-tight">
+        {totalHours.toFixed(1)} <span className="text-sm font-medium text-muted-foreground">giờ</span>
       </span>
     </div>
-    <div className="h-px bg-slate-200 dark:bg-slate-700 w-full mb-3" />
-    <div className="flex justify-between items-center text-xs font-semibold text-slate-500 dark:text-slate-400">
+    <div className="h-px bg-border w-full mb-3" />
+    <div className="flex justify-between items-center text-xs font-semibold text-muted-foreground">
       <span>Ghi nhận cho tháng</span>
-      <span className="bg-white dark:bg-slate-700 px-2 py-1 rounded border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200">
+      <span className="bg-background px-2 py-1 rounded border border-border text-foreground">
         {month || '--/--'}
       </span>
     </div>

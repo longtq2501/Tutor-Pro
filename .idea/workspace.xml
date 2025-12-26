@@ -6,28 +6,36 @@
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/components/ui/button.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/ui/button.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/components/ui/dropdown-menu.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/ui/dropdown-menu.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/StatusTransitionValidator.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/StatusTransitionValidator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/schedule/RecurringSchedule.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/schedule/RecurringSchedule.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/schedule/RecurringScheduleService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/schedule/RecurringScheduleService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/schedule/dto/request/RecurringScheduleRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/schedule/dto/request/RecurringScheduleRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/schedule/dto/response/RecurringScheduleResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/schedule/dto/response/RecurringScheduleResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/dashboard/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/components/ActionButtons.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/components/ActionButtons.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/components/FormField.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/components/FormField.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/hooks/useSessionForm.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/hooks/useSessionForm.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/components/ModalHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/components/ModalHeader.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/components/SummaryCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/components/SummaryCard.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/types.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarGrid.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarGrid.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarHeader.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CompactLessonList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CompactLessonList.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/ContextMenu.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/ContextMenu.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/DayDetailModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/DayDetailModal.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/DayView.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/DayView.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/LessonCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/LessonCard.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/LessonDetailModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/LessonDetailModal.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/ListView.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/ListView.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/QuickActions.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/QuickActions.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/QuickActions.tsx" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/StatusLegend.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/StatusLegend.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/WeekView.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/WeekView.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/hooks/useCalendarView.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/hooks/useCalendarView.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/students/student-list/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/student-list/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/recurring-schedule/components/RecurringScheduleModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/recurring-schedule/components/RecurringScheduleModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/recurring-schedule/hooks/useRecurringScheduleForm.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/recurring-schedule/hooks/useRecurringScheduleForm.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/lib/services/session.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/session.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/types/finance.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/types/finance.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/types/recurring-schedule.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/types/recurring-schedule.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -169,6 +177,7 @@
       <workItem from="1766671939767" duration="38000" />
       <workItem from="1766689746735" duration="974000" />
       <workItem from="1766694522548" duration="797000" />
+      <workItem from="1766735666863" duration="4174000" />
     </task>
     <servers />
   </component>

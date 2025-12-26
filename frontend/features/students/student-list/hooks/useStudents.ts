@@ -1,42 +1,51 @@
 // ============================================================================
 // 📁 student-list/hooks/useStudents.ts
 // ============================================================================
-import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { studentsApi } from '@/lib/services';
-import type { Student } from '@/lib/types';
+import { toast } from 'sonner';
 
 export function useStudents() {
-  const [students, setStudents] = useState<Student[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    loadStudents();
-  }, []);
+  // 1. Fetch Students with Cache
+  const {
+    data: students,
+    isLoading: loading,
+    refetch: loadStudents
+  } = useQuery({
+    queryKey: ['students'],
+    queryFn: () => studentsApi.getAll(),
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 60 * 60 * 1000,
+  });
 
-  const loadStudents = async () => {
-    try {
-      setLoading(true);
-      const data = await studentsApi.getAll();
-      setStudents(data || []);
-    } catch (error) {
-      console.error('Error loading students:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // 2. Delete Student
   const deleteStudent = async (id: number) => {
     if (!confirm('CẢNH BÁO: Xóa học sinh sẽ xóa toàn bộ lịch sử học và doanh thu liên quan. Bạn có chắc chắn?')) {
       return;
     }
-    try {
+
+    const promise = async () => {
       await studentsApi.delete(id);
-      await loadStudents();
-    } catch (error) {
-      console.error('Error deleting student:', error);
-      alert('Không thể xóa học sinh!');
-    }
+      // Invalidate both students list and sessions as they might be related
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['students'] }),
+        queryClient.invalidateQueries({ queryKey: ['sessions'] }) // Invalidate sessions too
+      ]);
+    };
+
+    toast.promise(promise(), {
+      loading: 'Đang xóa hồ sơ học sinh...',
+      success: 'Đã xóa học sinh thành công',
+      error: 'Không thể xóa học sinh. Vui lòng thử lại.'
+    });
   };
 
-  return { students, loading, loadStudents, deleteStudent };
+  return {
+    students: students || [],
+    loading,
+    loadStudents,
+    deleteStudent
+  };
 }

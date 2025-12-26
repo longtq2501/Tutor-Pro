@@ -2,6 +2,8 @@ import type { SessionRecord } from '@/lib/types/finance';
 import { Edit, Copy, Trash2, Check, DollarSign, X } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { sessionsApi } from '@/lib/services';
+import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
 interface ContextMenuProps {
     session: SessionRecord;
@@ -9,6 +11,7 @@ interface ContextMenuProps {
     onClose: () => void;
     onEdit?: (session: SessionRecord) => void;
     onUpdate?: (updated: SessionRecord) => void;
+    onDelete?: (id: number) => void;
 }
 
 /**
@@ -21,9 +24,11 @@ interface ContextMenuProps {
  * - Delete
  * - Status changes (Mark taught, Confirm payment, Cancel)
  */
-export function ContextMenu({ session, position, onClose, onEdit, onUpdate }: ContextMenuProps) {
+export function ContextMenu({ session, position, onClose, onEdit, onUpdate, onDelete }: ContextMenuProps) {
     const menuRef = useRef<HTMLDivElement>(null);
     const [loading, setLoading] = useState(false);
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+    const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
 
     // Close on click outside
     useEffect(() => {
@@ -54,7 +59,7 @@ export function ContextMenu({ session, position, onClose, onEdit, onUpdate }: Co
             onClose();
         } catch (error) {
             console.error('Action failed:', error);
-            alert(error instanceof Error ? error.message : 'Action failed');
+            toast.error(error instanceof Error ? error.message : 'Thao tác thất bại');
         } finally {
             setLoading(false);
         }
@@ -127,44 +132,76 @@ export function ContextMenu({ session, position, onClose, onEdit, onUpdate }: Co
                 </button>
             )}
 
-            {/* Cancel */}
-            {currentStatus !== 'PAID' && currentStatus !== 'CANCELLED_BY_TUTOR' && currentStatus !== 'CANCELLED_BY_STUDENT' && (
-                <>
-                    <div className="border-t border-border my-1" />
-                    <button
-                        onClick={() => handleAction(async () => {
-                            if (!confirm('Bạn có chắc muốn hủy buổi học này?')) {
-                                throw new Error('Cancelled by user');
-                            }
-                            if (session.version === undefined || session.version === null) return;
-                            const updated = await sessionsApi.updateStatus(session.id, 'CANCELLED_BY_TUTOR', session.version);
-                            onUpdate?.(updated);
-                        })}
-                        disabled={loading}
-                        className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 text-red-600 dark:text-red-400 disabled:opacity-50"
-                    >
-                        <X size={14} />
-                        Hủy buổi học
-                    </button>
-                </>
+            {/* Cancel/Restore */}
+            <div className="border-t border-border my-1" />
+            {currentStatus !== 'CANCELLED_BY_TUTOR' && currentStatus !== 'CANCELLED_BY_STUDENT' ? (
+                <button
+                    onClick={() => {
+                        setConfirmCancelOpen(true);
+                    }}
+                    disabled={loading}
+                    className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 text-orange-600 dark:text-orange-400 disabled:opacity-50"
+                >
+                    <X size={14} />
+                    Hủy buổi học
+                </button>
+            ) : (
+                <button
+                    onClick={() => handleAction(async () => {
+                        if (session.version === undefined || session.version === null) return;
+                        const updated = await sessionsApi.updateStatus(session.id, 'SCHEDULED', session.version);
+                        onUpdate?.(updated);
+                    })}
+                    disabled={loading}
+                    className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 text-blue-600 dark:text-blue-400 disabled:opacity-50"
+                >
+                    <Copy size={14} />
+                    Khôi phục (Đã hẹn)
+                </button>
             )}
 
             {/* Delete */}
             <div className="border-t border-border my-1" />
             <button
-                onClick={() => handleAction(async () => {
-                    if (!confirm('Bạn có chắc muốn XÓA VĨNH VIỄN buổi học này?')) {
-                        throw new Error('Cancelled by user');
-                    }
-                    await sessionsApi.delete(session.id);
-                    onUpdate?.(session); // Signal deletion
-                })}
+                onClick={() => {
+                    setConfirmDeleteOpen(true);
+                }}
                 disabled={loading}
-                className="w-full px-3 py-2 text-left text-sm hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center gap-2 text-red-600 dark:text-red-400 disabled:opacity-50"
+                className="w-full px-3 py-2 text-left text-sm hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center gap-2 text-red-600 dark:text-red-400 disabled:opacity-50 font-medium"
             >
                 <Trash2 size={14} />
-                Xóa
+                Xóa vĩnh viễn (Biến mất)
             </button>
+
+            {/* Confirmation Dialogs */}
+            <ConfirmDialog
+                open={confirmDeleteOpen}
+                onOpenChange={setConfirmDeleteOpen}
+                onConfirm={async () => {
+                    onDelete?.(Number(session.id));
+                }}
+                title="Xác nhận xóa vĩnh viễn?"
+                description="Hành động này sẽ xóa buổi học ra khỏi hệ thống và không thể hoàn tác. Bạn có chắc chắn không?"
+                confirmText="Xác nhận xóa"
+                variant="destructive"
+            />
+
+            <ConfirmDialog
+                open={confirmCancelOpen}
+                onOpenChange={setConfirmCancelOpen}
+                onConfirm={async () => {
+                    if (session.version === undefined || session.version === null) return;
+                    await handleAction(async () => {
+                        const updated = await sessionsApi.updateStatus(session.id, 'CANCELLED_BY_TUTOR', session.version as number);
+                        onUpdate?.(updated);
+                        toast.success('Đã hủy buổi học');
+                    });
+                }}
+                title="Xác nhận hủy buổi học?"
+                description="Buổi học sẽ chuyển sang trạng thái 'Tutor hủy'. Bạn có thể khôi phục lại sau."
+                confirmText="Xác nhận hủy"
+                variant="destructive"
+            />
         </div>
     );
 }

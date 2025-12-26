@@ -69,6 +69,17 @@ export function RecurringScheduleModal({
 
           <DaySelector selectedDays={formData.daysOfWeek} onToggle={toggleDay} />
 
+          <div className="space-y-2">
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">Môn học</label>
+            <input
+              type="text"
+              value={formData.subject || ''}
+              onChange={e => updateField('subject', e.target.value)}
+              className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl text-sm text-slate-700 dark:text-slate-200 focus:border-slate-400 focus:ring-4 focus:ring-slate-500/10 dark:focus:ring-slate-500/20 outline-none placeholder:text-slate-400 dark:text-slate-500"
+              placeholder="Ví dụ: Toán, Tiếng Anh..."
+            />
+          </div>
+
           <TimeRangePicker
             startTime={formData.startTime}
             endTime={formData.endTime}

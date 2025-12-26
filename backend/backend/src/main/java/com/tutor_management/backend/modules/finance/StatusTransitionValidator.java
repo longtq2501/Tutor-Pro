@@ -43,17 +43,27 @@ public class StatusTransitionValidator {
 
             LessonStatus.COMPLETED, List.of(
                     LessonStatus.PAID,
-                    LessonStatus.PENDING_PAYMENT),
+                    LessonStatus.PENDING_PAYMENT,
+                    LessonStatus.CANCELLED_BY_TUTOR,
+                    LessonStatus.CANCELLED_BY_STUDENT,
+                    LessonStatus.CONFIRMED // Allow undoing "marked as taught"
+            ),
 
             LessonStatus.PENDING_PAYMENT, List.of(
                     LessonStatus.PAID,
-                    LessonStatus.COMPLETED // Allow rejection back to completed
-            ),
+                    LessonStatus.COMPLETED,
+                    LessonStatus.CANCELLED_BY_TUTOR,
+                    LessonStatus.CANCELLED_BY_STUDENT),
 
-            // Terminal states - no further transitions allowed
-            LessonStatus.PAID, List.of(),
-            LessonStatus.CANCELLED_BY_STUDENT, List.of(),
-            LessonStatus.CANCELLED_BY_TUTOR, List.of());
+            // Even terminal states can be "undone" by an admin/tutor now for maximum
+            // flexibility
+            LessonStatus.PAID, List.of(
+                    LessonStatus.COMPLETED,
+                    LessonStatus.CANCELLED_BY_TUTOR,
+                    LessonStatus.CANCELLED_BY_STUDENT),
+
+            LessonStatus.CANCELLED_BY_STUDENT, List.of(LessonStatus.SCHEDULED),
+            LessonStatus.CANCELLED_BY_TUTOR, List.of(LessonStatus.SCHEDULED));
 
     /**
      * Validate if transition from 'from' status to 'to' status is allowed.

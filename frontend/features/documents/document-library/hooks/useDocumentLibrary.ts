@@ -1,65 +1,59 @@
 // ============================================================================
 // FILE: document-library/hooks/useDocumentLibrary.ts
 // ============================================================================
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { documentsApi } from '@/lib/services';
 import type { Document, DocumentCategory } from '@/lib/types';
 import { formatFileSize } from '../utils';
 
 export const useDocumentLibrary = () => {
-  const [documents, setDocuments] = useState<Document[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<DocumentCategory | null>(null);
-  const [categoryDocs, setCategoryDocs] = useState<Document[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({ total: 0, downloads: 0, size: '0 B' });
 
-  const loadDocuments = async () => {
-    try {
-      setLoading(true);
-      const response = await documentsApi.getAll();
-      setDocuments(response as unknown as Document[]);
-      
-      const total = response.length;
-      const downloads = response.reduce((sum, doc) => sum + (doc as unknown as Document).downloadCount, 0);
-      const totalSize = response.reduce((sum, doc) => sum + (doc as unknown as Document).fileSize, 0);
-      
-      setStats({ total, downloads, size: formatFileSize(totalSize) });
-    } catch (error) {
-      console.error('Error loading documents:', error);
-    } finally {
-      setLoading(false);
+  // 1. Single source of truth (Cache all docs)
+  const {
+    data: allDocuments = [],
+    isLoading: loading,
+    refetch: loadDocuments
+  } = useQuery({
+    queryKey: ['documents'],
+    queryFn: async () => (await documentsApi.getAll()) as unknown as Document[],
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 60 * 60 * 1000,
+  });
+
+  // 2. Client-side filtering (Instant UI updates)
+  const categoryDocs = useMemo(() => {
+    let docs = allDocuments;
+
+    if (selectedCategory) {
+      docs = docs.filter(doc => doc.category === selectedCategory);
     }
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      docs = docs.filter(doc => doc.title.toLowerCase().includes(q));
+    }
+
+    return docs;
+  }, [allDocuments, selectedCategory, searchQuery]);
+
+  // 3. Stats calculation
+  const stats = useMemo(() => {
+    const total = allDocuments.length;
+    const downloads = allDocuments.reduce((sum, doc) => sum + doc.downloadCount, 0);
+    const totalSize = allDocuments.reduce((sum, doc) => sum + doc.fileSize, 0);
+    return { total, downloads, size: formatFileSize(totalSize) };
+  }, [allDocuments]);
+
+  // Compatibility wrapper
+  const loadCategoryDocuments = () => {
+    // No-op: client side filtering handles this now
   };
-
-  const loadCategoryDocuments = async () => {
-    if (!selectedCategory) return;
-    try {
-      const response = await documentsApi.getByCategory(selectedCategory);
-      setCategoryDocs(response as unknown as Document[]);
-    } catch (error) {
-      console.error('Error loading category documents:', error);
-    }
-  };
-
-  useEffect(() => {
-    loadDocuments();
-  }, []);
-
-  useEffect(() => {
-    if (selectedCategory) loadCategoryDocuments();
-  }, [selectedCategory]);
-
-  useEffect(() => {
-    if (selectedCategory && searchQuery) {
-      setCategoryDocs(prev => prev.filter(doc => doc.title.toLowerCase().includes(searchQuery.toLowerCase())));
-    } else if (selectedCategory) {
-      loadCategoryDocuments();
-    }
-  }, [searchQuery]);
 
   return {
-    documents,
+    documents: allDocuments,
     selectedCategory,
     setSelectedCategory,
     categoryDocs,

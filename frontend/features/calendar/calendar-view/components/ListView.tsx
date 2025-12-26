@@ -2,7 +2,14 @@ import type { SessionRecord } from '@/lib/types/finance';
 import { useState, useMemo } from 'react';
 import { LessonCard } from './LessonCard';
 import { Search, Filter, TrendingUp } from 'lucide-react';
-import { formatCurrency, STATUS_COLORS } from '../utils/statusColors';
+import { formatCurrency } from '../utils/statusColors';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 interface ListViewProps {
     sessions: SessionRecord[];
@@ -26,7 +33,16 @@ export function ListView({ sessions, onSessionClick, onSessionEdit, onUpdate }: 
             .filter(s => {
                 const matchesSearch = s.studentName.toLowerCase().includes(search.toLowerCase()) ||
                     (s.subject && s.subject.toLowerCase().includes(search.toLowerCase()));
-                const matchesStatus = statusFilter === 'all' || s.status === statusFilter;
+                let matchesStatus = true;
+                if (statusFilter !== 'all') {
+                    if (statusFilter === 'DONE') {
+                        matchesStatus = s.status === 'PAID' || s.status === 'COMPLETED';
+                    } else if (statusFilter === 'CANCELLED') {
+                        matchesStatus = s.status === 'CANCELLED_BY_STUDENT' || s.status === 'CANCELLED_BY_TUTOR';
+                    } else {
+                        matchesStatus = s.status === statusFilter;
+                    }
+                }
                 return matchesSearch && matchesStatus;
             })
             .sort((a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime());
@@ -66,17 +82,17 @@ export function ListView({ sessions, onSessionClick, onSessionEdit, onUpdate }: 
                     />
                 </div>
                 <div className="flex gap-2">
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="px-3 py-2 bg-muted/30 border border-border rounded-lg text-sm focus:outline-none"
-                    >
-                        <option value="all">Tất cả trạng thái</option>
-                        <option value="PAID">Đã thanh toán</option>
-                        <option value="COMPLETED">Đã dạy</option>
-                        <option value="SCHEDULED">Đã hẹn</option>
-                        <option value="CANCELLED_BY_TUTOR">Đã hủy</option>
-                    </select>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-full md:w-[180px] bg-muted/30 border-border focus:ring-0">
+                            <SelectValue placeholder="Trạng thái" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                            <SelectItem value="DONE">Đã hoàn thành</SelectItem>
+                            <SelectItem value="SCHEDULED">Đã hẹn</SelectItem>
+                            <SelectItem value="CANCELLED">Đã hủy</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
 

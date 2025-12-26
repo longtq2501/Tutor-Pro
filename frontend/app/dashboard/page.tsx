@@ -43,10 +43,27 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { BackgroundBeams } from '@/components/ui/background-beams';
 
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+
 function AppContent() {
-    const [currentView, setCurrentView] = useState<View>('dashboard');
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    const initialView = (searchParams.get('view') as View) || 'dashboard';
+    const [currentView, setCurrentView] = useState<View>(initialView);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const { user, logout, hasAnyRole } = useAuth();
+
+    // Sync state to URL when changed
+    const handleSetCurrentView = (view: View | ((prev: View) => View)) => {
+        const newView = typeof view === 'function' ? view(currentView) : view;
+        setCurrentView(newView);
+
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('view', newView);
+        router.push(`${pathname}?${params.toString()}`);
+    };
 
     const navItems: NavItem[] = useMemo(() => {
         const allItems: NavItem[] = [
@@ -73,7 +90,10 @@ function AppContent() {
     }, [hasAnyRole]);
 
     React.useEffect(() => {
-        setCurrentView('dashboard');
+        // Only reset if current view is invalid for role?
+        // Or just trust the URL param if valid?
+        // Keep original logic for role changes but respect URL on mount
+        if (!initialView) setCurrentView('dashboard');
     }, [hasAnyRole]);
 
     const currentTitle = useMemo(() => {
@@ -118,7 +138,7 @@ function AppContent() {
             <Sidebar
                 navItems={navItems}
                 currentView={currentView}
-                setCurrentView={setCurrentView}
+                setCurrentView={handleSetCurrentView}
                 isCollapsed={isCollapsed}
                 setIsCollapsed={setIsCollapsed}
             />

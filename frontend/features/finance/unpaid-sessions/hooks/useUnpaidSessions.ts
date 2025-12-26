@@ -1,43 +1,41 @@
-// ============================================================================
 // 📁 unpaid-sessions/hooks/useUnpaidSessions.ts
-// ============================================================================
-import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { sessionsApi } from '@/lib/services';
-import type { SessionRecord } from '@/lib/types';
+import { toast } from 'sonner';
 
 export function useUnpaidSessions() {
-  const [records, setRecords] = useState<SessionRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    loadUnpaidRecords();
-  }, []);
-
-  const loadUnpaidRecords = async () => {
-    try {
-      setLoading(true);
-      const response = await sessionsApi.getUnpaid();
-      // Only show taught sessions (completed = true)
-      const completedSessions = response.filter(r => r.completed);
-      setRecords(completedSessions);
-    } catch (error) {
-      console.error('Error loading unpaid records:', error);
-      alert('Không thể tải danh sách buổi học chưa thanh toán!');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 1. Fetch Unpaid Records
+  const {
+    data: records,
+    isLoading: loading,
+    refetch: loadUnpaidRecords
+  } = useQuery({
+    queryKey: ['unpaid-sessions'],
+    queryFn: () => sessionsApi.getUnpaid(),
+    select: (data) => data.filter(r => r.completed), // Only show taught sessions
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
 
   const deleteRecord = async (id: number) => {
     if (!confirm('Xóa buổi học này?')) return;
-    try {
+
+    const promise = async () => {
       await sessionsApi.delete(id);
-      loadUnpaidRecords();
-    } catch (error) {
-      console.error('Error deleting record:', error);
-      alert('Không thể xóa buổi học!');
-    }
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['unpaid-sessions'] }),
+        queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+      ]);
+    };
+
+    toast.promise(promise(), {
+      loading: 'Đang xóa buổi học...',
+      success: 'Đã xóa buổi học thành công',
+      error: 'Không thể xóa buổi học. Vui lòng thử lại.'
+    });
   };
 
-  return { records, loading, loadUnpaidRecords, deleteRecord };
+  return { records: records || [], loading, loadUnpaidRecords, deleteRecord };
 }

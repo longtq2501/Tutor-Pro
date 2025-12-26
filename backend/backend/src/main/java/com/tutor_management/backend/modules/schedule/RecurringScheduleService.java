@@ -81,6 +81,7 @@ public class RecurringScheduleService {
                 .endMonth(request.getEndMonth())
                 .active(request.getActive() != null ? request.getActive() : true)
                 .notes(request.getNotes())
+                .subject(request.getSubject())
                 .build();
 
         schedule.setDaysOfWeekArray(request.getDaysOfWeek());
@@ -105,6 +106,9 @@ public class RecurringScheduleService {
         }
         if (request.getNotes() != null) {
             schedule.setNotes(request.getNotes());
+        }
+        if (request.getSubject() != null) {
+            schedule.setSubject(request.getSubject());
         }
 
         RecurringSchedule updated = recurringScheduleRepository.save(schedule);
@@ -218,7 +222,12 @@ public class RecurringScheduleService {
                                     (schedule.getHoursPerSession() * 1)))
                             .paid(false)
                             .sessionDate(date)
+                            .sessionDate(date)
                             .notes("Auto-generated from recurring schedule")
+                            .startTime(schedule.getStartTime())
+                            .endTime(schedule.getEndTime())
+                            .subject(schedule.getSubject())
+                            .status(com.tutor_management.backend.modules.finance.LessonStatus.SCHEDULED)
                             .build();
 
                     sessions.add(session);
@@ -311,6 +320,7 @@ public class RecurringScheduleService {
                 .endMonth(schedule.getEndMonth())
                 .active(schedule.getActive())
                 .notes(schedule.getNotes())
+                .subject(schedule.getSubject())
                 .createdAt(schedule.getCreatedAt().format(formatter))
                 .updatedAt(schedule.getUpdatedAt().format(formatter))
                 .build();

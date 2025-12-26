@@ -1,16 +1,18 @@
 import type { SessionRecord, SessionRecordUpdateRequest } from '@/lib/types/finance';
 import type { LessonStatus } from '@/lib/types/lesson-status';
-import { X } from 'lucide-react';
+import { X, Trash2, Copy } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { LESSON_STATUS_LABELS } from '@/lib/types/lesson-status';
 import { sessionsApi } from '@/lib/services';
 import { getStatusColors } from '../utils/statusColors';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
 interface LessonDetailModalProps {
     session: SessionRecord;
     onClose: () => void;
     onUpdate?: (updated: SessionRecord) => void;
+    onDelete?: (id: number) => void;
     initialMode?: 'view' | 'edit';
 }
 
@@ -20,7 +22,7 @@ interface LessonDetailModalProps {
  * Full-featured modal for viewing and editing session details.
  * Includes all fields, status updates, and optimistic locking.
  */
-export function LessonDetailModal({ session, onClose, onUpdate, initialMode = 'view' }: LessonDetailModalProps) {
+export function LessonDetailModal({ session, onClose, onUpdate, onDelete, initialMode = 'view' }: LessonDetailModalProps) {
     const [mode, setMode] = useState<'view' | 'edit'>(initialMode);
     const [formData, setFormData] = useState<{
         startTime: string;
@@ -37,6 +39,8 @@ export function LessonDetailModal({ session, onClose, onUpdate, initialMode = 'v
     });
     const [loading, setLoading] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
+    const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
     // Track changes
     useEffect(() => {
@@ -62,6 +66,14 @@ export function LessonDetailModal({ session, onClose, onUpdate, initialMode = 'v
         }
     }, [mode, session]);
 
+    // Handle Body Class for Sidebar Hiding
+    useEffect(() => {
+        document.body.classList.add('modal-open');
+        return () => {
+            document.body.classList.remove('modal-open');
+        };
+    }, []);
+
     // Close on ESC
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
@@ -74,7 +86,8 @@ export function LessonDetailModal({ session, onClose, onUpdate, initialMode = 'v
     }, [isDirty]);
 
     const handleClose = () => {
-        if (isDirty && !confirm('Bạn có thay đổi chưa lưu. Bạn có chắc muốn đóng?')) {
+        if (isDirty) {
+            setConfirmCloseOpen(true);
             return;
         }
         onClose();
@@ -122,8 +135,8 @@ export function LessonDetailModal({ session, onClose, onUpdate, initialMode = 'v
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="bg-card border border-border rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="bg-card border border-border rounded-xl shadow-2xl w-[95%] max-w-lg md:max-w-xl max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-border sticky top-0 bg-card z-10">
                     <h2 className="text-lg font-semibold">
@@ -196,18 +209,49 @@ export function LessonDetailModal({ session, onClose, onUpdate, initialMode = 'v
                         </div>
 
                         {/* Actions */}
-                        <div className="flex justify-end gap-2 pt-4">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-6 sm:pt-4 border-t border-border mt-2">
+                            <button
+                                onClick={() => setConfirmDeleteOpen(true)}
+                                className="order-4 sm:order-1 sm:mr-auto w-full sm:w-auto p-2.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors flex items-center justify-center sm:justify-start gap-2"
+                                title="Xóa buổi học vĩnh viễn"
+                            >
+                                <Trash2 size={18} />
+                                <span className="text-sm font-semibold">Xóa buổi học</span>
+                            </button>
+
+                            <button
+                                onClick={async () => {
+                                    setLoading(true);
+                                    try {
+                                        const duplicated = await sessionsApi.duplicate(session.id);
+                                        toast.success('Đã nhân bản buổi học thành công!');
+                                        onUpdate?.(duplicated);
+                                        onClose();
+                                    } catch (err) {
+                                        toast.error('Lỗi khi nhân bản buổi học');
+                                    } finally {
+                                        setLoading(false);
+                                    }
+                                }}
+                                disabled={loading}
+                                className="order-3 sm:order-2 w-full sm:w-auto p-2.5 text-primary hover:bg-primary/10 rounded-lg transition-colors flex items-center justify-center gap-2 border border-primary/20 sm:border-transparent"
+                                title="Nhân bản buổi học sang tuần sau"
+                            >
+                                <Copy size={18} />
+                                <span className="text-sm font-semibold">Nhân bản</span>
+                            </button>
+
                             <button
                                 onClick={handleClose}
-                                className="px-4 py-2 border border-border rounded-lg hover:bg-muted font-medium text-sm transition-colors"
+                                className="order-2 sm:order-3 w-full sm:w-auto px-4 py-2.5 border border-border rounded-lg hover:bg-muted font-medium text-sm transition-colors"
                             >
                                 Đóng
                             </button>
                             <button
                                 onClick={() => setMode('edit')}
-                                className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-bold text-sm transition-all shadow-sm shadow-primary/20"
+                                className="order-1 sm:order-4 w-full sm:w-auto px-6 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-bold text-sm transition-all shadow-sm shadow-primary/20"
                             >
-                                Chỉnh sửa thông tin
+                                Chỉnh sửa
                             </button>
                         </div>
                     </div>
@@ -325,6 +369,31 @@ export function LessonDetailModal({ session, onClose, onUpdate, initialMode = 'v
                     </form>
                 )}
             </div>
+
+            <ConfirmDialog
+                open={confirmCloseOpen}
+                onOpenChange={setConfirmCloseOpen}
+                onConfirm={onClose}
+                title="Thay đổi chưa lưu?"
+                description="Bạn có các thay đổi chưa được lưu. Bạn có chắc chắn muốn đóng modal này không?"
+                confirmText="Đóng và bỏ qua"
+                variant="destructive"
+            />
+
+            <ConfirmDialog
+                open={confirmDeleteOpen}
+                onOpenChange={setConfirmDeleteOpen}
+                onConfirm={() => {
+                    if (session.id && onDelete) {
+                        onDelete(session.id);
+                        onClose();
+                    }
+                }}
+                title="Xác nhận xóa buổi học?"
+                description="Buổi học này sẽ bị xóa vĩnh viễn khỏi hệ thống. Hành động này không thể hoàn tác."
+                confirmText="Xóa buổi học"
+                variant="destructive"
+            />
         </div>
     );
 }

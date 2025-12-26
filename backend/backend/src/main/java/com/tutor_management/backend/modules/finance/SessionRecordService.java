@@ -337,4 +337,8 @@ public class SessionRecordService {
         SessionRecord saved = sessionRecordRepository.save(duplicate);
         return convertToResponse(saved);
     }
+
+    public void deleteSessionsByMonth(String month) {
+        sessionRecordRepository.deleteByMonth(month);
+    }
 }

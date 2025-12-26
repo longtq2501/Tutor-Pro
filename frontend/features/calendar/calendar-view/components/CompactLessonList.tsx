@@ -9,6 +9,7 @@ interface CompactLessonListProps {
     onSessionClick?: (session: SessionRecord) => void;
     onSessionEdit?: (session: SessionRecord) => void;
     onUpdate?: (updated: SessionRecord) => void;
+    onDelete?: (id: number) => void;
     onContextMenu?: (e: React.MouseEvent, session: SessionRecord) => void;
 }
 
@@ -19,7 +20,7 @@ interface CompactLessonListProps {
  * On mobile, displays color-coded dots to save space.
  * Clicking "+ X nữa..." or the date cell opens a popover or modal.
  */
-export function CompactLessonList({ sessions, onSessionClick, onSessionEdit, onUpdate, onContextMenu }: CompactLessonListProps) {
+export function CompactLessonList({ sessions, onSessionClick, onSessionEdit, onUpdate, onDelete, onContextMenu }: CompactLessonListProps) {
     const [showPopover, setShowPopover] = useState(false);
 
     const MAX_VISIBLE_CARDS = 2;
@@ -42,6 +43,7 @@ export function CompactLessonList({ sessions, onSessionClick, onSessionEdit, onU
                         compact
                         onClick={() => onSessionClick?.(session)}
                         onUpdate={onUpdate}
+                        onDelete={onDelete}
                         onEdit={onSessionEdit}
                         onContextMenu={onContextMenu}
                     />

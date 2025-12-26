@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { recurringSchedulesApi, sessionsApi } from '@/lib/services';
+import { sessionsApi, recurringSchedulesApi } from '@/lib/services';
 import { toast } from 'sonner';
 import { useCalendarData } from './useCalendarData';
 import { useCalendarDays } from './useCalendarDays';
@@ -20,7 +20,33 @@ export const useCalendarView = () => {
     const [modalMode, setModalMode] = useState<'view' | 'edit'>('view');
     const [contextMenu, setContextMenu] = useState<{ x: number; y: number; session: SessionRecord } | null>(null);
 
+    const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
+
     const { sessions, setSessions, students, loading, loadData } = useCalendarData(currentDate);
+
+    // ... (rest of the hooks)
+
+    const handleInitiateDeleteAll = () => {
+        setDeleteConfirmationOpen(true);
+    };
+
+    const handleConfirmDeleteAll = async () => {
+        const monthStr = getMonthStr(currentDate);
+        setDeleteConfirmationOpen(false); // Close dialog immediately or keep it open until success? UX choice. Let's close it first.
+
+        const promise = async () => {
+            await sessionsApi.deleteByMonth(monthStr);
+            loadData();
+        };
+
+        toast.promise(promise(), {
+            loading: `Đang xóa tất cả buổi học tháng ${monthStr}...`,
+            success: `Đã xóa tất cả buổi học tháng ${monthStr}`,
+            error: 'Lỗi khi xóa dữ liệu.'
+        });
+    };
+
+    // ... (rest of the functions)
     const calendarDays = useCalendarDays(currentDate, sessions);
     const stats = useCalendarStats(sessions);
 
@@ -50,46 +76,49 @@ export const useCalendarView = () => {
         if (selectedSession?.id === updated.id) {
             setSelectedSession(updated);
         }
-    }, [selectedDay, selectedSession, setSessions, loadData]);
+
+        if (contextMenu?.session.id === updated.id) {
+            setContextMenu(prev => prev ? { ...prev, session: updated } : null);
+        }
+    }, [selectedDay, selectedSession, contextMenu, setSessions, loadData]);
 
     const handleAutoGenerate = async () => {
-        if (!confirm('Bạn có muốn tự động tạo lịch học cho tháng này dựa trên lịch cố định?')) return;
-
         const promise = recurringSchedulesApi.generateSessions(getMonthStr(currentDate));
 
         toast.promise(promise, {
-            loading: 'Đang tạo lịch học tự động...',
+            loading: 'Đang tự động tạo lịch học...',
             success: (result) => {
                 loadData();
                 return `✅ ${result.message || 'Đã tạo xong các buổi học!'}`;
             },
-            error: '❌ Không thể tạo buổi học tự động. Vui lòng thử lại.'
+            error: '❌ Không thể tạo buổi học tự động.'
         });
-
-        try {
-            setIsGenerating(true);
-            await promise;
-        } finally {
-            setIsGenerating(false);
-        }
     };
 
-    const handleDeleteSession = async (sessionId: number) => {
-        if (!confirm('Bạn chắc chắn muốn xóa buổi học này?')) return;
-        try {
-            await sessionsApi.delete(sessionId);
-            setSessions(prev => prev.filter(s => s.id !== sessionId));
+    const handleDeleteSession = useCallback(async (id: number) => {
+        const promise = async () => {
+            await sessionsApi.delete(id);
+            setSessions(prev => prev.filter(s => s.id !== id));
+
             if (selectedDay) {
-                setSelectedDay(prev => prev ? { ...prev, sessions: prev.sessions.filter(s => s.id !== sessionId) } : null);
+                setSelectedDay(prev => prev ? {
+                    ...prev,
+                    sessions: prev.sessions.filter(s => s.id !== id)
+                } : null);
             }
-            if (selectedSession?.id === sessionId) {
+
+            if (selectedSession?.id === id) {
                 setSelectedSession(null);
             }
-            toast.success('Đã xóa buổi học thành công');
-        } catch (error) {
-            toast.error('Lỗi khi xóa buổi học');
-        }
-    };
+            loadData();
+        };
+
+        toast.promise(promise(), {
+            loading: 'Đang xóa buổi học...',
+            success: 'Đã xóa buổi học thành công',
+            error: 'Lỗi khi xóa buổi học'
+        });
+    }, [selectedDay, selectedSession, setSessions, loadData]);
 
     const handleSessionClick = useCallback((session: SessionRecord) => {
         setModalMode('view');
@@ -102,23 +131,31 @@ export const useCalendarView = () => {
     }, []);
 
     const handleTogglePayment = async (sessionId: number) => {
-        try {
+        const promise = async () => {
             const updated = await sessionsApi.togglePayment(sessionId);
             handleUpdateSession(updated);
-            toast.success(updated.paid ? 'Đã xác nhận thanh toán' : 'Đã hủy xác nhận thanh toán');
-        } catch (error) {
-            toast.error('Không thể cập nhật trạng thái thanh toán!');
-        }
+            return updated.paid ? 'Đã xác nhận thanh toán' : 'Đã hủy xác nhận thanh toán';
+        };
+
+        toast.promise(promise(), {
+            loading: 'Đang cập nhật trạng thái thanh toán...',
+            success: (msg) => msg,
+            error: 'Không thể cập nhật trạng thái thanh toán!'
+        });
     };
 
     const handleToggleComplete = async (sessionId: number) => {
-        try {
+        const promise = async () => {
             const updated = await sessionsApi.toggleCompleted(sessionId);
             handleUpdateSession(updated);
-            toast.success(updated.completed ? 'Đã đánh dấu hoàn thành' : 'Đã hủy đánh dấu hoàn thành');
-        } catch (error) {
-            toast.error('Không thể cập nhật trạng thái!');
-        }
+            return updated.completed ? 'Đã đánh dấu hoàn thành' : 'Đã hủy đánh dấu hoàn thành';
+        };
+
+        toast.promise(promise(), {
+            loading: 'Đang cập nhật trạng thái...',
+            success: (msg) => msg,
+            error: 'Không thể cập nhật trạng thái!'
+        });
     };
 
     const handleAddSessionSubmit = async (
@@ -131,7 +168,7 @@ export const useCalendarView = () => {
         startTime?: string,
         endTime?: string
     ) => {
-        try {
+        const promise = async () => {
             await sessionsApi.create({
                 studentId,
                 sessions: sessionsCount,
@@ -143,15 +180,16 @@ export const useCalendarView = () => {
                 endTime: endTime || '',
                 status: 'SCHEDULED'
             });
-
-            toast.success('✅ Đã thêm buổi học thành công!');
             setShowAddSessionModal(false);
             setSelectedDateStr('');
             loadData();
-        } catch (error) {
-            console.error('Failed to create session:', error);
-            toast.error('❌ Lỗi khi thêm buổi học. Vui lòng thử lại.');
-        }
+        };
+
+        toast.promise(promise(), {
+            loading: 'Đang thêm buổi học...',
+            success: '✅ Đã thêm buổi học thành công!',
+            error: '❌ Lỗi khi thêm buổi học. Vui lòng thử lại.'
+        });
     };
 
     const navigateMonth = (dir: number) => {
@@ -189,6 +227,8 @@ export const useCalendarView = () => {
         calendarDays,
         stats,
         currentDayInfo,
+        deleteConfirmationOpen,
+        setDeleteConfirmationOpen,
 
         // Actions
         setCurrentView,
@@ -207,6 +247,8 @@ export const useCalendarView = () => {
         handleAddSessionSubmit,
         openAddSessionModal,
         closeAddSessionModal,
+        handleInitiateDeleteAll,
+        handleConfirmDeleteAll,
         exportToExcel: () => sessionsApi.exportToExcel(getMonthStr(currentDate))
     };
 };

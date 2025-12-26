@@ -70,6 +70,9 @@ public class RecurringSchedule {
     @Column(length = 500)
     private String notes;
 
+    @Column(length = 255)
+    private String subject;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -107,7 +110,8 @@ public class RecurringSchedule {
         }
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < days.length; i++) {
-            if (i > 0) sb.append(",");
+            if (i > 0)
+                sb.append(",");
             sb.append(days[i]);
         }
         this.daysOfWeek = sb.toString();

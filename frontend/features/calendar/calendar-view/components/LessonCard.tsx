@@ -1,6 +1,5 @@
 import type { SessionRecord } from '@/lib/types/finance';
 import { getStatusColors, formatCurrency } from '../utils/statusColors';
-import { QuickActions } from './QuickActions';
 
 interface LessonCardProps {
     session: SessionRecord;
@@ -8,6 +7,7 @@ interface LessonCardProps {
     onClick?: () => void;
     onContextMenu?: (e: React.MouseEvent, session: SessionRecord) => void;
     onUpdate?: (updated: SessionRecord) => void;
+    onDelete?: (id: number) => void;
     onEdit?: (session: SessionRecord) => void;
 }
 
@@ -25,7 +25,7 @@ interface LessonCardProps {
  * Format: • BẢO HÂN
  *           14:00-15:30 • Toán 10 • 300k
  */
-export function LessonCard({ session, compact = false, onClick, onContextMenu, onUpdate, onEdit }: LessonCardProps) {
+export function LessonCard({ session, compact = false, onClick, onContextMenu, onUpdate, onDelete, onEdit }: LessonCardProps) {
     // Get colors based on new status or fallback to legacy
     const colors = session.status
         ? getStatusColors(session.status)
@@ -77,8 +77,6 @@ export function LessonCard({ session, compact = false, onClick, onContextMenu, o
                 </div>
             )}
 
-            {/* Quick Actions (hover) */}
-            <QuickActions session={session} onUpdate={onUpdate} onEdit={() => onEdit?.(session)} />
         </div>
     );
 }

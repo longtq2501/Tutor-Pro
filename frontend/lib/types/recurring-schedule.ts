@@ -11,6 +11,7 @@ export interface RecurringSchedule {
   startMonth: string; // THÁNG BẮT ĐẦU ÁP DỤNG LỊCH (YYYY-MM)
   endMonth?: string; // THÁNG KẾT THÚC ÁP DỤNG LỊCH (TÙY CHỌN)
   active: boolean; // TRẠNG THÁI LỊCH CÒN HIỆU LỰC HAY KHÔNG
+  subject?: string; // MÔN HỌC (VÍ DỤ: "TOÁN", "LÝ")
   notes?: string; // GHI CHÚ RIÊNG CHO LỊCH TRÌNH
   createdAt: string; // THỜI ĐIỂM TẠO LỊCH
   updatedAt: string; // THỜI ĐIỂM CẬP NHẬT GẦN NHẤT
@@ -22,6 +23,7 @@ export interface RecurringScheduleRequest {
   startTime: string; // THỜI GIAN BẮT ĐẦU
   endTime: string; // THỜI GIAN KẾT THÚC
   hoursPerSession: number; // SỐ GIỜ MỖI BUỔI ĐỂ TÍNH TIỀN
+  subject?: string; // MÔN HỌC
   startMonth: string; // THÁNG BẮT ĐẦU (YYYY-MM)
   endMonth?: string; // THÁNG KẾT THÚC (NẾU CÓ)
   active?: boolean; // THIẾT LẬP TRẠNG THÁI HOẠT ĐỘNG

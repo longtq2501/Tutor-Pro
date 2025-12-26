@@ -24,7 +24,7 @@ export default function TutorHomeworkView() {
 
   const { students, selectedStudent, setSelectedStudent } = useStudents();
   const { homeworks, stats, loading, loadHomeworks, deleteHomework } = useHomeworks(selectedStudent, isAdmin);
-  
+
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedHomework, setSelectedHomework] = useState<Homework | null>(null);
 
@@ -34,7 +34,8 @@ export default function TutorHomeworkView() {
     toast.success('Tạo bài tập thành công!');
   };
 
-  if (loading && !stats) {
+  // Only show loading if we have a selected student and are loading
+  if (selectedStudent && loading && !stats) {
     return (
       <div className="flex justify-center items-center h-96">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -59,11 +60,21 @@ export default function TutorHomeworkView() {
       </div>
 
       {/* Stats */}
-      {stats && <HomeworkStats stats={stats} />}
+      {selectedStudent && stats && <HomeworkStats stats={stats} />}
 
       {/* Homework List */}
       <div className="space-y-4">
-        {homeworks.length === 0 ? (
+        {!selectedStudent ? (
+          <div className="flex flex-col items-center justify-center h-64 text-center border-2 border-dashed rounded-lg border-muted-foreground/25">
+            <div className="p-4 bg-muted/50 rounded-full mb-4">
+              <Plus className="h-8 w-8 text-muted-foreground/50" />
+            </div>
+            <h3 className="text-lg font-medium text-muted-foreground">Chưa chọn học sinh</h3>
+            <p className="text-sm text-muted-foreground/80 max-w-xs mt-1">
+              Vui lòng chọn một học sinh từ danh sách bên trên để xem và quản lý bài tập.
+            </p>
+          </div>
+        ) : homeworks.length === 0 ? (
           <EmptyState onCreateClick={() => setCreateDialogOpen(true)} />
         ) : (
           homeworks.map((homework) => (

@@ -39,4 +39,7 @@ public class RecurringScheduleRequest {
     private Boolean active;
 
     private String notes;
+
+    private String subject;
+
 }

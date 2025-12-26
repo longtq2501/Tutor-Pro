@@ -23,6 +23,8 @@ public class RecurringScheduleResponse {
     private String endMonth;
     private Boolean active;
     private String notes;
+    private String subject;
+
     private String createdAt;
     private String updatedAt;
 }

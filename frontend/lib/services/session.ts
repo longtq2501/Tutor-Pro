@@ -102,25 +102,40 @@ export const sessionsApi = {
    * Nhân bản một buổi học
    */
   duplicate: async (id: number): Promise<SessionRecord> => {
-    const response = await api.post(`/sessions/${id}/duplicate`);
-    return response.data;
+    const { data } = await api.post(`/sessions/${id}/duplicate`);
+    return data;
+  },
+
+  /**
+   * Xóa tất cả các buổi học trong một tháng cụ thể
+   * @param {string} month - Định dạng tháng (Ví dụ: "2023-12")
+   * @returns {Promise<void>}
+   */
+  deleteByMonth: async (month: string): Promise<void> => {
+    await api.delete(`/sessions/month/${month}`);
   },
 
   /**
    * Xuất danh sách buổi học ra file Excel
    */
   exportToExcel: async (month?: string, studentId?: number): Promise<void> => {
+    const params = new URLSearchParams();
+    if (month) params.append('month', month);
+    if (studentId) params.append('studentId', studentId.toString());
+
     const response = await api.get('/sessions/export/excel', {
-      params: { month, studentId },
-      responseType: 'blob'
+      params,
+      responseType: 'blob',
     });
 
+    // Create blob link to download
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `Sessions_Export_${month || 'All'}.xlsx`);
+    const fileName = `Sessions_Export_${month || 'All'}.xlsx`;
+    link.setAttribute('download', fileName);
     document.body.appendChild(link);
     link.click();
-    link.parentNode?.removeChild(link);
+    link.remove();
   },
 };

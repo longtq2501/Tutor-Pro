@@ -21,6 +21,7 @@ export function useRecurringScheduleForm(
     endMonth: undefined,
     active: true,
     notes: '',
+    subject: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +38,7 @@ export function useRecurringScheduleForm(
         endMonth: existingSchedule.endMonth,
         active: existingSchedule.active,
         notes: existingSchedule.notes || '',
+        subject: existingSchedule.subject || '',
       });
     }
   }, [existingSchedule]);

@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { 
-  GraduationCap, ChevronsLeft, X, Menu
+import {
+    GraduationCap, ChevronsLeft, X, Menu
 } from 'lucide-react';
 
 export type View = 'dashboard' | 'students' | 'monthly' | 'documents' | 'parents' | 'unpaid' | 'calendar' | 'homework' | 'lessons';
@@ -33,7 +33,7 @@ export function Sidebar({ currentView, setCurrentView, navItems, isCollapsed, se
             {/* Mobile Menu Button - Square shape, no overlap */}
             <button
                 onClick={() => setMobileMenuOpen(true)}
-                className="lg:hidden fixed top-4 left-4 z-50 h-10 w-10 rounded-lg bg-background hover:bg-muted border border-border flex items-center justify-center transition-colors shadow-sm"
+                className="sidebar-toggle lg:hidden fixed top-4 left-4 z-40 h-10 w-10 rounded-lg bg-background hover:bg-muted border border-border flex items-center justify-center transition-colors shadow-sm"
                 aria-label="Mở menu"
             >
                 <Menu size={20} className="text-foreground" />
@@ -41,7 +41,7 @@ export function Sidebar({ currentView, setCurrentView, navItems, isCollapsed, se
 
             {/* Mobile Overlay */}
             {mobileMenuOpen && (
-                <div 
+                <div
                     className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
                     onClick={() => setMobileMenuOpen(false)}
                 />
@@ -55,9 +55,9 @@ export function Sidebar({ currentView, setCurrentView, navItems, isCollapsed, se
                 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                 w-72
             `}>
-                
+
                 {/* Desktop collapse button */}
-                <button 
+                <button
                     onClick={() => setIsCollapsed(!isCollapsed)}
                     className="hidden lg:block absolute -right-3 top-8 z-10 p-1 bg-card border-2 border-background rounded-full shadow-md hover:bg-muted transition-all"
                     aria-label={isCollapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"}
@@ -81,7 +81,7 @@ export function Sidebar({ currentView, setCurrentView, navItems, isCollapsed, se
                             <GraduationCap className="text-primary" size={24} />
                         </div>
                         <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isCollapsed && !mobileMenuOpen ? 'w-0 opacity-0' : 'w-32 opacity-100'}`}>
-                             <span className="font-extrabold text-xl tracking-tight whitespace-nowrap">Tutor Pro</span>
+                            <span className="font-extrabold text-xl tracking-tight whitespace-nowrap">Tutor Pro</span>
                         </div>
                     </div>
                 </div>
@@ -97,8 +97,8 @@ export function Sidebar({ currentView, setCurrentView, navItems, isCollapsed, se
                                 onClick={() => handleNavClick(item.id)}
                                 title={isCollapsed && !mobileMenuOpen ? item.label : ''}
                                 className={`w-full flex items-center gap-3 p-3.5 rounded-xl text-sm font-semibold transition-all duration-200
-                                    ${isActive 
-                                        ? 'bg-primary text-primary-foreground shadow-md' 
+                                    ${isActive
+                                        ? 'bg-primary text-primary-foreground shadow-md'
                                         : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                                     }
                                     ${isCollapsed && !mobileMenuOpen ? 'justify-center' : ''}

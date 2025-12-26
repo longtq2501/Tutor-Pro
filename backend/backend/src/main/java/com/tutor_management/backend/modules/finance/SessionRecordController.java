@@ -155,4 +155,11 @@ public class SessionRecordController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
+    @DeleteMapping("/month/{month}")
+    public ResponseEntity<Void> deleteSessionsByMonth(@PathVariable String month) {
+        sessionRecordService.deleteSessionsByMonth(month);
+        return ResponseEntity.ok().build();
+    }
 }

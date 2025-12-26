@@ -9,6 +9,17 @@ import { LessonDetailModal } from './components/LessonDetailModal';
 import { DayDetailModal } from './components/DayDetailModal';
 import { ContextMenu } from './components/ContextMenu';
 import { StatusLegend } from './components/StatusLegend';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { getMonthStr } from './utils';
 
 export default function CalendarView() {
   const {
@@ -26,6 +37,8 @@ export default function CalendarView() {
     stats,
     currentDayInfo,
     sessions,
+    deleteConfirmationOpen,
+    setDeleteConfirmationOpen,
     setCurrentView,
     setSelectedDay,
     setSelectedSession,
@@ -42,6 +55,8 @@ export default function CalendarView() {
     handleAddSessionSubmit,
     openAddSessionModal,
     closeAddSessionModal,
+    handleInitiateDeleteAll,
+    handleConfirmDeleteAll,
     exportToExcel
   } = useCalendarView();
 
@@ -95,24 +110,55 @@ export default function CalendarView() {
 
   return (
     <div className="space-y-4 pb-20">
-      <CalendarHeader
-        currentDate={currentDate}
-        stats={stats}
-        isGenerating={isGenerating}
-        currentView={currentView}
-        onChangeMonth={navigateMonth}
-        onToday={goToToday}
-        onAutoGenerate={handleAutoGenerate}
-        onViewChange={setCurrentView}
-        onExport={exportToExcel}
-      />
+      <div className="sticky top-0 z-30 pb-4 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 px-4 pt-[16px] border-b border-border/10 shadow-sm transition-all rounded-[18px]">
+        <div className="space-y-4">
+          <CalendarHeader
+            currentDate={currentDate}
+            stats={stats}
+            isGenerating={isGenerating}
+            currentView={currentView}
+            onChangeMonth={navigateMonth}
+            onToday={goToToday}
+            onAutoGenerate={handleAutoGenerate}
+            onViewChange={setCurrentView}
+            onExport={exportToExcel}
+            onDeleteAll={handleInitiateDeleteAll}
+          />
 
-      <StatusLegend />
+          <StatusLegend />
+        </div>
+      </div>
 
       {renderView()}
 
+      {/* ... (existing modals) */}
+
+      {/* Delete All Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmationOpen} onOpenChange={setDeleteConfirmationOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xóa tất cả buổi học tháng {getMonthStr(currentDate)}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Hành động này sẽ xóa vĩnh viễn tất cả các buổi học trong tháng này.
+              Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy bỏ</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              onClick={handleConfirmDeleteAll}
+            >
+              Xóa tất cả
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {selectedDay && (
         <DayDetailModal
+          // ...
+
           day={selectedDay}
           onClose={() => setSelectedDay(null)}
           onAddSession={openAddSessionModal}
@@ -128,6 +174,7 @@ export default function CalendarView() {
           session={selectedSession}
           onClose={() => setSelectedSession(null)}
           onUpdate={handleUpdateSession}
+          onDelete={handleDeleteSession}
           initialMode={modalMode}
         />
       )}

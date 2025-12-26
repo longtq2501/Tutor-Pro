@@ -1,36 +1,29 @@
-// ============================================================================
-// FILE: admin-dashboard/hooks/useDashboardData.ts
-// ============================================================================
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { dashboardApi } from '@/lib/services';
 import type { DashboardStats, MonthlyStats } from '@/lib/types';
 
 export const useDashboardData = () => {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [monthlyStats, setMonthlyStats] = useState<MonthlyStats[]>([]);
-  const [loading, setLoading] = useState(true);
-
   const currentMonth = new Date().toISOString().slice(0, 7);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  // 1. Fetch Dashboard Stats
+  const { data: stats, isLoading: loadingStats } = useQuery({
+    queryKey: ['dashboard-stats', currentMonth],
+    queryFn: () => dashboardApi.getStats(currentMonth),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000,
+  });
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const [statsData, monthlyData] = await Promise.all([
-        dashboardApi.getStats(currentMonth),
-        dashboardApi.getMonthlyStats(),
-      ]);
-      setStats(statsData);
-      setMonthlyStats(monthlyData);
-    } catch (error) {
-      console.error('Error loading dashboard:', error);
-    } finally {
-      setLoading(false);
-    }
+  // 2. Fetch Monthly Stats (Charts)
+  const { data: monthlyStats, isLoading: loadingMonthly } = useQuery({
+    queryKey: ['dashboard-monthly'],
+    queryFn: () => dashboardApi.getMonthlyStats(),
+    staleTime: 10 * 60 * 1000, // 10 minutes (charts change less often)
+    gcTime: 15 * 60 * 1000,
+  });
+
+  return {
+    stats: stats || null,
+    monthlyStats: monthlyStats || [],
+    loading: loadingStats || loadingMonthly
   };
-
-  return { stats, monthlyStats, loading };
 };

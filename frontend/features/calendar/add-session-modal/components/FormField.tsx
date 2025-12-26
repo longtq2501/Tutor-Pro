@@ -5,15 +5,24 @@ import { Calendar, Users } from 'lucide-react';
 import { DatePicker } from '@/components/ui/date-picker';
 import { format } from 'date-fns';
 import type { Student } from '@/lib/types';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
-const inputClass = "w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:border-slate-400 focus:ring-4 focus:ring-slate-500/10 dark:focus:ring-slate-500/20 outline-none transition-all font-medium text-slate-800 dark:text-white";
+const inputClass = "w-full bg-background border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50";
 
 export const DateField = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
-  <div>
-    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
-      <Calendar size={16} className="text-foreground" />
+  <div className="space-y-2">
+    <Label className="flex items-center gap-2">
+      <Calendar size={16} />
       Ngày dạy
-    </label>
+    </Label>
     <DatePicker
       value={value ? new Date(value) : undefined}
       onChange={(date) => {
@@ -37,14 +46,17 @@ interface NumberFieldProps {
 }
 
 export const NumberField = ({ label, value, onChange, icon, min, step }: NumberFieldProps) => (
-  <div>
-    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1">
-      {icon && icon} {label}
-    </label>
-    <input
-      type="number" value={value} onChange={(e) => onChange(parseFloat(e.target.value) || min)}
-      min={min} step={step}
-      className={`${inputClass} font-bold text-center text-lg`}
+  <div className="space-y-2">
+    <Label className="flex items-center gap-2">
+      {icon} {label}
+    </Label>
+    <Input
+      type="number"
+      value={value}
+      onChange={(e) => onChange(parseFloat(e.target.value) || min)}
+      min={min}
+      step={step}
+      className="font-bold text-center text-lg h-11"
       required
     />
   </div>
@@ -57,23 +69,22 @@ interface StudentFieldProps {
 }
 
 export const StudentField = ({ students, value, onChange }: StudentFieldProps) => (
-  <div>
-    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
-      <Users size={16} className="text-foreground" />
+  <div className="space-y-2">
+    <Label className="flex items-center gap-2">
+      <Users size={16} />
       Học sinh
-    </label>
-    <select
-      value={value}
-      onChange={(e) => onChange(Number(e.target.value))}
-      className={inputClass}
-      required
-    >
-      <option value={0}>Chọn học sinh...</option>
-      {students.map((student) => (
-        <option key={student.id} value={student.id}>
-          {student.name}
-        </option>
-      ))}
-    </select>
+    </Label>
+    <Select value={value ? value.toString() : ''} onValueChange={(v) => onChange(Number(v))}>
+      <SelectTrigger className="w-full h-11">
+        <SelectValue placeholder="Chọn học sinh..." />
+      </SelectTrigger>
+      <SelectContent>
+        {students.map((student) => (
+          <SelectItem key={student.id} value={student.id.toString()}>
+            {student.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   </div>
 );

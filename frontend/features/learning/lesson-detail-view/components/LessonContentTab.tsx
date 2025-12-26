@@ -11,7 +11,6 @@ export function LessonContentTab({ content, className }: LessonContentTabProps) 
   const [useIframe, setUseIframe] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Check for complex HTML/CSS
   useEffect(() => {
     const hasComplexStyles = content.includes('<style>') ||
       content.includes('style="') ||
@@ -19,60 +18,70 @@ export function LessonContentTab({ content, className }: LessonContentTabProps) 
     setUseIframe(hasComplexStyles);
   }, [content]);
 
-  // Expand iframe height dynamically
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe || !useIframe) return;
 
     let resizeObserver: ResizeObserver | null = null;
-    let frameContentWindow: Window | null = null;
+    let windowResizeTimeout: NodeJS.Timeout;
 
     const adjustHeight = () => {
       if (iframe.contentWindow) {
         try {
-          const bodyHeight = iframe.contentWindow.document.body.scrollHeight;
-          const docHeight = iframe.contentWindow.document.documentElement.scrollHeight;
-          // Use the larger of the two to prevent clipping
-          const height = Math.max(bodyHeight, docHeight);
-          // Add a small buffer to prevent scrollbar flickering or fractional pixel clipping
-          iframe.style.height = `${height + 4}px`;
+          requestAnimationFrame(() => {
+            if (!iframe.contentWindow) return;
+            const body = iframe.contentWindow.document.body;
+            const html = iframe.contentWindow.document.documentElement;
+            // Use offsetHeight if it's larger, but scrollHeight is usually more accurate for content size
+            const height = Math.max(
+              body.scrollHeight,
+              body.offsetHeight,
+              html.offsetHeight
+            );
+            iframe.style.height = `${height}px`;
+          });
         } catch (e) {
-          // Cross-origin issues might prevent access, though srcDoc usually avoids this
+          // Ignore
         }
       }
     };
 
     const onLoad = () => {
-      frameContentWindow = iframe.contentWindow;
-      if (frameContentWindow) {
+      const frameWindow = iframe.contentWindow;
+      if (frameWindow) {
         try {
-          // 1. Initial Adjustment
           adjustHeight();
 
-          // 2. Setup ResizeObserver
           if (typeof ResizeObserver !== 'undefined') {
             resizeObserver = new ResizeObserver(() => adjustHeight());
-            resizeObserver.observe(frameContentWindow.document.body);
-            resizeObserver.observe(frameContentWindow.document.documentElement);
+            resizeObserver.observe(frameWindow.document.body);
           }
 
-          // 3. One-time poller for late-loading images (backup)
-          const interval = setInterval(adjustHeight, 500);
-          setTimeout(() => clearInterval(interval), 3000);
-
+          // Backup for images
+          const interval = setInterval(adjustHeight, 300);
+          setTimeout(() => clearInterval(interval), 2000);
         } catch (e) {
-          console.warn('Iframe resize setup failed:', e);
+          console.warn('Iframe resize failed:', e);
         }
       }
     };
 
+    // Handle window resize to recalculate iframe height
+    const handleWindowResize = () => {
+      clearTimeout(windowResizeTimeout);
+      windowResizeTimeout = setTimeout(() => {
+        adjustHeight();
+      }, 100); // Faster response
+    };
+
     iframe.addEventListener('load', onLoad);
+    window.addEventListener('resize', handleWindowResize);
 
     return () => {
       iframe.removeEventListener('load', onLoad);
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-      }
+      window.removeEventListener('resize', handleWindowResize);
+      resizeObserver?.disconnect();
+      clearTimeout(windowResizeTimeout);
     };
   }, [useIframe, content]);
 
@@ -83,34 +92,44 @@ export function LessonContentTab({ content, className }: LessonContentTabProps) 
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
+          * {
+            box-sizing: border-box;
+          }
+          html, body {
+            margin: 0;
+            padding: 0;
+            overflow: visible;
+          }
           body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             line-height: 1.6;
             color: #334155;
-            padding: 32px;
-            margin: 0;
-            background: #ffffff;
-            overflow-y: hidden; /* Hide scrollbar inside iframe */
+            padding: 0;
+            background: transparent;
           }
           .content-container {
             max-width: 100%;
-            margin: 0 auto;
+            margin: 0;
           }
           img {
             max-width: 100%;
             height: auto;
             border-radius: 8px;
+            display: block;
           }
-          p { margin-bottom: 1rem; }
+          p { 
+            margin-bottom: 1rem; 
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+          @media (max-width: 768px) {
+            body {
+              padding: 16px;
+            }
+          }
         </style>
-        <script>
-           // Optional: Report height changes if resizing happens (e.g. images loading)
-           window.addEventListener('load', () => {
-             const height = document.documentElement.scrollHeight;
-             // We can't easily postMessage back without setup, but this script ensures 
-             // document is fully loaded before parent tries to measure if using onLoad
-           });
-        </script>
       </head>
       <body>
         <div class="content-container">
@@ -121,27 +140,27 @@ export function LessonContentTab({ content, className }: LessonContentTabProps) 
   `;
 
   const sanitizedContent = DOMPurify.sanitize(content, {
-    ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'div', 'span', 'strong', 'b', 'em', 'i', 'u', 'ul', 'ol', 'li', 'table', 'tr', 'td', 'th', 'img', 'blockquote', 'code', 'pre', 'a'],
-    ALLOWED_ATTR: ['style', 'class', 'src', 'href', 'target', 'alt'],
+    ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'div', 'span', 'strong', 'b', 'em', 'i', 'u', 'ul', 'ol', 'li', 'table', 'tr', 'td', 'th', 'img', 'blockquote', 'code', 'pre', 'a', 'br', 'hr'],
+    ALLOWED_ATTR: ['style', 'class', 'src', 'href', 'target', 'alt', 'width', 'height'],
   });
 
   if (useIframe) {
     return (
-      <div className={cn("w-full bg-card rounded-lg border shadow-sm overflow-hidden", className)}>
+      <div className={cn("w-full bg-card rounded-xl border border-input shadow-sm", className)}>
         <iframe
           ref={iframeRef}
           srcDoc={iframeContent}
           className="w-full border-0 block"
           style={{ minHeight: '200px' }}
           title="Lesson Content"
-          sandbox="allow-same-origin allow-scripts" // allow-scripts needed for any resizing logic inside if we added it
+          sandbox="allow-same-origin allow-scripts"
         />
       </div>
     );
   }
 
   return (
-    <div className={cn("w-full bg-card rounded-lg border shadow-sm", className)}>
+    <div className={cn("w-full bg-card rounded-xl border border-input shadow-sm", className)}>
       <div className="p-6 md:p-8">
         <article
           className="prose prose-slate dark:prose-invert max-w-none

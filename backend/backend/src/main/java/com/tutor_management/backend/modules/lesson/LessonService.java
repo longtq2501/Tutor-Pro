@@ -7,6 +7,7 @@ import com.tutor_management.backend.modules.student.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,8 +59,7 @@ public class LessonService {
         // Find assignment (verifies student has access)
         LessonAssignment assignment = assignmentRepository.findByLessonIdAndStudentId(lessonId, studentId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Lesson not found or not assigned to this student"
-                ));
+                        "Lesson not found or not assigned to this student"));
 
         Lesson lesson = assignment.getLesson();
 
@@ -96,6 +96,7 @@ public class LessonService {
         assignmentRepository.save(assignment);
     }
 
+    @CacheEvict(value = "lessons", allEntries = true)
     public LessonResponse markAsCompleted(Long lessonId, Long studentId) {
         LessonAssignment assignment = assignmentRepository.findByLessonIdAndStudentId(lessonId, studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Assignment not found"));
@@ -110,6 +111,7 @@ public class LessonService {
         return LessonResponse.fromEntity(lesson, assignment);
     }
 
+    @CacheEvict(value = "lessons", allEntries = true)
     public LessonResponse markAsIncomplete(Long lessonId, Long studentId) {
         LessonAssignment assignment = assignmentRepository.findByLessonIdAndStudentId(lessonId, studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Assignment not found"));

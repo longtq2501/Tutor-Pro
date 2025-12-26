@@ -2,6 +2,7 @@ import type { SessionRecord, SessionRecordUpdateRequest } from '@/lib/types/fina
 import type { LessonStatus } from '@/lib/types/lesson-status';
 import { X } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { LESSON_STATUS_LABELS } from '@/lib/types/lesson-status';
 import { sessionsApi } from '@/lib/services';
 import { getStatusColors } from '../utils/statusColors';
@@ -96,14 +97,12 @@ export function LessonDetailModal({ session, onClose, onUpdate, initialMode = 'v
         e.preventDefault();
 
         if (session.version === undefined || session.version === null) {
-            alert('Lỗi: Phiên bản dữ liệu không hợp lệ (Missing Version). Hãy thử tải lại trang.');
+            toast.error('Lỗi: Phiên bản dữ liệu không hợp lệ. Hãy thử tải lại trang.');
             return;
         }
 
         setLoading(true);
         try {
-            // Check if anything changed beyond status for full update
-            // Actually, we can just use the update method for everything now as it handles status too
             const updatePayload: SessionRecordUpdateRequest = {
                 ...formData,
                 hoursPerSession: currentHours,
@@ -111,11 +110,12 @@ export function LessonDetailModal({ session, onClose, onUpdate, initialMode = 'v
             };
 
             const updated = await sessionsApi.update(session.id, updatePayload);
+            toast.success('Đã cập nhật buổi học thành công!');
             onUpdate?.(updated);
             onClose();
         } catch (error) {
             console.error('Failed to update:', error);
-            alert(error instanceof Error ? error.message : 'Failed to update session');
+            toast.error(error instanceof Error ? error.message : 'Lỗi khi cập nhật buổi học');
         } finally {
             setLoading(false);
         }

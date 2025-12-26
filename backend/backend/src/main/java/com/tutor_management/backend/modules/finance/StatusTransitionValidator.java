@@ -30,11 +30,14 @@ public class StatusTransitionValidator {
     private static final Map<LessonStatus, List<LessonStatus>> ALLOWED_TRANSITIONS = Map.of(
             LessonStatus.SCHEDULED, List.of(
                     LessonStatus.CONFIRMED,
+                    LessonStatus.COMPLETED,
+                    LessonStatus.PAID,
                     LessonStatus.CANCELLED_BY_TUTOR,
                     LessonStatus.CANCELLED_BY_STUDENT),
 
             LessonStatus.CONFIRMED, List.of(
                     LessonStatus.COMPLETED,
+                    LessonStatus.PAID,
                     LessonStatus.CANCELLED_BY_TUTOR,
                     LessonStatus.CANCELLED_BY_STUDENT),
 

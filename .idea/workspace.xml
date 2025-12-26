@@ -6,18 +6,26 @@
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.vscode/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/.vscode/settings.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/InvoiceController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/InvoiceController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecord.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecord.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/dto/response/SessionRecordResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/dto/response/SessionRecordResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/globals.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/ui/button.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/ui/button.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/ui/dropdown-menu.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/ui/dropdown-menu.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/components/FormField.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/components/FormField.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/hooks/useSessionForm.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/hooks/useSessionForm.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/add-session-modal/types.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarGrid.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarGrid.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarHeader.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CompactLessonList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CompactLessonList.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/ContextMenu.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/ContextMenu.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/DayDetailModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/DayDetailModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/DayView.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/DayView.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/LessonCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/LessonCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/LessonDetailModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/LessonDetailModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/ListView.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/ListView.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/QuickActions.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/QuickActions.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/StatusLegend.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/StatusLegend.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/WeekView.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/WeekView.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/students/student-list/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/student-list/index.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/lib/services/session.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/session.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/lib/types/finance.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/types/finance.ts" afterDir="false" />
     </list>
@@ -159,7 +167,8 @@
       <workItem from="1766671475384" duration="189000" />
       <workItem from="1766671818559" duration="82000" />
       <workItem from="1766671939767" duration="38000" />
-      <workItem from="1766689746735" duration="327000" />
+      <workItem from="1766689746735" duration="974000" />
+      <workItem from="1766694522548" duration="797000" />
     </task>
     <servers />
   </component>

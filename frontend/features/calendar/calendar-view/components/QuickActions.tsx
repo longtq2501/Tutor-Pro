@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { sessionsApi } from '@/lib/services';
+import { toast } from 'sonner';
 import {
     DropdownMenu,
     DropdownMenuArrow,
@@ -38,9 +39,10 @@ export function QuickActions({ session, onUpdate, onEdit }: QuickActionsProps) {
         try {
             const updated = await sessionsApi.updateStatus(session.id, newStatus, session.version);
             onUpdate?.(updated);
+            toast.success('Đã cập nhật trạng thái');
         } catch (error) {
             console.error('Failed to update status:', error);
-            alert(error instanceof Error ? error.message : 'Failed to update status');
+            toast.error(error instanceof Error ? error.message : 'Lỗi khi cập nhật trạng thái');
         } finally {
             setLoading(false);
         }
@@ -51,9 +53,10 @@ export function QuickActions({ session, onUpdate, onEdit }: QuickActionsProps) {
         try {
             const duplicated = await sessionsApi.duplicate(session.id);
             onUpdate?.(duplicated);
+            toast.success('Đã nhân bản buổi học');
         } catch (error) {
             console.error('Failed to duplicate:', error);
-            alert('Failed to duplicate session');
+            toast.error('Lỗi khi nhân bản buổi học');
         } finally {
             setLoading(false);
         }

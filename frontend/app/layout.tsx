@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/contexts/AuthContext';
 // 1. Import QueryProvider bạn vừa tạo
 import QueryProvider from '@/providers/QueryProvider';
+import { Toaster } from 'sonner';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -53,6 +54,7 @@ export default function RootLayout({
           <QueryProvider>
             <AuthProvider>
               {children}
+              <Toaster richColors position="bottom-right" />
             </AuthProvider>
           </QueryProvider>
         </ThemeProvider>

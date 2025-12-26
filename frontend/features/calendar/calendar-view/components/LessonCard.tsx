@@ -52,7 +52,10 @@ export function LessonCard({ session, compact = false, onClick, onContextMenu, o
 
     return (
         <div
-            onClick={onClick}
+            onClick={(e) => {
+                e.stopPropagation();
+                onClick?.();
+            }}
             onContextMenu={handleContextMenu}
             className={`
         text-xs px-1.5 py-0.5 rounded-md font-semibold border 

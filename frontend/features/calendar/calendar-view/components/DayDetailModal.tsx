@@ -2,6 +2,7 @@
 // FILE: calendar-view/components/DayDetailModal.tsx
 // ============================================================================
 import { XCircle, Plus, Calendar, Clock, Trash2, BookOpen, BookDashed, CheckSquare, Square } from 'lucide-react';
+import { toast } from 'sonner';
 import { MONTHS } from '../constants';
 import { formatCurrency } from '../utils';
 import type { CalendarDay } from '../types';

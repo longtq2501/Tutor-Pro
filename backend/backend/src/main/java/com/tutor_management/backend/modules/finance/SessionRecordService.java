@@ -106,7 +106,8 @@ public class SessionRecordService {
 
         // Optimistic locking
         if (request.getVersion() != null && !record.getVersion().equals(request.getVersion())) {
-            throw new RuntimeException("Concurrent update detected. Please refresh and try again.");
+            throw new RuntimeException("Concurrent update detected. Data version mismatch (Expected: "
+                    + request.getVersion() + ", Actual: " + record.getVersion() + "). Please refresh and try again.");
         }
 
         // Update fields if present in request

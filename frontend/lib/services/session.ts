@@ -50,8 +50,10 @@ export const sessionsApi = {
    * @param {number} id - ID buổi học
    * @returns {Promise<SessionRecord>}
    */
-  togglePayment: async (id: number): Promise<SessionRecord> => {
-    const response = await api.put(`/sessions/${id}/toggle-payment`);
+  togglePayment: async (id: number, version?: number): Promise<SessionRecord> => {
+    const response = await api.put(`/sessions/${id}/toggle-payment`, null, {
+      params: { version }
+    });
     return response.data;
   },
 
@@ -75,8 +77,10 @@ export const sessionsApi = {
    * @param {number} id - ID buổi học
    * @returns {Promise<SessionRecord>}
    */
-  toggleCompleted: async (id: number): Promise<SessionRecord> => {
-    const response = await api.put(`/sessions/${id}/toggle-completed`);
+  toggleCompleted: async (id: number, version?: number): Promise<SessionRecord> => {
+    const response = await api.put(`/sessions/${id}/toggle-completed`, null, {
+      params: { version }
+    });
     return response.data;
   },
 

@@ -39,6 +39,10 @@ export function ListView({ sessions, onSessionClick, onSessionEdit, onUpdate }: 
                         matchesStatus = s.status === 'PAID' || s.status === 'COMPLETED';
                     } else if (statusFilter === 'CANCELLED') {
                         matchesStatus = s.status === 'CANCELLED_BY_STUDENT' || s.status === 'CANCELLED_BY_TUTOR';
+                    } else if (statusFilter === 'PAID') {
+                        matchesStatus = s.status === 'PAID' || s.paid === true;
+                    } else if (statusFilter === 'UNPAID') {
+                        matchesStatus = s.status !== 'PAID' && s.paid === false;
                     } else {
                         matchesStatus = s.status === statusFilter;
                     }
@@ -60,10 +64,11 @@ export function ListView({ sessions, onSessionClick, onSessionEdit, onUpdate }: 
 
     // Stats for the current filter
     const listStats = useMemo(() => {
+        const activeSessions = filteredSessions.filter(s => s.status !== 'CANCELLED_BY_STUDENT' && s.status !== 'CANCELLED_BY_TUTOR');
         return {
-            total: filteredSessions.length,
-            revenue: filteredSessions.reduce((sum, s) => sum + s.totalAmount, 0),
-            hours: filteredSessions.reduce((sum, s) => sum + s.hours, 0),
+            total: activeSessions.length,
+            revenue: activeSessions.reduce((sum, s) => sum + s.totalAmount, 0),
+            hours: activeSessions.reduce((sum, s) => sum + s.hours, 0),
         };
     }, [filteredSessions]);
 
@@ -89,6 +94,8 @@ export function ListView({ sessions, onSessionClick, onSessionEdit, onUpdate }: 
                         <SelectContent>
                             <SelectItem value="all">Tất cả trạng thái</SelectItem>
                             <SelectItem value="DONE">Đã hoàn thành</SelectItem>
+                            <SelectItem value="PAID">Đã thanh toán</SelectItem>
+                            <SelectItem value="UNPAID">Chưa thanh toán</SelectItem>
                             <SelectItem value="SCHEDULED">Đã hẹn</SelectItem>
                             <SelectItem value="CANCELLED">Đã hủy</SelectItem>
                         </SelectContent>

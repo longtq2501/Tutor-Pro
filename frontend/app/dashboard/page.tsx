@@ -190,7 +190,7 @@ function AppContent() {
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto animate-in fade-in-50">
+                <main className="flex-1 overflow-y-auto">
                     <div className="p-4 lg:p-8">
                         {/* Dashboard */}
                         {currentView === 'dashboard' && hasAnyRole(['ADMIN', 'TUTOR']) && <AdminDashboard />}

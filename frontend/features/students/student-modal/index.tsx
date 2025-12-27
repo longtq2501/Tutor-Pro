@@ -6,6 +6,7 @@
 import { Calendar } from 'lucide-react';
 import { DatePicker } from '@/components/ui/date-picker';
 import type { Student } from '@/lib/types';
+import { useEffect } from 'react';
 import { useParents } from './hooks/useParents';
 import { useStudentForm } from './hooks/useStudentForm';
 import { StudentModalHeader } from './components/StudentModalHeader';
@@ -24,14 +25,30 @@ export default function StudentModal({ student, onClose, onSuccess }: StudentMod
   const { parents, loading: loadingParents } = useParents();
   const { formData, loading, updateField, submit } = useStudentForm(student, onSuccess);
 
+  // Body scroll lock & Sidebar hiding (Problem 2)
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    document.body.classList.add('modal-open');
+    return () => {
+      document.body.style.overflow = 'unset';
+      // Only remove modal-open if no other modals are open
+      setTimeout(() => {
+        const otherModals = document.querySelectorAll('[role="dialog"]');
+        if (otherModals.length === 0) {
+          document.body.classList.remove('modal-open');
+        }
+      }, 0);
+    };
+  }, []);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div role="dialog" className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-300 ease-out">
       <div
-        className="absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0"
         onClick={onClose}
       />
 
-      <div className="relative bg-card rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300 border border-border">
+      <div className="relative bg-card rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-300 ease-out border border-border">
 
         <StudentModalHeader isEdit={!!student} onClose={onClose} />
 

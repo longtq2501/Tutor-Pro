@@ -6,12 +6,21 @@
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/LessonService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/LessonService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lesson-detail-view/components/LessonContentTab.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lesson-detail-view/components/LessonContentTab.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lesson-detail-view/hooks/useLessonDetail.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lesson-detail-view/hooks/useLessonDetail.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lesson-detail-view/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lesson-detail-view/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lesson-timeline-view/hooks/useLessonTimeline.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lesson-timeline-view/hooks/useLessonTimeline.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lesson-view-wrapper/components/LessonDetailModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lesson-view-wrapper/components/LessonDetailModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/globals.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/Sidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/Sidebar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarHeader.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/DayDetailModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/DayDetailModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/LessonDetailModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/LessonDetailModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/ListView.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/ListView.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/hooks/useCalendarData.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/hooks/useCalendarData.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/hooks/useCalendarStats.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/hooks/useCalendarStats.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/hooks/useCalendarView.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/hooks/useCalendarView.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/services/session.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/session.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -156,6 +165,8 @@
       <workItem from="1766735666863" duration="4837000" />
       <workItem from="1766748789305" duration="11000" />
       <workItem from="1766750511303" duration="706000" />
+      <workItem from="1766836807396" duration="2000" />
+      <workItem from="1766836822229" duration="3192000" />
     </task>
     <servers />
   </component>

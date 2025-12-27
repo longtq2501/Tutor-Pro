@@ -47,6 +47,34 @@ export const useCalendarData = (currentDate: Date) => {
     }
   }, [studentsData]);
 
+  /**
+   * Enhanced update function that handles both local state and TanStack Query Cache
+   */
+  const handleUpdateSession = (updated: SessionRecord) => {
+    // 1. Update the local state for immediate UI feedback
+    setSessions(prev => {
+      const exists = prev.some(s => s.id === updated.id);
+      if (exists) {
+        return prev.map(s => s.id === updated.id ? updated : s);
+      } else {
+        // If it's a new session, prepend it
+        return [updated, ...prev];
+      }
+    });
+
+    // 2. Update the TanStack Query Cache (The Source of Truth)
+    // This is CRITICAL to prevent useQuery from returning stale data during re-renders
+    queryClient.setQueryData(['sessions', monthStr], (oldData: SessionRecord[] | undefined) => {
+      if (!oldData) return undefined;
+      const exists = oldData.some(s => s.id === updated.id);
+      if (exists) {
+        return oldData.map(s => s.id === updated.id ? updated : s);
+      } else {
+        return [updated, ...oldData];
+      }
+    });
+  };
+
   // 5. Refresh function (Invalidate Cache)
   const loadData = async () => {
     await queryClient.invalidateQueries({ queryKey: ['sessions', monthStr] });
@@ -56,6 +84,7 @@ export const useCalendarData = (currentDate: Date) => {
   return {
     sessions,
     setSessions,
+    updateSession: handleUpdateSession,
     students,
     loading: loadingSessions || loadingStudents,
     isRefetching: isRefetchingSessions,

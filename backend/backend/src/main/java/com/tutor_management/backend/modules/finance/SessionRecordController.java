@@ -47,8 +47,10 @@ public class SessionRecordController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @PutMapping("/{id}/toggle-payment")
-    public ResponseEntity<SessionRecordResponse> togglePayment(@PathVariable Long id) {
-        return ResponseEntity.ok(sessionRecordService.togglePayment(id));
+    public ResponseEntity<SessionRecordResponse> togglePayment(
+            @PathVariable Long id,
+            @RequestParam(required = false) Integer version) {
+        return ResponseEntity.ok(sessionRecordService.togglePayment(id, version));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -75,8 +77,10 @@ public class SessionRecordController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @PutMapping("/{id}/toggle-completed")
-    public ResponseEntity<SessionRecordResponse> toggleCompleted(@PathVariable Long id) {
-        return ResponseEntity.ok(sessionRecordService.toggleCompleted(id));
+    public ResponseEntity<SessionRecordResponse> toggleCompleted(
+            @PathVariable Long id,
+            @RequestParam(required = false) Integer version) {
+        return ResponseEntity.ok(sessionRecordService.toggleCompleted(id, version));
     }
 
     // ========== NEW ENDPOINTS FOR PHASE 2 ==========

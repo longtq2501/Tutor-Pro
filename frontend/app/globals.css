@@ -214,6 +214,12 @@ body {
 
   body {
     @apply bg-background text-foreground;
+    transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Smooth Theme Transition (Task 7) */
+  * {
+    transition: background-color 0.4s ease-in-out, border-color 0.4s ease-in-out, color 0.2s ease-in-out, box-shadow 0.4s ease-in-out;
   }
 
   /* Custom Scrollbar */
@@ -234,9 +240,27 @@ body {
     @apply bg-slate-500 dark:bg-slate-500;
   }
 
-  /* Utility to hide sidebar toggle when modal is open */
-  body.modal-open .sidebar-toggle {
-    display: none !important;
+  /* Synchronized Background Control (Problem 2) */
+  body.modal-open .sidebar-toggle,
+  body.modal-open .main-sidebar,
+  body.modal-open header,
+  body:has([role="dialog"]) .sidebar-toggle,
+  body:has([role="dialog"]) .main-sidebar,
+  body:has([role="dialog"]) header {
+    /* Prevent interaction while modal is open */
+    pointer-events: none;
+    /* Ensure no local blurs interfere with the main modal overlay */
+    backdrop-filter: none !important;
+    filter: none !important;
+  }
+
+  body.modal-open .flex-1.flex.flex-col,
+  body:has([role="dialog"]) .flex-1.flex.flex-col {
+    /* Elevate main content above sidebar so its fixed child (modal) covers everything */
+    z-index: 60 !important;
+    position: relative;
+    /* CRITICAL: Allow fixed children to escape the width of this container to cover the sidebar */
+    overflow: visible !important;
   }
 }
 

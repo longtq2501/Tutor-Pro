@@ -1,8 +1,8 @@
 // ============================================================================
 // FILE: calendar-view/components/DayDetailModal.tsx
 // ============================================================================
-import { XCircle, Plus, Calendar, Clock, Trash2, BookOpen, BookDashed, CheckSquare, Square } from 'lucide-react';
-import { useState } from 'react';
+import { XCircle, Plus, Calendar, Clock, Trash2, BookOpen, BookDashed, CheckSquare, Square, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { toast } from 'sonner';
 import { MONTHS } from '../constants';
@@ -15,19 +15,45 @@ interface Props {
   onClose: () => void;
   onAddSession: (dateStr: string) => void;
   onDelete: (id: number) => void;
-  onTogglePayment: (id: number) => void;
-  onToggleComplete: (id: number) => void;
+  onTogglePayment: (id: number, version?: number) => void;
+  onToggleComplete: (id: number, version?: number) => void;
   onSessionClick?: (session: SessionRecord) => void;
+  loadingSessions?: Set<number>;
 }
 
-export const DayDetailModal = ({ day, onClose, onAddSession, onDelete, onTogglePayment, onToggleComplete, onSessionClick }: Props) => {
+export const DayDetailModal = ({
+  day,
+  onClose,
+  onAddSession,
+  onDelete,
+  onTogglePayment,
+  onToggleComplete,
+  onSessionClick,
+  loadingSessions = new Set()
+}: Props) => {
   const [sessionToDelete, setSessionToDelete] = useState<number | null>(null);
 
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity" onClick={onClose} />
+  // Body scroll lock & Sidebar hiding (Problem 2)
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    document.body.classList.add('modal-open');
+    return () => {
+      document.body.style.overflow = 'unset';
+      // Only remove modal-open if no other modals are open
+      setTimeout(() => {
+        const otherModals = document.querySelectorAll('[role="dialog"]');
+        if (otherModals.length === 0) {
+          document.body.classList.remove('modal-open');
+        }
+      }, 0);
+    };
+  }, []);
 
-      <div className="relative bg-card rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] flex flex-col animate-in zoom-in-95 duration-200 border border-border">
+  return (
+    <div role="dialog" className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-300 ease-out">
+      <div className="absolute inset-0" onClick={onClose} />
+
+      <div className="relative bg-card rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] flex flex-col animate-in fade-in zoom-in-95 duration-300 ease-out border border-border">
         <div className="p-5 border-b border-border flex justify-between items-center bg-slate-50/50 dark:bg-muted/50 rounded-t-2xl">
           <div>
             <h3 className="text-xl font-bold text-card-foreground">{day.date.getDate()} {MONTHS[day.date.getMonth()]}</h3>
@@ -83,20 +109,35 @@ export const DayDetailModal = ({ day, onClose, onAddSession, onDelete, onToggleP
                 <div className="pt-3 border-t border-border flex justify-between items-center mt-auto gap-2">
                   <div className="flex gap-2">
                     <button
-                      onClick={(e) => { e.stopPropagation(); onToggleComplete(session.id); }}
-                      className={`cursor-pointer text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors ${session.completed ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleComplete(session.id, session.version);
+                      }}
+                      disabled={loadingSessions.has(session.id)}
+                      className={`cursor-pointer text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors disabled:opacity-50 ${session.completed ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'}`}
                     >
-                      {session.completed ? <BookOpen size={14} /> : <BookDashed size={14} />}
+                      {loadingSessions.has(session.id) ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : (
+                        session.completed ? <BookOpen size={14} /> : <BookDashed size={14} />
+                      )}
                       <span className="hidden sm:inline">{session.completed ? 'Đã Dạy' : 'Chưa Dạy'}</span>
                       <span className="sm:hidden">{session.completed ? 'Dạy' : 'Dự kiến'}</span>
                     </button>
 
                     <button
-                      onClick={(e) => { e.stopPropagation(); onTogglePayment(session.id); }}
-                      disabled={!session.completed}
-                      className={`cursor-pointer text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors ${!session.completed ? 'opacity-50 cursor-not-allowed bg-muted text-muted-foreground' : session.paid ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50'}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onTogglePayment(session.id, session.version);
+                      }}
+                      disabled={!session.completed || loadingSessions.has(session.id)}
+                      className={`cursor-pointer text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors disabled:opacity-50 ${!session.completed ? 'bg-muted text-muted-foreground cursor-not-allowed' : session.paid ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50'}`}
                     >
-                      {session.paid ? <CheckSquare size={14} /> : <Square size={14} />}
+                      {loadingSessions.has(session.id) ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : (
+                        session.paid ? <CheckSquare size={14} /> : <Square size={14} />
+                      )}
                       <span className="hidden sm:inline">{session.paid ? 'Đã Thanh Toán' : 'Chưa Thanh Toán'}</span>
                       <span className="sm:hidden">{session.paid ? 'Đã TT' : 'TT'}</span>
                     </button>

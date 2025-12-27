@@ -49,6 +49,7 @@ export function Sidebar({ currentView, setCurrentView, navItems, isCollapsed, se
 
             {/* Sidebar - Desktop fixed, Mobile slide-in */}
             <div className={`
+                main-sidebar
                 fixed lg:relative h-screen flex flex-col bg-card/80 dark:bg-card/60 backdrop-blur-xl border-r border-border shadow-lg
                 transition-all duration-300 ease-in-out z-50
                 ${isCollapsed ? 'lg:w-20' : 'lg:w-64'}

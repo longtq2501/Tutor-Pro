@@ -21,8 +21,9 @@ export const useCalendarView = () => {
     const [contextMenu, setContextMenu] = useState<{ x: number; y: number; session: SessionRecord } | null>(null);
 
     const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
+    const [loadingSessions, setLoadingSessions] = useState<Set<number>>(new Set());
 
-    const { sessions, setSessions, students, loading, loadData } = useCalendarData(currentDate);
+    const { sessions, setSessions, students, loading, loadData, updateSession } = useCalendarData(currentDate);
 
     // ... (rest of the hooks)
 
@@ -56,15 +57,7 @@ export const useCalendarView = () => {
     }, [calendarDays]);
 
     const handleUpdateSession = useCallback((updated: SessionRecord) => {
-        setSessions(prev => {
-            const exists = prev.some(s => s.id === updated.id);
-            if (exists) {
-                return prev.map(s => s.id === updated.id ? updated : s);
-            } else {
-                loadData();
-                return prev;
-            }
-        });
+        updateSession(updated);
 
         if (selectedDay) {
             setSelectedDay(prev => prev ? {
@@ -130,31 +123,88 @@ export const useCalendarView = () => {
         setSelectedSession(session);
     }, []);
 
-    const handleTogglePayment = async (sessionId: number) => {
+    const handleTogglePayment = async (sessionId: number, version?: number) => {
+        if (loadingSessions.has(sessionId)) return;
+
+        setLoadingSessions(prev => new Set(prev).add(sessionId));
+
         const promise = async () => {
-            const updated = await sessionsApi.togglePayment(sessionId);
+            // Use provided version or fallback to lookup
+            let effectiveVersion = version;
+            if (effectiveVersion === undefined) {
+                const currentSession = sessions.find(s => s.id === sessionId);
+                if (!currentSession) throw new Error("Session not found");
+                effectiveVersion = currentSession.version;
+            }
+
+            const updated = await sessionsApi.togglePayment(sessionId, effectiveVersion);
             handleUpdateSession(updated);
+            setLoadingSessions(prev => {
+                const next = new Set(prev);
+                next.delete(sessionId);
+                return next;
+            });
             return updated.paid ? 'Đã xác nhận thanh toán' : 'Đã hủy xác nhận thanh toán';
         };
 
         toast.promise(promise(), {
             loading: 'Đang cập nhật trạng thái thanh toán...',
             success: (msg) => msg,
-            error: 'Không thể cập nhật trạng thái thanh toán!'
+            error: (err) => {
+                setLoadingSessions(prev => {
+                    const next = new Set(prev);
+                    next.delete(sessionId);
+                    return next;
+                });
+                return err instanceof Error ? err.message : 'Không thể cập nhật trạng thái thanh toán!';
+            }
         });
     };
 
-    const handleToggleComplete = async (sessionId: number) => {
+    // ✅ BEST FIX - Bỏ fallback lookup
+    // useCalendarView.ts - Line ~142
+    const handleToggleComplete = async (
+        sessionId: number,
+        version?: number  // ← Cho phép undefined
+    ) => {
+        console.log('🔴 Version received:', version);
+
+        if (loadingSessions.has(sessionId)) return;
+
+        setLoadingSessions(prev => new Set(prev).add(sessionId));
+
         const promise = async () => {
-            const updated = await sessionsApi.toggleCompleted(sessionId);
+            // ✅ Nếu undefined, lookup từ state (với functional update)
+            let effectiveVersion = version;
+
+            if (effectiveVersion === undefined) {
+                const currentSession = sessions.find(s => s.id === sessionId);
+                if (!currentSession) throw new Error("Session not found");
+                effectiveVersion = currentSession.version;
+                console.log('🟡 Fallback version from state:', effectiveVersion);
+            }
+
+            const updated = await sessionsApi.toggleCompleted(sessionId, effectiveVersion);
             handleUpdateSession(updated);
+            setLoadingSessions(prev => {
+                const next = new Set(prev);
+                next.delete(sessionId);
+                return next;
+            });
             return updated.completed ? 'Đã đánh dấu hoàn thành' : 'Đã hủy đánh dấu hoàn thành';
         };
 
         toast.promise(promise(), {
             loading: 'Đang cập nhật trạng thái...',
             success: (msg) => msg,
-            error: 'Không thể cập nhật trạng thái!'
+            error: (err) => {
+                setLoadingSessions(prev => {
+                    const next = new Set(prev);
+                    next.delete(sessionId);
+                    return next;
+                });
+                return err instanceof Error ? err.message : 'Không thể cập nhật trạng thái!';
+            }
         });
     };
 
@@ -249,6 +299,16 @@ export const useCalendarView = () => {
         closeAddSessionModal,
         handleInitiateDeleteAll,
         handleConfirmDeleteAll,
-        exportToExcel: () => sessionsApi.exportToExcel(getMonthStr(currentDate))
+        loadingSessions,
+        exportToExcel: async () => {
+            const monthStr = getMonthStr(currentDate);
+            const promise = sessionsApi.exportToExcel(monthStr);
+
+            toast.promise(promise, {
+                loading: `Đang chuẩn bị file Excel tháng ${monthStr}...`,
+                success: `Đã tải xuống file Excel tháng ${monthStr}`,
+                error: 'Lỗi khi xuất file Excel.'
+            });
+        }
     };
 };

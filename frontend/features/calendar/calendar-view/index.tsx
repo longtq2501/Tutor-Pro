@@ -57,7 +57,8 @@ export default function CalendarView() {
     closeAddSessionModal,
     handleInitiateDeleteAll,
     handleConfirmDeleteAll,
-    exportToExcel
+    exportToExcel,
+    loadingSessions
   } = useCalendarView();
 
   const renderView = () => {
@@ -166,6 +167,7 @@ export default function CalendarView() {
           onTogglePayment={handleTogglePayment}
           onToggleComplete={handleToggleComplete}
           onSessionClick={setSelectedSession}
+          loadingSessions={loadingSessions}
         />
       )}
 

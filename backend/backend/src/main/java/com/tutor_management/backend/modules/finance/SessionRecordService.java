@@ -6,6 +6,7 @@ import com.tutor_management.backend.modules.finance.dto.response.SessionRecordRe
 import com.tutor_management.backend.modules.student.Student;
 import com.tutor_management.backend.modules.student.StudentRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class SessionRecordService {
 
     private final SessionRecordRepository sessionRecordRepository;
@@ -70,20 +72,30 @@ public class SessionRecordService {
         return convertToResponse(saved);
     }
 
-    public SessionRecordResponse togglePayment(Long id) {
+    public SessionRecordResponse togglePayment(Long id, Integer version) {
         SessionRecord record = sessionRecordRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Record not found"));
+
+        if (version != null && !record.getVersion().equals(version)) {
+            String errorMsg = String.format(
+                    "Concurrent update detected for Session %d. Expected version %d, but DB has %d",
+                    id, version, record.getVersion());
+            log.error(errorMsg);
+            throw new RuntimeException(errorMsg + ". Please refresh and try again.");
+        }
 
         record.setPaid(!record.getPaid());
 
         if (record.getPaid()) {
             record.setCompleted(true);
             record.setPaidAt(java.time.LocalDateTime.now());
+            record.setStatus(LessonStatus.PAID);
         } else {
             record.setPaidAt(null);
+            record.setStatus(LessonStatus.COMPLETED);
         }
 
-        SessionRecord updated = sessionRecordRepository.save(record);
+        SessionRecord updated = sessionRecordRepository.saveAndFlush(record);
         return convertToResponse(updated);
     }
 
@@ -106,8 +118,11 @@ public class SessionRecordService {
 
         // Optimistic locking
         if (request.getVersion() != null && !record.getVersion().equals(request.getVersion())) {
-            throw new RuntimeException("Concurrent update detected. Data version mismatch (Expected: "
-                    + request.getVersion() + ", Actual: " + record.getVersion() + "). Please refresh and try again.");
+            String errorMsg = String.format(
+                    "Concurrent update detected for Session %d. Expected version %d, but DB has %d",
+                    id, request.getVersion(), record.getVersion());
+            log.error(errorMsg);
+            throw new RuntimeException(errorMsg + ". Please refresh and try again.");
         }
 
         // Update fields if present in request
@@ -178,17 +193,34 @@ public class SessionRecordService {
             }
         }
 
-        SessionRecord updated = sessionRecordRepository.save(record);
+        SessionRecord updated = sessionRecordRepository.saveAndFlush(record);
         return convertToResponse(updated);
     }
 
-    public SessionRecordResponse toggleCompleted(Long id) {
+    public SessionRecordResponse toggleCompleted(Long id, Integer version) {
         SessionRecord record = sessionRecordRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Record not found"));
 
-        record.setCompleted(!record.getCompleted());
+        if (version != null && !record.getVersion().equals(version)) {
+            String errorMsg = String.format(
+                    "Concurrent update detected for Session %d. Expected version %d, but DB has %d",
+                    id, version, record.getVersion());
+            log.error(errorMsg);
+            throw new RuntimeException(errorMsg + ". Please refresh and try again.");
+        }
 
-        SessionRecord updated = sessionRecordRepository.save(record);
+        boolean newCompleted = !record.getCompleted();
+        record.setCompleted(newCompleted);
+
+        if (newCompleted) {
+            record.setStatus(LessonStatus.COMPLETED);
+        } else {
+            record.setStatus(LessonStatus.SCHEDULED);
+            record.setPaid(false);
+            record.setPaidAt(null);
+        }
+
+        SessionRecord updated = sessionRecordRepository.saveAndFlush(record);
         return convertToResponse(updated);
     }
 
@@ -278,10 +310,11 @@ public class SessionRecordService {
 
         // Optimistic locking check
         if (!record.getVersion().equals(expectedVersion)) {
-            throw new RuntimeException(
-                    String.format(
-                            "Concurrent update detected. Expected version %d but found %d. Please refresh and try again.",
-                            expectedVersion, record.getVersion()));
+            String errorMsg = String.format(
+                    "Concurrent update detected for Session %d. Expected version %d, but DB has %d",
+                    id, expectedVersion, record.getVersion());
+            log.error(errorMsg);
+            throw new RuntimeException(errorMsg + ". Please refresh and try again.");
         }
 
         // Validate status transition
@@ -304,7 +337,7 @@ public class SessionRecordService {
         }
 
         // Version will auto-increment due to @Version annotation
-        SessionRecord updated = sessionRecordRepository.save(record);
+        SessionRecord updated = sessionRecordRepository.saveAndFlush(record);
         return convertToResponse(updated);
     }
 

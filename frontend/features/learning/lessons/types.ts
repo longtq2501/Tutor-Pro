@@ -164,6 +164,7 @@ export interface LessonLibraryDTO {
   resources?: LessonResourceDTO[];
   assignedStudentCount?: number;
   category?: LessonCategoryDTO;
+  isPublished?: boolean;
   createdAt: string;
   updatedAt: string;
 }

@@ -25,16 +25,16 @@ export function AdminLessonManager() {
       </div>
 
       <Tabs defaultValue="teaching" className="w-full">
-        <TabsList className="grid w-full max-w-xl grid-cols-3">
-          <TabsTrigger value="teaching" className="gap-2">
+        <TabsList className="flex w-full items-center justify-start overflow-x-auto whitespace-nowrap md:grid md:max-w-xl md:grid-cols-3">
+          <TabsTrigger value="teaching" className="gap-2 min-w-[150px] md:min-w-0">
             <BookMarked className="h-4 w-4" />
             Bài giảng đang dạy
           </TabsTrigger>
-          <TabsTrigger value="library" className="gap-2">
+          <TabsTrigger value="library" className="gap-2 min-w-[150px] md:min-w-0">
             <BookOpen className="h-4 w-4" />
             Kho học liệu
           </TabsTrigger>
-          <TabsTrigger value="courses" className="gap-2">
+          <TabsTrigger value="courses" className="gap-2 min-w-[150px] md:min-w-0">
             <GraduationCap className="h-4 w-4" />
             Khóa học
           </TabsTrigger>

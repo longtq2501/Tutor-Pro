@@ -2,22 +2,26 @@
 
 import { useUpdateAdminLesson } from '../hooks/useAdminLessons';
 import { LessonForm } from './LessonForm';
-import type { LessonDTO, LessonFormData } from '../types';
+import type { LessonDTO, LessonFormData, LessonLibraryDTO } from '../types';
 
 interface EditLessonDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  lesson: LessonDTO;
+  lesson: LessonDTO | LessonLibraryDTO;
+  onSubmit?: (data: LessonFormData) => void;
+  isLoading?: boolean;
 }
 
 export function EditLessonDialog({
   open,
   onOpenChange,
   lesson,
+  onSubmit,
+  isLoading,
 }: EditLessonDialogProps) {
   const updateMutation = useUpdateAdminLesson();
 
-  const handleSubmit = (data: LessonFormData) => {
+  const handleDefaultSubmit = (data: LessonFormData) => {
     updateMutation.mutate(
       {
         id: lesson.id,
@@ -48,9 +52,9 @@ export function EditLessonDialog({
       open={open}
       onOpenChange={onOpenChange}
       mode="edit"
-      lesson={lesson}
-      onSubmit={handleSubmit}
-      isLoading={updateMutation.isPending}
+      lesson={lesson as LessonDTO} // Cast compatible type for form
+      onSubmit={onSubmit || handleDefaultSubmit}
+      isLoading={isLoading || updateMutation.isPending}
     />
   );
 }

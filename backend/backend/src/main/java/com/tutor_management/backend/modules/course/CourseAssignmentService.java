@@ -199,10 +199,13 @@ public class CourseAssignmentService {
 
                 long completedCount = 0;
                 for (CourseLesson cl : courseLessons) {
-                        boolean isCompleted = lessonProgressRepository.existsByStudentIdAndLessonId(
-                                        assignment.getStudent().getId(), cl.getLesson().getId());
-                        if (isCompleted)
+                        Optional<LessonProgress> progress = lessonProgressRepository
+                                        .findByStudentIdAndLessonId(assignment.getStudent().getId(),
+                                                        cl.getLesson().getId());
+
+                        if (progress.isPresent() && progress.get().getIsCompleted()) {
                                 completedCount++;
+                        }
                 }
 
                 int percentage = (int) ((completedCount * 100.0) / courseLessons.size());

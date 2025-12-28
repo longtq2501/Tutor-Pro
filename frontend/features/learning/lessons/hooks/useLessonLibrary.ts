@@ -2,7 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { lessonLibraryApi } from '@/lib/services/lesson-admin';
 import type {
   CreateLibraryLessonRequest,
-  AssignLessonRequest
+  AssignLessonRequest,
+  UpdateLessonRequest,
 } from '@/features/learning/lessons/types';
 import { toast } from 'sonner';
 
@@ -22,6 +23,7 @@ export const useLessonLibrary = () => {
   return useQuery({
     queryKey: lessonLibraryKeys.lists(),
     queryFn: lessonLibraryApi.getAll,
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
   });
 };
 
@@ -136,6 +138,32 @@ export const useDeleteLibraryLesson = () => {
     },
     onError: (error: any, __, context) => {
       toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi xóa bài giảng', { id: context?.toastId });
+    },
+  });
+};
+
+/**
+ * Hook để cập nhật bài giảng trong kho (Sử dụng API của Admin Lesson)
+ */
+export const useUpdateLibraryLesson = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: UpdateLessonRequest }) =>
+      // Reuse existing admin update API which works for library lessons too
+      // Dynamic import to avoid circular dependency if they are in same file
+      import('@/lib/services/lesson-admin').then(mod => mod.adminLessonsApi.update(id, data)),
+    onMutate: () => {
+      const toastId = toast.loading('Đang cập nhật bài giảng...');
+      return { toastId };
+    },
+    onSuccess: (_, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: lessonLibraryKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: lessonLibraryKeys.unassigned() });
+      toast.success('Cập nhật bài giảng thành công!', { id: context?.toastId });
+    },
+    onError: (error: any, __, context) => {
+      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật bài giảng', { id: context?.toastId });
     },
   });
 };

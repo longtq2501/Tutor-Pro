@@ -38,6 +38,11 @@ export function LessonContentTab({ content, className }: LessonContentTabProps) 
               body.offsetHeight,
               html.offsetHeight
             );
+
+            // Prevent jitter: ignore changes < 2px
+            const currentHeight = parseFloat(iframe.style.height || '0');
+            if (Math.abs(height - currentHeight) < 2) return;
+
             iframe.style.height = `${height}px`;
           });
         } catch (e) {
@@ -150,7 +155,7 @@ export function LessonContentTab({ content, className }: LessonContentTabProps) 
         <iframe
           ref={iframeRef}
           srcDoc={iframeContent}
-          className="w-full border-0 block"
+          className="w-full border-0 block overflow-hidden"
           style={{ minHeight: '200px' }}
           title="Lesson Content"
           sandbox="allow-same-origin allow-scripts"

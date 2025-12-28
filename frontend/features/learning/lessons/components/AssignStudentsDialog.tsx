@@ -175,10 +175,10 @@ export function AssignStudentsDialog({
                         htmlFor={`student-${student.id}`}
                         className="flex-1 cursor-pointer"
                       >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">{student.name}</p>
-                            <p className="text-sm text-muted-foreground">
+                        <div className="flex items-center justify-between min-w-0 gap-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium truncate">{student.name}</p>
+                            <p className="text-sm text-muted-foreground truncate">
                               {student.phone || student.parentPhone || 'Chưa có SĐT'}
                             </p>
                           </div>

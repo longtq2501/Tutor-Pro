@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react';
+import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -81,7 +81,6 @@ export function CourseBuilderDialog({
     const createMutation = useCreateCourse();
     const updateMutation = useUpdateCourse();
 
-    // Tính toán defaultValues dựa trên course hoặc courseDetail
     const defaultValues = useMemo(() => {
         const targetCourse = courseDetail || course;
 
@@ -118,7 +117,6 @@ export function CourseBuilderDialog({
     const { watch, reset } = form;
     const selectedLessonIds = watch('lessonIds') || [];
 
-    // Reset form khi dialog mở hoặc courseDetail thay đổi
     useEffect(() => {
         if (open) {
             reset(defaultValues);
@@ -157,7 +155,7 @@ export function CourseBuilderDialog({
 
         form.setValue('lessonIds', newIds, { shouldValidate: true, shouldDirty: true });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // form methods are stable
+    }, []);
 
     const filteredLessons = useMemo(() =>
         libraryLessons.filter((lesson) =>
@@ -168,13 +166,15 @@ export function CourseBuilderDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[700px] max-h-[90vh] flex flex-col p-0 overflow-hidden">
-                <DialogHeader className="p-6 pb-0">
-                    <DialogTitle className="flex items-center gap-2 text-2xl">
-                        <GraduationCap className="h-6 w-6 text-primary" />
-                        {mode === 'create' ? 'Tạo lộ trình học tập' : 'Chỉnh sửa lộ trình'}
+            <DialogContent className="w-[calc(100%-1rem)] max-w-[calc(100vw-1rem)] sm:max-w-[700px] md:max-w-[750px] h-[95vh] sm:h-auto sm:max-h-[85vh] flex flex-col p-0 overflow-hidden gap-0 rounded-2xl sm:rounded-lg">
+                <DialogHeader className="px-4 py-4 sm:p-6 sm:pb-4 shrink-0">
+                    <DialogTitle className="flex items-center gap-2 text-xl sm:text-2xl">
+                        <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6 text-primary shrink-0" />
+                        <span className="truncate">
+                            {mode === 'create' ? 'Tạo lộ trình học tập' : 'Chỉnh sửa lộ trình'}
+                        </span>
                     </DialogTitle>
-                    <DialogDescription>
+                    <DialogDescription className="text-xs sm:text-sm">
                         {step === 'info'
                             ? 'Xác định các thông tin cơ bản cho khóa học của bạn.'
                             : 'Chọn các bài giảng từ thư viện để đưa vào lộ trình.'}
@@ -182,24 +182,28 @@ export function CourseBuilderDialog({
                 </DialogHeader>
 
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
-                        <div className="flex-1 overflow-y-auto p-6 pt-4">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden min-h-0">
+                        <div className="flex-1 overflow-y-auto px-4 py-3 sm:p-6 sm:pt-4 min-h-0">
                             {isLoadingDetail ? (
                                 <div className="flex items-center justify-center h-64">
-                                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                                    <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-muted-foreground" />
                                 </div>
                             ) : step === 'info' ? (
-                                <div className="space-y-4">
+                                <div className="space-y-3 sm:space-y-4">
                                     <FormField
                                         control={form.control}
                                         name="title"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Tiêu đề khóa học</FormLabel>
+                                                <FormLabel className="text-xs sm:text-sm">Tiêu đề khóa học</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Ví dụ: Luyện thi IELTS Speaking cấp tốc" {...field} />
+                                                    <Input
+                                                        placeholder="Ví dụ: Luyện thi IELTS Speaking cấp tốc"
+                                                        className="h-9 sm:h-10 text-sm"
+                                                        {...field}
+                                                    />
                                                 </FormControl>
-                                                <FormMessage />
+                                                <FormMessage className="text-xs" />
                                             </FormItem>
                                         )}
                                     />
@@ -209,39 +213,39 @@ export function CourseBuilderDialog({
                                         name="description"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Mô tả ngắn gọn</FormLabel>
+                                                <FormLabel className="text-xs sm:text-sm">Mô tả ngắn gọn</FormLabel>
                                                 <FormControl>
                                                     <Textarea
                                                         placeholder="Mô tả mục tiêu và nội dung chính của khóa học..."
-                                                        className="min-h-[100px] resize-none"
+                                                        className="min-h-[80px] sm:min-h-[100px] resize-none text-sm"
                                                         {...field}
                                                     />
                                                 </FormControl>
-                                                <FormMessage />
+                                                <FormMessage className="text-xs" />
                                             </FormItem>
                                         )}
                                     />
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                         <FormField
                                             control={form.control}
                                             name="difficultyLevel"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Độ khó</FormLabel>
+                                                    <FormLabel className="text-xs sm:text-sm">Độ khó</FormLabel>
                                                     <Select onValueChange={field.onChange} value={field.value}>
                                                         <FormControl>
-                                                            <SelectTrigger>
+                                                            <SelectTrigger className="h-9 sm:h-10 text-sm">
                                                                 <SelectValue placeholder="Chọn độ khó" />
                                                             </SelectTrigger>
                                                         </FormControl>
                                                         <SelectContent>
-                                                            <SelectItem value="BEGINNER">Cơ bản (Beginner)</SelectItem>
-                                                            <SelectItem value="INTERMEDIATE">Trung cấp (Intermediate)</SelectItem>
-                                                            <SelectItem value="ADVANCED">Nâng cao (Advanced)</SelectItem>
+                                                            <SelectItem value="BEGINNER" className="text-sm">Cơ bản (Beginner)</SelectItem>
+                                                            <SelectItem value="INTERMEDIATE" className="text-sm">Trung cấp (Intermediate)</SelectItem>
+                                                            <SelectItem value="ADVANCED" className="text-sm">Nâng cao (Advanced)</SelectItem>
                                                         </SelectContent>
                                                     </Select>
-                                                    <FormMessage />
+                                                    <FormMessage className="text-xs" />
                                                 </FormItem>
                                             )}
                                         />
@@ -251,52 +255,53 @@ export function CourseBuilderDialog({
                                             name="estimatedHours"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Thời lượng dự kiến (giờ)</FormLabel>
+                                                    <FormLabel className="text-xs sm:text-sm">Thời lượng dự kiến (giờ)</FormLabel>
                                                     <FormControl>
                                                         <Input
                                                             type="number"
+                                                            className="h-9 sm:h-10 text-sm"
                                                             {...field}
                                                             onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                                                         />
                                                     </FormControl>
-                                                    <FormMessage />
+                                                    <FormMessage className="text-xs" />
                                                 </FormItem>
                                             )}
                                         />
                                     </div>
                                 </div>
                             ) : (
-                                <div className="space-y-4">
+                                <div className="space-y-3 sm:space-y-4">
                                     <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Search className="absolute left-2.5 sm:left-3 top-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 -translate-y-1/2 text-muted-foreground" />
                                         <Input
-                                            placeholder="Tìm kiếm bài giảng trong thư viện..."
+                                            placeholder="Tìm kiếm bài giảng..."
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="pl-9"
+                                            className="pl-8 sm:pl-9 h-9 sm:h-10 text-sm"
                                         />
                                     </div>
 
-                                    <div className="bg-muted/50 rounded-lg p-3 flex items-center justify-between">
+                                    <div className="bg-muted/50 rounded-xl sm:rounded-lg p-2.5 sm:p-3 flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <Layers className="h-4 w-4 text-primary" />
-                                            <span className="text-sm font-medium">
+                                            <Layers className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0" />
+                                            <span className="text-xs sm:text-sm font-medium">
                                                 Đã chọn <span className="text-primary font-bold">{selectedLessonIds.length}</span> bài giảng
                                             </span>
                                         </div>
                                     </div>
 
-                                    <ScrollArea className="h-[300px] border rounded-md p-2">
+                                    <ScrollArea className="h-[250px] sm:h-[300px] border rounded-xl sm:rounded-md p-1.5 sm:p-2">
                                         {isLoadingLibrary ? (
                                             <div className="flex items-center justify-center h-full">
                                                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                                             </div>
                                         ) : filteredLessons.length === 0 ? (
-                                            <div className="text-center py-8 text-muted-foreground">
+                                            <div className="text-center py-8 text-xs sm:text-sm text-muted-foreground">
                                                 Không tìm thấy bài giảng nào
                                             </div>
                                         ) : (
-                                            <div className="space-y-2">
+                                            <div className="space-y-1.5 sm:space-y-2">
                                                 {filteredLessons.map((lesson) => (
                                                     <LessonItem
                                                         key={lesson.id}
@@ -312,39 +317,46 @@ export function CourseBuilderDialog({
                             )}
                         </div>
 
-                        <DialogFooter className="p-6 pt-2 bg-muted/20 border-t">
-                            <div className="flex w-full justify-between items-center">
-                                <div className="flex gap-2">
-                                    <div className={cn("w-2 h-2 rounded-full", step === 'info' ? "bg-primary" : "bg-primary/30")} />
-                                    <div className={cn("w-2 h-2 rounded-full", step === 'lessons' ? "bg-primary" : "bg-primary/30")} />
+                        <DialogFooter className="px-4 py-3 sm:p-6 sm:pt-3 bg-muted/20 border-t shrink-0">
+                            <div className="flex w-full justify-between items-center gap-3">
+                                <div className="flex gap-1.5 sm:gap-2">
+                                    <div className={cn("w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full", step === 'info' ? "bg-primary" : "bg-primary/30")} />
+                                    <div className={cn("w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full", step === 'lessons' ? "bg-primary" : "bg-primary/30")} />
                                 </div>
 
-                                <div className="flex gap-3">
+                                <div className="flex gap-2 sm:gap-3">
                                     {step === 'lessons' && (
                                         <Button
                                             type="button"
                                             variant="outline"
                                             onClick={() => setStep('info')}
                                             disabled={createMutation.isPending || updateMutation.isPending}
+                                            className="h-8 sm:h-9 text-xs sm:text-sm px-3"
                                         >
-                                            <ArrowLeft className="mr-2 h-4 w-4" />
-                                            Quay lại
+                                            <ArrowLeft className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                                            <span className="hidden xs:inline">Quay lại</span>
+                                            <span className="xs:hidden">Lại</span>
                                         </Button>
                                     )}
 
                                     <Button
                                         type="submit"
                                         disabled={createMutation.isPending || updateMutation.isPending}
+                                        className="h-8 sm:h-9 text-xs sm:text-sm px-3"
                                     >
                                         {createMutation.isPending || updateMutation.isPending ? (
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            <Loader2 className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
                                         ) : step === 'info' ? (
                                             <>
-                                                Tiếp theo
-                                                <ArrowRight className="ml-2 h-4 w-4" />
+                                                <span className="hidden xs:inline">Tiếp theo</span>
+                                                <span className="xs:hidden">Tiếp</span>
+                                                <ArrowRight className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
                                             </>
                                         ) : (
-                                            'Hoàn tất & Lưu'
+                                            <>
+                                                <span className="hidden sm:inline">Hoàn tất & Lưu</span>
+                                                <span className="sm:hidden">Lưu</span>
+                                            </>
                                         )}
                                     </Button>
                                 </div>
@@ -369,7 +381,7 @@ const LessonItem = memo(({ lesson, isSelected, onToggle }: LessonItemProps) => {
             role="button"
             tabIndex={0}
             className={cn(
-                "w-full flex items-center space-x-3 p-3 rounded-lg border transition-all cursor-pointer hover:bg-accent focus:outline-none focus:ring-1 focus:ring-primary/20",
+                "w-full flex items-center space-x-2.5 sm:space-x-3 p-2.5 sm:p-3 rounded-xl sm:rounded-lg border transition-all cursor-pointer hover:bg-accent focus:outline-none focus:ring-1 focus:ring-primary/20 active:scale-[0.98]",
                 isSelected && "bg-primary/5 border-primary/30"
             )}
             onClick={() => onToggle(lesson.id)}
@@ -380,17 +392,19 @@ const LessonItem = memo(({ lesson, isSelected, onToggle }: LessonItemProps) => {
                 }
             }}
         >
-            <div className="flex items-center space-x-3 w-full">
-                <div onClick={(e) => e.stopPropagation()}>
-                    <Checkbox checked={isSelected} />
+            <div className="flex items-center space-x-2.5 sm:space-x-3 w-full">
+                <div onClick={(e) => e.stopPropagation()} className="shrink-0">
+                    <Checkbox checked={isSelected} className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
                 <div className="flex-1 min-w-0 text-left">
-                    <p className="text-sm font-medium leading-none mb-1">{lesson.title}</p>
-                    <p className="text-xs text-muted-foreground line-clamp-1">
+                    <p className="text-xs sm:text-sm font-medium leading-none mb-0.5 sm:mb-1 truncate">
+                        {lesson.title}
+                    </p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1">
                         {lesson.summary || 'Không có tóm tắt'}
                     </p>
                 </div>
-                {isSelected && <Check className="h-4 w-4 text-primary shrink-0" />}
+                {isSelected && <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0" />}
             </div>
         </div>
     );

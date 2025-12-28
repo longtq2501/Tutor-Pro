@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { lessonsApi } from '@/lib/services';
 import { toast } from 'sonner';
 import type { Lesson } from '@/lib/types';
+import type { LessonDTO } from '@/features/learning/lessons/types'; // Import DTO type
 
 // Query keys for student lessons
 export const studentLessonKeys = {
@@ -10,14 +11,60 @@ export const studentLessonKeys = {
   detail: (id: number) => [...studentLessonKeys.all, id] as const,
 };
 
-export function useLessonDetail(lessonId: number) {
+export function useLessonDetail(lessonId: number, isPreview = false) {
   const queryClient = useQueryClient();
 
   // Fetch lesson data with React Query
   const { data: lesson, isLoading: loading } = useQuery({
-    queryKey: studentLessonKeys.detail(lessonId),
-    queryFn: () => lessonsApi.getById(lessonId),
+    queryKey: isPreview ? ['admin-lesson-preview', lessonId] : studentLessonKeys.detail(lessonId),
+    queryFn: async () => {
+      // Dynamic import to avoid circular dependency if needed, or use separate service
+      if (isPreview) {
+        const mod = await import('@/lib/services/lesson-admin');
+        const adminLesson = await mod.adminLessonsApi.getById(lessonId);
+
+        // Map LessonDTO (Admin) to Lesson (Student View)
+        const previewLesson: Lesson = {
+          id: adminLesson.id,
+          tutorName: adminLesson.tutorName,
+          title: adminLesson.title,
+          summary: adminLesson.summary,
+          content: adminLesson.content,
+          lessonDate: adminLesson.lessonDate,
+          videoUrl: adminLesson.videoUrl,
+          thumbnailUrl: adminLesson.thumbnailUrl,
+
+          // Default values for preview mode (Admin viewing as Student)
+          studentId: 0,
+          studentName: 'Preview Mode',
+          isCompleted: false,
+          viewCount: 0,
+
+          images: (adminLesson.images || []).map(img => ({
+            id: img.id || 0,
+            imageUrl: img.imageUrl,
+            caption: img.caption,
+            displayOrder: img.displayOrder || 0
+          })),
+          resources: (adminLesson.resources || []).map(res => ({
+            id: res.id || 0,
+            title: res.resourceName,
+            description: '', // DTO doesn't have description
+            resourceUrl: res.resourceUrl,
+            resourceType: (res.resourceType as any) || 'DOCUMENT',
+            fileSize: res.fileSize,
+            displayOrder: 0
+          })),
+          createdAt: adminLesson.createdAt,
+          updatedAt: adminLesson.updatedAt,
+          category: adminLesson.category,
+        };
+        return previewLesson;
+      }
+      return lessonsApi.getById(lessonId);
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: true, // Auto-refresh when tab gains focus
   });
 
   // Mutation for toggling completion status
@@ -51,12 +98,16 @@ export function useLessonDetail(lessonId: number) {
       // Update cache with backend response to prevent revert
       queryClient.setQueryData<Lesson>(studentLessonKeys.detail(lessonId), updatedLesson);
 
-      // Invalidate list to update badges
+      // Invalidate lesson list to update badges
       queryClient.invalidateQueries({ queryKey: studentLessonKeys.all });
+
+      // Invalidate course caches to update progress immediately
+      queryClient.invalidateQueries({ queryKey: ['my-courses'] });
+      queryClient.invalidateQueries({ queryKey: ['student-course-detail'] });
 
       toast.success(
         updatedLesson.isCompleted
-          ? '✅ Đã đánh dấu hoàn thành!'
+          ? '✅ Đã đánh dấu hoàn thành! Tiến độ khóa học đã được cập nhật.'
           : '❌ Đã bỏ đánh dấu'
       );
     },

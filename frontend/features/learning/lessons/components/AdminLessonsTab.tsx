@@ -58,45 +58,37 @@ import {
   useTogglePublishLesson,
 } from '../hooks/useAdminLessons';
 import type { LessonDTO } from '../types';
-import { CreateLessonDialog } from './CreateLessonDialog';
-import { EditLessonDialog } from './EditLessonDialog';
-import { CategoryManagerDialog } from './CategoryManagerDialog';
+import { CategoryDashboard } from './CategoryDashboard';
+import { LessonDetailModal } from '../../lesson-view-wrapper/components/LessonDetailModal';
+import { Users } from 'lucide-react';
 
 export function AdminLessonsTab() {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
-  const [selectedLesson, setSelectedLesson] = useState<LessonDTO | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
 
   const { data: lessons = [], isLoading } = useAdminLessons();
-  const deleteMutation = useDeleteAdminLesson();
-  const togglePublishMutation = useTogglePublishLesson();
 
-  const handleEdit = (lesson: LessonDTO) => {
-    setSelectedLesson(lesson);
-    setIsEditDialogOpen(true);
-  };
+  // Calculate counts for dashboard
+  const lessonCounts = lessons.reduce((acc, lesson) => {
+    // Total count (using -1 as key for "All")
+    acc[-1] = (acc[-1] || 0) + 1;
 
-  const handleDelete = () => {
-    if (selectedLesson) {
-      deleteMutation.mutate(selectedLesson.id, {
-        onSuccess: () => {
-          setIsDeleteDialogOpen(false);
-          setSelectedLesson(null);
-        },
-      });
+    // Category count
+    if (lesson.category?.id) {
+      acc[lesson.category.id] = (acc[lesson.category.id] || 0) + 1;
     }
+    return acc;
+  }, {} as Record<number, number>);
+
+  const handlePreview = (lessonId: number) => {
+    setSelectedLessonId(lessonId);
+    setIsPreviewOpen(true);
   };
 
-  const handleDeleteClick = (lesson: LessonDTO) => {
-    setSelectedLesson(lesson);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleTogglePublish = (lesson: LessonDTO) => {
-    togglePublishMutation.mutate(lesson.id);
-  };
+  const filteredLessons = selectedCategoryId
+    ? lessons.filter(l => l.category?.id === selectedCategoryId)
+    : lessons;
 
   if (isLoading) {
     return (
@@ -107,93 +99,95 @@ export function AdminLessonsTab() {
   }
 
   return (
-    <>
+    <div className="space-y-6">
+      <CategoryDashboard
+        onSelectCategory={setSelectedCategoryId}
+        lessonCounts={lessonCounts}
+      />
+
+      <div className="flex items-center gap-2 mb-4">
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          {selectedCategoryId === null ? 'Tất cả bài giảng' : 'Danh sách bài giảng'}
+          <Badge variant="secondary" className="ml-2">
+            {filteredLessons.length}
+          </Badge>
+        </h2>
+        {selectedCategoryId !== null && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSelectedCategoryId(null)}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            Xem tất cả
+          </Button>
+        )}
+      </div>
+
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <BookMarked className="h-5 w-5" />
-                Bài Giảng Đang Dạy
-              </CardTitle>
-              <CardDescription>
-                Quản lý các bài giảng đã giao cho học sinh
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => setIsCategoryDialogOpen(true)}>
-                <Tag className="mr-2 h-4 w-4" />
-                Quản lý danh mục
-              </Button>
-              <Button onClick={() => setIsCreateDialogOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Tạo & giao bài mới
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {lessons.length === 0 ? (
+        <CardContent className="p-0">
+          {filteredLessons.length === 0 ? (
             <div className="text-center py-12">
               <BookMarked className="mx-auto h-12 w-12 text-muted-foreground/50" />
               <h3 className="mt-4 text-lg font-semibold">
-                Chưa có bài giảng nào
+                Không tìm thấy bài giảng
               </h3>
               <p className="text-sm text-muted-foreground mt-2">
-                Tạo bài giảng mới và giao trực tiếp cho học sinh
+                Không có bài giảng nào trong danh mục này
               </p>
-              <Button onClick={() => setIsCreateDialogOpen(true)} className="mt-4">
-                <Plus className="mr-2 h-4 w-4" />
-                Tạo bài đầu tiên
-              </Button>
             </div>
           ) : (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[250px]">Tiêu đề</TableHead>
-                    <TableHead className="w-[150px]">Giáo viên</TableHead>
-                    <TableHead className="w-[300px]">Tóm tắt</TableHead>
-                    <TableHead className="w-[120px]">Ngày học</TableHead>
-                    <TableHead className="w-[100px]">Trạng thái</TableHead>
-                    <TableHead className="w-[120px]">Xuất bản</TableHead>
-                    <TableHead className="w-[70px]"></TableHead>
+                    <TableHead className="w-[300px]">Tiêu đề</TableHead>
+                    <TableHead className="w-[150px] hidden md:table-cell">Giáo viên</TableHead>
+                    <TableHead className="w-[120px] hidden md:table-cell">Ngày học</TableHead>
+                    <TableHead className="w-[100px] hidden md:table-cell">Trạng thái</TableHead>
+                    <TableHead className="w-[120px] hidden md:table-cell">Xuất bản</TableHead>
+                    <TableHead className="w-[70px] text-right">Xem</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {lessons.map((lesson) => (
-                    <TableRow key={lesson.id}>
+                  {filteredLessons.map((lesson) => (
+                    <TableRow key={lesson.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handlePreview(lesson.id)}>
                       <TableCell className="font-medium">
                         <div className="flex flex-col gap-1">
-                          <span className="line-clamp-1">{lesson.title}</span>
+                          <span className="line-clamp-1 text-base font-semibold">{lesson.title}</span>
                           <div className="flex flex-wrap items-center gap-2">
-                            {lesson.assignedStudentCount !== undefined && (
-                              <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                {lesson.assignedStudentCount} học sinh
-                              </span>
-                            )}
                             {lesson.category && (
-                              <div className="flex items-center gap-1.5 overflow-hidden">
-                                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: lesson.category.color || '#3b82f6' }} />
-                                <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground truncate">{lesson.category.name}</span>
-                              </div>
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] uppercase font-bold px-1.5 py-0 h-5 border-0"
+                                style={{
+                                  backgroundColor: `${lesson.category.color}15`,
+                                  color: lesson.category.color
+                                }}
+                              >
+                                {lesson.category.name}
+                              </Badge>
+                            )}
+                            {/* Mobile Only: Date */}
+                            <span className="md:hidden text-xs text-muted-foreground">
+                              {format(new Date(lesson.lessonDate), 'dd/MM/yyyy')}
+                            </span>
+                            {lesson.assignedStudentCount !== undefined && (
+                              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Users className="w-3 h-3" />
+                                {lesson.assignedStudentCount} <span className="hidden sm:inline">học sinh</span>
+                              </span>
                             )}
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden md:table-cell">
                         <div className="flex items-center gap-2">
                           <User className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm">{lesson.tutorName}</span>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <p className="line-clamp-2 text-sm text-muted-foreground">
-                          {lesson.summary || lesson.content.substring(0, 100) + '...'}
-                        </p>
-                      </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden md:table-cell">
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm">
@@ -203,50 +197,33 @@ export function AdminLessonsTab() {
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden md:table-cell">
                         <Badge
                           variant={lesson.isPublished ? 'default' : 'secondary'}
                         >
                           {lesson.isPublished ? 'Đã xuất bản' : 'Nháp'}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Switch
-                            checked={lesson.isPublished}
-                            onCheckedChange={() => handleTogglePublish(lesson)}
-                            disabled={togglePublishMutation.isPending}
-                          />
-                          {lesson.isPublished ? (
-                            <Eye className="h-4 w-4 text-muted-foreground" />
-                          ) : (
-                            <EyeOff className="h-4 w-4 text-muted-foreground" />
-                          )}
-                        </div>
+                      <TableCell className="hidden md:table-cell">
+                        {lesson.isPublished ? (
+                          <div className="flex items-center gap-1.5 text-green-600 text-sm font-medium">
+                            <Eye className="h-4 w-4" />
+                            Public
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
+                            <EyeOff className="h-4 w-4" />
+                            Private
+                          </div>
+                        )}
                       </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleEdit(lesson)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Chỉnh sửa
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-destructive"
-                              onClick={() => handleDeleteClick(lesson)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Xóa
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={(e) => {
+                          e.stopPropagation();
+                          handlePreview(lesson.id);
+                        }}>
+                          <Eye className="h-4 w-4 text-primary" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -257,54 +234,13 @@ export function AdminLessonsTab() {
         </CardContent>
       </Card>
 
-      {/* Create Dialog */}
-      <CreateLessonDialog
-        open={isCreateDialogOpen}
-        onOpenChange={setIsCreateDialogOpen}
+      {/* Preview Modal */}
+      <LessonDetailModal
+        lessonId={selectedLessonId}
+        open={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        isPreview={true}
       />
-
-      {/* Edit Dialog */}
-      {selectedLesson && (
-        <EditLessonDialog
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          lesson={selectedLesson}
-        />
-      )}
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa bài giảng "
-              <span className="font-semibold">{selectedLesson?.title}</span>"?
-              Hành động này sẽ xóa bài giảng khỏi tất cả học sinh và không thể hoàn tác.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive hover:bg-destructive/90"
-              disabled={deleteMutation.isPending}
-            >
-              {deleteMutation.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Xóa
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      <CategoryManagerDialog
-        open={isCategoryDialogOpen}
-        onOpenChange={setIsCategoryDialogOpen}
-      />
-    </>
+    </div>
   );
 }

@@ -107,7 +107,7 @@ export function CourseManagementTab() {
         <>
             <Card>
                 <CardHeader>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
                             <CardTitle className="flex items-center gap-2">
                                 <GraduationCap className="h-5 w-5" />
@@ -117,7 +117,7 @@ export function CourseManagementTab() {
                                 Tạo và quản lý các lộ trình học tập có cấu trúc
                             </CardDescription>
                         </div>
-                        <Button onClick={handleCreate}>
+                        <Button onClick={handleCreate} className="w-full sm:w-auto">
                             <Plus className="mr-2 h-4 w-4" />
                             Tạo khóa học mới
                         </Button>
@@ -144,10 +144,10 @@ export function CourseManagementTab() {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead className="w-[300px]">Tên khóa học</TableHead>
-                                        <TableHead>Độ khó</TableHead>
-                                        <TableHead>Số bài học</TableHead>
-                                        <TableHead>Thời lượng dự kiến</TableHead>
-                                        <TableHead>Trạng thái</TableHead>
+                                        <TableHead className="hidden md:table-cell">Độ khó</TableHead>
+                                        <TableHead className="hidden md:table-cell">Số bài học</TableHead>
+                                        <TableHead className="hidden md:table-cell">Thời lượng dự kiến</TableHead>
+                                        <TableHead className="hidden md:table-cell">Trạng thái</TableHead>
                                         <TableHead className="w-[70px]"></TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -160,27 +160,41 @@ export function CourseManagementTab() {
                                                     <span className="text-xs text-muted-foreground line-clamp-1">
                                                         {course.description || 'Chưa có mô tả'}
                                                     </span>
+
+                                                    {/* Mobile Details */}
+                                                    <div className="flex items-center gap-2 mt-1 md:hidden flex-wrap">
+                                                        <Badge variant="outline" className="h-[20px] text-[10px]">
+                                                            {course.difficultyLevel === 'BEGINNER' ? 'Cơ bản' :
+                                                                course.difficultyLevel === 'INTERMEDIATE' ? 'Trung cấp' : 'Nâng cao'}
+                                                        </Badge>
+                                                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                                            <Layers className="h-3 w-3" /> {course.lessonCount}
+                                                        </span>
+                                                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                                            <Clock className="h-3 w-3" /> {course.estimatedHours || 0}h
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="hidden md:table-cell">
                                                 <Badge variant="outline">
                                                     {course.difficultyLevel === 'BEGINNER' ? 'Cơ bản' :
                                                         course.difficultyLevel === 'INTERMEDIATE' ? 'Trung cấp' : 'Nâng cao'}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="hidden md:table-cell">
                                                 <div className="flex items-center gap-2 text-sm">
                                                     <Layers className="h-4 w-4 text-muted-foreground" />
                                                     {course.lessonCount} bài
                                                 </div>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="hidden md:table-cell">
                                                 <div className="flex items-center gap-2 text-sm">
                                                     <Clock className="h-4 w-4 text-muted-foreground" />
                                                     {course.estimatedHours || 0} giờ
                                                 </div>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="hidden md:table-cell">
                                                 <Badge variant={course.isPublished ? 'default' : 'secondary'}>
                                                     {course.isPublished ? 'Công khai' : 'Nháp'}
                                                 </Badge>

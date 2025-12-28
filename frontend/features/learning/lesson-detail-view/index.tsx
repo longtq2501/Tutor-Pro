@@ -11,13 +11,24 @@ import { useState } from 'react';
 
 interface LessonDetailViewProps {
   lessonId: number;
+  onClose?: () => void; // Optional callback to close modal
+  isPreview?: boolean;
 }
 
-export default function LessonDetailView({ lessonId }: LessonDetailViewProps) {
+export default function LessonDetailView({ lessonId, onClose, isPreview = false }: LessonDetailViewProps) {
   const router = useRouter();
-  const { lesson, loading, markingComplete, toggleComplete } = useLessonDetail(lessonId);
+  const { lesson, loading, markingComplete, toggleComplete } = useLessonDetail(lessonId, isPreview);
   const [sidebarWidth, setSidebarWidth] = useState(45);
   const [isResizing, setIsResizing] = useState(false);
+
+  // Handle back navigation - use onClose if provided, otherwise router.back()
+  const handleBack = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      router.back();
+    }
+  };
 
   // Loading Skeleton
   if (loading) {
@@ -49,7 +60,7 @@ export default function LessonDetailView({ lessonId }: LessonDetailViewProps) {
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-2">Không tìm thấy bài học</h2>
         <p className="text-muted-foreground mb-6">Bài học này có thể đã bị xóa hoặc không tồn tại.</p>
-        <button onClick={() => router.back()} className="text-primary hover:underline">
+        <button onClick={handleBack} className="text-primary hover:underline">
           Quay lại danh sách
         </button>
       </div>
@@ -90,7 +101,7 @@ export default function LessonDetailView({ lessonId }: LessonDetailViewProps) {
             <LessonHeader
               lesson={lesson}
               markingComplete={markingComplete}
-              onBack={() => router.back()}
+              onBack={handleBack}
               onToggleComplete={toggleComplete}
             />
 
@@ -141,7 +152,7 @@ export default function LessonDetailView({ lessonId }: LessonDetailViewProps) {
 
         {/* Resizer Handle (Desktop Only) */}
         <div
-          className="hidden lg:flex w-1 bg-border hover:bg-primary cursor-col-resize items-center justify-center transition-colors z-50 hover:w-1.5 -ml-[2px]"
+          className="hidden lg:flex w-1.5 bg-border hover:bg-primary cursor-col-resize items-center justify-center transition-colors z-50 -ml-[3px]"
           onMouseDown={(e) => {
             e.preventDefault();
             setIsResizing(true);

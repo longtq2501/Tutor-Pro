@@ -58,10 +58,10 @@ export default function CourseDetailView({ courseId, onBack, onLessonSelect }: C
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header / Hero Section */}
-            <div className="relative rounded-3xl overflow-hidden bg-slate-900 text-white p-8 lg:p-12 shadow-2xl">
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-primary via-primary/90 to-primary/80 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 text-white p-8 lg:p-12 shadow-2xl">
                 {/* Decorative background elements */}
-                <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-primary/20 to-transparent pointer-events-none" />
-                <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-white/10 dark:from-primary/20 to-transparent pointer-events-none" />
+                <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-white/10 dark:bg-primary/20 rounded-full blur-3xl pointer-events-none" />
 
                 <Button
                     variant="ghost"
@@ -75,10 +75,10 @@ export default function CourseDetailView({ courseId, onBack, onLessonSelect }: C
                 <div className="grid lg:grid-cols-3 gap-8 relative z-10">
                     <div className="lg:col-span-2 space-y-6">
                         <div className="flex flex-wrap gap-2 text-xs font-semibold tracking-wider uppercase">
-                            <Badge variant="outline" className="text-primary-foreground border-white/20 bg-white/5">
+                            <Badge variant="outline" className="text-white border-white/30 bg-white/10 backdrop-blur-sm">
                                 {getDifficultyLabel(course.difficultyLevel)}
                             </Badge>
-                            <Badge variant="outline" className="text-primary-foreground border-white/20 bg-white/5">
+                            <Badge variant="outline" className="text-white border-white/30 bg-white/10 backdrop-blur-sm">
                                 {course.tutorName}
                             </Badge>
                         </div>
@@ -87,35 +87,35 @@ export default function CourseDetailView({ courseId, onBack, onLessonSelect }: C
                             {course.title}
                         </h1>
 
-                        <p className="text-white/70 text-lg leading-relaxed max-w-2xl">
+                        <p className="text-white/80 dark:text-white/70 text-lg leading-relaxed max-w-2xl">
                             {course.description || "Khóa học này chưa có mô tả chi tiết."}
                         </p>
 
                         <div className="flex flex-wrap gap-6 pt-4">
                             <div className="flex items-center gap-2">
                                 <div className="p-2 bg-white/10 rounded-lg">
-                                    <BookOpen className="h-5 w-5 text-primary-foreground" />
+                                    <BookOpen className="h-5 w-5 text-white" />
                                 </div>
                                 <div>
-                                    <p className="text-xs text-white/50 uppercase font-bold">Bài giảng</p>
+                                    <p className="text-xs text-white/60 uppercase font-bold">Bài giảng</p>
                                     <p className="font-bold">{course.lessons.length} bài</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="p-2 bg-white/10 rounded-lg">
-                                    <Clock className="h-5 w-5 text-primary-foreground" />
+                                    <Clock className="h-5 w-5 text-white" />
                                 </div>
                                 <div>
-                                    <p className="text-xs text-white/50 uppercase font-bold">Thời lượng</p>
+                                    <p className="text-xs text-white/60 uppercase font-bold">Thời lượng</p>
                                     <p className="font-bold">{course.estimatedHours} giờ</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="p-2 bg-white/10 rounded-lg">
-                                    <Calendar className="h-5 w-5 text-primary-foreground" />
+                                    <Calendar className="h-5 w-5 text-white" />
                                 </div>
                                 <div>
-                                    <p className="text-xs text-white/50 uppercase font-bold">Bắt đầu</p>
+                                    <p className="text-xs text-white/60 uppercase font-bold">Bắt đầu</p>
                                     <p className="font-bold">{new Date(course.assignedDate).toLocaleDateString('vi-VN')}</p>
                                 </div>
                             </div>
@@ -133,7 +133,7 @@ export default function CourseDetailView({ courseId, onBack, onLessonSelect }: C
                                     stroke="currentColor"
                                     strokeWidth="12"
                                     fill="transparent"
-                                    className="text-white/10"
+                                    className="text-white/20"
                                 />
                                 <circle
                                     cx="80"
@@ -145,12 +145,12 @@ export default function CourseDetailView({ courseId, onBack, onLessonSelect }: C
                                     strokeDasharray={440}
                                     strokeDashoffset={440 - (440 * course.progressPercentage) / 100}
                                     strokeLinecap="round"
-                                    className="text-primary transition-all duration-1000 ease-out"
+                                    className="text-white transition-all duration-1000 ease-out"
                                 />
                             </svg>
                             <div className="absolute inset-0 flex flex-col items-center justify-center">
                                 <span className="text-4xl font-black">{course.progressPercentage}%</span>
-                                <span className="text-[10px] uppercase font-bold text-white/50 tracking-widest">Tiến độ</span>
+                                <span className="text-[10px] uppercase font-bold text-white/60 tracking-widest">Tiến độ</span>
                             </div>
                         </div>
                     </div>
@@ -182,11 +182,13 @@ export default function CourseDetailView({ courseId, onBack, onLessonSelect }: C
                             <div
                                 key={lesson.id}
                                 className={cn(
-                                    "relative flex sm:flex-row flex-col items-start gap-4 p-4 rounded-2xl border transition-all duration-300",
+                                    "relative flex sm:flex-row flex-col items-start gap-4 p-4 rounded-2xl border transition-all duration-300 cursor-pointer hover:shadow-md",
                                     isCompleted ? "bg-primary/5 border-primary/20 opacity-80" :
                                         isCurrent ? "bg-card border-primary shadow-lg scale-[1.02] z-10" :
-                                            "bg-muted/30 border-transparent text-muted-foreground"
+                                            "bg-muted/30 border-transparent text-muted-foreground",
+                                    isLocked && "cursor-not-allowed"
                                 )}
+                                onClick={() => !isLocked && onLessonSelect(lesson.lessonId)}
                             >
                                 {/* Index Circle */}
                                 <div className="hidden sm:flex shrink-0 w-12 h-12 rounded-full items-center justify-center relative z-20 bg-background border-2 shadow-sm font-bold">

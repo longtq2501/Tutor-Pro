@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import {
   Card,
   CardContent,
@@ -37,62 +38,115 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   BookOpen,
+  Calendar,
   MoreVertical,
   Plus,
+  Tag,
+  User,
   Trash2,
   Users,
-  UserPlus,
   Loader2,
-  User,
-  UserMinus,
-  Tag,
+  Edit,
+  Eye,
+  EyeOff,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import {
   useLessonLibrary,
   useCreateLibraryLesson,
+  useAssignLibraryLesson,
+  useUnassignLibraryLesson,
   useDeleteLibraryLesson,
+  useUpdateLibraryLesson,
 } from '../hooks/useLessonLibrary';
-import type { LessonLibraryDTO } from '../types';
+import { useLessonCategories } from '../hooks/useLessonCategories';
 import { LessonForm } from './LessonForm';
+import { LessonDTO, LessonFormData, LessonLibraryDTO } from '../types';
 import { AssignStudentsDialog } from './AssignStudentsDialog';
-import { UnassignStudentsDialog } from './UnassignStudentsDialog';
+import { EditLessonDialog } from './EditLessonDialog';
 import { CategoryManagerDialog } from './CategoryManagerDialog';
+
+const ITEMS_PER_PAGE = 10;
 
 export function LessonLibraryTab() {
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
-  const [isUnassignDialogOpen, setIsUnassignDialogOpen] = useState(false);
-  const [selectedLesson, setSelectedLesson] = useState<LessonLibraryDTO | null>(
-    null
-  );
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  const [selectedLesson, setSelectedLesson] = useState<LessonLibraryDTO | null>(null);
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: lessons = [], isLoading } = useLessonLibrary();
+  const { categories } = useLessonCategories();
+
   const createMutation = useCreateLibraryLesson();
+  const updateMutation = useUpdateLibraryLesson();
+  const assignMutation = useAssignLibraryLesson();
+  const unassignMutation = useUnassignLibraryLesson();
   const deleteMutation = useDeleteLibraryLesson();
 
-  const handleCreate = (data: any) => {
+  // Filter Logic
+  const filteredLessons = lessons.filter(lesson => {
+    if (selectedCategoryFilter === 'all') return true;
+    if (selectedCategoryFilter === 'none') return !lesson.category;
+    return String(lesson.category?.id) === selectedCategoryFilter;
+  });
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredLessons.length / ITEMS_PER_PAGE);
+  const paginatedLessons = filteredLessons.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handleCreate = (data: LessonFormData) => {
     createMutation.mutate(
       {
-        tutorName: data.tutorName,
-        title: data.title,
-        summary: data.summary,
-        content: data.content,
-        lessonDate: data.lessonDate,
-        videoUrl: data.videoUrl,
-        thumbnailUrl: data.thumbnailUrl,
-        images: data.images || [],
-        resources: data.resources || [],
-        isPublished: data.isPublished,
-        categoryId: data.categoryId,
+        ...data,
       },
       {
         onSuccess: () => {
           setIsFormOpen(false);
+        },
+      }
+    );
+  };
+
+  const handleEditSubmit = (data: LessonFormData) => {
+    if (!selectedLesson) return;
+
+    updateMutation.mutate(
+      {
+        id: selectedLesson.id,
+        data: {
+          ...data,
+          // Ensure these fields are compatible with UpdateLessonRequest
+          tutorName: data.tutorName,
+          title: data.title,
+          content: data.content,
+          lessonDate: data.lessonDate || new Date().toISOString().split('T')[0],
+          isPublished: data.isPublished || false,
+          categoryId: data.categoryId,
+        },
+      },
+      {
+        onSuccess: () => {
+          setIsEditDialogOpen(false);
+          setSelectedLesson(null);
         },
       }
     );
@@ -114,14 +168,33 @@ export function LessonLibraryTab() {
     setIsAssignDialogOpen(true);
   };
 
-  const handleUnassignClick = (lesson: LessonLibraryDTO) => {
-    setSelectedLesson(lesson);
-    setIsUnassignDialogOpen(true);
-  };
-
   const handleDeleteClick = (lesson: LessonLibraryDTO) => {
     setSelectedLesson(lesson);
     setIsDeleteDialogOpen(true);
+  };
+
+  const handleEditClick = (lesson: LessonLibraryDTO) => {
+    setSelectedLesson(lesson);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleAssign = (lessonId: number, studentIds: number[]) => {
+    if (!selectedLesson) return;
+
+    // Check if unassigning logic is needed or just assign
+    // For simplicity, we just use assign here as the main action
+    assignMutation.mutate(
+      {
+        lessonId,
+        data: { studentIds },
+      },
+      {
+        onSuccess: () => {
+          setIsAssignDialogOpen(false);
+          setSelectedLesson(null);
+        },
+      }
+    );
   };
 
   if (isLoading) {
@@ -136,7 +209,7 @@ export function LessonLibraryTab() {
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <CardTitle className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5" />
@@ -146,130 +219,207 @@ export function LessonLibraryTab() {
                 Quản lý các bài giảng mẫu để giao cho học sinh
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => setIsCategoryDialogOpen(true)}>
+            <div className="flex items-center gap-2 self-start sm:self-auto w-full sm:w-auto">
+              <Button variant="outline" onClick={() => setIsCategoryDialogOpen(true)} className="flex-1 sm:flex-none">
                 <Tag className="mr-2 h-4 w-4" />
-                Quản lý danh mục
+                <span className="hidden sm:inline">Quản lý danh mục</span>
+                <span className="sm:hidden">Danh mục</span>
               </Button>
-              <Button onClick={() => setIsFormOpen(true)}>
+              <Button onClick={() => setIsFormOpen(true)} className="flex-1 sm:flex-none">
                 <Plus className="mr-2 h-4 w-4" />
                 Thêm bài mới
               </Button>
             </div>
           </div>
+
+          {/* Filters */}
+          <div className="flex items-center gap-4 mt-4">
+            <div className="w-full sm:w-[200px]">
+              <Select
+                value={selectedCategoryFilter}
+                onValueChange={(val) => {
+                  setSelectedCategoryFilter(val);
+                  setCurrentPage(1); // Reset page on filter change
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Lọc theo danh mục" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả danh mục</SelectItem>
+                  <SelectItem value="none">Không có danh mục</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={String(cat.id)}>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color || '#3b82f6' }} />
+                        {cat.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          {lessons.length === 0 ? (
+          {filteredLessons.length === 0 ? (
             <div className="text-center py-12">
               <BookOpen className="mx-auto h-12 w-12 text-muted-foreground/50" />
               <h3 className="mt-4 text-lg font-semibold">
                 Chưa có bài giảng nào
               </h3>
               <p className="text-sm text-muted-foreground mt-2">
-                Bắt đầu bằng cách thêm bài giảng mẫu vào kho
+                Thêm bài giảng mẫu vào kho để tái sử dụng
               </p>
-              <Button onClick={() => setIsFormOpen(true)} className="mt-4">
-                <Plus className="mr-2 h-4 w-4" />
-                Thêm bài đầu tiên
-              </Button>
             </div>
           ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[250px]">Tiêu đề</TableHead>
-                    <TableHead className="w-[150px]">Giáo viên</TableHead>
-                    <TableHead className="w-[300px]">Tóm tắt</TableHead>
-                    <TableHead className="w-[120px]">Học sinh đã giao</TableHead>
-                    <TableHead className="w-[150px]">Ngày tạo</TableHead>
-                    <TableHead className="w-[70px]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {lessons.map((lesson) => (
-                    <TableRow key={lesson.id}>
-                      <TableCell className="font-medium">
-                        <div className="flex flex-col gap-1">
-                          <span className="line-clamp-1">{lesson.title}</span>
-                          {lesson.category && (
-                            <div className="flex items-center gap-1.5">
-                              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: lesson.category.color || '#3b82f6' }} />
-                              <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">{lesson.category.name}</span>
+            <div className="space-y-4">
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[300px]">Tiêu đề</TableHead>
+                      <TableHead className="w-[150px] hidden md:table-cell">Giáo viên</TableHead>
+                      <TableHead className="w-[120px] hidden md:table-cell">Ngày tạo</TableHead>
+                      <TableHead className="w-[100px] hidden md:table-cell">Trạng thái</TableHead>
+                      <TableHead className="w-[100px] hidden md:table-cell">Đã giao</TableHead>
+                      <TableHead className="w-[70px]"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedLessons.map((lesson) => (
+                      <TableRow key={lesson.id}>
+                        <TableCell className="font-medium">
+                          <div className="flex flex-col gap-1">
+                            <span className="line-clamp-1 text-base font-semibold">{lesson.title}</span>
+                            <div className="flex flex-wrap items-center gap-2">
+                              {lesson.category && (
+                                <Badge
+                                  variant="outline"
+                                  className="w-fit text-[10px] uppercase font-bold px-1.5 py-0 h-5 border-0"
+                                  style={{
+                                    backgroundColor: `${lesson.category.color}15`,
+                                    color: lesson.category.color
+                                  }}
+                                >
+                                  {lesson.category.name}
+                                </Badge>
+                              )}
+                              {/* Mobile Only: Date & Status */}
+                              <span className="md:hidden text-xs text-muted-foreground flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                {lesson.lessonDate ? format(new Date(lesson.lessonDate), 'dd/MM/yyyy') : '-'}
+                              </span>
+                              <span className={cn("md:hidden text-xs font-medium flex items-center gap-1", lesson.isPublished ? "text-green-600" : "text-muted-foreground")}>
+                                {lesson.isPublished ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                                {lesson.isPublished ? 'Public' : 'Private'}
+                              </span>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">{lesson.tutorName}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">
+                              {lesson.lessonDate ? format(new Date(lesson.lessonDate), 'dd/MM/yyyy', { locale: vi }) : '-'}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          {lesson.isPublished ? (
+                            <div className="flex items-center gap-1.5 text-green-600 text-sm font-medium">
+                              <Eye className="h-4 w-4" />
+                              Public
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
+                              <EyeOff className="h-4 w-4" />
+                              Private
                             </div>
                           )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{lesson.tutorName}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <p className="line-clamp-2 text-sm text-muted-foreground">
-                          {lesson.summary || lesson.content.substring(0, 100) + '...'}
-                        </p>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className="gap-1">
-                          <Users className="h-3 w-3" />
-                          {lesson.assignedStudentCount || 0}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm">
-                          {format(new Date(lesson.createdAt), 'dd/MM/yyyy', {
-                            locale: vi,
-                          })}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={() => handleAssignClick(lesson)}
-                            >
-                              <UserPlus className="mr-2 h-4 w-4" />
-                              Giao cho học sinh
-                            </DropdownMenuItem>
-                            {lesson.assignedStudentCount && lesson.assignedStudentCount > 0 && (
-                              <DropdownMenuItem
-                                onClick={() => handleUnassignClick(lesson)}
-                                className="text-orange-600"
-                              >
-                                <UserMinus className="mr-2 h-4 w-4" />
-                                Thu hồi bài giảng
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          {(lesson.assignedStudentCount || 0) > 0 ? (
+                            <Badge variant="secondary" className="flex w-fit items-center gap-1">
+                              <Users className="h-3 w-3" />
+                              {lesson.assignedStudentCount}
+                            </Badge>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleAssignClick(lesson)}>
+                                <Users className="mr-2 h-4 w-4" />
+                                Giao cho học sinh
                               </DropdownMenuItem>
-                            )}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-destructive"
-                              onClick={() => handleDeleteClick(lesson)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Xóa
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                              <DropdownMenuItem onClick={() => handleEditClick(lesson)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Chỉnh sửa
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={() => handleDeleteClick(lesson)}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Xóa
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-end space-x-2 py-4">
+                  <div className="flex-1 text-sm text-muted-foreground">
+                    Trang {currentPage} / {totalPages}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Trước
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Tiếp
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Form Dialog */}
+      {/* Create Dialog */}
       <LessonForm
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
@@ -278,7 +428,18 @@ export function LessonLibraryTab() {
         isLoading={createMutation.isPending}
       />
 
-      {/* Assign Students Dialog */}
+      {/* Edit Dialog */}
+      {selectedLesson && (
+        <EditLessonDialog
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          lesson={selectedLesson}
+          onSubmit={handleEditSubmit}
+          isLoading={updateMutation.isPending}
+        />
+      )}
+
+      {/* Assign Dialog */}
       {selectedLesson && (
         <AssignStudentsDialog
           open={isAssignDialogOpen}
@@ -287,14 +448,11 @@ export function LessonLibraryTab() {
         />
       )}
 
-      {/* Unassign Students Dialog */}
-      {selectedLesson && (
-        <UnassignStudentsDialog
-          open={isUnassignDialogOpen}
-          onOpenChange={setIsUnassignDialogOpen}
-          lesson={selectedLesson}
-        />
-      )}
+      {/* Category Manager */}
+      <CategoryManagerDialog
+        open={isCategoryDialogOpen}
+        onOpenChange={setIsCategoryDialogOpen}
+      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog
@@ -306,8 +464,8 @@ export function LessonLibraryTab() {
             <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
             <AlertDialogDescription>
               Bạn có chắc chắn muốn xóa bài giảng "
-              <span className="font-semibold">{selectedLesson?.title}</span>"
-              khỏi kho? Hành động này không thể hoàn tác.
+              <span className="font-semibold">{selectedLesson?.title}</span>"?
+              Hành động này sẽ xóa bài giảng khỏi kho và không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -325,10 +483,6 @@ export function LessonLibraryTab() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <CategoryManagerDialog
-        open={isCategoryDialogOpen}
-        onOpenChange={setIsCategoryDialogOpen}
-      />
     </>
   );
 }

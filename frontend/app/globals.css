@@ -241,27 +241,9 @@ body {
   }
 
   /* Synchronized Background Control (Problem 2) */
-  body.modal-open .sidebar-toggle,
-  body.modal-open .main-sidebar,
-  body.modal-open header,
-  body:has([role="dialog"]) .sidebar-toggle,
-  body:has([role="dialog"]) .main-sidebar,
-  body:has([role="dialog"]) header {
-    /* Prevent interaction while modal is open */
-    pointer-events: none;
-    /* Ensure no local blurs interfere with the main modal overlay */
-    backdrop-filter: none !important;
-    filter: none !important;
-  }
 
-  body.modal-open .flex-1.flex.flex-col,
-  body:has([role="dialog"]) .flex-1.flex.flex-col {
-    /* Elevate main content above sidebar so its fixed child (modal) covers everything */
-    z-index: 60 !important;
-    position: relative;
-    /* CRITICAL: Allow fixed children to escape the width of this container to cover the sidebar */
-    overflow: visible !important;
-  }
+
+
 }
 
 /* ==========================================================================

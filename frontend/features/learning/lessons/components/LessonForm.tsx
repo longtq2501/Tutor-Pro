@@ -240,253 +240,264 @@ export function LessonForm({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Icon className="h-5 w-5" />
-            {config.title}
+      <DialogContent className="w-[calc(100%-1rem)] max-w-[calc(100vw-1rem)] sm:max-w-[700px] md:max-w-[750px] h-[95vh] sm:h-auto sm:max-h-[85vh] flex flex-col p-0 overflow-hidden gap-0 rounded-2xl sm:rounded-lg">
+        <DialogHeader className="px-4 py-4 sm:p-6 sm:pb-4 shrink-0">
+          <DialogTitle className="flex items-center gap-2 text-xl sm:text-2xl">
+            <Icon className="h-5 w-5 sm:h-6 sm:w-6 shrink-0" />
+            <span className="truncate">{config.title}</span>
           </DialogTitle>
-          <DialogDescription>{config.description}</DialogDescription>
+          <DialogDescription className="text-xs sm:text-sm">
+            {config.description}
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            {/* Tutor Name */}
-            <FormField
-              control={form.control}
-              name="tutorName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Tên giáo viên <span className="text-destructive">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Nhập tên giáo viên..."
-                      {...field}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Category selector */}
-            <FormField
-              control={form.control}
-              name="categoryId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Danh mục bài giảng</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value || ''} value={field.value || ''}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn danh mục..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">Không có danh mục</SelectItem>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat.id} value={String(cat.id)}>
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color || '#3b82f6' }} />
-                            {cat.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Title */}
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Tiêu đề bài giảng <span className="text-destructive">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Nhập tiêu đề..."
-                      {...field}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Summary */}
-            <FormField
-              control={form.control}
-              name="summary"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tóm tắt</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Nhập tóm tắt ngắn gọn..."
-                      className="resize-none"
-                      rows={2}
-                      {...field}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Mô tả ngắn gọn về nội dung bài giảng (tùy chọn)
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Content */}
-            <FormField
-              control={form.control}
-              name="content"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Nội dung bài giảng <span className="text-destructive">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Nhập nội dung chi tiết..."
-                      className="min-h-[200px] resize-none"
-                      {...field}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Nội dung chi tiết của bài giảng (hỗ trợ HTML)
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Lesson Date - Only show if not library mode */}
-            {mode !== 'library' && (
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col flex-1 overflow-hidden min-h-0">
+            <div className="flex-1 overflow-y-auto px-4 py-3 sm:p-6 sm:pt-4 space-y-4 sm:space-y-6 min-h-0">
+              {/* Tutor Name */}
               <FormField
                 control={form.control}
-                name="lessonDate"
+                name="tutorName"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>
-                      Ngày học <span className="text-destructive">*</span>
+                  <FormItem>
+                    <FormLabel className="text-xs sm:text-sm">
+                      Tên giáo viên <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
-                      <DatePicker
-                        value={field.value || undefined}
-                        onChange={field.onChange}
-                        placeholder="Chọn ngày học"
+                      <Input
+                        placeholder="Nhập tên giáo viên..."
+                        className="h-9 sm:h-10 text-sm"
+                        {...field}
+                        disabled={isLoading}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
-            )}
 
-            {/* Thông báo cho library mode */}
-            {mode === 'library' && (
-              <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
-                <p className="text-sm text-blue-800">
-                  💡 <strong>Lưu ý:</strong> Bài giảng trong kho sẽ tự động sử dụng ngày hiện tại.
-                  Bạn có thể chỉnh sửa ngày học sau khi giao bài cho học sinh.
-                </p>
-              </div>
-            )}
+              {/* Category selector */}
+              <FormField
+                control={form.control}
+                name="categoryId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs sm:text-sm">Danh mục bài giảng</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value || ''} value={field.value || ''}>
+                      <FormControl>
+                        <SelectTrigger className="h-9 sm:h-10 text-sm">
+                          <SelectValue placeholder="Chọn danh mục..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none" className="text-sm">Không có danh mục</SelectItem>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat.id} value={String(cat.id)} className="text-sm">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color || '#3b82f6' }} />
+                              {cat.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
 
-            {/* Thumbnail Upload - Thay thế Input URL bằng CloudinaryUploader */}
-            <FormField
-              control={form.control}
-              name="thumbnailUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ảnh đại diện (Thumbnail)</FormLabel>
-                  <FormControl>
-                    <CloudinaryUploader
-                      type="image"
-                      value={field.value || ''}
-                      onUploadSuccess={field.onChange}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Upload ảnh đại diện cho bài giảng
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Video Upload - Thay thế Input URL bằng CloudinaryUploader */}
-            <FormField
-              control={form.control}
-              name="videoUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Video bài giảng</FormLabel>
-                  <FormControl>
-                    <CloudinaryUploader
-                      type="video"
-                      value={field.value || ''}
-                      onUploadSuccess={field.onChange}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Upload video minh họa cho bài giảng
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Is Published Switch */}
-            <FormField
-              control={form.control}
-              name="isPublished"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">
-                      Xuất bản ngay
+              {/* Title */}
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs sm:text-sm">
+                      Tiêu đề bài giảng <span className="text-destructive">*</span>
                     </FormLabel>
-                    <FormDescription>
-                      Bài giảng sẽ hiển thị cho học sinh ngay lập tức
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+                    <FormControl>
+                      <Input
+                        placeholder="Nhập tiêu đề..."
+                        className="h-9 sm:h-10 text-sm"
+                        {...field}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
 
-            <DialogFooter className="gap-2">
+              {/* Summary */}
+              <FormField
+                control={form.control}
+                name="summary"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs sm:text-sm">Tóm tắt</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Nhập tóm tắt ngắn gọn..."
+                        className="resize-none text-sm min-h-[60px] sm:min-h-[70px]"
+                        rows={2}
+                        {...field}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormDescription className="text-[10px] sm:text-xs">
+                      Mô tả ngắn gọn về nội dung bài giảng (tùy chọn)
+                    </FormDescription>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+
+              {/* Content */}
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs sm:text-sm">
+                      Nội dung bài giảng <span className="text-destructive">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Nhập nội dung chi tiết..."
+                        className="min-h-[150px] sm:min-h-[200px] resize-none text-sm"
+                        {...field}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormDescription className="text-[10px] sm:text-xs">
+                      Nội dung chi tiết của bài giảng (hỗ trợ HTML)
+                    </FormDescription>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+
+              {/* Lesson Date - Only show if not library mode */}
+              {mode !== 'library' && (
+                <FormField
+                  control={form.control}
+                  name="lessonDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="text-xs sm:text-sm">
+                        Ngày học <span className="text-destructive">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <DatePicker
+                          value={field.value || undefined}
+                          onChange={field.onChange}
+                          placeholder="Chọn ngày học"
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {/* Thông báo cho library mode */}
+              {mode === 'library' && (
+                <div className="rounded-xl sm:rounded-lg border border-blue-200 bg-blue-50 p-2.5 sm:p-3">
+                  <p className="text-xs sm:text-sm text-blue-800">
+                    💡 <strong>Lưu ý:</strong> Bài giảng trong kho sẽ tự động sử dụng ngày hiện tại.
+                    Bạn có thể chỉnh sửa ngày học sau khi giao bài cho học sinh.
+                  </p>
+                </div>
+              )}
+
+              {/* Thumbnail Upload - Thay thế Input URL bằng CloudinaryUploader */}
+              <FormField
+                control={form.control}
+                name="thumbnailUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs sm:text-sm">Ảnh đại diện (Thumbnail)</FormLabel>
+                    <FormControl>
+                      <CloudinaryUploader
+                        type="image"
+                        value={field.value || ''}
+                        onUploadSuccess={field.onChange}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormDescription className="text-[10px] sm:text-xs">
+                      Upload ảnh đại diện cho bài giảng
+                    </FormDescription>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+
+              {/* Video Upload - Thay thế Input URL bằng CloudinaryUploader */}
+              <FormField
+                control={form.control}
+                name="videoUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs sm:text-sm">Video bài giảng</FormLabel>
+                    <FormControl>
+                      <CloudinaryUploader
+                        type="video"
+                        value={field.value || ''}
+                        onUploadSuccess={field.onChange}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormDescription className="text-[10px] sm:text-xs">
+                      Upload video minh họa cho bài giảng
+                    </FormDescription>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+
+              {/* Is Published Switch */}
+              <FormField
+                control={form.control}
+                name="isPublished"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-xl sm:rounded-lg border p-3 sm:p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-sm sm:text-base">
+                        Xuất bản ngay
+                      </FormLabel>
+                      <FormDescription className="text-[10px] sm:text-xs">
+                        Bài giảng sẽ hiển thị cho học sinh ngay lập tức
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <DialogFooter className="px-4 py-3 sm:p-6 sm:pt-3 bg-muted/20 border-t shrink-0 flex-row gap-2 sm:gap-3">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => handleOpenChange(false)}
                 disabled={isLoading}
+                className="flex-1 sm:flex-none h-8 sm:h-9 text-xs sm:text-sm"
               >
                 Hủy
               </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="flex-1 sm:flex-none h-8 sm:h-9 text-xs sm:text-sm"
+              >
+                {isLoading && <Loader2 className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />}
                 {config.submitLabel}
               </Button>
             </DialogFooter>

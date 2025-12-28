@@ -57,9 +57,13 @@ export default function MyCoursesView({ onCourseSelect }: MyCoursesViewProps) {
     };
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {courses.map((assignment) => (
-                <Card key={assignment.id} className="group hover:shadow-lg transition-all duration-300 border-border/50 overflow-hidden flex flex-col">
+                <Card
+                    key={assignment.id}
+                    className="group hover:shadow-lg transition-all duration-300 border-border/50 overflow-hidden flex flex-col cursor-pointer"
+                    onClick={() => onCourseSelect(assignment.courseId)}
+                >
                     <div className="h-32 bg-gradient-to-br from-primary/20 via-primary/5 to-background relative overflow-hidden">
                         <div className="absolute top-4 right-4">
                             <Badge className={cn("font-medium border shadow-sm", getStatusColor(assignment.status))}>
@@ -98,9 +102,12 @@ export default function MyCoursesView({ onCourseSelect }: MyCoursesViewProps) {
                         <Button
                             variant="ghost"
                             className="w-full justify-between hover:bg-primary hover:text-primary-foreground group/btn transition-all mt-4"
-                            onClick={() => onCourseSelect(assignment.courseId)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onCourseSelect(assignment.courseId);
+                            }}
                         >
-                            <span>Tiếp tục học</span>
+                            <span>{assignment.progressPercentage === 0 ? 'Bắt đầu học' : 'Tiếp tục học'}</span>
                             <ChevronRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                         </Button>
                     </CardFooter>

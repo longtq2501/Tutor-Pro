@@ -6,29 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/AdminLessonService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/AdminLessonService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/Lesson.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/Lesson.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/LessonLibraryService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/LessonLibraryService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/LessonService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/LessonService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/dto/request/CreateLessonRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/dto/request/CreateLessonRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/dto/response/AdminLessonResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/dto/response/AdminLessonResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/dto/response/LessonResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/dto/response/LessonResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/dto/response/LibraryLessonResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/dto/response/LibraryLessonResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lesson-card/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lesson-card/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lesson-view-wrapper/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lesson-view-wrapper/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lessons/components/AdminLessonManager.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lessons/components/AdminLessonManager.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lessons/components/AdminLessonsTab.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lessons/components/AdminLessonsTab.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lessons/components/CreateLessonDialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lessons/components/CreateLessonDialog.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lessons/components/EditLessonDialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lessons/components/EditLessonDialog.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lessons/components/LessonForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lessons/components/LessonForm.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lessons/components/LessonLibraryTab.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lessons/components/LessonLibraryTab.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lessons/hooks/useAdminLessons.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lessons/hooks/useAdminLessons.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lessons/hooks/useLessonLibrary.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lessons/hooks/useLessonLibrary.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lessons/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lessons/types.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/services/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/types/lesson.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/types/lesson.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/tsc_output.txt" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/tsc_output.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseAssignmentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseAssignmentService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/courses/components/AssignCourseDialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/courses/components/AssignCourseDialog.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/courses/components/CourseDetailView.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/courses/components/CourseDetailView.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/courses/components/MyCoursesView.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/courses/components/MyCoursesView.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -175,6 +156,7 @@
       <workItem from="1766750511303" duration="706000" />
       <workItem from="1766836807396" duration="2000" />
       <workItem from="1766836822229" duration="3192000" />
+      <workItem from="1766938038405" duration="1137000" />
     </task>
     <servers />
   </component>

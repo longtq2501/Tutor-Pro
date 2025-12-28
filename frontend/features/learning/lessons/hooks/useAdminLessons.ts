@@ -22,6 +22,7 @@ export const useAdminLessons = () => {
   return useQuery({
     queryKey: adminLessonKeys.lists(),
     queryFn: adminLessonsApi.getAll,
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
   });
 };
 
@@ -33,6 +34,7 @@ export const useAdminLessonById = (id: number) => {
     queryKey: adminLessonKeys.detail(id),
     queryFn: () => adminLessonsApi.getById(id),
     enabled: !!id,
+    staleTime: 5 * 60 * 1000,
   });
 };
 
@@ -44,6 +46,7 @@ export const useAdminLessonsByStudent = (studentId: number) => {
     queryKey: adminLessonKeys.byStudent(studentId),
     queryFn: () => adminLessonsApi.getByStudent(studentId),
     enabled: !!studentId,
+    staleTime: 5 * 60 * 1000,
   });
 };
 

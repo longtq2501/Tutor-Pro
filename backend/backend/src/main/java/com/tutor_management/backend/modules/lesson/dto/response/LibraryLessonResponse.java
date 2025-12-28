@@ -23,10 +23,12 @@ public class LibraryLessonResponse {
     private LocalDate lessonDate;
     private String thumbnailUrl;
     private Boolean isPublished;
+    private Long categoryId;
     private Boolean isLibrary;
     private Integer assignedStudentCount;
     private Integer totalViewCount;
     private Double completionRate;
+    private LessonCategoryResponse category;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -69,9 +71,16 @@ public class LibraryLessonResponse {
                 .thumbnailUrl(lesson.getThumbnailUrl())
                 .isPublished(Boolean.TRUE.equals(lesson.getIsPublished()))
                 .isLibrary(Boolean.TRUE.equals(lesson.getIsLibrary()))
+                .categoryId(lesson.getCategory() != null ? lesson.getCategory().getId() : null)
                 .assignedStudentCount(assignedCount)
                 .totalViewCount(totalViews)
                 .completionRate(completionRate)
+                .category(lesson.getCategory() != null ? LessonCategoryResponse.builder()
+                        .id(lesson.getCategory().getId())
+                        .name(lesson.getCategory().getName())
+                        .color(lesson.getCategory().getColor())
+                        .icon(lesson.getCategory().getIcon())
+                        .build() : null)
                 .createdAt(lesson.getCreatedAt())
                 .updatedAt(lesson.getUpdatedAt())
                 .build();

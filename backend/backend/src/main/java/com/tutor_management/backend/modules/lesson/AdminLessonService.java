@@ -25,6 +25,7 @@ public class AdminLessonService {
     private final LessonRepository lessonRepository;
     private final LessonAssignmentRepository assignmentRepository;
     private final StudentRepository studentRepository;
+    private final LessonCategoryRepository categoryRepository;
 
     /**
      * Create a lesson in library and optionally assign to students
@@ -51,6 +52,9 @@ public class AdminLessonService {
                 .thumbnailUrl(request.getThumbnailUrl())
                 .isPublished(request.getIsPublished() != null ? request.getIsPublished() : false)
                 .isLibrary(request.getStudentIds() == null || request.getStudentIds().isEmpty())
+                .category(request.getCategoryId() != null
+                        ? categoryRepository.findById(request.getCategoryId()).orElse(null)
+                        : null)
                 .build();
 
         // ===== Add Images =====
@@ -161,13 +165,27 @@ public class AdminLessonService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài giảng ID: " + id));
 
         // Cập nhật các trường thông tin cơ bản (Basic fields)
-        if (request.getTutorName() != null) lesson.setTutorName(request.getTutorName());
-        if (request.getTitle() != null) lesson.setTitle(request.getTitle());
-        if (request.getSummary() != null) lesson.setSummary(request.getSummary());
-        if (request.getContent() != null) lesson.setContent(request.getContent());
-        if (request.getLessonDate() != null) lesson.setLessonDate(request.getLessonDate());
-        if (request.getVideoUrl() != null) lesson.setVideoUrl(request.getVideoUrl());
-        if (request.getThumbnailUrl() != null) lesson.setThumbnailUrl(request.getThumbnailUrl());
+        if (request.getTutorName() != null)
+            lesson.setTutorName(request.getTutorName());
+        if (request.getTitle() != null)
+            lesson.setTitle(request.getTitle());
+        if (request.getSummary() != null)
+            lesson.setSummary(request.getSummary());
+        if (request.getContent() != null)
+            lesson.setContent(request.getContent());
+        if (request.getLessonDate() != null)
+            lesson.setLessonDate(request.getLessonDate());
+        if (request.getVideoUrl() != null)
+            lesson.setVideoUrl(request.getVideoUrl());
+        if (request.getThumbnailUrl() != null)
+            lesson.setThumbnailUrl(request.getThumbnailUrl());
+
+        // Cập nhật danh mục
+        if (request.getCategoryId() != null) {
+            lesson.setCategory(categoryRepository.findById(request.getCategoryId()).orElse(null));
+        } else {
+            lesson.setCategory(null);
+        }
 
         // Cập nhật danh sách Images (Cần orphanRemoval = true trong Entity)
         if (request.getImages() != null) {

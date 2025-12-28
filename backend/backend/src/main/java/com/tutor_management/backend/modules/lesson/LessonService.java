@@ -1,5 +1,6 @@
 package com.tutor_management.backend.modules.lesson;
 
+import com.tutor_management.backend.modules.course.CourseAssignmentService;
 import com.tutor_management.backend.modules.lesson.dto.response.LessonResponse;
 import com.tutor_management.backend.modules.lesson.dto.response.LessonStatsResponse;
 import com.tutor_management.backend.exception.ResourceNotFoundException;
@@ -24,6 +25,7 @@ public class LessonService {
     private final LessonRepository lessonRepository;
     private final LessonAssignmentRepository assignmentRepository;
     private final StudentRepository studentRepository;
+    private final CourseAssignmentService courseAssignmentService;
 
     @Cacheable(value = "lessons", key = "'student-' + #studentId")
     @Transactional(readOnly = true)
@@ -104,6 +106,9 @@ public class LessonService {
         assignment.markAsCompleted();
         assignment = assignmentRepository.save(assignment);
 
+        // Update course progress
+        courseAssignmentService.updateProgressOnLessonCompletion(studentId, lessonId, true);
+
         Lesson lesson = assignment.getLesson();
         Hibernate.initialize(lesson.getImages());
         Hibernate.initialize(lesson.getResources());
@@ -118,6 +123,9 @@ public class LessonService {
 
         assignment.markAsIncomplete();
         assignment = assignmentRepository.save(assignment);
+
+        // Update course progress
+        courseAssignmentService.updateProgressOnLessonCompletion(studentId, lessonId, false);
 
         Lesson lesson = assignment.getLesson();
         Hibernate.initialize(lesson.getImages());

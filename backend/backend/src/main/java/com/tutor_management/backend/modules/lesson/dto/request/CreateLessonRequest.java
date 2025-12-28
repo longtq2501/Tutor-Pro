@@ -35,4 +35,6 @@ public class CreateLessonRequest {
     private List<LessonResourceDTO> resources;
 
     private Boolean isPublished;
+
+    private Long categoryId;
 }

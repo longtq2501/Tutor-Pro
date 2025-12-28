@@ -10,4 +10,7 @@ export * from './document';
 export * from './dashboard';
 export * from './auth';
 export * from './lesson-admin';
+export * from './lesson-category';
+export * from './course-admin';
+export * from './course-student';
 export { default as api } from './axios-instance';

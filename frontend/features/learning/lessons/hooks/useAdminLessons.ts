@@ -55,13 +55,18 @@ export const useCreateAdminLesson = () => {
 
   return useMutation({
     mutationFn: (data: CreateLessonRequest) => adminLessonsApi.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: adminLessonKeys.lists() });
-      toast.success('Tạo và giao bài giảng thành công!');
+    onMutate: () => {
+      const toastId = toast.loading('Đang tạo và giao bài giảng...');
+      return { toastId };
     },
-    onError: (error: any) => {
+    onSuccess: (_, __, context) => {
+      queryClient.invalidateQueries({ queryKey: adminLessonKeys.lists() });
+      toast.success('Tạo và giao bài giảng thành công!', { id: context?.toastId });
+    },
+    onError: (error: any, __, context) => {
       toast.error(
-        error?.response?.data?.message || 'Có lỗi xảy ra khi tạo bài giảng'
+        error?.response?.data?.message || 'Có lỗi xảy ra khi tạo bài giảng',
+        { id: context?.toastId }
       );
     },
   });
@@ -76,14 +81,19 @@ export const useUpdateAdminLesson = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateLessonRequest }) =>
       adminLessonsApi.update(id, data),
-    onSuccess: (_, variables) => {
+    onMutate: () => {
+      const toastId = toast.loading('Đang cập nhật bài giảng...');
+      return { toastId };
+    },
+    onSuccess: (_, variables, context) => {
       queryClient.invalidateQueries({ queryKey: adminLessonKeys.lists() });
       queryClient.invalidateQueries({ queryKey: adminLessonKeys.detail(variables.id) });
-      toast.success('Cập nhật bài giảng thành công!');
+      toast.success('Cập nhật bài giảng thành công!', { id: context?.toastId });
     },
-    onError: (error: any) => {
+    onError: (error: any, __, context) => {
       toast.error(
-        error?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật bài giảng'
+        error?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật bài giảng',
+        { id: context?.toastId }
       );
     },
   });
@@ -97,14 +107,19 @@ export const useTogglePublishLesson = () => {
 
   return useMutation({
     mutationFn: (id: number) => adminLessonsApi.togglePublish(id),
-    onSuccess: (_, id) => {
+    onMutate: () => {
+      const toastId = toast.loading('Đang cập nhật trạng thái...');
+      return { toastId };
+    },
+    onSuccess: (_, id, context) => {
       queryClient.invalidateQueries({ queryKey: adminLessonKeys.lists() });
       queryClient.invalidateQueries({ queryKey: adminLessonKeys.detail(id) });
-      toast.success('Cập nhật trạng thái thành công!');
+      toast.success('Cập nhật trạng thái thành công!', { id: context?.toastId });
     },
-    onError: (error: any) => {
+    onError: (error: any, __, context) => {
       toast.error(
-        error?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật trạng thái'
+        error?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật trạng thái',
+        { id: context?.toastId }
       );
     },
   });
@@ -118,13 +133,18 @@ export const useDeleteAdminLesson = () => {
 
   return useMutation({
     mutationFn: (id: number) => adminLessonsApi.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: adminLessonKeys.lists() });
-      toast.success('Xóa bài giảng thành công!');
+    onMutate: () => {
+      const toastId = toast.loading('Đang xóa bài giảng...');
+      return { toastId };
     },
-    onError: (error: any) => {
+    onSuccess: (_, __, context) => {
+      queryClient.invalidateQueries({ queryKey: adminLessonKeys.lists() });
+      toast.success('Xóa bài giảng thành công!', { id: context?.toastId });
+    },
+    onError: (error: any, __, context) => {
       toast.error(
-        error?.response?.data?.message || 'Có lỗi xảy ra khi xóa bài giảng'
+        error?.response?.data?.message || 'Có lỗi xảy ra khi xóa bài giảng',
+        { id: context?.toastId }
       );
     },
   });

@@ -30,6 +30,7 @@ public class AdminLessonResponse {
     private Boolean isPublished;
     private Boolean isLibrary;
     private LocalDateTime publishedAt;
+    private Long categoryId;
 
     // Assignment statistics
     private Integer assignedStudentCount;
@@ -39,6 +40,7 @@ public class AdminLessonResponse {
     // Media
     private List<LessonImageDTO> images;
     private List<LessonResourceDTO> resources;
+    private LessonCategoryResponse category;
 
     // Timestamps
     private LocalDateTime createdAt;
@@ -68,6 +70,7 @@ public class AdminLessonResponse {
                 .isPublished(lesson.getIsPublished())
                 .isLibrary(lesson.getIsLibrary())
                 .publishedAt(lesson.getPublishedAt())
+                .categoryId(lesson.getCategory() != null ? lesson.getCategory().getId() : null)
                 .assignedStudentCount(assignedCount)
                 .totalViewCount(totalViews)
                 .completionRate(completionRate)
@@ -77,6 +80,12 @@ public class AdminLessonResponse {
                 .resources(Hibernate.isInitialized(lesson.getResources()) && lesson.getResources() != null
                         ? lesson.getResources().stream().map(LessonResourceDTO::fromEntity).toList()
                         : new ArrayList<>())
+                .category(lesson.getCategory() != null ? LessonCategoryResponse.builder()
+                        .id(lesson.getCategory().getId())
+                        .name(lesson.getCategory().getName())
+                        .color(lesson.getCategory().getColor())
+                        .icon(lesson.getCategory().getIcon())
+                        .build() : null)
                 .createdAt(lesson.getCreatedAt())
                 .updatedAt(lesson.getUpdatedAt())
                 .build();

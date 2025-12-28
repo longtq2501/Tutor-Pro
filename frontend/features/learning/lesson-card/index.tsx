@@ -33,6 +33,17 @@ export default function LessonCard({ lesson, onClick }: LessonCardProps) {
                 <CardTitle className="text-xl text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
                   {lesson.title}
                 </CardTitle>
+                {lesson.category && (
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: lesson.category.color || '#3b82f6' }}
+                    />
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-gray-500 dark:text-gray-400">
+                      {lesson.category.name}
+                    </span>
+                  </div>
+                )}
                 <CardDescription className="mt-2 text-gray-600 dark:text-gray-400">
                   {lesson.tutorName}
                 </CardDescription>

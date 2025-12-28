@@ -22,7 +22,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"assignments", "images", "resources"})
+@ToString(exclude = { "assignments", "images", "resources" })
 public class Lesson {
 
     @Id
@@ -40,7 +40,7 @@ public class Lesson {
     private String summary;
 
     @Column(columnDefinition = "LONGTEXT")
-    private String content;  // Markdown content
+    private String content; // Markdown content
 
     @Column(nullable = false)
     private LocalDate lessonDate;
@@ -60,10 +60,15 @@ public class Lesson {
     // ===== PUBLISH STATUS =====
     @Column(name = "is_published", nullable = false)
     @Builder.Default
-    private Boolean isPublished = false;  // Draft vs Published
+    private Boolean isPublished = false; // Draft vs Published
 
     @Column(name = "published_at")
     private LocalDateTime publishedAt;
+
+    // ===== CATEGORY =====
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private LessonCategory category;
 
     // ===== RELATIONSHIPS =====
     @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)

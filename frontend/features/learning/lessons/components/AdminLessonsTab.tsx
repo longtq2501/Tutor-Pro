@@ -48,6 +48,7 @@ import {
   EyeOff,
   Calendar,
   User,
+  Tag,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -59,11 +60,13 @@ import {
 import type { LessonDTO } from '../types';
 import { CreateLessonDialog } from './CreateLessonDialog';
 import { EditLessonDialog } from './EditLessonDialog';
+import { CategoryManagerDialog } from './CategoryManagerDialog';
 
 export function AdminLessonsTab() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [selectedLesson, setSelectedLesson] = useState<LessonDTO | null>(null);
 
   const { data: lessons = [], isLoading } = useAdminLessons();
@@ -117,10 +120,16 @@ export function AdminLessonsTab() {
                 Quản lý các bài giảng đã giao cho học sinh
               </CardDescription>
             </div>
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Tạo & giao bài mới
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => setIsCategoryDialogOpen(true)}>
+                <Tag className="mr-2 h-4 w-4" />
+                Quản lý danh mục
+              </Button>
+              <Button onClick={() => setIsCreateDialogOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Tạo & giao bài mới
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -158,11 +167,19 @@ export function AdminLessonsTab() {
                       <TableCell className="font-medium">
                         <div className="flex flex-col gap-1">
                           <span className="line-clamp-1">{lesson.title}</span>
-                          {lesson.assignedStudentCount !== undefined && (
-                            <span className="text-xs text-muted-foreground">
-                              {lesson.assignedStudentCount} học sinh
-                            </span>
-                          )}
+                          <div className="flex flex-wrap items-center gap-2">
+                            {lesson.assignedStudentCount !== undefined && (
+                              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                {lesson.assignedStudentCount} học sinh
+                              </span>
+                            )}
+                            {lesson.category && (
+                              <div className="flex items-center gap-1.5 overflow-hidden">
+                                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: lesson.category.color || '#3b82f6' }} />
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground truncate">{lesson.category.name}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -284,6 +301,10 @@ export function AdminLessonsTab() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <CategoryManagerDialog
+        open={isCategoryDialogOpen}
+        onOpenChange={setIsCategoryDialogOpen}
+      />
     </>
   );
 }

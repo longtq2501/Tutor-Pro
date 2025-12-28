@@ -59,6 +59,7 @@ spring:
             enable: true
             required: true
 
+
 # Application specific
 app:
   mail:

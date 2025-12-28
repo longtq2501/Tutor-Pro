@@ -32,7 +32,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
-import { CalendarIcon, Loader2, BookOpen, FileText, Edit } from 'lucide-react';
+import { CalendarIcon, Loader2, BookOpen, FileText, Edit, Tag } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -44,6 +44,14 @@ import type {
 } from '../types';
 import { formatDateForBackend, parseDateFromBackend } from '../types';
 import { CloudinaryUploader } from './CloudinaryUploader';
+import { useLessonCategories } from '../hooks/useLessonCategories';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 // Schema validation dựa trên Backend DTOs
 const createLessonFormSchema = (mode: LessonFormMode) => {
@@ -77,6 +85,7 @@ const createLessonFormSchema = (mode: LessonFormMode) => {
         message: 'URL thumbnail không hợp lệ',
       }),
     isPublished: z.boolean(),
+    categoryId: z.string().optional().nullable(),
   };
 
   // Library mode không bắt buộc lessonDate (vì sẽ tự động dùng ngày hiện tại)
@@ -128,8 +137,11 @@ export function LessonForm({
       videoUrl: '',
       thumbnailUrl: '',
       isPublished: false,
+      categoryId: 'none',
     },
   });
+
+  const { categories } = useLessonCategories();
 
   // Reset form khi lesson hoặc open state thay đổi
   useEffect(() => {
@@ -147,6 +159,7 @@ export function LessonForm({
           videoUrl: lesson.videoUrl || '',
           thumbnailUrl: lesson.thumbnailUrl || '',
           isPublished: 'isPublished' in lesson ? lesson.isPublished : false,
+          categoryId: lesson.category?.id ? String(lesson.category.id) : 'none',
         });
       } else {
         form.reset({
@@ -158,6 +171,7 @@ export function LessonForm({
           videoUrl: '',
           thumbnailUrl: '',
           isPublished: false,
+          categoryId: 'none',
         });
       }
     }
@@ -180,6 +194,7 @@ export function LessonForm({
       videoUrl: values.videoUrl?.trim() || undefined,
       thumbnailUrl: values.thumbnailUrl?.trim() || undefined,
       isPublished: values.isPublished,
+      categoryId: values.categoryId && values.categoryId !== 'none' ? Number(values.categoryId) : undefined,
       images: [], // Default empty array
       resources: [], // Default empty array
     };
@@ -252,6 +267,36 @@ export function LessonForm({
                       disabled={isLoading}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Category selector */}
+            <FormField
+              control={form.control}
+              name="categoryId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Danh mục bài giảng</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value || ''} value={field.value || ''}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn danh mục..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">Không có danh mục</SelectItem>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={String(cat.id)}>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color || '#3b82f6' }} />
+                            {cat.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

@@ -23,6 +23,7 @@ public class LessonLibraryService {
     private final LessonRepository lessonRepository;
     private final LessonAssignmentRepository assignmentRepository;
     private final StudentRepository studentRepository;
+    private final LessonCategoryRepository categoryRepository;
 
     /**
      * Get all library lessons (not assigned yet OR assigned)
@@ -82,8 +83,11 @@ public class LessonLibraryService {
                 .lessonDate(request.getLessonDate())
                 .videoUrl(request.getVideoUrl())
                 .thumbnailUrl(request.getThumbnailUrl())
-                .isLibrary(true)  // ✅ Mark as library lesson
+                .isLibrary(true) // ✅ Mark as library lesson
                 .isPublished(request.getIsPublished())
+                .category(request.getCategoryId() != null
+                        ? categoryRepository.findById(request.getCategoryId()).orElse(null)
+                        : null)
                 .build();
 
         lesson = lessonRepository.save(lesson);
@@ -99,8 +103,7 @@ public class LessonLibraryService {
     public void assignLessonToStudents(
             Long lessonId,
             List<Long> studentIds,
-            String assignedBy
-    ) {
+            String assignedBy) {
 
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Lesson not found"));

@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { lessonLibraryApi } from '@/lib/services/lesson-admin';
-import type { 
-  CreateLibraryLessonRequest, 
-  AssignLessonRequest 
+import type {
+  CreateLibraryLessonRequest,
+  AssignLessonRequest
 } from '@/features/learning/lessons/types';
 import { toast } from 'sonner';
 
@@ -54,13 +54,17 @@ export const useCreateLibraryLesson = () => {
 
   return useMutation({
     mutationFn: (data: CreateLibraryLessonRequest) => lessonLibraryApi.create(data),
-    onSuccess: () => {
+    onMutate: () => {
+      const toastId = toast.loading('Đang tạo bài giảng...');
+      return { toastId };
+    },
+    onSuccess: (_, __, context) => {
       queryClient.invalidateQueries({ queryKey: lessonLibraryKeys.lists() });
       queryClient.invalidateQueries({ queryKey: lessonLibraryKeys.unassigned() });
-      toast.success('Tạo bài giảng thành công!');
+      toast.success('Tạo bài giảng thành công!', { id: context?.toastId });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi tạo bài giảng');
+    onError: (error: any, __, context) => {
+      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi tạo bài giảng', { id: context?.toastId });
     },
   });
 };
@@ -74,13 +78,17 @@ export const useAssignLibraryLesson = () => {
   return useMutation({
     mutationFn: ({ lessonId, data }: { lessonId: number; data: AssignLessonRequest }) =>
       lessonLibraryApi.assign(lessonId, data),
-    onSuccess: (_, variables) => {
+    onMutate: () => {
+      const toastId = toast.loading('Đang giao bài giảng...');
+      return { toastId };
+    },
+    onSuccess: (_, variables, context) => {
       queryClient.invalidateQueries({ queryKey: lessonLibraryKeys.lists() });
       queryClient.invalidateQueries({ queryKey: lessonLibraryKeys.students(variables.lessonId) });
-      toast.success('Giao bài giảng thành công!');
+      toast.success('Giao bài giảng thành công!', { id: context?.toastId });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi giao bài giảng');
+    onError: (error: any, __, context) => {
+      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi giao bài giảng', { id: context?.toastId });
     },
   });
 };
@@ -94,13 +102,17 @@ export const useUnassignLibraryLesson = () => {
   return useMutation({
     mutationFn: ({ lessonId, data }: { lessonId: number; data: AssignLessonRequest }) =>
       lessonLibraryApi.unassign(lessonId, data),
-    onSuccess: (_, variables) => {
+    onMutate: () => {
+      const toastId = toast.loading('Đang thu hồi bài giảng...');
+      return { toastId };
+    },
+    onSuccess: (_, variables, context) => {
       queryClient.invalidateQueries({ queryKey: lessonLibraryKeys.lists() });
       queryClient.invalidateQueries({ queryKey: lessonLibraryKeys.students(variables.lessonId) });
-      toast.success('Thu hồi bài giảng thành công!');
+      toast.success('Thu hồi bài giảng thành công!', { id: context?.toastId });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi thu hồi bài giảng');
+    onError: (error: any, __, context) => {
+      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi thu hồi bài giảng', { id: context?.toastId });
     },
   });
 };
@@ -113,13 +125,17 @@ export const useDeleteLibraryLesson = () => {
 
   return useMutation({
     mutationFn: (lessonId: number) => lessonLibraryApi.delete(lessonId),
-    onSuccess: () => {
+    onMutate: () => {
+      const toastId = toast.loading('Đang xóa bài giảng...');
+      return { toastId };
+    },
+    onSuccess: (_, __, context) => {
       queryClient.invalidateQueries({ queryKey: lessonLibraryKeys.lists() });
       queryClient.invalidateQueries({ queryKey: lessonLibraryKeys.unassigned() });
-      toast.success('Xóa bài giảng thành công!');
+      toast.success('Xóa bài giảng thành công!', { id: context?.toastId });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi xóa bài giảng');
+    onError: (error: any, __, context) => {
+      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi xóa bài giảng', { id: context?.toastId });
     },
   });
 };

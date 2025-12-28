@@ -46,6 +46,7 @@ import {
   Loader2,
   User,
   UserMinus,
+  Tag,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -58,6 +59,7 @@ import type { LessonLibraryDTO } from '../types';
 import { LessonForm } from './LessonForm';
 import { AssignStudentsDialog } from './AssignStudentsDialog';
 import { UnassignStudentsDialog } from './UnassignStudentsDialog';
+import { CategoryManagerDialog } from './CategoryManagerDialog';
 
 export function LessonLibraryTab() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -67,6 +69,7 @@ export function LessonLibraryTab() {
   const [selectedLesson, setSelectedLesson] = useState<LessonLibraryDTO | null>(
     null
   );
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
 
   const { data: lessons = [], isLoading } = useLessonLibrary();
   const createMutation = useCreateLibraryLesson();
@@ -85,6 +88,7 @@ export function LessonLibraryTab() {
         images: data.images || [],
         resources: data.resources || [],
         isPublished: data.isPublished,
+        categoryId: data.categoryId,
       },
       {
         onSuccess: () => {
@@ -142,10 +146,16 @@ export function LessonLibraryTab() {
                 Quản lý các bài giảng mẫu để giao cho học sinh
               </CardDescription>
             </div>
-            <Button onClick={() => setIsFormOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Thêm bài mới
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => setIsCategoryDialogOpen(true)}>
+                <Tag className="mr-2 h-4 w-4" />
+                Quản lý danh mục
+              </Button>
+              <Button onClick={() => setIsFormOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Thêm bài mới
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -180,7 +190,15 @@ export function LessonLibraryTab() {
                   {lessons.map((lesson) => (
                     <TableRow key={lesson.id}>
                       <TableCell className="font-medium">
-                        <span className="line-clamp-1">{lesson.title}</span>
+                        <div className="flex flex-col gap-1">
+                          <span className="line-clamp-1">{lesson.title}</span>
+                          {lesson.category && (
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: lesson.category.color || '#3b82f6' }} />
+                              <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">{lesson.category.name}</span>
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -307,6 +325,10 @@ export function LessonLibraryTab() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <CategoryManagerDialog
+        open={isCategoryDialogOpen}
+        onOpenChange={setIsCategoryDialogOpen}
+      />
     </>
   );
 }

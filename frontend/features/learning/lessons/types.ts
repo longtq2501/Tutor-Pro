@@ -10,6 +10,31 @@ export interface LessonImageDTO {
 }
 
 /**
+ * LessonCategoryDTO - Danh mục bài giảng
+ */
+export interface LessonCategoryDTO {
+  id: number;
+  name: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+  displayOrder?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * LessonCategoryRequest - Yêu cầu tạo/cập nhật danh mục
+ */
+export interface LessonCategoryRequest {
+  name: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+  displayOrder?: number;
+}
+
+/**
  * LessonResourceDTO - Tài liệu đính kèm
  * Backend: LessonResourceDTO.java
  */
@@ -41,6 +66,7 @@ export interface LessonDTO {
   completionRate?: number;
   images?: LessonImageDTO[];
   resources?: LessonResourceDTO[];
+  category?: LessonCategoryDTO;
   createdAt: string; // LocalDateTime - ISO 8601
   updatedAt: string; // LocalDateTime - ISO 8601
 }
@@ -61,6 +87,7 @@ export interface CreateLessonRequest {
   images?: LessonImageDTO[];
   resources?: LessonResourceDTO[];
   isPublished: boolean;
+  categoryId?: number;
 }
 
 /**
@@ -78,6 +105,7 @@ export interface UpdateLessonRequest {
   images?: LessonImageDTO[];
   resources?: LessonResourceDTO[];
   isPublished: boolean;
+  categoryId?: number;
 }
 
 /**
@@ -95,6 +123,7 @@ export interface CreateLibraryLessonRequest {
   images?: LessonImageDTO[];
   resources?: LessonResourceDTO[];
   isPublished?: boolean; // Default false cho library
+  categoryId?: number;
 }
 
 /**
@@ -134,6 +163,7 @@ export interface LessonLibraryDTO {
   images?: LessonImageDTO[];
   resources?: LessonResourceDTO[];
   assignedStudentCount?: number;
+  category?: LessonCategoryDTO;
   createdAt: string;
   updatedAt: string;
 }
@@ -154,6 +184,7 @@ export interface LessonFormData {
   resources?: LessonResourceDTO[];
   isPublished?: boolean;
   studentIds?: number[];
+  categoryId?: number;
 }
 
 export type LessonFormMode = 'create' | 'edit' | 'library';

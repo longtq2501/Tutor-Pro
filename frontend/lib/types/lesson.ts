@@ -21,6 +21,12 @@ export interface Lesson {
   resources: LessonResource[]; // DANH SÁCH TÀI LIỆU ĐÍNH KÈM (PDF, LINK...)
   createdAt: string; // THỜI GIAN TẠO BÀI HỌC TRÊN HỆ THỐNG
   updatedAt: string; // THỜI GIAN CẬP NHẬT BÀI HỌC GẦN NHẤT
+  category?: {
+    id: number;
+    name: string;
+    color?: string;
+    icon?: string;
+  };
 }
 
 export interface LessonImage {

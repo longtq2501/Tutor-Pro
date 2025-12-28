@@ -64,6 +64,7 @@ export function CreateLessonDialog({
         images: formData.images || [],
         resources: formData.resources || [],
         isPublished: formData.isPublished || false,
+        categoryId: formData.categoryId,
         studentIds: selectedStudentIds,
       },
       {

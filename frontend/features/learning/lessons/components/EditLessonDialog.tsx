@@ -32,6 +32,7 @@ export function EditLessonDialog({
           images: data.images || [],
           resources: data.resources || [],
           isPublished: data.isPublished || false,
+          categoryId: data.categoryId,
         },
       },
       {

@@ -55,6 +55,16 @@ public class AdminLessonService {
                 .category(request.getCategoryId() != null
                         ? categoryRepository.findById(request.getCategoryId()).orElse(null)
                         : null)
+                .allowLateSubmission(request.getAllowLateSubmission() != null ? request.getAllowLateSubmission() : true)
+                .averageRating(request.getAverageRating() != null ? request.getAverageRating() : 0.0)
+                .reviewCount(request.getReviewCount() != null ? request.getReviewCount() : 0)
+                .latePenaltyPercent(request.getLatePenaltyPercent() != null ? request.getLatePenaltyPercent() : 0.0)
+                .points(request.getPoints() != null ? request.getPoints() : 100)
+                .passScore(request.getPassScore() != null ? request.getPassScore() : 50)
+                .totalFeedbacks(request.getTotalFeedbacks() != null ? request.getTotalFeedbacks() : 0)
+                .totalEnrollments(request.getTotalEnrollments() != null ? request.getTotalEnrollments() : 0)
+                .difficultyLevel(request.getDifficultyLevel() != null ? request.getDifficultyLevel() : "All Levels")
+                .durationMinutes(request.getDurationMinutes() != null ? request.getDurationMinutes() : 0)
                 .build();
 
         // ===== Add Images =====
@@ -179,6 +189,26 @@ public class AdminLessonService {
             lesson.setVideoUrl(request.getVideoUrl());
         if (request.getThumbnailUrl() != null)
             lesson.setThumbnailUrl(request.getThumbnailUrl());
+        if (request.getAllowLateSubmission() != null)
+            lesson.setAllowLateSubmission(request.getAllowLateSubmission());
+        if (request.getAverageRating() != null)
+            lesson.setAverageRating(request.getAverageRating());
+        if (request.getReviewCount() != null)
+            lesson.setReviewCount(request.getReviewCount());
+        if (request.getLatePenaltyPercent() != null)
+            lesson.setLatePenaltyPercent(request.getLatePenaltyPercent());
+        if (request.getPoints() != null)
+            lesson.setPoints(request.getPoints());
+        if (request.getPassScore() != null)
+            lesson.setPassScore(request.getPassScore());
+        if (request.getTotalFeedbacks() != null)
+            lesson.setTotalFeedbacks(request.getTotalFeedbacks());
+        if (request.getTotalEnrollments() != null)
+            lesson.setTotalEnrollments(request.getTotalEnrollments());
+        if (request.getDifficultyLevel() != null)
+            lesson.setDifficultyLevel(request.getDifficultyLevel());
+        if (request.getDurationMinutes() != null)
+            lesson.setDurationMinutes(request.getDurationMinutes());
 
         // Cập nhật danh mục
         if (request.getCategoryId() != null) {

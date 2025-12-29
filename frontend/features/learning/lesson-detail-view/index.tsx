@@ -1,13 +1,14 @@
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { BookOpen, Info, Play } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useLessonDetail } from './hooks/useLessonDetail';
 import { LessonHeader } from './components/LessonHeader';
 import { LessonContentTab } from './components/LessonContentTab';
 import { CompletionStatus } from './components/CompletionStatus';
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 interface LessonDetailViewProps {
   lessonId: number;
@@ -20,6 +21,52 @@ export default function LessonDetailView({ lessonId, onClose, isPreview = false 
   const { lesson, loading, markingComplete, toggleComplete } = useLessonDetail(lessonId, isPreview);
   const [sidebarWidth, setSidebarWidth] = useState(45);
   const [isResizing, setIsResizing] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const startResizing = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+  }, []);
+
+  const stopResizing = useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  const resize = useCallback((e: MouseEvent) => {
+    if (isResizing && containerRef.current) {
+      window.requestAnimationFrame(() => {
+        const container = containerRef.current?.getBoundingClientRect();
+        if (container) {
+          const newWidth = ((e.clientX - container.left) / container.width) * 100;
+          if (newWidth > 20 && newWidth < 80) {
+            setSidebarWidth(newWidth);
+          }
+        }
+      });
+    }
+  }, [isResizing]);
+
+  useEffect(() => {
+    if (isResizing) {
+      window.addEventListener('mousemove', resize);
+      window.addEventListener('mouseup', stopResizing);
+      // Ensure cursor stays consistent across the entire window
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    } else {
+      window.removeEventListener('mousemove', resize);
+      window.removeEventListener('mouseup', stopResizing);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', resize);
+      window.removeEventListener('mouseup', stopResizing);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing, resize, stopResizing]);
 
   // Handle back navigation - use onClose if provided, otherwise router.back()
   const handleBack = () => {
@@ -73,18 +120,8 @@ export default function LessonDetailView({ lessonId, onClose, isPreview = false 
       style={{ '--sidebar-width': `${sidebarWidth}%` } as React.CSSProperties}
     >
       <div
-        className="flex-1 flex flex-col lg:flex-row min-h-full lg:h-full lg:overflow-hidden"
-        onMouseMove={(e) => {
-          if (isResizing) {
-            const container = e.currentTarget.getBoundingClientRect();
-            const newWidth = ((e.clientX - container.left) / container.width) * 100;
-            if (newWidth > 20 && newWidth < 80) {
-              setSidebarWidth(newWidth);
-            }
-          }
-        }}
-        onMouseUp={() => setIsResizing(false)}
-        onMouseLeave={() => setIsResizing(false)}
+        ref={containerRef}
+        className="flex-1 flex flex-col lg:flex-row min-h-full lg:h-full lg:overflow-hidden relative"
       >
 
         {/* Left Column (Sidebar) - Stacks on mobile, side-by-side on desktop */}
@@ -96,6 +133,7 @@ export default function LessonDetailView({ lessonId, onClose, isPreview = false 
           [&::-webkit-scrollbar-thumb]:bg-muted-foreground/10
           [&::-webkit-scrollbar-thumb]:rounded-full
           hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/20"
+          style={{ pointerEvents: isResizing ? 'none' : 'auto' }}
         >
           <div className="p-6 space-y-6">
             <LessonHeader
@@ -152,17 +190,20 @@ export default function LessonDetailView({ lessonId, onClose, isPreview = false 
 
         {/* Resizer Handle (Desktop Only) */}
         <div
-          className="hidden lg:flex w-1.5 bg-border hover:bg-primary cursor-col-resize items-center justify-center transition-colors z-50 -ml-[3px]"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            setIsResizing(true);
-          }}
+          className={cn(
+            "hidden lg:flex w-1.5 bg-border hover:bg-primary cursor-col-resize items-center justify-center transition-colors z-[100] -ml-[3px] select-none",
+            isResizing && "bg-primary w-2 shadow-[0_0_10px_rgba(var(--primary),0.5)]"
+          )}
+          onMouseDown={startResizing}
         >
           <div className="h-8 w-1 bg-muted-foreground/20 rounded-full" />
         </div>
 
         {/* Right Column (Reference Content) - FIXED STRUCTURE */}
-        <div className="w-full lg:flex-1 flex flex-col bg-muted/40 dark:bg-background lg:overflow-hidden min-h-0 min-w-0">
+        <div
+          className="w-full lg:flex-1 flex flex-col bg-muted/40 dark:bg-background lg:overflow-hidden min-h-0 min-w-0"
+          style={{ pointerEvents: isResizing ? 'none' : 'auto' }}
+        >
           {/* Header - Fixed */}
           <div className="p-6 pb-4 flex-shrink-0 border-b border-border/10">
             <h2 className="text-lg font-bold flex items-center gap-2 text-primary">

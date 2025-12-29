@@ -4,7 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="" />
+    <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/AdminLessonService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/AdminLessonService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/Lesson.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/Lesson.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/dto/request/CreateLessonRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/dto/request/CreateLessonRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/dto/response/AdminLessonResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/dto/response/AdminLessonResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/dto/response/LessonResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/dto/response/LessonResponse.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -151,6 +158,7 @@
       <workItem from="1766836807396" duration="2000" />
       <workItem from="1766836822229" duration="3192000" />
       <workItem from="1766938038405" duration="1950000" />
+      <workItem from="1767030332845" duration="1105000" />
     </task>
     <servers />
   </component>

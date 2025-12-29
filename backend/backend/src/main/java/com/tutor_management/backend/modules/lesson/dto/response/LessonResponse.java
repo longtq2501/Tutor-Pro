@@ -23,6 +23,16 @@ public class LessonResponse {
         private LocalDate lessonDate;
         private String videoUrl;
         private String thumbnailUrl;
+        private Boolean allowLateSubmission;
+        private Double averageRating;
+        private Integer reviewCount;
+        private Double latePenaltyPercent;
+        private Integer points;
+        private Integer passScore;
+        private Integer totalFeedbacks;
+        private Integer totalEnrollments;
+        private String difficultyLevel;
+        private Integer durationMinutes;
 
         // Student-specific info (from LessonAssignment)
         private Long studentId;
@@ -51,6 +61,16 @@ public class LessonResponse {
                                 .lessonDate(lesson.getLessonDate())
                                 .videoUrl(lesson.getVideoUrl())
                                 .thumbnailUrl(lesson.getThumbnailUrl())
+                                .allowLateSubmission(lesson.getAllowLateSubmission())
+                                .averageRating(lesson.getAverageRating())
+                                .reviewCount(lesson.getReviewCount())
+                                .latePenaltyPercent(lesson.getLatePenaltyPercent())
+                                .points(lesson.getPoints())
+                                .passScore(lesson.getPassScore())
+                                .totalFeedbacks(lesson.getTotalFeedbacks())
+                                .totalEnrollments(lesson.getTotalEnrollments())
+                                .difficultyLevel(lesson.getDifficultyLevel())
+                                .durationMinutes(lesson.getDurationMinutes())
                                 // Student-specific data from assignment
                                 .studentId(assignment.getStudent().getId())
                                 .studentName(assignment.getStudent().getName())

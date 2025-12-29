@@ -37,4 +37,15 @@ public class CreateLessonRequest {
     private Boolean isPublished;
 
     private Long categoryId;
+
+    private Boolean allowLateSubmission;
+    private Double averageRating;
+    private Integer reviewCount;
+    private Double latePenaltyPercent;
+    private Integer points;
+    private Integer passScore;
+    private Integer totalFeedbacks;
+    private Integer totalEnrollments;
+    private String difficultyLevel;
+    private Integer durationMinutes;
 }

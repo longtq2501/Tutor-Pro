@@ -65,6 +65,47 @@ public class Lesson {
     @Column(name = "published_at")
     private LocalDateTime publishedAt;
 
+    // ===== SUBMISSION SETTINGS =====
+    @Column(name = "allow_late_submission", nullable = false)
+    @Builder.Default
+    private Boolean allowLateSubmission = true;
+
+    @Column(name = "average_rating", nullable = false)
+    @Builder.Default
+    private Double averageRating = 0.0;
+
+    @Column(name = "review_count", nullable = false)
+    @Builder.Default
+    private Integer reviewCount = 0;
+
+    @Column(name = "late_penalty_percent", nullable = false)
+    @Builder.Default
+    private Double latePenaltyPercent = 0.0;
+
+    @Column(name = "points", nullable = false)
+    @Builder.Default
+    private Integer points = 100;
+
+    @Column(name = "pass_score", nullable = false)
+    @Builder.Default
+    private Integer passScore = 50;
+
+    @Column(name = "total_feedbacks", nullable = false)
+    @Builder.Default
+    private Integer totalFeedbacks = 0;
+
+    @Column(name = "total_enrollments", nullable = false)
+    @Builder.Default
+    private Integer totalEnrollments = 0;
+
+    @Column(name = "difficulty_level", length = 50)
+    @Builder.Default
+    private String difficultyLevel = "All Levels";
+
+    @Column(name = "duration_minutes")
+    @Builder.Default
+    private Integer durationMinutes = 0;
+
     // ===== CATEGORY =====
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")

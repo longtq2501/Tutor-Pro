@@ -2,7 +2,8 @@ import type { SessionRecord } from '@/lib/types/finance';
 import { LessonCard } from './LessonCard';
 import { useState } from 'react';
 import { LessonListPopover } from './LessonListPopover';
-import { STATUS_COLORS } from '../utils/statusColors';
+import { getStatusColors } from '../utils/statusColors';
+import { LESSON_STATUS_LABELS } from '@/lib/types/lesson-status';
 
 interface CompactLessonListProps {
     sessions: SessionRecord[];
@@ -62,12 +63,13 @@ export function CompactLessonList({ sessions, onSessionClick, onSessionEdit, onU
             {/* --- MOBILE VIEW: DOTS --- */}
             <div className="flex md:hidden items-center gap-1 mt-1 px-1 flex-wrap">
                 {dotsSessions.map((session) => {
-                    const colors = STATUS_COLORS[session.status || 'SCHEDULED'];
+                    const colors = getStatusColors(session.status);
+                    const statusLabel = session.status ? LESSON_STATUS_LABELS[session.status as keyof typeof LESSON_STATUS_LABELS] : (session.completed ? 'Đã dạy' : 'Dự kiến');
                     return (
                         <span
                             key={session.id}
                             className={`w-1.5 h-1.5 rounded-full ${colors.dot} ring-1 ring-white dark:ring-slate-900 shadow-sm`}
-                            title={colors.label}
+                            title={statusLabel}
                         />
                     );
                 })}

@@ -41,6 +41,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { UIProvider } from '@/contexts/UIContext';
 import { BackgroundBeams } from '@/components/ui/background-beams';
 
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
@@ -235,7 +236,9 @@ function AppContent() {
 export default function DashboardPage() {
     return (
         <ProtectedRoute>
-            <AppContent />
+            <UIProvider>
+                <AppContent />
+            </UIProvider>
         </ProtectedRoute>
     );
 }

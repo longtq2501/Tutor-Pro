@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import AddSessionModal from '@/features/calendar/add-session-modal';
 import { useCalendarView } from './hooks/useCalendarView';
 import { CalendarHeader } from './components/CalendarHeader';
@@ -8,7 +9,6 @@ import { ListView } from './components/ListView';
 import { LessonDetailModal } from './components/LessonDetailModal';
 import { DayDetailModal } from './components/DayDetailModal';
 import { ContextMenu } from './components/ContextMenu';
-import { StatusLegend } from './components/StatusLegend';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { getMonthStr } from './utils';
+import { cn } from '@/lib/utils';
 
 export default function CalendarView() {
   const {
@@ -61,6 +62,16 @@ export default function CalendarView() {
     loadingSessions
   } = useCalendarView();
 
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const renderView = () => {
     switch (currentView) {
       case 'week':
@@ -98,7 +109,13 @@ export default function CalendarView() {
         return (
           <CalendarGrid
             days={calendarDays}
-            onDayClick={setSelectedDay}
+            onDayClick={(day) => {
+              if (window.innerWidth < 768) {
+                setSelectedDay(day);
+              } else {
+                openAddSessionModal(day.dateStr);
+              }
+            }}
             onAddSession={openAddSessionModal}
             onSessionClick={handleSessionClick}
             onSessionEdit={handleSessionEdit}
@@ -111,8 +128,13 @@ export default function CalendarView() {
 
   return (
     <div className="space-y-4 pb-20">
-      <div className="sticky top-0 z-30 pb-4 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 px-4 pt-[16px] border-b border-border/10 shadow-sm transition-all rounded-[18px]">
-        <div className="space-y-4">
+      <div className={cn(
+        "sticky top-0 z-40 transition-all duration-300 ease-in-out border-b shadow-sm",
+        isScrolled
+          ? "bg-background/80 backdrop-blur-md border-border/10 py-2 px-2 sm:px-4 mx-0 rounded-none shadow-md"
+          : "bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 px-4 pt-[16px] pb-4 border-border/10 rounded-[18px] mt-2 mx-1"
+      )}>
+        <div className={cn("transition-all duration-300", isScrolled ? "space-y-0" : "space-y-4")}>
           <CalendarHeader
             currentDate={currentDate}
             stats={stats}
@@ -122,15 +144,18 @@ export default function CalendarView() {
             onToday={goToToday}
             onAutoGenerate={handleAutoGenerate}
             onViewChange={setCurrentView}
+            // Passing down a prop to tell header it's in a compact state if needed
+            // But header already has its own listener.
             onExport={exportToExcel}
             onDeleteAll={handleInitiateDeleteAll}
           />
 
-          <StatusLegend />
         </div>
       </div>
 
-      {renderView()}
+      <div className={cn("transition-all duration-300", isScrolled ? "pt-2" : "pt-0")}>
+        {renderView()}
+      </div>
 
       {/* ... (existing modals) */}
 

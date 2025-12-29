@@ -31,14 +31,17 @@ export function ListView({ sessions, onSessionClick, onSessionEdit, onUpdate }: 
     const filteredSessions = useMemo(() => {
         return sessions
             .filter(s => {
+                // EXCLUDE CANCELLED SESSIONS (UX Requirement 4)
+                if (s.status === 'CANCELLED_BY_STUDENT' || s.status === 'CANCELLED_BY_TUTOR') {
+                    return false;
+                }
+
                 const matchesSearch = s.studentName.toLowerCase().includes(search.toLowerCase()) ||
                     (s.subject && s.subject.toLowerCase().includes(search.toLowerCase()));
                 let matchesStatus = true;
                 if (statusFilter !== 'all') {
                     if (statusFilter === 'DONE') {
                         matchesStatus = s.status === 'PAID' || s.status === 'COMPLETED';
-                    } else if (statusFilter === 'CANCELLED') {
-                        matchesStatus = s.status === 'CANCELLED_BY_STUDENT' || s.status === 'CANCELLED_BY_TUTOR';
                     } else if (statusFilter === 'PAID') {
                         matchesStatus = s.status === 'PAID' || s.paid === true;
                     } else if (statusFilter === 'UNPAID') {
@@ -97,7 +100,6 @@ export function ListView({ sessions, onSessionClick, onSessionEdit, onUpdate }: 
                             <SelectItem value="PAID">Đã thanh toán</SelectItem>
                             <SelectItem value="UNPAID">Chưa thanh toán</SelectItem>
                             <SelectItem value="SCHEDULED">Đã hẹn</SelectItem>
-                            <SelectItem value="CANCELLED">Đã hủy</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>

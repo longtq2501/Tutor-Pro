@@ -12,6 +12,9 @@ import { SummaryCard } from './components/SummaryCard';
 import { ActionButtons } from './components/ActionButtons';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useUI } from '@/contexts/UIContext';
+import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function AddSessionModal({ onClose, onSubmit, initialDate, students, initialStudentId }: AddSessionModalProps) {
   const {
@@ -25,16 +28,25 @@ export default function AddSessionModal({ onClose, onSubmit, initialDate, studen
     totalHours, month, validate
   } = useSessionForm(initialDate, initialStudentId);
 
+  // Manage UI state (Sidebar visibility)
+  const { openDialog, closeDialog } = useUI();
+  useEffect(() => {
+    openDialog();
+    return () => closeDialog();
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validate()) onSubmit(studentId, sessions, hoursPerSession, sessionDate, month, subject, startTime, endTime);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity" onClick={onClose} />
+  if (typeof document === 'undefined') return null;
 
-      <div className="relative bg-card rounded-xl shadow-lg max-w-md w-full animate-in zoom-in-95 duration-300 overflow-hidden border border-border">
+  return createPortal(
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity duration-150" onClick={onClose} />
+
+      <div className="relative bg-card rounded-xl shadow-lg max-w-md w-full animate-in fade-in zoom-in-95 duration-150 overflow-hidden border border-border">
         <ModalHeader onClose={onClose} />
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
@@ -93,6 +105,7 @@ export default function AddSessionModal({ onClose, onSubmit, initialDate, studen
           <ActionButtons onClose={onClose} />
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

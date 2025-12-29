@@ -4,13 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseAssignmentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseAssignmentService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/courses/components/AssignCourseDialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/courses/components/AssignCourseDialog.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/courses/components/CourseDetailView.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/courses/components/CourseDetailView.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/courses/components/MyCoursesView.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/courses/components/MyCoursesView.tsx" afterDir="false" />
-    </list>
+    <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -156,7 +150,7 @@
       <workItem from="1766750511303" duration="706000" />
       <workItem from="1766836807396" duration="2000" />
       <workItem from="1766836822229" duration="3192000" />
-      <workItem from="1766938038405" duration="1137000" />
+      <workItem from="1766938038405" duration="1950000" />
     </task>
     <servers />
   </component>

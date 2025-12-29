@@ -15,6 +15,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { useUI } from '@/contexts/UIContext';
+import { createPortal } from 'react-dom';
 
 interface LessonDetailModalProps {
     session: SessionRecord;
@@ -86,10 +88,14 @@ export function LessonDetailModal({ session, onClose, onUpdate, onDelete, initia
     }, [session]);
 
     // Body scroll lock & Sidebar hiding (Problem 2)
+    const { openDialog, closeDialog } = useUI();
+
     useEffect(() => {
+        openDialog();
         document.body.style.overflow = 'hidden';
         document.body.classList.add('modal-open');
         return () => {
+            closeDialog();
             document.body.style.overflow = 'unset';
             // Only remove modal-open if no other modals are open
             setTimeout(() => {
@@ -167,9 +173,11 @@ export function LessonDetailModal({ session, onClose, onUpdate, onDelete, initia
 
     const colors = getStatusColors(localSession.status as LessonStatus);
 
-    return (
-        <div role="dialog" className="fixed inset-0 z-[1010] flex items-center justify-center bg-black/60 backdrop-blur-md p-2 md:p-4 animate-in fade-in duration-300 ease-out">
-            <div className="bg-card border border-border rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300 ease-out">
+    if (typeof document === 'undefined') return null;
+
+    return createPortal(
+        <div role="dialog" className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-2 md:p-4 animate-in fade-in duration-150 ease-out">
+            <div className="bg-card border border-border rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 ease-out">
 
                 {/* Header - Sticky */}
                 <div className="flex items-center justify-between p-4 md:p-6 border-b border-border bg-card/80 backdrop-blur-sm z-10">
@@ -429,6 +437,7 @@ export function LessonDetailModal({ session, onClose, onUpdate, onDelete, initia
                 confirmText="Xóa vĩnh viễn"
                 variant="destructive"
             />
-        </div>
+        </div>,
+        document.body
     );
 }

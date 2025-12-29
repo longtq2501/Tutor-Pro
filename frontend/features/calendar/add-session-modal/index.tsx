@@ -32,8 +32,17 @@ export default function AddSessionModal({ onClose, onSubmit, initialDate, studen
   const { openDialog, closeDialog } = useUI();
   useEffect(() => {
     openDialog();
-    return () => closeDialog();
-  }, []);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      closeDialog();
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

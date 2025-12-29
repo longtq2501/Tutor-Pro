@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { sessionsApi, recurringSchedulesApi } from '@/lib/services';
 import { toast } from 'sonner';
 import { useCalendarData } from './useCalendarData';
@@ -22,8 +22,33 @@ export const useCalendarView = () => {
 
     const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
     const [loadingSessions, setLoadingSessions] = useState<Set<number>>(new Set());
+    const [isScrolled, setIsScrolled] = useState(false);
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+    // Throttled scroll listener
+    useEffect(() => {
+        let ticking = false;
+        const handleScroll = () => {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    setIsScrolled(window.scrollY > 50);
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const { sessions, setSessions, students, loading, loadData, updateSession } = useCalendarData(currentDate);
+
+    // Initial load tracking
+    useEffect(() => {
+        if (!loading) {
+            setIsInitialLoad(false);
+        }
+    }, [loading]);
 
     // ... (rest of the hooks)
 
@@ -279,6 +304,8 @@ export const useCalendarView = () => {
         currentDayInfo,
         deleteConfirmationOpen,
         setDeleteConfirmationOpen,
+        isScrolled,
+        isInitialLoad,
 
         // Actions
         setCurrentView,

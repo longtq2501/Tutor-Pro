@@ -11,7 +11,8 @@ import {
   CalendarRange,
   CalendarDays,
   List,
-  TrendingUp
+  TrendingUp,
+  Settings2
 } from 'lucide-react';
 import { MONTHS } from '../constants';
 import { formatCurrency } from '../utils';
@@ -39,6 +40,7 @@ interface Props {
   onViewChange: (view: CalendarViewType) => void;
   onExport?: () => void;
   onDeleteAll: () => void;
+  isScrolled: boolean;
 }
 
 const VIEW_CONFIG = {
@@ -58,7 +60,7 @@ const StatBox = memo(({ label, value, subValue, suffix = '', colorClass, isScrol
 }) => {
   if (isScrolled) return null;
   return (
-    <div className="flex flex-col px-4 py-3 bg-muted/40 dark:bg-zinc-900 rounded-xl border border-border/40 hover:bg-muted/60 dark:hover:bg-zinc-800/80 transition-all duration-300 min-w-[140px] flex-1 shadow-sm">
+    <div className="flex flex-col px-4 py-3 bg-muted/40 dark:bg-zinc-900 rounded-xl border border-border/40 hover:bg-muted/60 dark:hover:bg-zinc-800/80 transition-all duration-300 min-w-[120px] flex-1 shadow-sm">
       <span className="text-[10px] text-muted-foreground dark:text-zinc-400 uppercase tracking-widest font-extrabold">{label}</span>
       <div className="flex items-baseline gap-1.5 mt-1.5">
         <span className={cn("text-lg font-black leading-none tracking-tight dark:text-white", colorClass)}>{value}</span>
@@ -85,18 +87,12 @@ export const CalendarHeader = ({
   onAutoGenerate,
   onViewChange,
   onExport,
-  onDeleteAll
+  onDeleteAll,
+  isScrolled
 }: Props) => {
   const [isStatsExpanded, setIsStatsExpanded] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [isHeaderExpanded, setIsHeaderExpanded] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const monthLabel = `Tháng ${(currentDate.getMonth() + 1).toString().padStart(2, '0')}, ${currentDate.getFullYear()}`;
 
@@ -111,7 +107,7 @@ export const CalendarHeader = ({
 
         {/* Main Row: Logic for LG and Scrolling */}
         <div className={cn(
-          "flex items-center justify-between gap-2 sm:gap-4",
+          "flex items-center justify-between gap-2 sm:gap-4 flex-wrap",
           isScrolled && "lg:justify-between"
         )}>
           {/* Left: Navigation & Legend */}
@@ -137,7 +133,7 @@ export const CalendarHeader = ({
 
               <div className={cn(
                 "font-black text-foreground dark:text-zinc-100 tracking-tight text-center transition-all px-1 sm:px-2",
-                isScrolled ? "text-[10px] sm:text-xs min-w-[100px] sm:min-w-[120px]" : "text-xs sm:text-sm min-w-[140px] sm:min-w-[160px]"
+                isScrolled ? "text-[10px] sm:text-xs min-w-[80px] sm:min-w-[100px]" : "text-xs sm:text-sm min-w-[120px] sm:min-w-[140px]"
               )}>
                 {monthLabel}
               </div>
@@ -158,10 +154,10 @@ export const CalendarHeader = ({
               </Tooltip>
             </div>
 
-            {/* Legend Trigger - Only shown in Month View and not scrolled (or even when scrolled if compact enough) */}
-            {/* Hidden on mobile (sm:block) to prevent overflow */}
+            {/* Legend Trigger - Only shown in Month View and not scrolled */}
+            {/* Hidden on screens smaller than XL to prevent header overflow */}
             {currentView === 'month' && !isScrolled && (
-              <div className="hidden sm:block">
+              <div className="hidden xl:block">
                 <StatusLegend />
               </div>
             )}
@@ -190,7 +186,7 @@ export const CalendarHeader = ({
                     )}
                   >
                     <Icon className={cn("transition-all", isScrolled ? "w-3 h-3" : "w-4 h-4", isActive ? "text-primary dark:text-zinc-950" : "text-muted-foreground dark:text-zinc-400")} />
-                    <span className={cn("transition-all", isScrolled ? "hidden xl:inline-block" : "hidden sm:inline-block md:inline-block")}>{config.label}</span>
+                    <span className={cn("transition-all", isScrolled ? "hidden xl:inline-block" : "hidden xl:inline-block")}>{config.label}</span>
                   </button>
                 );
               })}
@@ -199,6 +195,23 @@ export const CalendarHeader = ({
 
           {/* Action Buttons Group */}
           <div className="flex items-center gap-1.5 sm:gap-2 ml-auto">
+            {!isScrolled && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setIsHeaderExpanded(!isHeaderExpanded)}
+                    className={cn(
+                      "flex items-center justify-center rounded-lg border border-border/60 transition-all active:scale-95 shadow-sm p-2",
+                      isHeaderExpanded ? "bg-primary text-primary-foreground border-primary" : "bg-background text-muted-foreground hover:bg-muted"
+                    )}
+                  >
+                    <TrendingUp className="w-4 h-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent sideOffset={4}>{isHeaderExpanded ? 'Thu gọn' : 'Xem thống kê'}</TooltipContent>
+              </Tooltip>
+            )}
+
             <div className={cn(
               "hidden sm:flex items-center gap-1 md:gap-1.5 bg-muted/30 dark:bg-zinc-900/30 rounded-xl border border-border/40 transition-all",
               isScrolled ? "p-0.5" : "p-0.5 md:p-1"
@@ -220,35 +233,34 @@ export const CalendarHeader = ({
 
               <div className={cn("bg-border/60 dark:bg-zinc-700 transition-all", isScrolled ? "w-px h-3 mx-0.5 md:h-4" : "w-px h-4 mx-0.5 md:h-5 md:mx-1")} />
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={onExport}
-                    className={cn(
-                      "flex items-center justify-center hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg transition-all active:scale-95",
-                      isScrolled ? "h-7 w-7 md:h-8 md:w-8" : "h-9 w-9 md:h-10 md:w-10"
-                    )}
-                  >
-                    <FileDown className={cn("transition-all", isScrolled ? "w-3 h-3 md:w-3.5 md:h-3.5" : "w-3.5 h-3.5 md:w-4 md:h-4")} />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent sideOffset={4}>Xuất Excel</TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={onDeleteAll}
-                    className={cn(
-                      "flex items-center justify-center hover:bg-destructive/10 dark:hover:bg-red-900/30 text-destructive dark:text-red-400 rounded-lg transition-all active:scale-95",
-                      isScrolled ? "h-7 w-7 md:h-8 md:w-8" : "h-9 w-9 md:h-10 md:w-10"
-                    )}
-                  >
-                    <Trash2 className={cn("transition-all", isScrolled ? "w-3 h-3 md:w-3.5 md:h-3.5" : "w-3.5 h-3.5 md:w-4 md:h-4")} />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent sideOffset={4}>Xóa tất cả</TooltipContent>
-              </Tooltip>
+              <DropdownMenu>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        className={cn(
+                          "flex items-center justify-center hover:bg-muted dark:hover:bg-zinc-800 text-muted-foreground dark:text-zinc-400 rounded-lg transition-all active:scale-95",
+                          isScrolled ? "h-7 w-7 md:h-8 md:w-8" : "h-9 w-9 md:h-10 md:w-10"
+                        )}
+                      >
+                        <Settings2 className={cn("transition-all", isScrolled ? "w-3 h-3 md:w-3.5 md:h-3.5" : "w-3.5 h-3.5 md:w-4 md:h-4")} />
+                      </button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent sideOffset={4}>Công cụ</TooltipContent>
+                </Tooltip>
+                <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-2xl border-border/60">
+                  <DropdownMenuItem onClick={onExport} className="rounded-lg py-2.5 text-emerald-600 dark:text-emerald-400">
+                    <FileDown className="w-4 h-4 mr-3" />
+                    <span>Xuất Excel</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="opacity-40" />
+                  <DropdownMenuItem onClick={onDeleteAll} className="rounded-lg py-2.5 text-destructive dark:text-red-400">
+                    <Trash2 className="w-4 h-4 mr-3" />
+                    <span>Xóa toàn bộ</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             {/* Mobile Actions Dropdown */}
@@ -353,42 +365,44 @@ export const CalendarHeader = ({
           </div>
         )}
 
-        {/* Dynamic Stats View - Hidden when scrolled */}
-        {!isScrolled && (
+        {/* Dynamic Stats View - Hidden when scrolled OR when collapsed */}
+        {!isScrolled && isHeaderExpanded && (
           <div className={cn(
-            "grid gap-3 transition-all duration-300",
+            "grid gap-3 transition-all duration-300 animate-in fade-in slide-in-from-top-2",
             "lg:grid lg:grid-cols-3",
             isStatsExpanded ? "grid grid-cols-1 md:grid-cols-3" : "hidden lg:grid"
           )}>
             <StatBox label="Đã dạy" value={stats.completed} subValue={stats.total} />
-            <StatBox label="Doanh thu" value={formatCurrency(stats.revenue)} colorClass="text-primary dark:text-primary-foreground" />
+            <StatBox label="Doanh thu" value={formatCurrency(stats.revenue)} colorClass="text-primary" />
             <StatBox label="Chưa thu" value={stats.pending} suffix="buổi" colorClass="text-orange-600 dark:text-orange-400" />
           </div>
         )}
 
-        {/* Primary Action Button - Hidden when scrolled on Mobile (replaced by FAB) */}
-        <div className={cn("transition-all duration-300 overflow-hidden", isScrolled ? "h-0 opacity-0" : "h-12 opacity-100 mt-1")}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={onAutoGenerate}
-                disabled={isGenerating}
-                className="w-full h-12 bg-primary dark:bg-primary/90 text-primary-foreground hover:bg-primary/95 rounded-xl font-black transition-all flex items-center justify-center gap-3 shadow-[0_8px_20px_rgba(var(--primary-rgb),0.3)] hover:shadow-[0_12px_28px_rgba(var(--primary-rgb),0.4)] active:scale-[0.99] disabled:opacity-50 uppercase tracking-[0.2em] text-[13px]"
-              >
-                {isGenerating ? (
-                  <Loader2 className="animate-spin w-4 h-4" />
-                ) : (
-                  <Zap className="w-5 h-5" fill="currentColor" />
-                )}
-                <span>
-                  <span className="sm:hidden">Tạo Lịch</span>
-                  <span className="hidden sm:inline">Lập Lịch Tự Động</span>
-                </span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent sideOffset={4}>Thông minh hóa việc quản lý lịch dạy</TooltipContent>
-          </Tooltip>
-        </div>
+        {/* Primary Action Button - Hidden when scrolled OR when collapsed */}
+        {!isScrolled && isHeaderExpanded && (
+          <div className={cn("transition-all duration-300 overflow-hidden animate-in fade-in slide-in-from-top-4 mt-1")}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={onAutoGenerate}
+                  disabled={isGenerating}
+                  className="w-full h-12 bg-primary dark:bg-primary/90 text-primary-foreground hover:bg-primary/95 rounded-xl font-black transition-all flex items-center justify-center gap-3 shadow-[0_8px_20px_rgba(var(--primary-rgb),0.3)] hover:shadow-[0_12px_28px_rgba(var(--primary-rgb),0.4)] active:scale-[0.99] disabled:opacity-50 uppercase tracking-[0.2em] text-[13px]"
+                >
+                  {isGenerating ? (
+                    <Loader2 className="animate-spin w-4 h-4" />
+                  ) : (
+                    <Zap className="w-5 h-5" fill="currentColor" />
+                  )}
+                  <span>
+                    <span className="sm:hidden">Tạo Lịch</span>
+                    <span className="hidden sm:inline">Lập Lịch Tự Động</span>
+                  </span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={4}>Thông minh hóa việc quản lý lịch dạy</TooltipContent>
+            </Tooltip>
+          </div>
+        )}
 
         {/* Mobile FAB for Auto-Generate (Visible only when scrolled and on small screens) */}
         {isScrolled && (

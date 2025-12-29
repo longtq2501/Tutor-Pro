@@ -9,6 +9,7 @@ import { ListView } from './components/ListView';
 import { LessonDetailModal } from './components/LessonDetailModal';
 import { DayDetailModal } from './components/DayDetailModal';
 import { ContextMenu } from './components/ContextMenu';
+import { CalendarSkeleton } from './components/CalendarSkeleton';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,20 +60,16 @@ export default function CalendarView() {
     handleInitiateDeleteAll,
     handleConfirmDeleteAll,
     exportToExcel,
-    loadingSessions
+    loadingSessions,
+    isScrolled,
+    loading,
+    isInitialLoad
   } = useCalendarView();
 
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const renderView = () => {
+    if (loading || isInitialLoad) return <CalendarSkeleton />;
+
     switch (currentView) {
       case 'week':
         return (
@@ -109,13 +106,7 @@ export default function CalendarView() {
         return (
           <CalendarGrid
             days={calendarDays}
-            onDayClick={(day) => {
-              if (window.innerWidth < 768) {
-                setSelectedDay(day);
-              } else {
-                openAddSessionModal(day.dateStr);
-              }
-            }}
+            onDayClick={(day) => setSelectedDay(day)}
             onAddSession={openAddSessionModal}
             onSessionClick={handleSessionClick}
             onSessionEdit={handleSessionEdit}
@@ -131,8 +122,8 @@ export default function CalendarView() {
       <div className={cn(
         "sticky top-0 z-20 transition-all duration-300 ease-in-out border-b shadow-sm",
         isScrolled
-          ? "bg-background/80 backdrop-blur-md border-border/10 py-2 px-2 sm:px-4 mx-0 rounded-none shadow-md"
-          : "bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 px-4 pt-[16px] pb-4 border-border/10 rounded-[18px] mt-2 mx-1"
+          ? "bg-background/80 backdrop-blur-md border-border/10 py-1.5 px-2 sm:px-4 mx-0 rounded-none shadow-md"
+          : "bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 px-4 py-4 border-border/10 rounded-[18px] mt-0 mx-1"
       )}>
         <div className={cn("transition-all duration-300", isScrolled ? "space-y-0" : "space-y-4")}>
           <CalendarHeader
@@ -148,6 +139,7 @@ export default function CalendarView() {
             // But header already has its own listener.
             onExport={exportToExcel}
             onDeleteAll={handleInitiateDeleteAll}
+            isScrolled={isScrolled}
           />
 
         </div>

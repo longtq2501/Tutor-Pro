@@ -6,8 +6,9 @@ import { AuthProvider } from '@/contexts/AuthContext';
 // 1. Import QueryProvider bạn vừa tạo
 import QueryProvider from '@/providers/QueryProvider';
 import { Toaster } from 'sonner';
+import { Prefetcher } from '@/components/shared/Prefetcher';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ['latin'], display: 'swap' });
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://tutor-management-e7zh.vercel.app'),
@@ -53,6 +54,7 @@ export default function RootLayout({
           {/* 2. Bọc QueryProvider ở đây */}
           <QueryProvider>
             <AuthProvider>
+              <Prefetcher />
               {children}
               <Toaster richColors position="bottom-right" />
             </AuthProvider>

@@ -52,7 +52,7 @@ export function Sidebar({ currentView, setCurrentView, navItems, isCollapsed, se
             <div className={`
                 main-sidebar
                 fixed lg:relative h-screen flex flex-col bg-card/80 dark:bg-card/60 lg:backdrop-blur-xl border-r border-border shadow-lg
-                transition-all duration-300 ease-in-out z-40
+                transition-all duration-300 ease-in-out z-40 flex-shrink-0
                 ${isCollapsed ? 'lg:w-20' : 'lg:w-64'}
                 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                 w-72

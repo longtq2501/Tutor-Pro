@@ -144,9 +144,9 @@ function AppContent() {
                 setIsCollapsed={setIsCollapsed}
             />
 
-            <div className="flex-1 flex flex-col overflow-hidden relative z-10">
-                <header className="border-b border-border">
-                    <div className="flex items-center justify-between h-16 lg:h-20 px-4 lg:px-8">
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
+                <header className="border-b border-border bg-background/50 backdrop-blur-sm sticky top-0 z-20">
+                    <div className="flex items-center justify-between h-14 lg:h-16 px-4 lg:px-6">
                         <div className="flex-1 min-w-0 pl-12 lg:pl-0">
                             <h1 className="text-base sm:text-lg lg:text-2xl font-bold text-foreground truncate">{currentTitle}</h1>
                             <p className="text-xs lg:text-sm text-muted-foreground hidden lg:block truncate">
@@ -191,8 +191,8 @@ function AppContent() {
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto">
-                    <div className="p-4 lg:p-8">
+                <main className="flex-1 overflow-y-auto min-w-0">
+                    <div className="p-4">
                         {/* Dashboard */}
                         {currentView === 'dashboard' && hasAnyRole(['ADMIN', 'TUTOR']) && <AdminDashboard />}
                         {currentView === 'dashboard' && hasAnyRole(['STUDENT']) && <StudentDashboard />}

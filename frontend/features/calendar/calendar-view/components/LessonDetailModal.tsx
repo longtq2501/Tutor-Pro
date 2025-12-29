@@ -87,6 +87,14 @@ export function LessonDetailModal({ session, onClose, onUpdate, onDelete, initia
         }
     }, [session]);
 
+    const handleClose = () => {
+        if (mode === 'edit' && isDirty) {
+            setConfirmCloseOpen(true);
+            return;
+        }
+        onClose();
+    };
+
     // Body scroll lock & Sidebar hiding (Problem 2)
     const { openDialog, closeDialog } = useUI();
 
@@ -94,9 +102,23 @@ export function LessonDetailModal({ session, onClose, onUpdate, onDelete, initia
         openDialog();
         document.body.style.overflow = 'hidden';
         document.body.classList.add('modal-open');
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                // Check if any sub-dialogs (like ConfirmDialog) are open
+                const subDialogs = document.querySelectorAll('[role="alertdialog"]');
+                if (subDialogs.length === 0) {
+                    handleClose();
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+
         return () => {
             closeDialog();
             document.body.style.overflow = 'unset';
+            window.removeEventListener('keydown', handleKeyDown);
+
             // Only remove modal-open if no other modals are open
             setTimeout(() => {
                 const otherModals = document.querySelectorAll('[role="dialog"]');
@@ -105,15 +127,7 @@ export function LessonDetailModal({ session, onClose, onUpdate, onDelete, initia
                 }
             }, 0);
         };
-    }, []);
-
-    const handleClose = () => {
-        if (mode === 'edit' && isDirty) {
-            setConfirmCloseOpen(true);
-            return;
-        }
-        onClose();
-    };
+    }, [handleClose]);
 
     // Derived calculations
     const calculateHours = (start: string, end: string) => {

@@ -65,13 +65,60 @@ export function ContextMenu({ session, position, onClose, onEdit, onUpdate, onDe
         }
     };
 
+    // Keyboard Shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (loading || confirmDeleteOpen || confirmCancelOpen) return;
+
+            const key = e.key.toLowerCase();
+
+            switch (key) {
+                case 'e':
+                    onEdit?.(session);
+                    onClose();
+                    break;
+                case 'd':
+                    handleAction(async () => {
+                        const duplicated = await sessionsApi.duplicate(session.id);
+                        onUpdate?.(duplicated);
+                    });
+                    break;
+                case 'delete':
+                case 'backspace':
+                    setConfirmDeleteOpen(true);
+                    break;
+                case 'c':
+                    if (session.status === 'SCHEDULED' || session.status === 'CONFIRMED') {
+                        handleAction(async () => {
+                            if (session.version === undefined || session.version === null) return;
+                            const updated = await sessionsApi.updateStatus(session.id, 'COMPLETED', session.version);
+                            onUpdate?.(updated);
+                        });
+                    }
+                    break;
+                case 'p':
+                    if (session.status === 'COMPLETED' || session.status === 'PENDING_PAYMENT') {
+                        handleAction(async () => {
+                            if (session.version === undefined || session.version === null) return;
+                            const updated = await sessionsApi.updateStatus(session.id, 'PAID', session.version);
+                            onUpdate?.(updated);
+                        });
+                    }
+                    break;
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [session, loading, confirmDeleteOpen, confirmCancelOpen, onEdit, onUpdate, onClose]);
+
     const currentStatus = session.status || 'SCHEDULED';
 
     return (
         <div
             ref={menuRef}
             style={{ top: position.y, left: position.x }}
-            className="fixed z-50 bg-card border border-border rounded-md shadow-lg py-1 min-w-[180px]"
+            className="fixed z-60 bg-card border border-border rounded-md shadow-lg py-1 min-w-[180px]"
         >
             {/* Edit */}
             <button

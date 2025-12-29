@@ -1,6 +1,3 @@
-// ============================================================================
-// FILE: calendar-view/components/DayDetailModal.tsx
-// ============================================================================
 import { XCircle, Plus, Calendar, Clock, Trash2, BookOpen, BookDashed, CheckSquare, Square, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
@@ -14,6 +11,12 @@ import { LESSON_STATUS_LABELS, isTerminalStatus } from '@/lib/types/lesson-statu
 import { getStatusColors } from '../utils/statusColors';
 import { useUI } from '@/contexts/UIContext';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Props {
   day: CalendarDay;
@@ -45,16 +48,22 @@ export const DayDetailModal = ({
     openDialog();
     document.body.style.overflow = 'hidden';
 
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
     return () => {
       closeDialog();
       document.body.style.overflow = 'unset';
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [onClose]);
 
   if (typeof document === 'undefined') return null;
 
   return createPortal(
-    <div role="dialog" className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150 ease-out">
+    <div role="dialog" className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150 ease-out">
       <div className="absolute inset-0" onClick={onClose} />
 
       <div className="relative bg-card rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] flex flex-col animate-in fade-in zoom-in-95 duration-150 ease-out border border-border">
@@ -136,49 +145,63 @@ export const DayDetailModal = ({
                   </div>
 
                   <div className="pt-3 border-t border-border flex justify-between items-center mt-auto gap-2">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onToggleComplete(session.id, session.version);
-                        }}
-                        disabled={loadingSessions.has(session.id) || terminal}
-                        className={cn(
-                          "cursor-pointer text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors disabled:opacity-50",
-                          session.completed ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600',
-                          terminal && "opacity-50 grayscale cursor-not-allowed"
-                        )}
-                      >
-                        {loadingSessions.has(session.id) ? (
-                          <Loader2 size={14} className="animate-spin" />
-                        ) : (
-                          session.completed ? <BookOpen size={14} /> : <BookDashed size={14} />
-                        )}
-                        <span className="hidden sm:inline">{session.completed ? 'Đã Dạy' : 'Chưa Dạy'}</span>
-                        <span className="sm:hidden">{session.completed ? 'Dạy' : 'Dự kiến'}</span>
-                      </button>
+                    <TooltipProvider>
+                      <div className="flex gap-2">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onToggleComplete(session.id, session.version);
+                              }}
+                              disabled={loadingSessions.has(session.id) || terminal}
+                              className={cn(
+                                "cursor-pointer text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-all duration-200 disabled:opacity-50",
+                                session.completed ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600',
+                                loadingSessions.has(session.id) && "scale-95",
+                                terminal && "opacity-50 grayscale cursor-not-allowed"
+                              )}
+                            >
+                              {loadingSessions.has(session.id) ? (
+                                <Loader2 size={14} className="animate-spin" />
+                              ) : (
+                                session.completed ? <BookOpen size={14} /> : <BookDashed size={14} />
+                              )}
+                              <span className="hidden sm:inline">{session.completed ? 'Đã Dạy' : 'Chưa Dạy'}</span>
+                              <span className="sm:hidden">{session.completed ? 'Dạy' : 'Dự kiến'}</span>
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>{session.completed ? 'Hủy đánh dấu dạy' : 'Đánh dấu đã dạy xong'}</TooltipContent>
+                        </Tooltip>
 
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onTogglePayment(session.id, session.version);
-                        }}
-                        disabled={!session.completed || loadingSessions.has(session.id) || terminal}
-                        className={cn(
-                          "cursor-pointer text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors disabled:opacity-50",
-                          !session.completed ? 'bg-muted text-muted-foreground cursor-not-allowed' : session.paid ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50',
-                          terminal && session.status !== 'PAID' && "opacity-50 grayscale cursor-not-allowed" // Adjust based on terminal logic
-                        )}
-                      >
-                        {loadingSessions.has(session.id) ? (
-                          <Loader2 size={14} className="animate-spin" />
-                        ) : (
-                          session.paid ? <CheckSquare size={14} /> : <Square size={14} />
-                        )}
-                        <span className="hidden sm:inline">{session.paid ? 'Đã Thanh Toán' : 'Chưa Thanh Toán'}</span>
-                        <span className="sm:hidden">{session.paid ? 'Đã TT' : 'TT'}</span>
-                      </button>
-                    </div>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onTogglePayment(session.id, session.version);
+                              }}
+                              disabled={!session.completed || loadingSessions.has(session.id) || terminal}
+                              className={cn(
+                                "cursor-pointer text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-all duration-200 disabled:opacity-50",
+                                !session.completed ? 'bg-muted text-muted-foreground cursor-not-allowed' : session.paid ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50',
+                                loadingSessions.has(session.id) && "scale-95",
+                                terminal && session.status !== 'PAID' && "opacity-50 grayscale cursor-not-allowed"
+                              )}
+                            >
+                              {loadingSessions.has(session.id) ? (
+                                <Loader2 size={14} className="animate-spin" />
+                              ) : (
+                                session.paid ? <CheckSquare size={14} /> : <Square size={14} />
+                              )}
+                              <span className="hidden sm:inline">{session.paid ? 'Đã Thanh Toán' : 'Chưa Thanh Toán'}</span>
+                              <span className="sm:hidden">{session.paid ? 'Đã TT' : 'TT'}</span>
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>{session.paid ? 'Hủy xác nhận thanh toán' : 'Xác nhận đã nhận tiền'}</TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </TooltipProvider>
 
                     <button
                       onClick={(e) => { e.stopPropagation(); setSessionToDelete(session.id); }}

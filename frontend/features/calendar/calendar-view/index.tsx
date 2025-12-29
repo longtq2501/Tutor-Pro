@@ -129,7 +129,7 @@ export default function CalendarView() {
   return (
     <div className="space-y-4 pb-20">
       <div className={cn(
-        "sticky top-0 z-40 transition-all duration-300 ease-in-out border-b shadow-sm",
+        "sticky top-0 z-20 transition-all duration-300 ease-in-out border-b shadow-sm",
         isScrolled
           ? "bg-background/80 backdrop-blur-md border-border/10 py-2 px-2 sm:px-4 mx-0 rounded-none shadow-md"
           : "bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 px-4 pt-[16px] pb-4 border-border/10 rounded-[18px] mt-2 mx-1"

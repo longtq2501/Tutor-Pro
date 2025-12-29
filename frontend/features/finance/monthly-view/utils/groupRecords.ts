@@ -1,9 +1,12 @@
-// 📁 monthly-view/utils/groupRecords.ts
 import type { SessionRecord } from '@/lib/types';
+import { isCancelledStatus, type LessonStatus } from '@/lib/types/lesson-status';
 import type { GroupedRecord } from '../types';
 
 export function groupRecordsByStudent(records: SessionRecord[]): GroupedRecord[] {
-  const grouped = records.reduce((acc, record) => {
+  // Filter out cancelled sessions (UX Requirement)
+  const activeRecords = records.filter(r => !isCancelledStatus(r.status as LessonStatus));
+
+  const grouped = activeRecords.reduce((acc, record) => {
     const key = record.studentId;
     if (!acc[key]) {
       acc[key] = {
@@ -18,7 +21,7 @@ export function groupRecordsByStudent(records: SessionRecord[]): GroupedRecord[]
       };
     }
     acc[key].sessions.push(record);
-    acc[key].totalSessions += record.sessions;
+    acc[key].totalSessions += 1; // Increment session count correctly
     acc[key].totalHours += record.hours;
     acc[key].totalAmount += record.totalAmount;
     if (!record.paid) acc[key].allPaid = false;
@@ -29,8 +32,11 @@ export function groupRecordsByStudent(records: SessionRecord[]): GroupedRecord[]
 }
 
 export function calculateTotalStats(records: SessionRecord[]) {
-  return records.reduce((acc, r) => ({
-    sessions: acc.sessions + r.sessions,
+  // Filter out cancelled sessions
+  const activeRecords = records.filter(r => !isCancelledStatus(r.status as LessonStatus));
+
+  return activeRecords.reduce((acc, r) => ({
+    sessions: acc.sessions + 1,
     paid: acc.paid + (r.paid ? r.totalAmount : 0),
     unpaid: acc.unpaid + (!r.paid ? r.totalAmount : 0)
   }), { sessions: 0, paid: 0, unpaid: 0 });

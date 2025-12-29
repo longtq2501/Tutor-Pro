@@ -43,7 +43,7 @@ export default function AddSessionModal({ onClose, onSubmit, initialDate, studen
   if (typeof document === 'undefined') return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity duration-150" onClick={onClose} />
 
       <div className="relative bg-card rounded-xl shadow-lg max-w-md w-full animate-in fade-in zoom-in-95 duration-150 overflow-hidden border border-border">

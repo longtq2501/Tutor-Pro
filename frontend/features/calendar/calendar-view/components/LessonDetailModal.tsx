@@ -176,7 +176,7 @@ export function LessonDetailModal({ session, onClose, onUpdate, onDelete, initia
     if (typeof document === 'undefined') return null;
 
     return createPortal(
-        <div role="dialog" className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-2 md:p-4 animate-in fade-in duration-150 ease-out">
+        <div role="dialog" className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-2 md:p-4 animate-in fade-in duration-150 ease-out">
             <div className="bg-card border border-border rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 ease-out">
 
                 {/* Header - Sticky */}
@@ -318,7 +318,7 @@ export function LessonDetailModal({ session, onClose, onUpdate, onDelete, initia
                                             <SelectTrigger className="w-full h-11 border-border bg-muted/30 focus:bg-background rounded-xl px-4 outline-none transition-all focus:ring-primary/20">
                                                 <SelectValue placeholder="Chọn trạng thái" />
                                             </SelectTrigger>
-                                            <SelectContent className="rounded-xl border-border shadow-xl">
+                                            <SelectContent className="rounded-xl border-border shadow-xl z-[100]">
                                                 {Object.entries(LESSON_STATUS_LABELS).map(([val, label]) => (
                                                     <SelectItem
                                                         key={val}

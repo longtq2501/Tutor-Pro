@@ -34,7 +34,7 @@ export function Sidebar({ currentView, setCurrentView, navItems, isCollapsed, se
             {/* Mobile Menu Button - Low z-index compared to modals */}
             <button
                 onClick={() => setMobileMenuOpen(true)}
-                className={`sidebar-toggle lg:hidden fixed top-4 left-4 z-40 h-10 w-10 rounded-lg bg-background hover:bg-muted border border-border flex items-center justify-center transition-all duration-300 shadow-sm`}
+                className={`sidebar-toggle lg:hidden fixed top-4 left-4 z-30 h-10 w-10 rounded-lg bg-background hover:bg-muted border border-border flex items-center justify-center transition-all duration-300 shadow-sm`}
                 aria-label="Mở menu"
             >
                 <Menu size={20} className="text-foreground" />
@@ -43,7 +43,7 @@ export function Sidebar({ currentView, setCurrentView, navItems, isCollapsed, se
             {/* Mobile Overlay */}
             {mobileMenuOpen && (
                 <div
-                    className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-[2px] z-40"
+                    className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-[2px] z-30"
                     onClick={() => setMobileMenuOpen(false)}
                 />
             )}
@@ -52,7 +52,7 @@ export function Sidebar({ currentView, setCurrentView, navItems, isCollapsed, se
             <div className={`
                 main-sidebar
                 fixed lg:relative h-screen flex flex-col bg-card/80 dark:bg-card/60 lg:backdrop-blur-xl border-r border-border shadow-lg
-                transition-all duration-300 ease-in-out z-50
+                transition-all duration-300 ease-in-out z-40
                 ${isCollapsed ? 'lg:w-20' : 'lg:w-64'}
                 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                 w-72

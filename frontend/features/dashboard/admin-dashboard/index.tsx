@@ -9,30 +9,61 @@ import { useMonthlyChartData } from './hooks/useMonthlyChartData';
 import { formatCurrency } from './utils/formatters';
 import { LoadingState } from './components/LoadingState';
 import { StatCard } from './components/StatCard';
-import { MonthlyRevenueChart } from './components/MonthlyRevenueChart';
+import { EnhancedRevenueChart } from './components/EnhancedRevenueChart';
 
 export default function AdminDashboard() {
-  const { stats, monthlyStats, loading } = useDashboardData();
+  const { stats, monthlyStats, loadingStats, loadingMonthly } = useDashboardData();
   const chartData = useMonthlyChartData(monthlyStats);
 
-  if (loading) return <LoadingState />;
-  if (!stats) return null;
+  // Default stats to prevent crash when loading
+  const safeStats = stats || {
+    totalStudents: 0,
+    currentMonthTotal: 0,
+    totalPaidAllTime: 0,
+    totalUnpaidAllTime: 0
+  };
+
+  // Calculate trends from monthly data
+  const calculateTrend = (current: number, previous: number) => {
+    if (previous === 0) return undefined;
+    const change = ((current - previous) / previous) * 100;
+    return {
+      direction: change >= 0 ? 'up' : 'down',
+      value: Math.abs(Math.round(change))
+    } as const;
+  };
+
+  // Get current and previous month data for trends
+  const currentMonthData = monthlyStats[0];
+  const previousMonthData = monthlyStats[1];
+
+  const revenueTrend = currentMonthData && previousMonthData
+    ? calculateTrend(
+      currentMonthData.totalPaid + currentMonthData.totalUnpaid,
+      previousMonthData.totalPaid + previousMonthData.totalUnpaid
+    )
+    : undefined;
+
+  // Calculate progress percentages
+  const totalAllTime = safeStats.totalPaidAllTime + safeStats.totalUnpaidAllTime;
+  const paidPercentage = totalAllTime > 0 ? Math.round((safeStats.totalPaidAllTime / totalAllTime) * 100) : 0;
+  const unpaidPercentage = totalAllTime > 0 ? Math.round((safeStats.totalUnpaidAllTime / totalAllTime) * 100) : 0;
 
   return (
     <div className="space-y-6 lg:space-y-8">
       {/* Stats Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-5 xl:gap-6">
-        
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+
         {/* Total Students */}
         <StatCard
           title="Tổng Học Sinh"
-          value={stats.totalStudents}
-          icon={<Users className="text-indigo-600 dark:text-indigo-400" size={20} />}
-          iconBgColor="bg-indigo-100 dark:bg-indigo-900/30"
-          valueColorClass="group-hover:text-primary"
+          value={safeStats.totalStudents}
+          icon={<Users />}
+          variant="blue"
+          isLoading={loadingStats}
           badge={
             <div className="flex items-center text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/20 w-fit px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800/30">
-              <TrendingUp size={12} className="mr-1 flex-shrink-0" /> 
+              <TrendingUp size={12} className="mr-1 flex-shrink-0" />
               <span className="whitespace-nowrap">Đang hoạt động</span>
             </div>
           }
@@ -41,42 +72,46 @@ export default function AdminDashboard() {
         {/* Revenue This Month */}
         <StatCard
           title="Doanh Thu Tháng"
-          value={formatCurrency(stats.currentMonthTotal)}
+          value={formatCurrency(safeStats.currentMonthTotal)}
           subtitle="Cập nhật thời gian thực"
-          icon={<BarChart3 className="text-blue-600 dark:text-blue-400" size={20} />}
-          iconBgColor="bg-blue-100 dark:bg-blue-900/30"
-          valueColorClass="group-hover:text-blue-600 dark:group-hover:text-blue-400"
+          icon={<BarChart3 />}
+          variant="blue"
+          trend={revenueTrend}
+          isLoading={loadingStats}
         />
 
         {/* Total Paid */}
         <StatCard
           title="Tổng Đã Thu"
-          value={formatCurrency(stats.totalPaidAllTime)}
-          icon={<CheckCircle className="text-emerald-600 dark:text-emerald-400" size={20} />}
-          iconBgColor="bg-emerald-100 dark:bg-emerald-900/30"
-          valueColorClass="group-hover:text-emerald-600 dark:group-hover:text-emerald-400"
+          value={formatCurrency(safeStats.totalPaidAllTime)}
+          icon={<CheckCircle />}
+          variant="green"
           progressBar={{
-            percentage: 75,
-            color: 'bg-emerald-500 dark:bg-emerald-500'
+            percentage: paidPercentage,
+            color: 'green'
           }}
+          isLoading={loadingStats}
         />
 
         {/* Total Unpaid */}
         <StatCard
           title="Chưa Thu"
-          value={formatCurrency(stats.totalUnpaidAllTime)}
-          icon={<XCircle className="text-rose-600 dark:text-rose-400" size={20} />}
-          iconBgColor="bg-rose-100 dark:bg-rose-900/30"
-          valueColorClass="group-hover:text-destructive"
+          value={formatCurrency(safeStats.totalUnpaidAllTime)}
+          icon={<XCircle />}
+          variant="red"
           progressBar={{
-            percentage: 25,
-            color: 'bg-rose-500 dark:bg-rose-500'
+            percentage: unpaidPercentage,
+            color: 'red'
           }}
+          isLoading={loadingStats}
         />
       </div>
 
-      {/* Monthly Revenue Chart */}
-      <MonthlyRevenueChart data={chartData} />
+      {/* Enhanced Revenue Chart */}
+      <EnhancedRevenueChart
+        data={chartData}
+        isLoading={loadingMonthly}
+      />
     </div>
   );
 }

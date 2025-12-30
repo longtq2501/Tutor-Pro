@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useMonthlyRecords } from './useMonthlyRecords';
 import { useAutoGenerate } from './useAutoGenerate';
 import { useStudentSelection } from './useStudentSelection';
@@ -6,11 +7,21 @@ import { useInvoiceActions } from './useInvoiceActions';
 import { groupRecordsByStudent, calculateTotalStats, calculateSelectedStats } from '../utils/groupRecords';
 
 export function useMonthlyView() {
+    const searchParams = useSearchParams();
+    const monthFromUrl = searchParams.get('month');
+
     const [selectedMonth, setSelectedMonth] = useState(
-        new Date().toISOString().slice(0, 7)
+        monthFromUrl || new Date().toISOString().slice(0, 7)
     );
     /* eslint-disable @typescript-eslint/no-explicit-any */
     const [emailResult, setEmailResult] = useState<any>(null);
+
+    // Sync URL month parameter changes to state
+    useEffect(() => {
+        if (monthFromUrl && monthFromUrl !== selectedMonth) {
+            setSelectedMonth(monthFromUrl);
+        }
+    }, [monthFromUrl]);
 
     const { records, loading, loadRecords, togglePayment, deleteRecord } = useMonthlyRecords(selectedMonth);
     const autoGen = useAutoGenerate(selectedMonth);

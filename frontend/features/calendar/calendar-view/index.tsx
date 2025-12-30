@@ -10,7 +10,6 @@ import { LessonDetailModal } from './components/LessonDetailModal';
 import { DayDetailModal } from './components/DayDetailModal';
 import { ContextMenu } from './components/ContextMenu';
 import { CalendarSkeleton } from './components/CalendarSkeleton';
-import type { CalendarViewType } from './components/ViewSwitcher';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +21,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { getMonthStr } from './utils';
-import { cn } from '@/lib/utils';
 
 export default function CalendarView() {
   const {
@@ -58,9 +56,7 @@ export default function CalendarView() {
     handleAddSessionSubmit,
     openAddSessionModal,
     closeAddSessionModal,
-    handleInitiateDeleteAll,
     handleConfirmDeleteAll,
-    exportToExcel,
     loadingSessions,
     isScrolled,
     loading,
@@ -158,8 +154,6 @@ export default function CalendarView() {
         {renderView()}
       </main>
 
-      {/* ... (existing modals) */}
-
       {/* Delete All Confirmation Dialog */}
       <AlertDialog open={deleteConfirmationOpen} onOpenChange={setDeleteConfirmationOpen}>
         <AlertDialogContent>
@@ -184,8 +178,6 @@ export default function CalendarView() {
 
       {selectedDay && (
         <DayDetailModal
-          // ...
-
           day={selectedDay}
           onClose={() => setSelectedDay(null)}
           onAddSession={openAddSessionModal}

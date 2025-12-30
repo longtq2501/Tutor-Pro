@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Video,
@@ -37,13 +37,13 @@ interface PremiumLessonCardProps {
     onPreview?: (lessonId: number) => void;
 }
 
-export function PremiumLessonCard({
+export const PremiumLessonCard = memo(({
     lesson,
     onEdit,
     onDelete,
     onAssign,
     onPreview
-}: PremiumLessonCardProps) {
+}: PremiumLessonCardProps) => {
     const [isHovered, setIsHovered] = useState(false);
 
     return (
@@ -206,4 +206,4 @@ export function PremiumLessonCard({
             </div>
         </motion.div>
     );
-}
+});

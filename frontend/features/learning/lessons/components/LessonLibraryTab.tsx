@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -118,51 +118,64 @@ export function LessonLibraryTab() {
   const unassignMutation = useUnassignLibraryLesson();
   const deleteMutation = useDeleteLibraryLesson();
 
-  // Filter Logic
-  const filteredLessons = lessons.filter(lesson => {
-    // Category Filter
-    const matchesCategory = selectedCategoryFilter === 'all'
-      || (selectedCategoryFilter === 'none' && !lesson.category)
-      || String(lesson.category?.id) === selectedCategoryFilter;
+  // Memoize Filter Logic
+  const filteredLessons = useMemo(() => {
+    return lessons.filter(lesson => {
+      // Category Filter
+      const matchesCategory = selectedCategoryFilter === 'all'
+        || (selectedCategoryFilter === 'none' && !lesson.category)
+        || String(lesson.category?.id) === selectedCategoryFilter;
 
-    if (!matchesCategory) return false;
+      if (!matchesCategory) return false;
 
-    // Search Filter
-    if (!searchQuery) return true;
-    const searchLower = searchQuery.toLowerCase();
-    return (
-      lesson.title.toLowerCase().includes(searchLower) ||
-      lesson.tutorName.toLowerCase().includes(searchLower) ||
-      lesson.summary?.toLowerCase().includes(searchLower)
+      // Search Filter
+      if (!searchQuery) return true;
+      const searchLower = searchQuery.toLowerCase();
+      return (
+        lesson.title.toLowerCase().includes(searchLower) ||
+        lesson.tutorName.toLowerCase().includes(searchLower) ||
+        lesson.summary?.toLowerCase().includes(searchLower)
+      );
+    });
+  }, [lessons, selectedCategoryFilter, searchQuery]);
+
+  // Memoize Pagination Logic
+  const { totalPages, paginatedLessons } = useMemo(() => {
+    const total = Math.ceil(filteredLessons.length / ITEMS_PER_PAGE);
+    const paginated = filteredLessons.slice(
+      (currentPage - 1) * ITEMS_PER_PAGE,
+      currentPage * ITEMS_PER_PAGE
     );
-  });
+    return { totalPages: total, paginatedLessons: paginated };
+  }, [filteredLessons, currentPage]);
 
-  // Pagination Logic
-  const totalPages = Math.ceil(filteredLessons.length / ITEMS_PER_PAGE);
-  const paginatedLessons = filteredLessons.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  // Memoize Category Counts to avoid filtering in the render loop
+  const categoryStats = useMemo(() => {
+    const stats: Record<string, number> = {
+      all: lessons.length,
+      none: lessons.filter(l => !l.category).length
+    };
 
-  const handleCreate = (data: LessonFormData) => {
+    categories.forEach(cat => {
+      stats[cat.id] = lessons.filter(l => l.category?.id === cat.id).length;
+    });
+
+    return stats;
+  }, [lessons, categories]);
+
+  const handleCreate = useCallback((data: LessonFormData) => {
     createMutation.mutate(
-      {
-        ...data,
-      },
-      {
-        onSuccess: () => {
-          setIsFormOpen(false);
-        },
-      }
+      { ...data },
+      { onSuccess: () => setIsFormOpen(false) }
     );
-  };
+  }, [createMutation]);
 
-  const handlePreviewClick = (lessonId: number) => {
+  const handlePreviewClick = useCallback((lessonId: number) => {
     setSelectedPreviewLessonId(lessonId);
     setIsPreviewOpen(true);
-  };
+  }, []);
 
-  const handleEditSubmit = (data: LessonFormData) => {
+  const handleEditSubmit = useCallback((data: LessonFormData) => {
     if (!selectedLesson) return;
 
     updateMutation.mutate(
@@ -170,7 +183,6 @@ export function LessonLibraryTab() {
         id: selectedLesson.id,
         data: {
           ...data,
-          // Ensure these fields are compatible with UpdateLessonRequest
           tutorName: data.tutorName,
           title: data.title,
           content: data.content,
@@ -186,9 +198,9 @@ export function LessonLibraryTab() {
         },
       }
     );
-  };
+  }, [selectedLesson, updateMutation]);
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     if (selectedLesson) {
       deleteMutation.mutate(selectedLesson.id, {
         onSuccess: () => {
@@ -197,28 +209,26 @@ export function LessonLibraryTab() {
         },
       });
     }
-  };
+  }, [selectedLesson, deleteMutation]);
 
-  const handleAssignClick = (lesson: LessonLibraryDTO) => {
+  const handleAssignClick = useCallback((lesson: LessonLibraryDTO) => {
     setSelectedLesson(lesson);
     setIsAssignDialogOpen(true);
-  };
+  }, []);
 
-  const handleDeleteClick = (lesson: LessonLibraryDTO) => {
+  const handleDeleteClick = useCallback((lesson: LessonLibraryDTO) => {
     setSelectedLesson(lesson);
     setIsDeleteDialogOpen(true);
-  };
+  }, []);
 
-  const handleEditClick = (lesson: LessonLibraryDTO) => {
+  const handleEditClick = useCallback((lesson: LessonLibraryDTO) => {
     setSelectedLesson(lesson);
     setIsEditDialogOpen(true);
-  };
+  }, []);
 
-  const handleAssign = (lessonId: number, studentIds: number[]) => {
+  const handleAssign = useCallback((lessonId: number, studentIds: number[]) => {
     if (!selectedLesson) return;
 
-    // Check if unassigning logic is needed or just assign
-    // For simplicity, we just use assign here as the main action
     assignMutation.mutate(
       {
         lessonId,
@@ -231,7 +241,7 @@ export function LessonLibraryTab() {
         },
       }
     );
-  };
+  }, [selectedLesson, assignMutation]);
 
   if (isLoading) {
     return (
@@ -284,7 +294,7 @@ export function LessonLibraryTab() {
           />
 
           {categories.map((cat, idx) => {
-            const lessonCount = lessons.filter(l => l.category?.id === cat.id).length;
+            const lessonCount = categoryStats[cat.id] || 0;
             // Dynamic gradients based on index if color is generic
             const gradients = [
               "from-emerald-500 to-teal-600",
@@ -310,7 +320,7 @@ export function LessonLibraryTab() {
 
           <PremiumCategoryCard
             title="Chưa phân loại"
-            count={lessons.filter(l => !l.category).length}
+            count={categoryStats.none || 0}
             icon={<Tag className="w-7 h-7" />}
             gradient="from-slate-500 to-slate-700"
             isActive={selectedCategoryFilter === 'none'}

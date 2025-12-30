@@ -1,64 +1,209 @@
 // ============================================================================
-// FILE: admin-dashboard/components/StatCard.tsx
+// FILE: admin-dashboard/components/StatCard.tsx (PREMIUM VERSION)
 // ============================================================================
+'use client';
+
+import { motion } from 'framer-motion';
+import { TrendingUp, TrendingDown, Activity } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
 interface StatCardProps {
   title: string;
   value: string | number;
   subtitle?: string;
   icon: React.ReactNode;
-  iconBgColor: string;
-  valueColorClass: string;
+  variant: 'blue' | 'green' | 'red' | 'purple';
   badge?: React.ReactNode;
   progressBar?: {
     percentage: number;
-    color: string;
+    color: 'green' | 'red';
   };
+  trend?: {
+    direction: 'up' | 'down';
+    value: number; // percentage change
+  };
+  isLoading?: boolean;
 }
+
+const gradients = {
+  blue: 'from-blue-500 to-cyan-500',
+  green: 'from-green-500 to-emerald-500',
+  red: 'from-red-500 to-rose-500',
+  purple: 'from-purple-500 to-pink-500'
+};
+
+const bgColors = {
+  blue: 'bg-blue-50 dark:bg-blue-950/20',
+  green: 'bg-green-50 dark:bg-green-950/20',
+  red: 'bg-red-50 dark:bg-red-950/20',
+  purple: 'bg-purple-50 dark:bg-purple-950/20'
+};
 
 export const StatCard = ({
   title,
   value,
   subtitle,
   icon,
-  iconBgColor,
-  valueColorClass,
+  variant,
   badge,
   progressBar,
-}: StatCardProps) => (
-  <div className="bg-card rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 border border-border group">
-    <div className="flex justify-between items-start gap-3">
-      <div className="flex-1 min-w-0 overflow-hidden">
-        <p className="text-muted-foreground text-xs font-bold mb-1.5 uppercase tracking-wider">
+  trend,
+  isLoading = false,
+}: StatCardProps) => {
+  if (isLoading) {
+    return (
+      <div className={cn(
+        "rounded-2xl sm:rounded-3xl border p-5 sm:p-6 lg:p-7",
+        "animate-pulse",
+        bgColors[variant]
+      )}>
+        <div className="flex justify-between items-start gap-3">
+          <div className="flex-1 space-y-3">
+            <div className="h-3 bg-muted rounded w-20" />
+            <div className="h-8 bg-muted rounded w-32" />
+          </div>
+          <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-muted rounded-2xl" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3 }}
+      whileHover={{ y: -4, scale: 1.02 }}
+      className={cn(
+        "group relative overflow-hidden",
+        "rounded-2xl sm:rounded-3xl border",
+        "p-5 sm:p-6 lg:p-7",
+        "transition-all duration-300",
+        bgColors[variant],
+        "hover:shadow-2xl hover:shadow-black/10 hover:border-transparent",
+        "dark:border-white/10"
+      )}
+    >
+      {/* Animated Gradient Background */}
+      <div className={cn(
+        "absolute inset-0 bg-gradient-to-br opacity-0",
+        "group-hover:opacity-5 transition-opacity duration-500",
+        gradients[variant]
+      )} />
+
+      {/* Decorative Orb */}
+      <div className={cn(
+        "absolute -right-12 -bottom-12 w-40 h-40 rounded-full blur-3xl",
+        "bg-gradient-to-br opacity-5 transition-all duration-700",
+        "group-hover:opacity-10 group-hover:scale-150",
+        gradients[variant]
+      )} />
+
+      {/* Content */}
+      <div className="relative space-y-4">
+        {/* Header Row */}
+        <div className="flex items-start justify-between">
+          {/* Icon */}
+          <motion.div
+            whileHover={{ rotate: 5, scale: 1.1 }}
+            className={cn(
+              "flex items-center justify-center",
+              "w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16",
+              "rounded-2xl sm:rounded-3xl shadow-lg",
+              "bg-gradient-to-br",
+              gradients[variant],
+              "transition-transform duration-300"
+            )}
+          >
+            <div className="text-white [&>svg]:w-6 [&>svg]:h-6 sm:[&>svg]:w-7 sm:[&>svg]:h-7 lg:[&>svg]:w-8 lg:[&>svg]:h-8">
+              {icon}
+            </div>
+          </motion.div>
+
+          {/* Trend Badge */}
+          {trend && (
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, type: "spring" }}
+              className={cn(
+                "flex items-center gap-1 px-2.5 py-1 rounded-full",
+                "text-xs font-medium",
+                trend.direction === 'up'
+                  ? "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400"
+                  : "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400"
+              )}
+            >
+              {trend.direction === 'up' ? (
+                <TrendingUp className="w-3 h-3" />
+              ) : (
+                <TrendingDown className="w-3 h-3" />
+              )}
+              {trend.value > 0 ? '+' : ''}{trend.value}%
+            </motion.div>
+          )}
+        </div>
+
+        {/* Label */}
+        <p className="text-xs sm:text-sm text-muted-foreground font-medium uppercase tracking-wide">
           {title}
         </p>
-        <h3 className={`text-xl xl:text-2xl font-extrabold text-card-foreground ${valueColorClass} transition-colors leading-tight break-all`}>
-          {value}
-        </h3>
+
+        {/* Value */}
+        <div className="flex items-baseline gap-2">
+          <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums break-all">
+            {value}
+          </h3>
+        </div>
+
+        {/* Badge or Subtitle */}
+        {badge && (
+          <motion.div
+            initial={{ x: -10, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            {badge}
+          </motion.div>
+        )}
+
+        {subtitle && !progressBar && !badge && (
+          <motion.div
+            initial={{ x: -10, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-xs text-muted-foreground font-medium truncate"
+          >
+            {subtitle}
+          </motion.div>
+        )}
+
+        {/* Progress Bar */}
+        {progressBar && (
+          <div className="space-y-2 pt-2">
+            {/* Progress Bar */}
+            <div className="h-2 sm:h-2.5 rounded-full bg-muted overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${progressBar.percentage}%` }}
+                transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
+                className={cn(
+                  "h-full rounded-full",
+                  progressBar.color === 'green' && "bg-gradient-to-r from-green-500 to-emerald-500",
+                  progressBar.color === 'red' && "bg-gradient-to-r from-red-500 to-rose-500"
+                )}
+              />
+            </div>
+
+            {/* Subtitle below progress */}
+            {subtitle && (
+              <p className="text-xs text-muted-foreground">
+                {subtitle}
+              </p>
+            )}
+          </div>
+        )}
       </div>
-      <div className={`${iconBgColor} p-2.5 rounded-xl group-hover:scale-110 transition-transform flex-shrink-0`}>
-        {icon}
-      </div>
-    </div>
-    
-    {badge && (
-      <div className="mt-3">
-        {badge}
-      </div>
-    )}
-    
-    {subtitle && !progressBar && (
-      <div className="mt-3 text-xs text-muted-foreground font-medium truncate">
-        {subtitle}
-      </div>
-    )}
-    
-    {progressBar && (
-      <div className="mt-3 w-full bg-muted/30 rounded-full h-1.5">
-        <div 
-          className={`${progressBar.color} h-1.5 rounded-full transition-all duration-500`}
-          style={{ width: `${progressBar.percentage}%` }}
-        />
-      </div>
-    )}
-  </div>
-);
+    </motion.div>
+  );
+};

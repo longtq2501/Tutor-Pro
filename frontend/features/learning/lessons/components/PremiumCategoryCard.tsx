@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { Check, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ReactNode } from 'react';
+import { ReactNode, memo } from 'react';
 
 interface PremiumCategoryCardProps {
     icon?: ReactNode;
@@ -15,7 +15,7 @@ interface PremiumCategoryCardProps {
     onClick?: () => void;
 }
 
-export function PremiumCategoryCard({
+export const PremiumCategoryCard = memo(({
     icon,
     title,
     count,
@@ -23,7 +23,7 @@ export function PremiumCategoryCard({
     color,
     isActive,
     onClick
-}: PremiumCategoryCardProps) {
+}: PremiumCategoryCardProps) => {
     return (
         <motion.button
             whileHover={{ scale: 1.02, y: -2 }}
@@ -99,4 +99,4 @@ export function PremiumCategoryCard({
             )} />
         </motion.button>
     );
-}
+});

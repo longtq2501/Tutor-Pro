@@ -3,7 +3,6 @@
 import { Clock, Plus, X, Calendar, Users, BookOpen, Sparkles, Zap } from 'lucide-react';
 import type { AddSessionModalProps } from './types';
 import { useSessionForm } from './hooks/useSessionForm';
-import { ModalHeader } from './components/ModalHeader';
 import { DateField, NumberField, StudentField } from './components/FormField';
 import { SummaryCard } from './components/SummaryCard';
 import { ActionButtons } from './components/ActionButtons';
@@ -12,8 +11,7 @@ import { Label } from '@/components/ui/label';
 import { useUI } from '@/contexts/UIContext';
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 
 export default function AddSessionModal({ onClose, onSubmit, initialDate, students, initialStudentId }: AddSessionModalProps) {

@@ -1,4 +1,5 @@
 // 📁 monthly-view/components/StudentCard.tsx
+import React from 'react';
 import {
   CheckCircle,
   AlertTriangle,
@@ -30,7 +31,7 @@ interface StudentCardProps {
   onDeleteSession: (sessionId: number) => void;
 }
 
-export function StudentCard({
+const StudentCardComponent = ({
   group,
   isSelected,
   onToggleSelection,
@@ -38,7 +39,7 @@ export function StudentCard({
   onToggleAllPayments,
   onGenerateInvoice,
   onDeleteSession,
-}: StudentCardProps) {
+}: StudentCardProps) => {
   // Statistics Calculations
   const sessionsCount = group.sessions.length;
   const taughtCount = group.sessions.filter(s => s.completed).length;
@@ -104,8 +105,8 @@ export function StudentCard({
                 <button
                   onClick={onToggleAllPayments}
                   className={`p-2.5 rounded-xl transition-all active:scale-95 ${group.allPaid
-                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                      : 'bg-muted text-muted-foreground hover:bg-orange-100 hover:text-orange-700 dark:hover:bg-orange-900/30 dark:hover:text-orange-400'
+                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                    : 'bg-muted text-muted-foreground hover:bg-orange-100 hover:text-orange-700 dark:hover:bg-orange-900/30 dark:hover:text-orange-400'
                     }`}
                 >
                   {group.allPaid ? <CheckCircle size={20} /> : <Wallet size={20} />}
@@ -216,8 +217,8 @@ export function StudentCard({
                           onTogglePayment(session.id);
                         }}
                         className={`relative group/tag px-3 py-2 rounded-xl border text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-2.5 active:scale-95 hover:shadow-sm ${session.paid
-                            ? 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-200/50 dark:border-blue-800/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100/50 dark:hover:bg-blue-900/20'
-                            : 'bg-orange-50/50 dark:bg-orange-900/10 border-orange-200/50 dark:border-orange-800/30 text-orange-700 dark:text-orange-300 hover:bg-orange-100/50 dark:hover:bg-orange-900/20'
+                          ? 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-200/50 dark:border-blue-800/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100/50 dark:hover:bg-blue-900/20'
+                          : 'bg-orange-50/50 dark:bg-orange-900/10 border-orange-200/50 dark:border-orange-800/30 text-orange-700 dark:text-orange-300 hover:bg-orange-100/50 dark:hover:bg-orange-900/20'
                           }`}
                       >
                         <CalendarIcon size={12} className="opacity-60" />
@@ -259,4 +260,19 @@ export function StudentCard({
       </div>
     </TooltipProvider>
   );
-}
+};
+
+// Memoize the component to prevent unnecessary re-renders
+export const StudentCard = React.memo(StudentCardComponent, (prevProps, nextProps) => {
+  // Only re-render if these specific props change
+  return (
+    prevProps.group.studentId === nextProps.group.studentId &&
+    prevProps.isSelected === nextProps.isSelected &&
+    prevProps.group.sessions.length === nextProps.group.sessions.length &&
+    prevProps.group.allPaid === nextProps.group.allPaid &&
+    // Check if any session payment status changed
+    prevProps.group.sessions.every((session, index) =>
+      session.paid === nextProps.group.sessions[index]?.paid
+    )
+  );
+});

@@ -9,20 +9,36 @@ import {
 // ============================================================================
 // FEATURE-BASED IMPORTS (All refactored)
 // ============================================================================
-import AdminDashboard from '@/features/dashboard/admin-dashboard';
-import StudentDashboard from '@/features/dashboard/student-dashboard';
-import StudentList from '@/features/students/student-list';
-import MonthlyView from '@/features/finance/monthly-view';
-import ParentsView from '@/features/students/parents-view';
-import UnpaidSessionsView from '@/features/finance/unpaid-sessions';
-import StudentHomeworkView from '@/features/learning/homework/student-homework';
-import TutorHomeworkView from '@/features/learning/homework/tutor-homework-view';
-import DocumentLibrary from '@/features/documents/document-library';
-import CalendarView from '@/features/calendar/calendar-view';
+import dynamic from 'next/dynamic';
+import { MonthlyViewSkeleton } from '@/features/finance/monthly-view/components/MonthlyViewSkeleton';
+import { LoadingState } from '@/features/dashboard/admin-dashboard/components/LoadingState';
+
+// ============================================================================
+// FEATURE-BASED IMPORTS (Refactored to Dynamic)
+// ============================================================================
+// FEATURE-BASED IMPORTS (Refactored to Dynamic)
+// ============================================================================
+// Dynamic imports for other views
+const AdminDashboard = dynamic(() => import('@/features/dashboard/admin-dashboard'), {
+    loading: () => <LoadingState />, // Or DashboardSkeleton from features/dashboard/admin-dashboard/components/DashboardSkeleton if exported
+    ssr: false // Enable client-side caching
+});
+const StudentDashboard = dynamic(() => import('@/features/dashboard/student-dashboard'));
+
+const StudentList = dynamic(() => import('@/features/students/student-list'));
+const MonthlyView = dynamic(() => import('@/features/finance/monthly-view'), {
+    loading: () => <MonthlyViewSkeleton />
+});
+const ParentsView = dynamic(() => import('@/features/students/parents-view'));
+const UnpaidSessionsView = dynamic(() => import('@/features/finance/unpaid-sessions'));
+const StudentHomeworkView = dynamic(() => import('@/features/learning/homework/student-homework'));
+const TutorHomeworkView = dynamic(() => import('@/features/learning/homework/tutor-homework-view'));
+const DocumentLibrary = dynamic(() => import('@/features/documents/document-library'));
+const CalendarView = dynamic(() => import('@/features/calendar/calendar-view'));
 
 // Lesson Views - Different components for different roles
-import LessonViewWrapper from '@/features/learning/lesson-view-wrapper'; // STUDENT - Xem bài giảng
-import AdminLessonManager from '@/features/learning/lessons'; // ADMIN/TUTOR - Quản lý bài giảng
+const LessonViewWrapper = dynamic(() => import('@/features/learning/lesson-view-wrapper'));
+const AdminLessonManager = dynamic(() => import('@/features/learning/lessons'));
 
 // ============================================================================
 // UI COMPONENTS (Keep in /components - not feature-specific)
@@ -90,12 +106,13 @@ function AppContent() {
         });
     }, [hasAnyRole]);
 
+    // Sync URL changes to state (for programmatic navigation)
     React.useEffect(() => {
-        // Only reset if current view is invalid for role?
-        // Or just trust the URL param if valid?
-        // Keep original logic for role changes but respect URL on mount
-        if (!initialView) setCurrentView('dashboard');
-    }, [hasAnyRole]);
+        const viewFromUrl = searchParams.get('view') as View;
+        if (viewFromUrl && viewFromUrl !== currentView) {
+            setCurrentView(viewFromUrl);
+        }
+    }, [searchParams]);
 
     const currentTitle = useMemo(() => {
         return navItems.find(item => item.id === currentView)?.label || 'Dashboard';

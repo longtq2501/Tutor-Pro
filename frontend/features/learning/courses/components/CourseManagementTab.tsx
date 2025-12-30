@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -86,43 +86,45 @@ export function CourseManagementTab() {
     const { data: courses = [], isLoading } = useAdminCourses();
     const deleteMutation = useDeleteCourse();
 
-    const filteredCourses = courses.filter(course => {
-        if (!searchQuery) return true;
-        const searchLower = searchQuery.toLowerCase();
-        return (
-            course.title.toLowerCase().includes(searchLower) ||
-            course.description?.toLowerCase().includes(searchLower)
-        );
-    });
+    const filteredCourses = useMemo(() => {
+        return courses.filter(course => {
+            if (!searchQuery) return true;
+            const searchLower = searchQuery.toLowerCase();
+            return (
+                course.title.toLowerCase().includes(searchLower) ||
+                course.description?.toLowerCase().includes(searchLower)
+            );
+        });
+    }, [courses, searchQuery]);
 
-    const handleCreate = () => {
+    const handleCreate = useCallback(() => {
         setBuilderMode('create');
         setSelectedCourse(null);
         setIsBuilderOpen(true);
-    };
+    }, []);
 
-    const handleEdit = (course: CourseDTO) => {
+    const handleEdit = useCallback((course: CourseDTO) => {
         setBuilderMode('edit');
         setSelectedCourse(course);
         setIsBuilderOpen(true);
-    };
+    }, []);
 
-    const handlePreview = (course: CourseDTO) => {
+    const handlePreview = useCallback((course: CourseDTO) => {
         setSelectedCourse(course);
         setIsPreviewOpen(true);
-    };
+    }, []);
 
-    const handleLessonPreview = (lessonId: number) => {
+    const handleLessonPreview = useCallback((lessonId: number) => {
         setSelectedLessonId(lessonId);
         setIsLessonPreviewOpen(true);
-    };
+    }, []);
 
-    const handleAssign = (course: CourseDTO) => {
+    const handleAssign = useCallback((course: CourseDTO) => {
         setSelectedCourse(course);
         setIsAssignOpen(true);
-    };
+    }, []);
 
-    const handleDelete = () => {
+    const handleDelete = useCallback(() => {
         if (selectedCourse) {
             deleteMutation.mutate(selectedCourse.id, {
                 onSuccess: () => {
@@ -131,12 +133,12 @@ export function CourseManagementTab() {
                 },
             });
         }
-    };
+    }, [selectedCourse, deleteMutation]);
 
-    const handleDeleteClick = (course: CourseDTO) => {
+    const handleDeleteClick = useCallback((course: CourseDTO) => {
         setSelectedCourse(course);
         setIsDeleteDialogOpen(true);
-    };
+    }, []);
 
     if (isLoading) {
         return (

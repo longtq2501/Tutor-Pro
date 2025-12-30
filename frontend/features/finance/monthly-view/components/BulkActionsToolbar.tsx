@@ -32,7 +32,7 @@ export function BulkActionsToolbar({
   onSendEmail,
 }: BulkActionsToolbarProps) {
   return (
-    <div className="bg-card rounded-2xl shadow-sm border border-border p-5">
+    <div className="bg-card rounded-2xl shadow-sm border border-border p-5 sm:p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-4 w-full md:w-auto">
           <label className="flex items-center gap-2 cursor-pointer select-none">

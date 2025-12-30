@@ -1,7 +1,6 @@
-// ============================================================================
-// 📁 unpaid-sessions/components/SummaryCards.tsx
-// ============================================================================
+import { DollarSign, Calendar, Users } from 'lucide-react';
 import { formatCurrency } from '../utils/formatters';
+import { EnhancedStatsCard } from './EnhancedStatsCard';
 
 interface SummaryCardsProps {
   totalUnpaid: number;
@@ -11,21 +10,40 @@ interface SummaryCardsProps {
 
 export function SummaryCards({ totalUnpaid, totalSessions, totalStudents }: SummaryCardsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800/30">
-        <p className="text-sm text-muted-foreground mb-1">Tổng chưa thanh toán</p>
-        <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-          {formatCurrency(totalUnpaid)}
-        </p>
-      </div>
-      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800/30">
-        <p className="text-sm text-muted-foreground mb-1">Số buổi học</p>
-        <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{totalSessions} buổi</p>
-      </div>
-      <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800/30">
-        <p className="text-sm text-muted-foreground mb-1">Số học sinh</p>
-        <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{totalStudents} HS</p>
-      </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 mb-8">
+      <EnhancedStatsCard
+        label="Tổng chưa thanh toán"
+        value={formatCurrency(totalUnpaid)}
+        icon={<DollarSign className="w-5 h-5 sm:w-6 sm:h-6" />}
+        variant="orange"
+        trend={{
+          value: 12, // Mocked for design
+          direction: 'up',
+          label: 'vs tháng trước'
+        }}
+        sparklineData={[100, 120, 110, 140, 130, 150, 145]} // Mocked for design
+      />
+
+      <EnhancedStatsCard
+        label="Số buổi học"
+        value={`${totalSessions} buổi`}
+        icon={<Calendar className="w-5 h-5 sm:w-6 sm:h-6" />}
+        variant="blue"
+        trend={{
+          value: -5, // Mocked for design
+          direction: 'down',
+          label: 'vs tháng trước'
+        }}
+        sparklineData={[15, 14, 16, 12, 14, 13, 15]} // Mocked for design
+      />
+
+      <EnhancedStatsCard
+        label="Số học sinh"
+        value={`${totalStudents} HS`}
+        icon={<Users className="w-5 h-5 sm:w-6 sm:h-6" />}
+        variant="purple"
+        className="sm:col-span-2 lg:col-span-1"
+      />
     </div>
   );
 }

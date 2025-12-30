@@ -33,21 +33,29 @@ export function ActionSection({
   onSendEmail,
 }: ActionSectionProps) {
   return (
-    <div className="mb-8 p-6 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/10 dark:to-red-900/10 rounded-2xl border-2 border-orange-200 dark:border-orange-800/30">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <Users className="text-orange-600 dark:text-orange-500" size={24} />
-          <h3 className="text-xl font-bold text-card-foreground">Thanh toán & Gửi báo giá</h3>
+    <div className="mb-8 p-4 sm:p-6 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/10 dark:to-red-900/10 rounded-2xl border-2 border-orange-200 dark:border-orange-800/30">
+      <div className="flex flex-col gap-4 mb-6">
+        {/* Header Row */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Users className="text-orange-600 dark:text-orange-500 w-5 h-5 sm:w-6 sm:h-6" />
+            <h3 className="text-base sm:text-lg lg:text-xl font-black text-card-foreground tracking-tight">
+              Thanh toán & Gửi báo giá
+            </h3>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
+
+        {/* Selection Row */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white/40 dark:bg-black/20 p-3 rounded-xl border border-orange-100 dark:border-orange-800/30">
           <button
             onClick={onToggleSelectAll}
-            className="px-4 py-2 bg-orange-100 dark:bg-orange-900/30 hover:bg-orange-200 dark:hover:bg-orange-900/50 text-orange-700 dark:text-orange-300 rounded-lg font-medium transition-colors border border-orange-200 dark:border-orange-800/50"
+            className="w-full sm:w-auto px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-bold transition-all shadow-md active:scale-95"
           >
             {selectAll ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
           </button>
-          <div className="text-sm text-muted-foreground">
-            Đã chọn: <span className="font-bold text-orange-600 dark:text-orange-400">{selectedSessionsCount}/{totalSessions}</span> buổi
+
+          <div className="text-xs sm:text-sm text-muted-foreground font-medium pl-1">
+            Đã chọn: <span className="font-bold text-orange-600 dark:text-orange-400">{selectedSessionsCount}/{totalSessions}</span> buổi học
           </div>
         </div>
       </div>

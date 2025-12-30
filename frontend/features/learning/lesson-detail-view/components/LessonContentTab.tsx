@@ -100,6 +100,9 @@ export function LessonContentTab({ content, className, forceTheme = 'light' }: L
             if (!iframe.contentWindow) return;
             const body = iframe.contentWindow.document.body;
             const html = iframe.contentWindow.document.documentElement;
+            
+            if (!body || !html) return;
+
             const height = Math.max(
               body.scrollHeight,
               body.offsetHeight,

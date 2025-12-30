@@ -34,7 +34,7 @@ export function Sidebar({ currentView, setCurrentView, navItems, isCollapsed, se
             {/* Mobile Menu Button - Low z-index compared to modals */}
             <button
                 onClick={() => setMobileMenuOpen(true)}
-                className={`sidebar-toggle lg:hidden fixed top-4 left-4 z-30 h-10 w-10 rounded-lg bg-background hover:bg-muted border border-border flex items-center justify-center transition-all duration-300 shadow-sm`}
+                className={`sidebar-toggle lg:hidden fixed top-2 left-4 z-30 h-10 w-10 rounded-lg bg-background hover:bg-muted border border-border flex items-center justify-center transition-all duration-300 shadow-sm`}
                 aria-label="Mở menu"
             >
                 <Menu size={20} className="text-foreground" />

@@ -9,6 +9,9 @@ import { LessonHeader } from './components/LessonHeader';
 import { LessonContentTab } from './components/LessonContentTab';
 import { CompletionStatus } from './components/CompletionStatus';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sun, Moon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface LessonDetailViewProps {
   lessonId: number;
@@ -21,6 +24,7 @@ export default function LessonDetailView({ lessonId, onClose, isPreview = false 
   const { lesson, loading, markingComplete, toggleComplete } = useLessonDetail(lessonId, isPreview);
   const [sidebarWidth, setSidebarWidth] = useState(45);
   const [isResizing, setIsResizing] = useState(false);
+  const [contentTheme, setContentTheme] = useState<'light' | 'dark'>('light');
   const containerRef = useRef<HTMLDivElement>(null);
 
   const startResizing = useCallback((e: React.MouseEvent) => {
@@ -80,19 +84,23 @@ export default function LessonDetailView({ lessonId, onClose, isPreview = false 
   // Loading Skeleton
   if (loading) {
     return (
-      <div className="w-full h-full flex flex-col overflow-hidden">
-        <div className="flex-1 flex flex-col lg:flex-row h-full">
-          <div className="w-full lg:w-[45%] border-b lg:border-b-0 lg:border-r border-border bg-background">
-            <div className="p-6 space-y-6">
-              <div className="h-10 w-3/4 bg-muted/60 rounded-md animate-pulse" />
-              <div className="aspect-video bg-muted/60 rounded-xl animate-pulse" />
-              <div className="h-32 bg-muted/60 rounded-xl animate-pulse" />
-              <div className="h-12 w-full bg-muted/60 rounded-md animate-pulse" />
+      <div className="w-full h-full flex flex-col bg-background">
+        <div className="h-16 border-b border-border/40 flex items-center px-6 gap-4">
+          <div className="h-8 w-8 bg-muted animate-pulse rounded-lg" />
+          <div className="h-6 w-48 bg-muted animate-pulse rounded-md" />
+        </div>
+        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+          <div className="w-full lg:w-[45%] border-b lg:border-b-0 lg:border-r border-border/40 p-6 space-y-6">
+            <div className="aspect-video bg-muted/60 rounded-2xl animate-pulse" />
+            <div className="space-y-3">
+              <div className="h-8 w-3/4 bg-muted/60 rounded-lg animate-pulse" />
+              <div className="h-4 w-1/2 bg-muted/60 rounded-md animate-pulse" />
             </div>
+            <div className="h-32 bg-muted/60 rounded-2xl animate-pulse" />
           </div>
-          <div className="flex-1 bg-background p-6 space-y-4">
-            <div className="h-8 w-48 bg-muted/60 rounded-md animate-pulse" />
-            <div className="h-full bg-card rounded-xl border border-input shadow-sm animate-pulse" />
+          <div className="flex-1 p-8 space-y-6 bg-muted/5">
+            <div className="h-10 w-64 bg-muted/60 rounded-xl animate-pulse" />
+            <div className="h-full bg-card rounded-2xl border animate-pulse" />
           </div>
         </div>
       </div>
@@ -116,114 +124,183 @@ export default function LessonDetailView({ lessonId, onClose, isPreview = false 
 
   return (
     <div
-      className="w-full min-h-full lg:h-full flex flex-col lg:flex-row lg:overflow-hidden rounded-2xl shadow-2xl border border-border/20 bg-background"
+      className="w-full h-full flex flex-col lg:flex-row lg:overflow-hidden bg-background"
       style={{ '--sidebar-width': `${sidebarWidth}%` } as React.CSSProperties}
     >
       <div
         ref={containerRef}
-        className="flex-1 flex flex-col lg:flex-row min-h-full lg:h-full lg:overflow-hidden relative"
+        className="flex-1 flex flex-col lg:flex-row h-full lg:overflow-hidden relative"
       >
 
-        {/* Left Column (Sidebar) - Stacks on mobile, side-by-side on desktop */}
+        {/* Left Column (Main/Player Context) */}
         <div
-          className="w-full lg:w-[var(--sidebar-width)] bg-background border-b lg:border-b-0 lg:border-r border-border
-          lg:overflow-y-auto lg:flex-shrink-0
-          [&::-webkit-scrollbar]:w-1.5
-          [&::-webkit-scrollbar-track]:bg-transparent
-          [&::-webkit-scrollbar-thumb]:bg-muted-foreground/10
-          [&::-webkit-scrollbar-thumb]:rounded-full
-          hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/20"
+          className="w-full lg:w-[var(--sidebar-width)] bg-background lg:overflow-y-auto lg:flex-shrink-0 scrollbar-premium"
           style={{ pointerEvents: isResizing ? 'none' : 'auto' }}
         >
-          <div className="p-6 space-y-6">
-            <LessonHeader
-              lesson={lesson}
-              markingComplete={markingComplete}
-              onBack={handleBack}
-              onToggleComplete={toggleComplete}
-            />
+          <div className="p-0">
+            {/* Sticky Header inside left column */}
+            <div className="bg-background border-b border-border/40 px-6 py-4">
+              <LessonHeader
+                lesson={lesson}
+                markingComplete={markingComplete}
+                onBack={handleBack}
+                onToggleComplete={toggleComplete}
+              />
+            </div>
 
-            {lesson.videoUrl ? (
-              <div className="group relative rounded-xl overflow-hidden bg-black shadow-lg ring-1 ring-white/10">
-                <div className="aspect-video">
-                  <video
-                    src={lesson.videoUrl}
-                    controls
-                    controlsList="nodownload"
-                    className="w-full h-full object-contain"
-                    poster={lesson.thumbnailUrl}
-                  >
-                    Trình duyệt của bạn không hỗ trợ phát video.
-                  </video>
-                </div>
-              </div>
-            ) : (
-              <div className="aspect-video bg-muted/30 rounded-xl flex items-center justify-center border-2 border-dashed border-muted">
-                <div className="text-center text-muted-foreground">
-                  <Play className="h-12 w-12 mx-auto mb-2 opacity-20" />
-                  <p>Không có video cho bài học này</p>
-                </div>
-              </div>
-            )}
-
-            {lesson.summary && (
-              <Card className="border-none shadow-sm bg-card/50 backdrop-blur">
-                <CardContent className="p-5 space-y-3">
-                  <div className="flex items-center gap-2 text-primary font-semibold">
-                    <Info className="h-4 w-4" />
-                    <h3 className="text-sm uppercase tracking-wide">Tổng quan</h3>
+            <div className="flex-1 p-6 space-y-8">
+              {/* Video Player Section */}
+              {lesson.videoUrl ? (
+                <div className="group relative rounded-2xl overflow-hidden bg-black shadow-2xl ring-1 ring-white/10">
+                  <div className="aspect-video">
+                    <video
+                      src={lesson.videoUrl}
+                      controls
+                      controlsList="nodownload"
+                      className="w-full h-full object-contain"
+                      poster={lesson.thumbnailUrl}
+                    >
+                      Trình duyệt của bạn không hỗ trợ phát video.
+                    </video>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {lesson.summary}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+                </div>
+              ) : (
+                <div className="aspect-video bg-muted/20 rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-primary/20 group hover:border-primary/40 transition-colors">
+                  <div className="text-center space-y-3">
+                    <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+                      <Play className="h-8 w-8 text-primary/40" />
+                    </div>
+                    <p className="text-sm font-semibold text-muted-foreground">Không có video cho bài học này</p>
+                  </div>
+                </div>
+              )}
 
-            {lesson.isCompleted && lesson.completedAt && (
-              <div className="transform hover:scale-[1.02] transition-transform duration-300">
-                <CompletionStatus completedAt={lesson.completedAt} />
-              </div>
-            )}
+              {/* Overview Card */}
+              {lesson.summary && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2.5 text-foreground font-bold text-lg">
+                    <Info className="h-5 w-5 text-primary" />
+                    <h3>Tổng quan bài học</h3>
+                  </div>
+                  <div className="p-6 rounded-2xl bg-muted/30 border border-border/50 text-sm md:text-base text-muted-foreground leading-relaxed shadow-inner">
+                    {lesson.summary}
+                  </div>
+                </div>
+              )}
+
+              {lesson.isCompleted && lesson.completedAt && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <CompletionStatus completedAt={lesson.completedAt} />
+                </motion.div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Resizer Handle (Desktop Only) */}
+        {/* Resizer Handle */}
         <div
           className={cn(
-            "hidden lg:flex w-1.5 bg-border hover:bg-primary cursor-col-resize items-center justify-center transition-colors z-[100] -ml-[3px] select-none",
-            isResizing && "bg-primary w-2 shadow-[0_0_10px_rgba(var(--primary),0.5)]"
+            "hidden lg:flex w-1.5 bg-border/40 hover:bg-primary/40 cursor-col-resize items-center justify-center transition-all z-[100] -ml-[3px] group relative",
+            isResizing && "bg-primary w-2 shadow-[0_0_20px_rgba(var(--primary),0.3)]"
           )}
           onMouseDown={startResizing}
         >
-          <div className="h-8 w-1 bg-muted-foreground/20 rounded-full" />
+          <div className="h-10 w-1 bg-muted-foreground/30 rounded-full group-hover:bg-primary transition-colors" />
+
+          {/* Tooltip hint on hover */}
+          <div className="absolute top-1/2 left-full ml-4 -translate-y-1/2 bg-popover text-popover-foreground text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded border shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
+            Kéo để đổi kích thước
+          </div>
         </div>
 
-        {/* Right Column (Reference Content) - FIXED STRUCTURE */}
+        {/* Right Column (Reference Content) */}
         <div
-          className="w-full lg:flex-1 flex flex-col bg-muted/40 dark:bg-background lg:overflow-hidden min-h-0 min-w-0"
+          className={cn(
+            "w-full lg:flex-1 flex flex-col lg:overflow-hidden transition-colors duration-500",
+            contentTheme === 'light' ? "bg-white" : "bg-[#0A0A0A] dark:bg-[#050505]"
+          )}
           style={{ pointerEvents: isResizing ? 'none' : 'auto' }}
         >
-          {/* Header - Fixed */}
-          <div className="p-6 pb-4 flex-shrink-0 border-b border-border/10">
-            <h2 className="text-lg font-bold flex items-center gap-2 text-primary">
-              <BookOpen className="h-5 w-5" />
-              Nội Dung Bài Học
+          {/* Tabs/Actions Header for content */}
+          <div className={cn(
+            "flex-shrink-0 px-8 pt-8 pb-4 flex items-center justify-between border-b backdrop-blur-md sticky top-0 z-10",
+            contentTheme === 'light' ? "bg-white/80 border-slate-200" : "bg-[#0A0A0A]/80 border-white/5"
+          )}>
+            <h2 className={cn(
+              "text-xl font-bold flex items-center gap-3",
+              contentTheme === 'light' ? "text-slate-900" : "text-white"
+            )}>
+              <BookOpen className="h-6 w-6 text-primary" />
+              <span>Nội dung chi tiết</span>
             </h2>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setContentTheme(prev => prev === 'light' ? 'dark' : 'light')}
+                className={cn(
+                  "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all border",
+                  contentTheme === 'light'
+                    ? "bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200"
+                    : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-slate-200"
+                )}
+              >
+                {contentTheme === 'light' ? (
+                  <>
+                    <Moon className="w-3.5 h-3.5" />
+                    <span>Chế độ tối</span>
+                  </>
+                ) : (
+                  <>
+                    <Sun className="w-3.5 h-3.5" />
+                    <span>Chế độ sáng</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
-          {/* Content - Scrollable on desktop, flows on mobile */}
-          <div className="flex-1 lg:overflow-y-auto overflow-x-hidden px-6 pb-6 min-h-0">
-            <div className="py-4">
+          {/* Content Area - Truly Scrollable and Premium */}
+          <div className="flex-1 lg:overflow-y-auto scrollbar-premium px-4 sm:px-8 pb-12">
+            <div className="max-w-4xl mx-auto py-8">
               <LessonContentTab
                 content={lesson.content || ''}
-                className="w-full"
+                className={cn(
+                  "border-0 shadow-none bg-transparent",
+                  contentTheme === 'dark' && "dark"
+                )}
+                forceTheme={contentTheme}
               />
             </div>
           </div>
         </div>
 
       </div>
+
+      {/* Add custom scrollbar styles to the file scope or a global CSS */}
+      <style jsx global>{`
+        .scrollbar-premium::-webkit-scrollbar {
+          width: 6px;
+        }
+        .scrollbar-premium::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .scrollbar-premium::-webkit-scrollbar-thumb {
+          background: rgba(0, 0, 0, 0.05);
+          border-radius: 20px;
+        }
+        .dark .scrollbar-premium::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.05);
+        }
+        .scrollbar-premium:hover::-webkit-scrollbar-thumb {
+          background: rgba(0, 0, 0, 0.1);
+        }
+        .dark .scrollbar-premium:hover::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.1);
+        }
+      `}</style>
     </div>
   );
 }

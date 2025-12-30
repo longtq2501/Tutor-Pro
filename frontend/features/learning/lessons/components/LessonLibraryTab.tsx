@@ -59,6 +59,12 @@ import {
   EyeOff,
   ChevronLeft,
   ChevronRight,
+  LayoutGrid,
+  List,
+  Search,
+  Filter,
+  Check,
+  BookMarked
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -76,6 +82,15 @@ import { LessonDTO, LessonFormData, LessonLibraryDTO } from '../types';
 import { AssignStudentsDialog } from './AssignStudentsDialog';
 import { EditLessonDialog } from './EditLessonDialog';
 import { CategoryManagerDialog } from './CategoryManagerDialog';
+import { PremiumCategoryCard } from './PremiumCategoryCard';
+import { PremiumLessonCard } from './PremiumLessonCard';
+import { LessonDetailModal } from '../../lesson-view-wrapper/components/LessonDetailModal';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Input } from '@/components/ui/input';
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from '@/components/ui/toggle-group';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -85,10 +100,14 @@ export function LessonLibraryTab() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [selectedPreviewLessonId, setSelectedPreviewLessonId] = useState<number | null>(null);
 
   const [selectedLesson, setSelectedLesson] = useState<LessonLibraryDTO | null>(null);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [view, setView] = useState<'grid' | 'list'>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { data: lessons = [], isLoading } = useLessonLibrary();
   const { categories } = useLessonCategories();
@@ -101,9 +120,21 @@ export function LessonLibraryTab() {
 
   // Filter Logic
   const filteredLessons = lessons.filter(lesson => {
-    if (selectedCategoryFilter === 'all') return true;
-    if (selectedCategoryFilter === 'none') return !lesson.category;
-    return String(lesson.category?.id) === selectedCategoryFilter;
+    // Category Filter
+    const matchesCategory = selectedCategoryFilter === 'all'
+      || (selectedCategoryFilter === 'none' && !lesson.category)
+      || String(lesson.category?.id) === selectedCategoryFilter;
+
+    if (!matchesCategory) return false;
+
+    // Search Filter
+    if (!searchQuery) return true;
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      lesson.title.toLowerCase().includes(searchLower) ||
+      lesson.tutorName.toLowerCase().includes(searchLower) ||
+      lesson.summary?.toLowerCase().includes(searchLower)
+    );
   });
 
   // Pagination Logic
@@ -124,6 +155,11 @@ export function LessonLibraryTab() {
         },
       }
     );
+  };
+
+  const handlePreviewClick = (lessonId: number) => {
+    setSelectedPreviewLessonId(lessonId);
+    setIsPreviewOpen(true);
   };
 
   const handleEditSubmit = (data: LessonFormData) => {
@@ -199,227 +235,353 @@ export function LessonLibraryTab() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="flex items-center justify-center h-96">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground font-medium animate-pulse">Đang tải kho học liệu...</p>
+        </div>
       </div>
     );
   }
 
+  const getCategoryGradient = (color?: string) => {
+    if (!color) return "from-slate-500 to-slate-700";
+    // Simplified: in a real app, you might map specific hex to gradients
+    return `from-[${color}]/80 to-[${color}]`;
+  };
+
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5" />
-                Kho Học Liệu
-              </CardTitle>
-              <CardDescription>
-                Quản lý các bài giảng mẫu để giao cho học sinh
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-2 self-start sm:self-auto w-full sm:w-auto">
-              <Button variant="outline" onClick={() => setIsCategoryDialogOpen(true)} className="flex-1 sm:flex-none">
-                <Tag className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Quản lý danh mục</span>
-                <span className="sm:hidden">Danh mục</span>
-              </Button>
-              <Button onClick={() => setIsFormOpen(true)} className="flex-1 sm:flex-none">
-                <Plus className="mr-2 h-4 w-4" />
-                Thêm bài mới
-              </Button>
-            </div>
-          </div>
+    <div className="space-y-8 pb-12">
+      {/* Category Overview Section */}
+      <section className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xl font-bold flex items-center gap-2">
+            <Tag className="w-5 h-5 text-primary" />
+            Lọc theo danh mục
+          </h3>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsCategoryDialogOpen(true)}
+            className="rounded-xl border-primary/20 hover:bg-primary/5 hover:text-primary"
+          >
+            <Tag className="w-4 h-4 mr-2" />
+            Quản lý danh mục
+          </Button>
+        </div>
 
-          {/* Filters */}
-          <div className="flex items-center gap-4 mt-4">
-            <div className="w-full sm:w-[200px]">
-              <Select
-                value={selectedCategoryFilter}
-                onValueChange={(val) => {
-                  setSelectedCategoryFilter(val);
-                  setCurrentPage(1); // Reset page on filter change
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <PremiumCategoryCard
+            title="Tất cả bài giảng"
+            count={lessons.length}
+            icon={<BookOpen className="w-7 h-7" />}
+            gradient="from-blue-600 to-indigo-600"
+            isActive={selectedCategoryFilter === 'all'}
+            onClick={() => {
+              setSelectedCategoryFilter('all');
+              setCurrentPage(1);
+            }}
+          />
+
+          {categories.map((cat, idx) => {
+            const lessonCount = lessons.filter(l => l.category?.id === cat.id).length;
+            // Dynamic gradients based on index if color is generic
+            const gradients = [
+              "from-emerald-500 to-teal-600",
+              "from-orange-500 to-amber-600",
+              "from-pink-500 to-rose-600",
+              "from-purple-500 to-violet-600"
+            ];
+
+            return (
+              <PremiumCategoryCard
+                key={cat.id}
+                title={cat.name}
+                count={lessonCount}
+                gradient={gradients[idx % gradients.length]}
+                isActive={selectedCategoryFilter === String(cat.id)}
+                onClick={() => {
+                  setSelectedCategoryFilter(String(cat.id));
+                  setCurrentPage(1);
                 }}
+              />
+            );
+          })}
+
+          <PremiumCategoryCard
+            title="Chưa phân loại"
+            count={lessons.filter(l => !l.category).length}
+            icon={<Tag className="w-7 h-7" />}
+            gradient="from-slate-500 to-slate-700"
+            isActive={selectedCategoryFilter === 'none'}
+            onClick={() => {
+              setSelectedCategoryFilter('none');
+              setCurrentPage(1);
+            }}
+          />
+        </div>
+      </section>
+
+      {/* Main Content Area */}
+      <div className="space-y-6">
+        {/* Filters & Actions Bar */}
+        <div className="flex flex-col lg:flex-row gap-4 lg:items-center justify-between bg-card p-4 rounded-2xl border shadow-sm">
+          <div className="flex flex-col sm:flex-row gap-3 flex-1 items-center">
+            <div className="relative w-full sm:max-w-md group">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <Input
+                placeholder="Tìm kiếm theo tiêu đề hoặc giáo viên..."
+                className="pl-10 h-11 rounded-xl border-muted-foreground/20 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto self-stretch">
+              <ToggleGroup
+                type="single"
+                value={view}
+                onValueChange={(v) => v && setView(v as 'grid' | 'list')}
+                className="bg-muted/50 p-1 rounded-xl border shrink-0"
               >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Lọc theo danh mục" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả danh mục</SelectItem>
-                  <SelectItem value="none">Không có danh mục</SelectItem>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={String(cat.id)}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color || '#3b82f6' }} />
-                        {cat.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <ToggleGroupItem value="grid" className="rounded-lg h-9 w-9 p-0 data-[state=on]:bg-background data-[state=on]:shadow-sm">
+                  <LayoutGrid className="w-4 h-4" />
+                </ToggleGroupItem>
+                <ToggleGroupItem value="list" className="rounded-lg h-9 w-9 p-0 data-[state=on]:bg-background data-[state=on]:shadow-sm">
+                  <List className="w-4 h-4" />
+                </ToggleGroupItem>
+              </ToggleGroup>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          {filteredLessons.length === 0 ? (
-            <div className="text-center py-12">
-              <BookOpen className="mx-auto h-12 w-12 text-muted-foreground/50" />
-              <h3 className="mt-4 text-lg font-semibold">
-                Chưa có bài giảng nào
-              </h3>
-              <p className="text-sm text-muted-foreground mt-2">
-                Thêm bài giảng mẫu vào kho để tái sử dụng
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[300px]">Tiêu đề</TableHead>
-                      <TableHead className="w-[150px] hidden md:table-cell">Giáo viên</TableHead>
-                      <TableHead className="w-[120px] hidden md:table-cell">Ngày tạo</TableHead>
-                      <TableHead className="w-[100px] hidden md:table-cell">Trạng thái</TableHead>
-                      <TableHead className="w-[100px] hidden md:table-cell">Đã giao</TableHead>
-                      <TableHead className="w-[70px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedLessons.map((lesson) => (
-                      <TableRow key={lesson.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex flex-col gap-1">
-                            <span className="line-clamp-1 text-base font-semibold">{lesson.title}</span>
-                            <div className="flex flex-wrap items-center gap-2">
-                              {lesson.category && (
-                                <Badge
-                                  variant="outline"
-                                  className="w-fit text-[10px] uppercase font-bold px-1.5 py-0 h-5 border-0"
-                                  style={{
-                                    backgroundColor: `${lesson.category.color}15`,
-                                    color: lesson.category.color
-                                  }}
-                                >
-                                  {lesson.category.name}
-                                </Badge>
-                              )}
-                              {/* Mobile Only: Date & Status */}
-                              <span className="md:hidden text-xs text-muted-foreground flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
-                                {lesson.lessonDate ? format(new Date(lesson.lessonDate), 'dd/MM/yyyy') : '-'}
-                              </span>
-                              <span className={cn("md:hidden text-xs font-medium flex items-center gap-1", lesson.isPublished ? "text-green-600" : "text-muted-foreground")}>
-                                {lesson.isPublished ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                                {lesson.isPublished ? 'Public' : 'Private'}
-                              </span>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <div className="flex items-center gap-2">
-                            <User className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{lesson.tutorName}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">
-                              {lesson.lessonDate ? format(new Date(lesson.lessonDate), 'dd/MM/yyyy', { locale: vi }) : '-'}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          {lesson.isPublished ? (
-                            <div className="flex items-center gap-1.5 text-green-600 text-sm font-medium">
-                              <Eye className="h-4 w-4" />
-                              Public
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
-                              <EyeOff className="h-4 w-4" />
-                              Private
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          {(lesson.assignedStudentCount || 0) > 0 ? (
-                            <Badge variant="secondary" className="flex w-fit items-center gap-1">
-                              <Users className="h-3 w-3" />
-                              {lesson.assignedStudentCount}
-                            </Badge>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => handleAssignClick(lesson)}>
-                                <Users className="mr-2 h-4 w-4" />
-                                Giao cho học sinh
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleEditClick(lesson)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Chỉnh sửa
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-destructive"
-                                onClick={() => handleDeleteClick(lesson)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Xóa
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
 
-              {/* Pagination Controls */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-end space-x-2 py-4">
-                  <div className="flex-1 text-sm text-muted-foreground">
-                    Trang {currentPage} / {totalPages}
-                  </div>
+          <Button
+            size="lg"
+            onClick={() => setIsFormOpen(true)}
+            className="rounded-xl h-11 px-6 shadow-lg shadow-primary/20 bg-gradient-to-r from-primary to-primary/90 hover:scale-[1.02] active:scale-[0.98] transition-all"
+          >
+            <Plus className="mr-2 h-5 w-5" />
+            Thêm bài mới
+          </Button>
+        </div>
+
+        {/* Lessons Display */}
+        {filteredLessons.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-20 bg-muted/30 rounded-3xl border-2 border-dashed"
+          >
+            <div className="max-w-xs mx-auto space-y-4">
+              <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto">
+                <BookOpen className="h-10 w-10 text-muted-foreground/40" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-xl font-bold">Không tìm thấy bài giảng</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  {searchQuery
+                    ? `Không có kết quả nào cho "${searchQuery}". Thử tìm kiếm với từ khóa khác.`
+                    : "Chưa có bài giảng nào trong danh mục này. Hãy bắt đầu bằng cách thêm bài giảng mới."}
+                </p>
+              </div>
+              {!searchQuery && (
+                <Button onClick={() => setIsFormOpen(true)} variant="outline" className="rounded-xl">
+                  Thêm bài đầu tiên
+                </Button>
+              )}
+            </div>
+          </motion.div>
+        ) : (
+          <div className="space-y-8">
+            <AnimatePresence mode="popLayout">
+              {view === 'grid' ? (
+                <motion.div
+                  key="grid"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                >
+                  {paginatedLessons.map((lesson, idx) => (
+                    <motion.div
+                      key={lesson.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                    >
+                      <PremiumLessonCard
+                        lesson={lesson}
+                        onEdit={handleEditClick}
+                        onDelete={handleDeleteClick}
+                        onAssign={handleAssignClick}
+                        onPreview={handlePreviewClick}
+                      />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="list"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="rounded-2xl border bg-card shadow-sm overflow-hidden"
+                >
+                  <Table>
+                    <TableHeader className="bg-muted/50">
+                      <TableRow className="hover:bg-transparent border-b">
+                        <TableHead className="w-[350px] font-bold">TIÊU ĐỀ BÀI GIẢNG</TableHead>
+                        <TableHead className="hidden md:table-cell font-bold">GIÁO VIÊN</TableHead>
+                        <TableHead className="hidden md:table-cell font-bold">NGÀY TẠO</TableHead>
+                        <TableHead className="hidden md:table-cell font-bold">TRẠNG THÁI</TableHead>
+                        <TableHead className="hidden md:table-cell font-bold text-center">ĐÃ GIAO</TableHead>
+                        <TableHead className="w-[80px]"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedLessons.map((lesson) => (
+                        <TableRow
+                          key={lesson.id}
+                          className="group hover:bg-primary/5 transition-colors cursor-pointer"
+                          onClick={() => handlePreviewClick(lesson.id)}
+                        >
+                          <TableCell>
+                            <div className="flex flex-col gap-1.5 py-1">
+                              <span className="font-bold text-base leading-tight group-hover:text-primary transition-colors">{lesson.title}</span>
+                              <div className="flex flex-wrap items-center gap-2">
+                                {lesson.category && (
+                                  <Badge
+                                    className="border-0 text-[10px] font-bold px-2 py-0 h-5"
+                                    style={{
+                                      backgroundColor: `${lesson.category.color}15`,
+                                      color: lesson.category.color
+                                    }}
+                                  >
+                                    {lesson.category.name}
+                                  </Badge>
+                                )}
+                                <span className="md:hidden text-xs text-muted-foreground flex items-center gap-1 font-medium">
+                                  <Calendar className="w-3 h-3" />
+                                  {lesson.lessonDate ? format(new Date(lesson.lessonDate), 'dd/MM/yyyy') : '-'}
+                                </span>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            <div className="flex items-center gap-2 font-medium">
+                              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs uppercase">
+                                {lesson.tutorName.charAt(0)}
+                              </div>
+                              <span>{lesson.tutorName}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell text-muted-foreground font-medium">
+                            {lesson.lessonDate ? format(new Date(lesson.lessonDate), 'dd/MM/yyyy') : '-'}
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            {lesson.isPublished ? (
+                              <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 shadow-none px-2 font-semibold">
+                                Public
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="px-2 font-semibold bg-muted/80">
+                                Private
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell text-center">
+                            {(lesson.assignedStudentCount || 0) > 0 ? (
+                              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-bold border border-blue-100">
+                                <Users className="w-3 h-3" />
+                                {lesson.assignedStudentCount}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground/40 font-bold">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="group-hover:bg-background rounded-lg shadow-none">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-48 p-1.5 rounded-xl">
+                                <DropdownMenuItem onClick={() => handleAssignClick(lesson)} className="rounded-lg py-2">
+                                  <Users className="mr-2.5 h-4 w-4 text-blue-500" />
+                                  Giao cho học sinh
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleEditClick(lesson)} className="rounded-lg py-2">
+                                  <Edit className="mr-2.5 h-4 w-4 text-emerald-500" />
+                                  Chỉnh sửa
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator className="my-2" />
+                                <DropdownMenuItem
+                                  className="text-destructive focus:text-destructive rounded-lg py-2"
+                                  onClick={() => handleDeleteClick(lesson)}
+                                >
+                                  <Trash2 className="mr-2.5 h-4 w-4" />
+                                  Xóa bài giảng
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/20 p-4 rounded-2xl border">
+                <p className="text-sm font-semibold text-muted-foreground">
+                  Hiển thị <span className="text-foreground">{paginatedLessons.length}</span> trên <span className="text-foreground">{filteredLessons.length}</span> bài giảng
+                </p>
+
+                <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    className="rounded-xl h-10 px-4 font-bold border-muted-foreground/20"
+                    onClick={() => {
+                      setCurrentPage(p => Math.max(1, p - 1));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
                     disabled={currentPage === 1}
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-4 w-4 mr-2" />
                     Trước
                   </Button>
+
+                  <div className="flex items-center gap-1.5 px-4 h-10 rounded-xl bg-background border font-bold tabular-nums">
+                    <span className="text-primary">{currentPage}</span>
+                    <span className="text-muted-foreground/40">/</span>
+                    <span>{totalPages}</span>
+                  </div>
+
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    className="rounded-xl h-10 px-4 font-bold border-muted-foreground/20"
+                    onClick={() => {
+                      setCurrentPage(p => Math.min(totalPages, p + 1));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
                     disabled={currentPage === totalPages}
                   >
                     Tiếp
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-4 w-4 ml-2" />
                   </Button>
                 </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
-      {/* Create Dialog */}
+      {/* Dialogs */}
       <LessonForm
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
@@ -433,7 +595,7 @@ export function LessonLibraryTab() {
         <EditLessonDialog
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
-          lesson={selectedLesson}
+          lesson={selectedLesson as LessonLibraryDTO}
           onSubmit={handleEditSubmit}
           isLoading={updateMutation.isPending}
         />
@@ -444,7 +606,7 @@ export function LessonLibraryTab() {
         <AssignStudentsDialog
           open={isAssignDialogOpen}
           onOpenChange={setIsAssignDialogOpen}
-          lesson={selectedLesson}
+          lesson={selectedLesson as LessonLibraryDTO}
         />
       )}
 
@@ -459,30 +621,40 @@ export function LessonLibraryTab() {
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-2xl border-2">
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-2xl font-bold">Xác nhận xóa</AlertDialogTitle>
+            <AlertDialogDescription className="text-base">
               Bạn có chắc chắn muốn xóa bài giảng "
-              <span className="font-semibold">{selectedLesson?.title}</span>"?
-              Hành động này sẽ xóa bài giảng khỏi kho và không thể hoàn tác.
+              <span className="font-bold text-foreground">{selectedLesson?.title}</span>"?
+              Hành động này sẽ xóa bài giảng khỏi kho và <span className="text-destructive font-semibold">không thể hoàn tác</span>.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
+          <AlertDialogFooter className="gap-3 sm:gap-0">
+            <AlertDialogCancel className="rounded-xl font-bold border-2">Hủy</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-destructive hover:bg-destructive/90"
+              className="bg-destructive hover:bg-destructive/90 rounded-xl font-bold shadow-lg shadow-destructive/20"
               disabled={deleteMutation.isPending}
             >
-              {deleteMutation.isPending && (
+              {deleteMutation.isPending ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="mr-2 h-4 w-4" />
               )}
-              Xóa
+              Xác nhận xóa
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+
+      {/* Lesson Detail Preview Modal */}
+      <LessonDetailModal
+        open={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        lessonId={selectedPreviewLessonId}
+        isPreview={true}
+      />
+    </div>
   );
 }

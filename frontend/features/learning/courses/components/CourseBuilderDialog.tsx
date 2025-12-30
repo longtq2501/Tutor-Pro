@@ -38,6 +38,12 @@ import {
     ArrowLeft,
     Check,
     Search,
+    AlertCircle,
+    MoreVertical,
+    ChevronRight,
+    ArrowUp,
+    ArrowDown,
+    GripVertical,
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -45,6 +51,7 @@ import { cn } from '@/lib/utils';
 import { useLessonLibrary } from '../../lessons/hooks/useLessonLibrary';
 import { useCreateCourse, useUpdateCourse, useAdminCourseById } from '../hooks/useAdminCourses';
 import type { CourseDTO, CourseDetailDTO, CourseRequest } from '../types';
+import { motion, Reorder, AnimatePresence } from 'framer-motion';
 import React from 'react';
 
 const courseSchema = z.object({
@@ -71,7 +78,7 @@ export function CourseBuilderDialog({
     course,
     mode,
 }: CourseBuilderDialogProps) {
-    const [step, setStep] = useState<'info' | 'lessons'>('info');
+    const [step, setStep] = useState<'info' | 'lessons' | 'sort'>('info');
     const [searchQuery, setSearchQuery] = useState('');
 
     const { data: libraryLessons = [], isLoading: isLoadingLibrary } = useLessonLibrary();
@@ -114,8 +121,17 @@ export function CourseBuilderDialog({
         defaultValues,
     });
 
-    const { watch, reset } = form;
+    const { watch, reset, setValue, getValues } = form;
     const selectedLessonIds = watch('lessonIds') || [];
+
+    const sortedSelectedLessons = useMemo(() => {
+        return selectedLessonIds.map(id => libraryLessons.find(l => l.id === id)).filter(Boolean);
+    }, [selectedLessonIds, libraryLessons]);
+
+    const handleReorder = (newSortedLessons: any[]) => {
+        const newIds = newSortedLessons.map(l => l.id);
+        setValue('lessonIds', newIds, { shouldValidate: true, shouldDirty: true });
+    };
 
     useEffect(() => {
         if (open) {
@@ -130,6 +146,15 @@ export function CourseBuilderDialog({
     const onSubmit: SubmitHandler<CourseFormValues> = (values) => {
         if (step === 'info') {
             setStep('lessons');
+            return;
+        }
+
+        if (step === 'lessons') {
+            if (values.lessonIds.length === 0) {
+                setStep('sort'); // Allow skip if no lessons? Or require at least one?
+                // Let's allow but maybe show a message.
+            }
+            setStep('sort');
             return;
         }
 
@@ -166,24 +191,57 @@ export function CourseBuilderDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="w-[calc(100%-1rem)] max-w-[calc(100vw-1rem)] sm:max-w-[700px] md:max-w-[750px] h-[95vh] sm:h-auto sm:max-h-[85vh] flex flex-col p-0 overflow-hidden gap-0 rounded-2xl sm:rounded-lg">
-                <DialogHeader className="px-4 py-4 sm:p-6 sm:pb-4 shrink-0">
-                    <DialogTitle className="flex items-center gap-2 text-xl sm:text-2xl">
+            <DialogContent className="w-[calc(100%-1rem)] max-w-[calc(100vw-1rem)] sm:max-w-[700px] md:max-w-[750px] max-h-[95vh] sm:max-h-[85vh] flex flex-col p-0 overflow-hidden gap-0 rounded-2xl sm:rounded-lg">
+                <DialogHeader className="px-4 py-4 sm:px-6 sm:py-5 border-b bg-card shrink-0 relative">
+                    <DialogTitle className="flex items-center gap-2 text-xl sm:text-2xl font-black tracking-tight pr-8">
                         <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6 text-primary shrink-0" />
                         <span className="truncate">
                             {mode === 'create' ? 'Tạo lộ trình học tập' : 'Chỉnh sửa lộ trình'}
                         </span>
                     </DialogTitle>
-                    <DialogDescription className="text-xs sm:text-sm">
+                    <DialogDescription className="text-xs sm:text-sm font-medium text-muted-foreground/70 mt-1">
                         {step === 'info'
-                            ? 'Xác định các thông tin cơ bản cho khóa học của bạn.'
-                            : 'Chọn các bài giảng từ thư viện để đưa vào lộ trình.'}
+                            ? 'Xác định tiêu đề, độ khó và các thông tin cơ bản cho lộ trình học tập.'
+                            : step === 'lessons'
+                                ? 'Duyệt và chọn các bài giảng chất lượng từ thư viện học liệu của bạn.'
+                                : 'Thiết lập trình tự học tập logic bằng cách kéo thả vị trí các bài giảng.'}
                     </DialogDescription>
                 </DialogHeader>
 
+                {/* Progress Indicators - Moved here to avoid conflict with Close button */}
+                <div className="px-4 py-3 sm:px-6 border-b bg-muted/30 flex items-center justify-center gap-3 sm:gap-6 shrink-0">
+                    {[
+                        { id: 'info', label: 'Thông tin' },
+                        { id: 'lessons', label: 'Bài học' },
+                        { id: 'sort', label: 'Sắp xếp' }
+                    ].map((s, idx) => (
+                        <React.Fragment key={s.id}>
+                            <div className={cn(
+                                "flex items-center gap-2 transition-all duration-300",
+                                step === s.id ? "text-primary scale-105" : "text-muted-foreground/70"
+                            )}>
+                                <div className={cn(
+                                    "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all",
+                                    step === s.id ? "bg-primary border-primary text-white" : "border-muted-foreground/40 text-muted-foreground"
+                                )}>
+                                    {idx + 1}
+                                </div>
+                                <span className="text-[10px] font-black uppercase tracking-widest hidden xs:block">{s.label}</span>
+                            </div>
+                            {idx < 2 && <ChevronRight className="w-3 h-3 text-muted-foreground/10" />}
+                        </React.Fragment>
+                    ))}
+                </div>
+
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden min-h-0">
-                        <div className="flex-1 overflow-y-auto px-4 py-3 sm:p-6 sm:pt-4 min-h-0">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className={cn(
+                        "flex flex-col overflow-hidden min-h-0",
+                        step === 'lessons' ? "flex-1" : "h-auto"
+                    )}>
+                        <div className={cn(
+                            "overflow-y-auto px-4 py-3 sm:p-6 sm:pt-4 min-h-0",
+                            step === 'lessons' ? "flex-1" : "h-auto"
+                        )}>
                             {isLoadingDetail ? (
                                 <div className="flex items-center justify-center h-64">
                                     <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-muted-foreground" />
@@ -270,7 +328,7 @@ export function CourseBuilderDialog({
                                         />
                                     </div>
                                 </div>
-                            ) : (
+                            ) : step === 'lessons' ? (
                                 <div className="space-y-3 sm:space-y-4">
                                     <div className="relative">
                                         <Search className="absolute left-2.5 sm:left-3 top-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 -translate-y-1/2 text-muted-foreground" />
@@ -314,6 +372,94 @@ export function CourseBuilderDialog({
                                         )}
                                     </ScrollArea>
                                 </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="bg-primary/5 rounded-2xl p-4 border border-primary/10 flex items-start gap-4">
+                                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                                            <Layers className="w-5 h-5 text-primary" />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-sm">Sắp xếp thứ tự bài học</h4>
+                                            <p className="text-xs text-muted-foreground leading-relaxed">
+                                                Kéo và thả để sắp xếp trình tự học tập cho học sinh. Thứ tự này sẽ được hiển thị trên lộ trình của học viên.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {selectedLessonIds.length === 0 ? (
+                                        <div className="text-center py-20 bg-muted/20 rounded-2xl border-2 border-dashed border-muted-foreground/10">
+                                            <AlertCircle className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
+                                            <p className="text-sm text-muted-foreground">Chưa có bài giảng nào được chọn để sắp xếp</p>
+                                            <Button variant="link" onClick={() => setStep('lessons')}>Quay lại bước chọn bài</Button>
+                                        </div>
+                                    ) : (
+                                        <ScrollArea className="h-[400px] pr-4">
+                                            <Reorder.Group
+                                                axis="y"
+                                                values={sortedSelectedLessons}
+                                                onReorder={handleReorder}
+                                                className="space-y-3"
+                                            >
+                                                {sortedSelectedLessons.map((lesson: any, index: number) => (
+                                                    <Reorder.Item
+                                                        key={lesson.id}
+                                                        value={lesson}
+                                                        className="relative"
+                                                        layout
+                                                    >
+                                                        <div className="flex items-center gap-4 bg-card p-4 rounded-2xl border-2 border-transparent hover:border-primary/20 shadow-sm cursor-grab active:cursor-grabbing group transition-all">
+                                                            <div className="flex items-center gap-2 shrink-0">
+                                                                <GripVertical className="w-4 h-4 text-muted-foreground/20 group-hover:text-primary transition-colors" />
+                                                                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center font-bold text-xs text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                                                    {index + 1}
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="flex-1 min-w-0">
+                                                                <h5 className="font-bold text-sm truncate">{lesson.title}</h5>
+                                                                <p className="text-[10px] text-muted-foreground truncate uppercase tracking-wider font-medium">{lesson.difficultyLevel || 'Cơ bản'}</p>
+                                                            </div>
+
+                                                            {/* Manual movement buttons for long lists */}
+                                                            <div className="flex items-center gap-1">
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    disabled={index === 0}
+                                                                    className="h-8 w-8 rounded-lg opacity-40 hover:opacity-100 hover:bg-primary/10 hover:text-primary transition-all"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        const newLessons = [...sortedSelectedLessons];
+                                                                        [newLessons[index - 1], newLessons[index]] = [newLessons[index], newLessons[index - 1]];
+                                                                        handleReorder(newLessons);
+                                                                    }}
+                                                                >
+                                                                    <ArrowUp className="w-4 h-4" />
+                                                                </Button>
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    disabled={index === sortedSelectedLessons.length - 1}
+                                                                    className="h-8 w-8 rounded-lg opacity-40 hover:opacity-100 hover:bg-primary/10 hover:text-primary transition-all"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        const newLessons = [...sortedSelectedLessons];
+                                                                        [newLessons[index + 1], newLessons[index]] = [newLessons[index], newLessons[index + 1]];
+                                                                        handleReorder(newLessons);
+                                                                    }}
+                                                                >
+                                                                    <ArrowDown className="w-4 h-4" />
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    </Reorder.Item>
+                                                ))}
+                                            </Reorder.Group>
+                                        </ScrollArea>
+                                    )}
+                                </div>
                             )}
                         </div>
 
@@ -322,14 +468,15 @@ export function CourseBuilderDialog({
                                 <div className="flex gap-1.5 sm:gap-2">
                                     <div className={cn("w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full", step === 'info' ? "bg-primary" : "bg-primary/30")} />
                                     <div className={cn("w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full", step === 'lessons' ? "bg-primary" : "bg-primary/30")} />
+                                    <div className={cn("w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full", step === 'sort' ? "bg-primary" : "bg-primary/30")} />
                                 </div>
 
                                 <div className="flex gap-2 sm:gap-3">
-                                    {step === 'lessons' && (
+                                    {step !== 'info' && (
                                         <Button
                                             type="button"
                                             variant="outline"
-                                            onClick={() => setStep('info')}
+                                            onClick={() => setStep(step === 'sort' ? 'lessons' : 'info')}
                                             disabled={createMutation.isPending || updateMutation.isPending}
                                             className="h-8 sm:h-9 text-xs sm:text-sm px-3"
                                         >
@@ -346,7 +493,7 @@ export function CourseBuilderDialog({
                                     >
                                         {createMutation.isPending || updateMutation.isPending ? (
                                             <Loader2 className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
-                                        ) : step === 'info' ? (
+                                        ) : step !== 'sort' ? (
                                             <>
                                                 <span className="hidden xs:inline">Tiếp theo</span>
                                                 <span className="xs:hidden">Tiếp</span>

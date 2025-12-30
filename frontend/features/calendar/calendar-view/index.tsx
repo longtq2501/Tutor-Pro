@@ -10,6 +10,7 @@ import { LessonDetailModal } from './components/LessonDetailModal';
 import { DayDetailModal } from './components/DayDetailModal';
 import { ContextMenu } from './components/ContextMenu';
 import { CalendarSkeleton } from './components/CalendarSkeleton';
+import type { CalendarViewType } from './components/ViewSwitcher';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -67,14 +68,31 @@ export default function CalendarView() {
   } = useCalendarView();
 
 
+  const [statusFilter, setStatusFilter] = useState<string | 'ALL'>('ALL');
+
+  const filteredSessions = sessions.filter(s =>
+    statusFilter === 'ALL' || s.status === statusFilter
+  );
+
+  const filteredCalendarDays = calendarDays.map(day => ({
+    ...day,
+    sessions: day.sessions.filter(s =>
+      statusFilter === 'ALL' || s.status === statusFilter
+    )
+  }));
+
   const renderView = () => {
-    if (loading || isInitialLoad) return <CalendarSkeleton />;
+    if (loading || isInitialLoad) return (
+      <div className="px-6">
+        <CalendarSkeleton />
+      </div>
+    );
 
     switch (currentView) {
       case 'week':
         return (
           <WeekView
-            days={calendarDays}
+            days={filteredCalendarDays}
             onDayClick={setSelectedDay}
             onAddSession={openAddSessionModal}
             onSessionClick={handleSessionClick}
@@ -95,7 +113,7 @@ export default function CalendarView() {
       case 'list':
         return (
           <ListView
-            sessions={sessions}
+            sessions={filteredSessions}
             onSessionClick={handleSessionClick}
             onSessionEdit={handleSessionEdit}
             onUpdate={handleUpdateSession}
@@ -104,50 +122,41 @@ export default function CalendarView() {
       case 'month':
       default:
         return (
-          <CalendarGrid
-            days={calendarDays}
-            onDayClick={(day) => setSelectedDay(day)}
-            onAddSession={openAddSessionModal}
-            onSessionClick={handleSessionClick}
-            onSessionEdit={handleSessionEdit}
-            onUpdate={handleUpdateSession}
-            onContextMenu={(e, session) => setContextMenu({ x: e.clientX, y: e.clientY, session })}
-          />
+          <div className="px-4 sm:px-6">
+            <CalendarGrid
+              days={filteredCalendarDays}
+              onDayClick={(day) => setSelectedDay(day)}
+              onAddSession={openAddSessionModal}
+              onSessionClick={handleSessionClick}
+              onSessionEdit={handleSessionEdit}
+              onUpdate={handleUpdateSession}
+              onContextMenu={(e, session) => setContextMenu({ x: e.clientX, y: e.clientY, session })}
+            />
+          </div>
         );
     }
   };
 
   return (
-    <div className="space-y-4 pb-20">
-      <div className={cn(
-        "sticky top-0 z-20 transition-all duration-300 ease-in-out border-b shadow-sm",
-        isScrolled
-          ? "bg-background/80 backdrop-blur-md border-border/10 py-1.5 px-2 sm:px-4 mx-0 rounded-none shadow-md"
-          : "bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 px-4 py-4 border-border/10 rounded-[18px] mt-0 mx-1"
-      )}>
-        <div className={cn("transition-all duration-300", isScrolled ? "space-y-0" : "space-y-4")}>
-          <CalendarHeader
-            currentDate={currentDate}
-            stats={stats}
-            isGenerating={isGenerating}
-            currentView={currentView}
-            onChangeMonth={navigateMonth}
-            onToday={goToToday}
-            onAutoGenerate={handleAutoGenerate}
-            onViewChange={setCurrentView}
-            // Passing down a prop to tell header it's in a compact state if needed
-            // But header already has its own listener.
-            onExport={exportToExcel}
-            onDeleteAll={handleInitiateDeleteAll}
-            isScrolled={isScrolled}
-          />
+    <div className="min-h-screen bg-transparent">
+      <CalendarHeader
+        currentDate={currentDate}
+        currentView={currentView}
+        onNavigate={navigateMonth}
+        onToday={goToToday}
+        onViewChange={setCurrentView}
+        onAddSession={() => openAddSessionModal(selectedDateStr || new Date().toISOString().split('T')[0])}
+        onGenerateInvoice={handleAutoGenerate}
+        isGenerating={isGenerating}
+        sessions={sessions}
+        isScrolled={isScrolled}
+        onFilterChange={setStatusFilter}
+        currentFilter={statusFilter}
+      />
 
-        </div>
-      </div>
-
-      <div className={cn("transition-all duration-300", isScrolled ? "pt-2" : "pt-0")}>
+      <main className="transition-all duration-300">
         {renderView()}
-      </div>
+      </main>
 
       {/* ... (existing modals) */}
 

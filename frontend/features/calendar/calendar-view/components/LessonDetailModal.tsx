@@ -1,6 +1,10 @@
 import type { SessionRecord, SessionRecordUpdateRequest } from '@/lib/types/finance';
 import type { LessonStatus } from '@/lib/types/lesson-status';
-import { X, Trash2, Copy, Edit3, Save, RotateCcw, User, Calendar, Clock, BookOpen, Banknote, FileText } from 'lucide-react';
+import {
+    X, Trash2, Copy, Pencil, Save, BookOpen,
+    Calendar, Clock, DollarSign, FileText,
+    CheckCircle2, Check, ChevronRight
+} from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { LESSON_STATUS_LABELS } from '@/lib/types/lesson-status';
@@ -8,6 +12,7 @@ import { sessionsApi } from '@/lib/services';
 import { getStatusColors } from '../utils/statusColors';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     Select,
     SelectContent,
@@ -15,6 +20,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useUI } from '@/contexts/UIContext';
 import { createPortal } from 'react-dom';
 
@@ -26,12 +33,29 @@ interface LessonDetailModalProps {
     initialMode?: 'view' | 'edit';
 }
 
-/**
- * LessonDetailModal Component
- * 
- * Full-featured modal for viewing and editing session details.
- * Optimized for mobile with sticky header/footer and scrollable content.
- */
+const InfoCard = ({ icon, label, value, variant }: {
+    icon: React.ReactNode,
+    label: string,
+    value: string,
+    variant: 'blue' | 'purple' | 'green'
+}) => {
+    const variants = {
+        blue: "bg-blue-50/50 dark:bg-blue-600/10 border-blue-100 dark:border-blue-500/20",
+        purple: "bg-purple-50/50 dark:bg-purple-600/10 border-purple-100 dark:border-purple-500/20",
+        green: "bg-emerald-50/50 dark:bg-emerald-600/10 border-emerald-100 dark:border-emerald-500/20"
+    };
+
+    return (
+        <div className={cn("p-4 rounded-2xl border transition-all hover:shadow-md", variants[variant])}>
+            <div className="flex items-center gap-2 mb-2">
+                <span className="opacity-70">{icon}</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{label}</span>
+            </div>
+            <div className="text-sm font-bold truncate">{value}</div>
+        </div>
+    );
+};
+
 export function LessonDetailModal({ session, onClose, onUpdate, onDelete, initialMode = 'view' }: LessonDetailModalProps) {
     const [localSession, setLocalSession] = useState<SessionRecord>(session);
     const [mode, setMode] = useState<'view' | 'edit'>(initialMode);
@@ -50,10 +74,8 @@ export function LessonDetailModal({ session, onClose, onUpdate, onDelete, initia
     });
     const [loading, setLoading] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
-    const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
-    // Track changes
     useEffect(() => {
         const hasChanges =
             formData.startTime !== (localSession.startTime || '') ||
@@ -64,7 +86,6 @@ export function LessonDetailModal({ session, onClose, onUpdate, onDelete, initia
         setIsDirty(hasChanges);
     }, [formData, localSession]);
 
-    // Sync form when entering edit mode or when localSession changes
     useEffect(() => {
         setFormData({
             startTime: localSession.startTime || '',
@@ -75,67 +96,32 @@ export function LessonDetailModal({ session, onClose, onUpdate, onDelete, initia
         });
     }, [localSession]);
 
-    // Sync localSession if parent prop changes significantly (e.g., ID change or manual update from outside)
     useEffect(() => {
-        const currentVersion = session.version ?? 0;
-        const localVersion = localSession.version ?? 0;
-
-        if (session.id === localSession.id && currentVersion > localVersion) {
-            setLocalSession(session);
-        } else if (session.id !== localSession.id) {
-            setLocalSession(session);
-        }
+        setLocalSession(session);
     }, [session]);
 
-    const handleClose = () => {
-        if (mode === 'edit' && isDirty) {
-            setConfirmCloseOpen(true);
-            return;
-        }
-        onClose();
-    };
-
-    // Body scroll lock & Sidebar hiding (Problem 2)
     const { openDialog, closeDialog } = useUI();
 
     useEffect(() => {
         openDialog();
         document.body.style.overflow = 'hidden';
-        document.body.classList.add('modal-open');
-
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                // Check if any sub-dialogs (like ConfirmDialog) are open
-                const subDialogs = document.querySelectorAll('[role="alertdialog"]');
-                if (subDialogs.length === 0) {
-                    handleClose();
-                }
-            }
+            if (e.key === 'Escape') onClose();
         };
         window.addEventListener('keydown', handleKeyDown);
-
         return () => {
             closeDialog();
             document.body.style.overflow = 'unset';
             window.removeEventListener('keydown', handleKeyDown);
-
-            // Only remove modal-open if no other modals are open
-            setTimeout(() => {
-                const otherModals = document.querySelectorAll('[role="dialog"]');
-                if (otherModals.length === 0) {
-                    document.body.classList.remove('modal-open');
-                }
-            }, 0);
         };
-    }, [handleClose]);
+    }, []);
 
-    // Derived calculations
     const calculateHours = (start: string, end: string) => {
         if (!start || !end) return session.hours;
         const [h1, m1] = start.split(':').map(Number);
         const [h2, m2] = end.split(':').map(Number);
         let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
-        if (diff <= 0) diff += 24 * 60; // Handle overnight
+        if (diff <= 0) diff += 24 * 60;
         return diff / 60;
     };
 
@@ -144,12 +130,6 @@ export function LessonDetailModal({ session, onClose, onUpdate, onDelete, initia
 
     const handleSubmit = async (e?: React.FormEvent) => {
         e?.preventDefault();
-
-        if (session.version === undefined) {
-            toast.error('Lỗi: Không tìm thấy phiên bản dữ liệu.');
-            return;
-        }
-
         setLoading(true);
         try {
             const updatePayload: SessionRecordUpdateRequest = {
@@ -157,14 +137,12 @@ export function LessonDetailModal({ session, onClose, onUpdate, onDelete, initia
                 hoursPerSession: currentHours,
                 version: localSession.version
             };
-
             const updated = await sessionsApi.update(localSession.id, updatePayload);
             toast.success('Đã cập nhật buổi học thành công!');
-            setLocalSession(updated); // Sync local version immediately
-            onUpdate?.(updated); // Notify parent
+            setLocalSession(updated);
+            onUpdate?.(updated);
             setMode('view');
         } catch (error) {
-            console.error('Failed to update:', error);
             toast.error(error instanceof Error ? error.message : 'Lỗi khi cập nhật buổi học');
         } finally {
             setLoading(false);
@@ -185,273 +163,300 @@ export function LessonDetailModal({ session, onClose, onUpdate, onDelete, initia
         }
     };
 
-    const colors = getStatusColors(localSession.status as LessonStatus);
+    const statusColors = getStatusColors(localSession.status as LessonStatus);
 
     if (typeof document === 'undefined') return null;
 
     return createPortal(
-        <div role="dialog" className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-2 md:p-4 animate-in fade-in duration-150 ease-out">
-            <div className="bg-card border border-border rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 ease-out">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={onClose}
+                className="absolute inset-0 bg-background/80 backdrop-blur-md"
+            />
 
-                {/* Header - Sticky */}
-                <div className="flex items-center justify-between p-4 md:p-6 border-b border-border bg-card/80 backdrop-blur-sm z-10">
-                    <div className="flex items-center gap-3">
-                        <div className={cn("p-2 rounded-xl", colors.bg, colors.text)}>
-                            {mode === 'view' ? <BookOpen size={20} /> : <Edit3 size={20} />}
+            <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                className="relative bg-card rounded-[2.5rem] shadow-2xl w-full max-w-lg overflow-hidden border border-border/60"
+            >
+                {/* Header with Gradient */}
+                <div className={cn(
+                    "relative p-6 sm:p-8 pb-12 sm:pb-16 transition-all duration-500",
+                    localSession.paid ? "bg-gradient-to-br from-emerald-500 to-teal-600" : "bg-gradient-to-br from-blue-500 to-indigo-600",
+                    localSession.status === 'CANCELLED_BY_STUDENT' || localSession.status === 'CANCELLED_BY_TUTOR'
+                        ? "from-slate-500 to-slate-700" : ""
+                )}>
+                    {/* Decorative element */}
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
+
+                    <div className="relative flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white">
+                                <BookOpen size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-white font-black uppercase tracking-widest text-sm">Chi tiết buổi học</h3>
+                                <p className="text-white/70 text-xs font-bold mt-1">
+                                    #{localSession.id} • {localSession.sessionDate}
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-lg font-bold">{mode === 'view' ? 'Chi tiết buổi học' : 'Chỉnh sửa thông tin'}</h2>
-                            <p className="text-xs text-muted-foreground">{localSession.studentName} • {localSession.sessionDate}</p>
-                        </div>
+
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={onClose}
+                            className="rounded-full text-white hover:bg-white/10 h-10 w-10"
+                        >
+                            <X size={24} />
+                        </Button>
                     </div>
-                    <button
-                        onClick={handleClose}
-                        className="p-2 hover:bg-muted rounded-full transition-colors"
-                    >
-                        <X size={20} />
-                    </button>
                 </div>
 
-                {/* Content - Scrollable */}
-                <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+                {/* Student Card (overlapping) */}
+                <div className="relative z-10 -mt-8 mx-4 sm:mx-8">
+                    <motion.div
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        className="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 rounded-3xl bg-card border border-border/60 shadow-2xl relative overflow-hidden"
+                    >
+                        {/* Dimensional Background */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent dark:from-white/[0.02] pointer-events-none" />
+
+                        <div className="relative z-10">
+                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white font-black text-2xl shadow-lg ring-4 ring-background">
+                                {localSession.studentName?.charAt(0).toUpperCase()}
+                            </div>
+                            <div className={cn("absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-4 border-background shadow-sm", statusColors.dot)} />
+                        </div>
+
+                        <div className="flex-1 relative z-10">
+                            <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Học sinh</div>
+                            <h4 className="text-xl font-black capitalize tracking-tight">{localSession.studentName}</h4>
+                        </div>
+
+                        <Badge className={cn("relative z-10 rounded-full px-4 py-1.5 font-black uppercase text-[10px] tracking-widest border-0 shadow-sm", statusColors.bg, statusColors.text)}>
+                            {LESSON_STATUS_LABELS[localSession.status as keyof typeof LESSON_STATUS_LABELS] || localSession.status}
+                        </Badge>
+                    </motion.div>
+                </div>
+
+                {/* Main Content */}
+                <div className="p-5 sm:p-8 space-y-6 sm:space-y-8 max-h-[60vh] overflow-y-auto no-scrollbar">
                     {mode === 'view' ? (
-                        <div className="space-y-6 md:space-y-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                                {/* Top Left: Summary */}
-                                <div className="space-y-4">
-                                    <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">
-                                            {localSession.studentName?.charAt(0).toUpperCase()}
-                                        </div>
-                                        <div>
-                                            <div className="text-[10px] uppercase font-bold text-muted-foreground">Học sinh</div>
-                                            <div className="text-base font-bold capitalize">{localSession.studentName}</div>
-                                        </div>
-                                    </div>
+                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            {/* Time & Date Grid */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <InfoCard
+                                    icon={<Calendar size={18} className="text-blue-500" />}
+                                    label="Ngày dạy"
+                                    value={localSession.sessionDate}
+                                    variant="blue"
+                                />
+                                <InfoCard
+                                    icon={<Clock size={18} className="text-purple-500" />}
+                                    label="Thời gian"
+                                    value={`${localSession.startTime} - ${localSession.endTime}`}
+                                    variant="purple"
+                                />
+                            </div>
 
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-border/50">
-                                            <Calendar className="text-blue-500 mb-2" size={18} />
-                                            <div className="text-[10px] uppercase font-bold text-muted-foreground">Ngày dạy</div>
-                                            <div className="text-sm font-semibold">{localSession.sessionDate}</div>
-                                        </div>
-                                        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-border/50">
-                                            <Clock className="text-purple-500 mb-2" size={18} />
-                                            <div className="text-[10px] uppercase font-bold text-muted-foreground">Thời gian</div>
-                                            <div className="text-sm font-semibold">{localSession.startTime} - {localSession.endTime}</div>
-                                        </div>
-                                    </div>
+                            {/* Payment Card */}
+                            <div className={cn(
+                                "p-6 rounded-[2rem] border-2 flex items-center justify-between group transition-all duration-500 hover:scale-[1.02]",
+                                localSession.paid
+                                    ? "bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-800"
+                                    : "bg-orange-50/50 dark:bg-orange-950/20 border-orange-200/50 dark:border-orange-800"
+                            )}>
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-1">Thanh toán</p>
+                                    <p className="text-3xl font-black tracking-tighter">
+                                        {formatCurrency(localSession.totalAmount)}
+                                    </p>
+                                    <p className="text-[10px] font-bold text-muted-foreground mt-1 flex items-center gap-1">
+                                        <Clock size={10} />
+                                        {localSession.hours}h × {formatCurrency(localSession.pricePerHour)}/h
+                                    </p>
                                 </div>
 
-                                {/* Top Right: Status & Finance */}
-                                <div className="space-y-4">
-                                    <div className={cn("p-4 rounded-2xl border flex items-center justify-between", colors.bg, colors.border)}>
-                                        <div className="flex items-center gap-3">
-                                            <div className={cn("w-2 h-2 rounded-full", colors.dot)} />
-                                            <span className={cn("text-sm font-bold uppercase tracking-wide", colors.text)}>
-                                                {LESSON_STATUS_LABELS[localSession.status as keyof typeof LESSON_STATUS_LABELS] || localSession.status}
-                                            </span>
-                                        </div>
-                                        <div className="text-xs font-medium opacity-70">Trạng thái</div>
-                                    </div>
-
-                                    <div className="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/30">
-                                        <Banknote className="text-emerald-500 mb-2" size={18} />
-                                        <div className="flex justify-between items-end">
-                                            <div>
-                                                <div className="text-[10px] uppercase font-bold text-muted-foreground">Thành tiền</div>
-                                                <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
-                                                    {localSession.totalAmount.toLocaleString()}đ
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="text-[10px] uppercase font-bold text-muted-foreground">{localSession.hours}h dạy</div>
-                                                <div className="text-xs font-semibold">{localSession.pricePerHour.toLocaleString()}đ/h</div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div className={cn(
+                                    "w-16 h-16 rounded-full flex items-center justify-center transition-transform group-hover:rotate-12 duration-500",
+                                    localSession.paid ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30" : "bg-orange-500 text-white shadow-lg shadow-orange-500/30"
+                                )}>
+                                    {localSession.paid ? <Check size={32} strokeWidth={3} /> : <DollarSign size={32} />}
                                 </div>
                             </div>
 
-                            {/* bottom: Notes */}
-                            <div className="p-5 rounded-2xl bg-muted/20 border border-border/50 flex gap-4">
-                                <FileText className="text-muted-foreground shrink-0 mt-1" size={18} />
-                                <div className="space-y-2 w-full">
-                                    <div className="text-[10px] uppercase font-bold text-muted-foreground">Nội dung / Ghi chú</div>
-                                    <div className="text-sm leading-relaxed text-foreground min-h-[60px]">
-                                        {localSession.notes || <span className="text-muted-foreground italic">Không có ghi chú.</span>}
+                            {/* Notes Section */}
+                            {localSession.notes && (
+                                <div className="p-5 rounded-3xl bg-muted/30 border border-border/40">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <FileText size={16} className="text-muted-foreground" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nội dung / Ghi chú</span>
                                     </div>
+                                    <p className="text-sm font-medium leading-relaxed italic opacity-80 whitespace-pre-wrap">
+                                        "{localSession.notes}"
+                                    </p>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     ) : (
-                        <form id="edit-session-form" onSubmit={handleSubmit} className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Basic Info */}
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold uppercase text-muted-foreground ml-1">Giờ bắt đầu</label>
-                                            <input
-                                                type="time"
-                                                value={formData.startTime}
-                                                onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                                                className="w-full h-11 px-4 border border-border rounded-xl bg-muted/30 focus:bg-background focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold uppercase text-muted-foreground ml-1">Giờ kết thúc</label>
-                                            <input
-                                                type="time"
-                                                value={formData.endTime}
-                                                onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                                                className="w-full h-11 px-4 border border-border rounded-xl bg-muted/30 focus:bg-background focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase text-muted-foreground ml-1">Môn học</label>
-                                        <input
-                                            type="text"
-                                            value={formData.subject}
-                                            onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                                            placeholder="VD: Toán 10..."
-                                            className="w-full h-11 px-4 border border-border rounded-xl bg-muted/30 focus:bg-background focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                                        />
-                                    </div>
+                        <form id="premium-edit-form" onSubmit={handleSubmit} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Giờ bắt đầu</label>
+                                    <input
+                                        type="time"
+                                        value={formData.startTime}
+                                        onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                                        className="w-full h-14 px-5 rounded-2xl bg-muted/40 border-border/60 focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all font-bold outline-none"
+                                    />
                                 </div>
-
-                                {/* Status & Calc */}
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase text-muted-foreground ml-1">Trạng thái buổi dạy</label>
-                                        <Select
-                                            value={formData.status}
-                                            onValueChange={(val) => setFormData({ ...formData, status: val as LessonStatus })}
-                                        >
-                                            <SelectTrigger className="w-full h-11 border-border bg-muted/30 focus:bg-background rounded-xl px-4 outline-none transition-all focus:ring-primary/20">
-                                                <SelectValue placeholder="Chọn trạng thái" />
-                                            </SelectTrigger>
-                                            <SelectContent className="rounded-xl border-border shadow-xl z-[100]">
-                                                {Object.entries(LESSON_STATUS_LABELS).map(([val, label]) => (
-                                                    <SelectItem
-                                                        key={val}
-                                                        value={val}
-                                                        className="py-2.5 rounded-lg focus:bg-primary focus:text-primary-foreground"
-                                                    >
-                                                        {label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-border/50 flex justify-between items-center h-[5.5rem] mt-auto">
-                                        <div>
-                                            <div className="text-[10px] uppercase font-bold text-muted-foreground">Tạm tính ({currentHours}h)</div>
-                                            <div className="text-xl font-black text-primary">{currentTotal.toLocaleString()}đ</div>
-                                        </div>
-                                        <RotateCcw
-                                            size={20}
-                                            className={cn("text-muted-foreground transition-transform duration-500", isDirty && "rotate-180 text-primary")}
-                                        />
-                                    </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Giờ kết thúc</label>
+                                    <input
+                                        type="time"
+                                        value={formData.endTime}
+                                        onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                                        className="w-full h-14 px-5 rounded-2xl bg-muted/40 border-border/60 focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all font-bold outline-none"
+                                    />
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-xs font-bold uppercase text-muted-foreground ml-1">Ghi chú nội dung</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Môn học</label>
+                                <input
+                                    type="text"
+                                    value={formData.subject}
+                                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                                    placeholder="Toán 12, Lý 11..."
+                                    className="w-full h-14 px-5 rounded-2xl bg-muted/40 border-border/60 focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all font-bold outline-none"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Trạng thái</label>
+                                <Select
+                                    value={formData.status}
+                                    onValueChange={(val) => setFormData({ ...formData, status: val as LessonStatus })}
+                                >
+                                    <SelectTrigger className="h-14 px-5 rounded-2xl bg-muted/40 border-border/60 focus:bg-background font-bold transition-all">
+                                        <SelectValue placeholder="Chọn trạng thái" />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-2xl border-border/60 shadow-2xl">
+                                        {Object.entries(LESSON_STATUS_LABELS).map(([val, label]) => (
+                                            <SelectItem key={val} value={val} className="py-3 rounded-xl focus:bg-primary/10 focus:text-primary">
+                                                {label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Ghi chú</label>
                                 <textarea
                                     value={formData.notes}
                                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                    rows={4}
-                                    placeholder="Nội dung bài học, bài tập về nhà..."
-                                    className="w-full p-4 border border-border rounded-2xl bg-muted/30 focus:bg-background focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none"
+                                    rows={3}
+                                    placeholder="Ghi chú bài học..."
+                                    className="w-full p-5 rounded-2xl bg-muted/40 border-border/60 focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all font-bold outline-none resize-none no-scrollbar"
                                 />
                             </div>
                         </form>
                     )}
                 </div>
 
-                {/* Footer - Sticky */}
-                <div className="p-4 md:p-6 border-t border-border bg-card/80 backdrop-blur-sm z-10">
-                    {mode === 'view' ? (
-                        <div className="flex flex-col sm:flex-row items-center gap-3">
-                            <button
-                                onClick={() => setConfirmDeleteOpen(true)}
-                                className="w-full sm:w-auto p-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-2xl transition-all flex items-center justify-center gap-2"
-                            >
-                                <Trash2 size={18} />
-                                <span className="text-sm font-bold sm:hidden lg:inline">Xóa buổi học</span>
-                            </button>
-
-                            <div className="flex items-center gap-3 w-full sm:w-auto sm:ml-auto">
-                                <button
+                {/* Actions Footer */}
+                <div className="p-5 sm:p-8 bg-muted/10 border-t border-border/60">
+                    <div className="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-3">
+                        {mode === 'view' ? (
+                            <>
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => setConfirmDeleteOpen(true)}
+                                    className="h-14 flex-1 rounded-2xl text-red-500 hover:bg-red-500/10 font-black uppercase tracking-widest text-[11px]"
+                                >
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    Xóa
+                                </Button>
+                                <Button
+                                    variant="outline"
                                     onClick={handleDuplicate}
                                     disabled={loading}
-                                    className="flex-1 sm:flex-none px-4 h-12 border border-primary/20 hover:bg-primary/5 text-primary rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all"
+                                    className="h-14 flex-1 rounded-2xl border-border/60 font-black uppercase tracking-widest text-[11px]"
                                 >
-                                    <Copy size={18} />
-                                    <span>Nhân bản</span>
-                                </button>
-                                <button
+                                    <Copy className="w-4 h-4 mr-2" />
+                                    Nhân bản
+                                </Button>
+                                <Button
                                     onClick={() => setMode('edit')}
-                                    className="flex-[2] sm:flex-none px-8 h-12 bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl font-bold text-sm shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2"
+                                    className="h-14 flex-1 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-[11px] shadow-lg shadow-primary/20"
                                 >
-                                    <Edit3 size={18} />
-                                    <span>Chỉnh sửa</span>
-                                </button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="flex flex-col sm:flex-row items-center gap-3">
-                            <button
-                                type="button"
-                                onClick={() => setMode('view')}
-                                className="w-full sm:w-auto px-6 h-12 border border-border rounded-2xl font-bold text-sm hover:bg-muted transition-all"
-                            >
-                                Hủy bỏ
-                            </button>
-                            <button
-                                form="edit-session-form"
-                                type="submit"
-                                disabled={loading || !isDirty}
-                                className="w-full sm:w-auto sm:ml-auto px-10 h-12 bg-primary text-primary-foreground rounded-2xl font-bold text-sm shadow-lg shadow-primary/25 disabled:opacity-50 disabled:shadow-none transition-all flex items-center justify-center gap-2"
-                            >
-                                {loading ? <X className="animate-spin" size={18} /> : <Save size={18} />}
-                                <span>{loading ? 'Đang lưu...' : 'Lưu thay đổi'}</span>
-                            </button>
-                        </div>
-                    )}
+                                    <Pencil className="w-4 h-4 mr-2" />
+                                    Sửa
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => setMode('view')}
+                                    className="h-14 flex-1 rounded-2xl font-black uppercase tracking-widest text-[11px]"
+                                >
+                                    Hủy
+                                </Button>
+                                <Button
+                                    form="premium-edit-form"
+                                    type="submit"
+                                    disabled={loading || !isDirty}
+                                    className="h-14 flex-[2] rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase tracking-widest text-[11px] shadow-lg shadow-emerald-500/20"
+                                >
+                                    {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                                    {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
+                                </Button>
+                            </>
+                        )}
+                    </div>
                 </div>
-            </div>
+            </motion.div>
 
-            {/* Dialogs */}
-            <ConfirmDialog
-                open={confirmCloseOpen}
-                onOpenChange={setConfirmCloseOpen}
-                onConfirm={onClose}
-                title="Bỏ qua thay đổi?"
-                description="Các thông tin bạn vừa sửa sẽ không được lưu. Bạn có chắc muốn thoát?"
-                confirmText="Hủy sửa và thoát"
-                variant="destructive"
-            />
-
-            <ConfirmDialog
-                open={confirmDeleteOpen}
-                onOpenChange={setConfirmDeleteOpen}
-                onConfirm={() => {
-                    if (localSession.id && onDelete) {
-                        onDelete(localSession.id);
-                        onClose();
-                    }
-                }}
-                title="Xác nhận xóa?"
-                description="Buổi học này sẽ bị xóa vĩnh viễn khỏi lịch dạy. Bạn không thể hoàn tác thao tác này."
-                confirmText="Xóa vĩnh viễn"
-                variant="destructive"
-            />
+            {confirmDeleteOpen && (
+                <ConfirmDialog
+                    open={confirmDeleteOpen}
+                    onOpenChange={setConfirmDeleteOpen}
+                    onConfirm={() => {
+                        if (localSession.id && onDelete) {
+                            onDelete(localSession.id);
+                            onClose();
+                        }
+                    }}
+                    title="Xác nhận xóa?"
+                    description="Buổi học này sẽ bị xóa vĩnh viễn khỏi lịch dạy. Bạn không thể hoàn tác thao tác này."
+                    confirmText="Xác nhận xóa"
+                    variant="destructive"
+                />
+            )}
         </div>,
         document.body
     );
 }
+
+const Loader2 = ({ className }: { className?: string }) => (
+    <svg className={cn("animate-spin", className)} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+);
+
+const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+        minimumFractionDigits: 0
+    }).format(value);
+};

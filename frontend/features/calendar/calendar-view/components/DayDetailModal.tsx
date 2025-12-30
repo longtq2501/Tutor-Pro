@@ -1,4 +1,4 @@
-import { XCircle, Plus, Calendar, Clock, Trash2, BookOpen, BookDashed, CheckSquare, Square, Loader2 } from 'lucide-react';
+import { X, Plus, Calendar, Clock, Trash2, BookOpen, BookDashed, CheckSquare, Square, Loader2, DollarSign, Check, Info } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -11,12 +11,15 @@ import { LESSON_STATUS_LABELS, isTerminalStatus } from '@/lib/types/lesson-statu
 import { getStatusColors } from '../utils/statusColors';
 import { useUI } from '@/contexts/UIContext';
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 interface Props {
   day: CalendarDay;
@@ -41,195 +44,262 @@ export const DayDetailModal = ({
 }: Props) => {
   const [sessionToDelete, setSessionToDelete] = useState<number | null>(null);
 
-  // Body scroll lock & Sidebar hiding (Problem 2)
   const { openDialog, closeDialog } = useUI();
 
   useEffect(() => {
     openDialog();
     document.body.style.overflow = 'hidden';
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', handleKeyDown);
-
     return () => {
       closeDialog();
       document.body.style.overflow = 'unset';
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [onClose]);
+  }, []);
 
   if (typeof document === 'undefined') return null;
 
-  return createPortal(
-    <div role="dialog" className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150 ease-out">
-      <div className="absolute inset-0" onClick={onClose} />
+  const totalRevenue = day.sessions.reduce((acc, s) => acc + s.totalAmount, 0);
+  const completedSessions = day.sessions.filter(s => s.completed).length;
 
-      <div className="relative bg-card rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] flex flex-col animate-in fade-in zoom-in-95 duration-150 ease-out border border-border">
-        <div className="p-5 border-b border-border flex justify-between items-center bg-slate-50/50 dark:bg-muted/50 rounded-t-2xl">
-          <div>
-            <h3 className="text-xl font-bold text-card-foreground">{day.date.getDate()} {MONTHS[day.date.getMonth()]}</h3>
-            <p className="text-sm text-muted-foreground">{day.sessions.length} buổi học</p>
-          </div>
-          <div className="flex gap-2">
-            <button onClick={() => onAddSession(day.dateStr)} className="hidden sm:block p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors">
-              <Plus size={20} />
-            </button>
-            <button onClick={onClose} className="p-2 hover:bg-muted rounded-lg text-muted-foreground transition-colors">
-              <XCircle size={24} />
-            </button>
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-background/80 backdrop-blur-md"
+      />
+
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        className="relative bg-card rounded-[2.5rem] shadow-2xl w-full max-w-lg overflow-hidden border border-border/60"
+      >
+        {/* Header with Gradient */}
+        <div className="relative p-6 sm:p-8 pb-12 sm:pb-16 bg-gradient-to-br from-violet-600 to-purple-800 transition-all duration-300">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
+
+          <div className="relative flex items-center justify-between text-white">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex flex-col items-center justify-center shrink-0">
+                <span className="text-lg sm:text-xl font-black leading-none">{day.date.getDate()}</span>
+                <span className="text-[8px] sm:text-[10px] uppercase font-bold opacity-80">{MONTHS[day.date.getMonth()].slice(6)}</span>
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-white font-black uppercase tracking-widest text-[11px] sm:text-sm truncate">Lịch dạy trong ngày</h3>
+                <p className="text-white/70 text-[10px] sm:text-xs font-bold mt-0.5 sm:mt-1 truncate">
+                  {day.sessions.length} buổi • {formatCurrency(totalRevenue)}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onAddSession(day.dateStr)}
+                className="rounded-xl h-10 w-10 text-white hover:bg-white/10"
+              >
+                <Plus size={20} strokeWidth={3} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="rounded-full text-white hover:bg-white/10 h-10 w-10"
+              >
+                <X size={24} />
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Mobile FAB for Add Session */}
-        <button
-          onClick={() => onAddSession(day.dateStr)}
-          className="sm:hidden absolute bottom-6 right-6 z-50 h-14 w-14 bg-primary text-primary-foreground rounded-full shadow-lg flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
-        >
-          <Plus size={28} />
-        </button>
-
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          {day.sessions.length === 0 ? (
-            <div className="text-center py-10 text-muted-foreground">
-              <Calendar className="mx-auto mb-2 opacity-50" size={40} />
-              <p>Chưa có lịch học nào.</p>
-            </div>
-          ) : (
-            day.sessions.map((session) => {
-              const colors = getStatusColors(session.status);
-              const terminal = isTerminalStatus(session.status || 'SCHEDULED');
-
-              return (
-                <div
-                  key={session.id}
-                  onClick={() => onSessionClick?.(session)}
-                  className={cn(
-                    "group cursor-pointer flex flex-col border rounded-xl p-4 transition-all hover:shadow-md",
-                    colors.bg,
-                    colors.border,
-                    !session.status && !session.completed && "bg-slate-50 dark:bg-muted/30 border-dashed border-slate-300 dark:border-slate-700"
-                  )}
+        {/* Content Area */}
+        <div className="relative z-10 -mt-8 mx-4 sm:mx-6 bg-card rounded-[2rem] border border-border/60 shadow-xl flex flex-col max-h-[60vh]">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 sm:space-y-4 no-scrollbar">
+            <AnimatePresence mode="popLayout">
+              {day.sessions.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-12"
                 >
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h4 className="font-bold text-card-foreground text-base md:text-lg flex flex-wrap items-center gap-2">
-                        {session.studentName}
-                        {session.subject && <span className="text-muted-foreground font-normal">• {session.subject}</span>}
-                        <span className={cn(
-                          "text-[10px] uppercase font-bold px-2 py-0.5 rounded-full",
-                          colors.bg,
-                          colors.text,
-                          "border",
-                          colors.border
-                        )}>
-                          {LESSON_STATUS_LABELS[session.status as keyof typeof LESSON_STATUS_LABELS] || (session.completed ? 'Đã dạy' : 'Dự kiến')}
-                        </span>
-                      </h4>
-                      <div className="text-sm text-muted-foreground flex flex-col gap-1 mt-1">
-                        <div className="flex items-center gap-2">
-                          <Clock size={14} />
-                          <span className="font-medium text-foreground">
-                            {session.startTime && session.endTime
-                              ? `${session.startTime} - ${session.endTime}`
-                              : `${session.hours}h`}
-                          </span>
-                          <span className="text-[11px] opacity-70">({formatCurrency(session.pricePerHour)}/h)</span>
+                  <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                    <Calendar className="text-muted-foreground/30" size={40} />
+                  </div>
+                  <p className="text-muted-foreground font-bold italic">Hôm nay chưa có lịch học nào.</p>
+                  <Button
+                    variant="link"
+                    onClick={() => onAddSession(day.dateStr)}
+                    className="text-primary mt-2 flex items-center gap-1 mx-auto"
+                  >
+                    <Plus size={14} /> Thêm lịch ngay
+                  </Button>
+                </motion.div>
+              ) : (
+                day.sessions.map((session, index) => {
+                  const colors = getStatusColors(session.status);
+                  const terminal = isTerminalStatus(session.status || 'SCHEDULED');
+
+                  return (
+                    <motion.div
+                      key={session.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      onClick={() => onSessionClick?.(session)}
+                      className={cn(
+                        "group relative overflow-hidden flex flex-col border rounded-[1.5rem] p-4 sm:p-5 transition-all duration-500",
+                        "hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-lg",
+                        "bg-gradient-to-br from-white/10 to-transparent dark:from-white/5 dark:to-transparent",
+                        colors.bg,
+                        "border-white/20 dark:border-white/10"
+                      )}
+                    >
+                      {/* Dimension Highlights */}
+                      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-black/5 to-transparent dark:via-white/5" />
+
+                      {/* Status Strip */}
+                      <div className={cn("absolute left-0 top-0 bottom-0 w-1.5 sm:w-2 rounded-l-[1.5rem] shadow-[2px_0_10px_rgba(0,0,0,0.1)]", colors.dot)} />
+
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex-1 min-w-0 pr-4">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <h4 className="font-black text-base sm:text-lg truncate tracking-tight">{session.studentName}</h4>
+                            <Badge className={cn("rounded-full px-2 sm:px-3 py-0.5 text-[9px] sm:text-[10px] font-black uppercase tracking-widest border-0", colors.bg, colors.text)}>
+                              {LESSON_STATUS_LABELS[session.status as keyof typeof LESSON_STATUS_LABELS] || (session.completed ? 'Đã dạy' : 'Dự kiến')}
+                            </Badge>
+                          </div>
+
+                          <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground font-bold flex-wrap">
+                            <span className="flex items-center gap-1">
+                              <BookOpen size={12} className="opacity-50" />
+                              <span className="truncate max-w-[80px] sm:max-w-none">{session.subject || 'Thông thường'}</span>
+                            </span>
+                            <span className="w-0.5 h-0.5 rounded-full bg-border shrink-0" />
+                            <span className="flex items-center gap-1">
+                              <Clock size={12} className="opacity-50" />
+                              {session.startTime} - {session.endTime}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <p className={cn("font-black text-lg sm:text-xl tracking-tighter", colors.text)}>
+                            {formatCurrency(session.totalAmount)}
+                          </p>
+                          <p className="text-[9px] sm:text-[10px] font-bold text-muted-foreground opacity-70">
+                            {session.hours}h × {formatCurrency(session.pricePerHour)}/h
+                          </p>
                         </div>
                       </div>
-                    </div>
-                    <div className={cn("font-bold text-base md:text-lg", colors.text)}>
-                      {formatCurrency(session.totalAmount)}
-                    </div>
-                  </div>
 
-                  <div className="pt-3 border-t border-border flex justify-between items-center mt-auto gap-2">
-                    <TooltipProvider>
-                      <div className="flex gap-2">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onToggleComplete(session.id, session.version);
-                              }}
-                              disabled={loadingSessions.has(session.id) || terminal}
-                              className={cn(
-                                "cursor-pointer text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-all duration-200 disabled:opacity-50",
-                                session.completed ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600',
-                                loadingSessions.has(session.id) && "scale-95",
-                                terminal && "opacity-50 grayscale cursor-not-allowed"
-                              )}
-                            >
-                              {loadingSessions.has(session.id) ? (
-                                <Loader2 size={14} className="animate-spin" />
-                              ) : (
-                                session.completed ? <BookOpen size={14} /> : <BookDashed size={14} />
-                              )}
-                              <span className="hidden sm:inline">{session.completed ? 'Đã Dạy' : 'Chưa Dạy'}</span>
-                              <span className="sm:hidden">{session.completed ? 'Dạy' : 'Dự kiến'}</span>
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>{session.completed ? 'Hủy đánh dấu dạy' : 'Đánh dấu đã dạy xong'}</TooltipContent>
-                        </Tooltip>
+                      <div className="pt-4 border-t border-border/40 flex justify-between items-center mt-auto">
+                        <TooltipProvider delayDuration={300}>
+                          <div className="flex gap-2">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onToggleComplete(session.id, session.version);
+                                  }}
+                                  disabled={loadingSessions.has(session.id) || terminal}
+                                  className={cn(
+                                    "h-8 sm:h-10 rounded-xl px-2 sm:px-4 font-black uppercase tracking-widest text-[9px] sm:text-[10px] transition-all duration-300",
+                                    session.completed ? 'bg-primary/10 text-primary' : 'bg-muted/50 text-muted-foreground',
+                                  )}
+                                >
+                                  {loadingSessions.has(session.id) ? (
+                                    <Loader2 size={12} className="animate-spin sm:mr-1.5" />
+                                  ) : (
+                                    session.completed ? <Check size={12} className="sm:mr-1.5" strokeWidth={3} /> : <BookDashed size={12} className="sm:mr-1.5 text-muted-foreground/50" />
+                                  )}
+                                  <span className="hidden sm:inline">{session.completed ? 'Đã dạy' : 'Dự kiến'}</span>
+                                  <span className="sm:hidden">{session.completed ? 'Dạy' : 'Dự'}</span>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent className="rounded-xl font-bold">
+                                {session.completed ? 'Hủy đánh dấu dạy' : 'Đánh dấu đã dạy xong'}
+                              </TooltipContent>
+                            </Tooltip>
 
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onTogglePayment(session.id, session.version);
-                              }}
-                              disabled={!session.completed || loadingSessions.has(session.id) || terminal}
-                              className={cn(
-                                "cursor-pointer text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-all duration-200 disabled:opacity-50",
-                                !session.completed ? 'bg-muted text-muted-foreground cursor-not-allowed' : session.paid ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50',
-                                loadingSessions.has(session.id) && "scale-95",
-                                terminal && session.status !== 'PAID' && "opacity-50 grayscale cursor-not-allowed"
-                              )}
-                            >
-                              {loadingSessions.has(session.id) ? (
-                                <Loader2 size={14} className="animate-spin" />
-                              ) : (
-                                session.paid ? <CheckSquare size={14} /> : <Square size={14} />
-                              )}
-                              <span className="hidden sm:inline">{session.paid ? 'Đã Thanh Toán' : 'Chưa Thanh Toán'}</span>
-                              <span className="sm:hidden">{session.paid ? 'Đã TT' : 'TT'}</span>
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>{session.paid ? 'Hủy xác nhận thanh toán' : 'Xác nhận đã nhận tiền'}</TooltipContent>
-                        </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onTogglePayment(session.id, session.version);
+                                  }}
+                                  disabled={!session.completed || loadingSessions.has(session.id) || terminal}
+                                  className={cn(
+                                    "h-8 sm:h-10 rounded-xl px-2 sm:px-4 font-black uppercase tracking-widest text-[9px] sm:text-[10px] transition-all duration-300",
+                                    session.paid ? 'bg-emerald-500/10 text-emerald-600' : 'bg-orange-500/10 text-orange-600',
+                                    !session.completed && "opacity-20 grayscale pointer-events-none"
+                                  )}
+                                >
+                                  {loadingSessions.has(session.id) ? (
+                                    <Loader2 size={12} className="animate-spin sm:mr-1.5" />
+                                  ) : (
+                                    session.paid ? <CheckSquare size={12} className="sm:mr-1.5" strokeWidth={3} /> : <Square size={12} className="sm:mr-1.5" />
+                                  )}
+                                  <span className="hidden sm:inline">{session.paid ? 'Đã thu' : 'Chưa thu'}</span>
+                                  <span className="sm:hidden">{session.paid ? 'Thu' : 'Chưa'}</span>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent className="rounded-xl font-bold">
+                                {session.paid ? 'Hủy xác nhận thanh toán' : 'Xác nhận đã nhận tiền'}
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                        </TooltipProvider>
+
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => { e.stopPropagation(); setSessionToDelete(session.id); }}
+                          className="h-10 w-10 rounded-full text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                        >
+                          <Trash2 size={18} />
+                        </Button>
                       </div>
-                    </TooltipProvider>
-
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setSessionToDelete(session.id); }}
-                      className="cursor-pointer text-muted-foreground hover:text-destructive p-2.5 rounded-full hover:bg-destructive/10 transition-colors"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </div>
-              );
-            })
-          )}
+                    </motion.div>
+                  );
+                })
+              )}
+            </AnimatePresence>
+          </div>
         </div>
-        <ConfirmDialog
-          open={sessionToDelete !== null}
-          onOpenChange={(open) => !open && setSessionToDelete(null)}
-          onConfirm={() => {
-            if (sessionToDelete) {
-              onDelete(sessionToDelete);
-              setSessionToDelete(null);
-            }
-          }}
-          title="Xác nhận xóa vĩnh viễn?"
-          description="Buổi học này sẽ bị xóa hoàn toàn khỏi hệ thống và không thể khôi phục. Bạn có chắc chắn không?"
-          confirmText="Xác nhận xóa"
-          variant="destructive"
-        />
-      </div>
+
+        {/* Footer padding */}
+        <div className="h-10" />
+      </motion.div>
+
+      <ConfirmDialog
+        open={sessionToDelete !== null}
+        onOpenChange={(open) => !open && setSessionToDelete(null)}
+        onConfirm={() => {
+          if (sessionToDelete) {
+            onDelete(sessionToDelete);
+            setSessionToDelete(null);
+          }
+        }}
+        title="Xác nhận xóa vĩnh viễn?"
+        description="Buổi học này sẽ bị xóa hoàn toàn khỏi hệ thống và không thể khôi phục. Bạn có chắc chắn không?"
+        confirmText="Xác nhận xóa"
+        variant="destructive"
+      />
     </div>,
     document.body
   );

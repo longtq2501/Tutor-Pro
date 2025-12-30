@@ -1,427 +1,279 @@
-import { memo, useState, useEffect } from 'react';
+'use client';
+
+import { memo, useMemo } from 'react';
 import {
-  ChevronLeft,
-  ChevronRight,
-  Zap,
-  Loader2,
-  Calendar as CalendarIcon,
-  FileDown,
-  Trash2,
-  MoreVertical,
-  CalendarRange,
-  CalendarDays,
-  List,
-  TrendingUp,
-  Settings2
+  ChevronLeft, ChevronRight, Plus, Sparkles,
+  Calendar as CalendarIcon, MousePointer2,
+  Download, Trash2, Filter, Info, CheckCircle2,
+  Clock, XCircle, AlertCircle, Ban, DollarSign,
+  Columns, List
 } from 'lucide-react';
-import { MONTHS } from '../constants';
-import { formatCurrency } from '../utils';
-import type { CalendarStats } from '../types';
-import { CalendarViewType } from './ViewSwitcher';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MONTHS } from '../constants';
 import { cn } from '@/lib/utils';
-import { StatusLegend } from './StatusLegend';
+import { motion } from 'framer-motion';
+import type { SessionRecord } from '@/lib/types/finance';
+import { LESSON_STATUS_LABELS } from '@/lib/types/lesson-status';
+import { getStatusColors } from '../utils/statusColors';
+import type { CalendarViewType } from './ViewSwitcher';
 
 interface Props {
   currentDate: Date;
-  stats: CalendarStats;
-  isGenerating: boolean;
   currentView: CalendarViewType;
-  onChangeMonth: (dir: number) => void;
-  onToday: () => void;
-  onAutoGenerate: () => void;
   onViewChange: (view: CalendarViewType) => void;
-  onExport?: () => void;
-  onDeleteAll: () => void;
+  onNavigate: (dir: number) => void;
+  onToday: () => void;
+  onAddSession: () => void;
+  onGenerateInvoice: () => void;
+  isGenerating?: boolean;
+  sessions: SessionRecord[];
   isScrolled: boolean;
+  onFilterChange?: (status: string | 'ALL') => void;
+  currentFilter?: string;
 }
 
-const VIEW_CONFIG = {
-  month: { icon: CalendarIcon, label: 'Tháng' },
-  week: { icon: CalendarRange, label: 'Tuần' },
-  day: { icon: CalendarDays, label: 'Ngày' },
-  list: { icon: List, label: 'D.Sách' },
-} as const;
-
-const StatBox = memo(({ label, value, subValue, suffix = '', colorClass, isScrolled }: {
+const StatsChip = memo(({ icon, label, value, variant }: {
+  icon: React.ReactNode,
   label: string,
   value: string | number,
-  subValue?: string | number,
-  suffix?: string,
-  colorClass?: string,
-  isScrolled?: boolean
+  variant: 'blue' | 'emerald' | 'orange' | 'purple'
 }) => {
-  if (isScrolled) return null;
+  const styles = {
+    blue: "bg-blue-50/50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-300 border-blue-100 dark:border-blue-500/20",
+    emerald: "bg-emerald-50/50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border-emerald-100 dark:border-emerald-500/20",
+    orange: "bg-orange-50/50 dark:bg-orange-500/15 text-orange-600 dark:text-orange-300 border-orange-100 dark:border-orange-500/20",
+    purple: "bg-purple-50/50 dark:bg-purple-500/15 text-purple-600 dark:text-purple-300 border-purple-100 dark:border-purple-500/20"
+  };
+
   return (
-    <div className="flex flex-col px-4 py-3 bg-muted/40 dark:bg-zinc-900 rounded-xl border border-border/40 hover:bg-muted/60 dark:hover:bg-zinc-800/80 transition-all duration-300 min-w-[120px] flex-1 shadow-sm">
-      <span className="text-[10px] text-muted-foreground dark:text-zinc-400 uppercase tracking-widest font-extrabold">{label}</span>
-      <div className="flex items-baseline gap-1.5 mt-1.5">
-        <span className={cn("text-lg font-black leading-none tracking-tight dark:text-white", colorClass)}>{value}</span>
-        {suffix && <span className={cn("text-[12px] font-bold text-muted-foreground dark:text-zinc-300 ml-0.5", colorClass)}>{suffix}</span>}
-        {subValue !== undefined && (
-          <span className="text-[11px] text-muted-foreground dark:text-zinc-500 font-bold opacity-80">
-            / {subValue}
-          </span>
-        )}
+    <div className={cn("flex px-4 py-2 rounded-2xl border transition-all hover:shadow-md", styles[variant])}>
+      <div className="mr-3 opacity-80">{icon}</div>
+      <div>
+        <div className="text-[10px] font-black uppercase tracking-widest opacity-60 leading-none mb-1">{label}</div>
+        <div className="text-sm font-black tracking-tight">{value}</div>
       </div>
     </div>
   );
 });
 
-StatBox.displayName = 'StatBox';
+StatsChip.displayName = 'StatsChip';
 
 export const CalendarHeader = ({
   currentDate,
-  stats,
-  isGenerating,
   currentView,
-  onChangeMonth,
-  onToday,
-  onAutoGenerate,
   onViewChange,
-  onExport,
-  onDeleteAll,
-  isScrolled
+  onNavigate,
+  onToday,
+  onAddSession,
+  onGenerateInvoice,
+  isGenerating = false,
+  sessions,
+  isScrolled,
+  onFilterChange,
+  currentFilter = 'ALL'
 }: Props) => {
-  const [isStatsExpanded, setIsStatsExpanded] = useState(false);
-  const [isHeaderExpanded, setIsHeaderExpanded] = useState(false);
 
+  const stats = useMemo(() => {
+    const total = sessions.length;
+    const completed = sessions.filter(s => s.completed).length;
+    const paid = sessions.filter(s => s.paid).length;
+    const revenue = sessions.reduce((acc, s) => acc + s.totalAmount, 0);
 
-  const monthLabel = `Tháng ${(currentDate.getMonth() + 1).toString().padStart(2, '0')}, ${currentDate.getFullYear()}`;
+    return { total, completed, paid, revenue };
+  }, [sessions]);
+
+  const activeFilterLabel = currentFilter === 'ALL' ? 'Tất cả' : LESSON_STATUS_LABELS[currentFilter as keyof typeof LESSON_STATUS_LABELS];
 
   return (
-    <TooltipProvider delayDuration={200}>
-      <div className={cn(
-        "flex flex-col transition-all duration-300 ease-in-out",
-        isScrolled
-          ? "gap-2 -mx-2 bg-transparent border-transparent shadow-none"
-          : "gap-4 bg-card dark:bg-zinc-950 p-4 sm:p-5 rounded-2xl shadow-xl border border-border/60"
-      )}>
+    <header className={cn(
+      "sticky top-0 z-40 w-full transition-all duration-300",
+      "px-3 py-3 sm:px-6 sm:py-4",
+      isScrolled ? "bg-background/80 backdrop-blur-md border-b shadow-sm" : "bg-transparent"
+    )}>
+      <div className="max-w-[1600px] mx-auto space-y-4">
 
-        {/* Main Row: Logic for LG and Scrolling */}
-        <div className={cn(
-          "flex items-center justify-between gap-2 sm:gap-4 flex-wrap",
-          isScrolled && "lg:justify-between"
-        )}>
-          {/* Left: Navigation & Legend */}
-          <div className="flex items-center gap-1.5 sm:gap-3">
-            <div className={cn(
-              "flex items-center gap-1 sm:gap-2 bg-muted/50 dark:bg-zinc-900/50 rounded-xl shadow-inner border border-border/40 transition-all duration-300",
-              isScrolled ? "p-0.5" : "p-0.5 sm:p-1"
-            )}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => onChangeMonth(-1)}
-                    className={cn(
-                      "hover:bg-white dark:hover:bg-zinc-800 rounded-lg transition-all active:scale-90 shadow-sm text-muted-foreground dark:text-zinc-300",
-                      isScrolled ? "p-1 sm:p-1.5" : "p-1.5 sm:p-2"
-                    )}
-                  >
-                    <ChevronLeft className={cn("transition-all", isScrolled ? "w-3.5 h-3.5" : "w-4 h-4")} />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent sideOffset={4}>Tháng trước</TooltipContent>
-              </Tooltip>
+        {/* Top Row: Navigation, Title & Actions */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 flex-wrap">
 
-              <div className={cn(
-                "font-black text-foreground dark:text-zinc-100 tracking-tight text-center transition-all px-1 sm:px-2",
-                isScrolled ? "text-[10px] sm:text-xs min-w-[80px] sm:min-w-[100px]" : "text-xs sm:text-sm min-w-[120px] sm:min-w-[140px]"
-              )}>
-                {monthLabel}
-              </div>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => onChangeMonth(1)}
-                    className={cn(
-                      "hover:bg-white dark:hover:bg-zinc-800 rounded-lg transition-all active:scale-90 shadow-sm text-muted-foreground dark:text-zinc-300",
-                      isScrolled ? "p-1.5" : "p-2"
-                    )}
-                  >
-                    <ChevronRight className={cn("transition-all", isScrolled ? "w-3.5 h-3.5" : "w-4 h-4")} />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent sideOffset={4}>Tháng sau</TooltipContent>
-              </Tooltip>
+          <div className="flex items-center justify-between lg:justify-start gap-4 sm:gap-6">
+            {/* Title & Stats Indicator */}
+            <div className="flex flex-col">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tighter text-foreground flex items-center gap-2 sm:gap-3">
+                <CalendarIcon className="w-5 h-5 sm:w-7 sm:h-7 text-primary" strokeWidth={2.5} />
+                <span className="truncate">{MONTHS[currentDate.getMonth()]}</span>
+                <span className="text-muted-foreground/30 font-thin italic hidden sm:inline">{currentDate.getFullYear()}</span>
+              </h1>
+              <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-7 sm:ml-10">Lịch trình dạy học</p>
             </div>
 
-            {/* Legend Trigger - Only shown in Month View and not scrolled */}
-            {/* Hidden on screens smaller than XL to prevent header overflow */}
-            {currentView === 'month' && !isScrolled && (
-              <div className="hidden xl:block">
-                <StatusLegend />
-              </div>
-            )}
+            {/* Navigation (Mobile: Minimal, Desktop: Full) */}
+            <div className="flex items-center bg-card rounded-2xl sm:rounded-3xl p-1 border border-border/40 shadow-sm shrink-0">
+              <Button variant="ghost" size="icon" onClick={() => onNavigate(-1)} className="rounded-xl sm:rounded-2xl hover:bg-muted h-8 w-8 sm:h-10 sm:w-10">
+                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+              </Button>
+              <Button variant="ghost" onClick={onToday} className="px-2 sm:px-5 font-black uppercase tracking-widest text-[9px] sm:text-[11px] rounded-xl sm:rounded-2xl hover:bg-muted h-8 sm:h-10">
+                <span className="hidden sm:inline">Tháng này</span>
+                <CalendarIcon className="w-3.5 h-3.5 sm:hidden" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => onNavigate(1)} className="rounded-xl sm:rounded-2xl hover:bg-muted h-8 w-8 sm:h-10 sm:w-10">
+                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+              </Button>
+            </div>
           </div>
 
-          {/* Desktop/LG Optimization: Move View Switcher here when on large screen or scrolled */}
-          {(isScrolled || true) && (
-            <div className={cn(
-              "hidden lg:flex flex-1 max-w-md mx-2 xl:mx-4 items-center bg-muted/60 dark:bg-zinc-900/60 p-1 rounded-xl border border-border/40 shadow-inner transition-all",
-              isScrolled ? "px-0.5 py-0.5" : "px-1 py-1"
-            )}>
-              {(Object.entries(VIEW_CONFIG) as [CalendarViewType, typeof VIEW_CONFIG[keyof typeof VIEW_CONFIG]][]).map(([view, config]) => {
-                const Icon = config.icon;
-                const isActive = currentView === view;
+          {/* Stats Bar (Hidden on Mobile, Visible on LG, wraps if needed) */}
+          <div className="hidden lg:flex items-center gap-3 flex-wrap">
+            <StatsChip
+              icon={<CalendarIcon size={16} />}
+              label="Tổng buổi"
+              value={stats.total}
+              variant="blue"
+            />
+            <StatsChip
+              icon={<CheckCircle2 size={16} />}
+              label="Đã hoàn thành"
+              value={stats.completed}
+              variant="emerald"
+            />
+            <StatsChip
+              icon={<DollarSign size={16} />}
+              label="Doanh thu"
+              value={new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(stats.revenue)}
+              variant="orange"
+            />
+          </div>
 
-                return (
-                  <button
-                    key={view}
-                    onClick={() => onViewChange(view)}
-                    className={cn(
-                      "relative flex-1 flex items-center justify-center gap-2 rounded-lg text-[10px] font-black tracking-widest uppercase transition-all duration-300",
-                      isScrolled ? "h-8" : "h-10",
-                      isActive
-                        ? "bg-white dark:bg-zinc-100 text-primary dark:text-zinc-950 shadow-lg active:scale-[0.98]"
-                        : "text-muted-foreground dark:text-zinc-400 hover:text-foreground dark:hover:text-zinc-200"
-                    )}
-                  >
-                    <Icon className={cn("transition-all", isScrolled ? "w-3 h-3" : "w-4 h-4", isActive ? "text-primary dark:text-zinc-950" : "text-muted-foreground dark:text-zinc-400")} />
-                    <span className={cn("transition-all", isScrolled ? "hidden xl:inline-block" : "hidden xl:inline-block")}>{config.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          {/* Actions Column (Visible on all) */}
+          <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 w-full lg:w-auto pb-1 sm:pb-0">
 
-          {/* Action Buttons Group */}
-          <div className="flex items-center gap-1.5 sm:gap-2 ml-auto">
-            {!isScrolled && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => setIsHeaderExpanded(!isHeaderExpanded)}
-                    className={cn(
-                      "flex items-center justify-center rounded-lg border border-border/60 transition-all active:scale-95 shadow-sm p-2",
-                      isHeaderExpanded ? "bg-primary text-primary-foreground border-primary" : "bg-background text-muted-foreground hover:bg-muted"
-                    )}
-                  >
-                    <TrendingUp className="w-4 h-4" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent sideOffset={4}>{isHeaderExpanded ? 'Thu gọn' : 'Xem thống kê'}</TooltipContent>
-              </Tooltip>
-            )}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* View Switcher - Always visible but compact */}
+              <Tabs value={currentView} onValueChange={(v) => onViewChange(v as CalendarViewType)} className="flex">
+                <TabsList className="bg-muted/50 p-1 rounded-2xl border border-border/40 h-10">
+                  <TabsTrigger value="month" className="rounded-xl px-2 sm:px-3 font-black uppercase tracking-widest text-[9px] data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                    <CalendarIcon size={14} className="sm:hidden" />
+                    <span className="hidden sm:inline">Tháng</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="week" className="rounded-xl px-2 sm:px-3 font-black uppercase tracking-widest text-[9px] data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                    <Columns size={14} className="sm:hidden" />
+                    <span className="hidden sm:inline">Tuần</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="list" className="rounded-xl px-2 sm:px-3 font-black uppercase tracking-widest text-[9px] data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                    <List size={14} className="sm:hidden" />
+                    <span className="hidden sm:inline">D.Sách</span>
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
 
-            <div className={cn(
-              "hidden sm:flex items-center gap-1 md:gap-1.5 bg-muted/30 dark:bg-zinc-900/30 rounded-xl border border-border/40 transition-all",
-              isScrolled ? "p-0.5" : "p-0.5 md:p-1"
-            )}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={onToday}
-                    className={cn(
-                      "bg-background dark:bg-zinc-900 hover:bg-muted dark:hover:bg-zinc-800 text-[9px] md:text-[10px] font-black rounded-lg border border-border/60 dark:border-zinc-700 transition-all active:scale-95 shadow-sm dark:text-zinc-100",
-                      isScrolled ? "h-7 px-2 md:h-8 md:px-2" : "h-9 px-3 md:h-10 md:px-4"
-                    )}
-                  >
-                    Hôm nay
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent sideOffset={4}>Về ngày hiện tại</TooltipContent>
-              </Tooltip>
-
-              <div className={cn("bg-border/60 dark:bg-zinc-700 transition-all", isScrolled ? "w-px h-3 mx-0.5 md:h-4" : "w-px h-4 mx-0.5 md:h-5 md:mx-1")} />
-
-              <DropdownMenu>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        className={cn(
-                          "flex items-center justify-center hover:bg-muted dark:hover:bg-zinc-800 text-muted-foreground dark:text-zinc-400 rounded-lg transition-all active:scale-95",
-                          isScrolled ? "h-7 w-7 md:h-8 md:w-8" : "h-9 w-9 md:h-10 md:w-10"
-                        )}
-                      >
-                        <Settings2 className={cn("transition-all", isScrolled ? "w-3 h-3 md:w-3.5 md:h-3.5" : "w-3.5 h-3.5 md:w-4 md:h-4")} />
-                      </button>
-                    </DropdownMenuTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent sideOffset={4}>Công cụ</TooltipContent>
-                </Tooltip>
-                <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-2xl border-border/60">
-                  <DropdownMenuItem onClick={onExport} className="rounded-lg py-2.5 text-emerald-600 dark:text-emerald-400">
-                    <FileDown className="w-4 h-4 mr-3" />
-                    <span>Xuất Excel</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="opacity-40" />
-                  <DropdownMenuItem onClick={onDeleteAll} className="rounded-lg py-2.5 text-destructive dark:text-red-400">
-                    <Trash2 className="w-4 h-4 mr-3" />
-                    <span>Xóa toàn bộ</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-
-            {/* Mobile Actions Dropdown */}
-            <div className="sm:hidden">
+              {/* Status Filter */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className={cn(
-                    "bg-muted/60 dark:bg-zinc-900/60 hover:bg-muted dark:hover:bg-zinc-800 rounded-xl transition-all border border-border/40 text-foreground dark:text-zinc-200",
-                    isScrolled ? "p-1.5" : "p-2.5"
-                  )}>
-                    <MoreVertical className={cn("transition-all", isScrolled ? "w-3.5 h-3.5" : "w-4 h-4")} />
-                  </button>
+                  <Button variant="outline" size="sm" className="h-10 rounded-2xl px-3 sm:px-4 gap-2 border-border/40 hover:bg-muted/50 bg-card/50">
+                    <Filter size={14} className={cn("sm:w-4 sm:h-4", currentFilter !== 'ALL' ? "text-primary fill-primary" : "")} />
+                    <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest hidden sm:inline">
+                      {activeFilterLabel}
+                    </span>
+                  </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-2xl border-border/60 dark:bg-zinc-900 dark:border-zinc-800">
-                  <DropdownMenuItem onClick={onToday} className="rounded-lg py-3">
-                    <CalendarIcon className="w-4 h-4 mr-3 opacity-60" />
-                    Về hôm nay
+                <DropdownMenuContent className="w-56 rounded-3xl border-border/60 shadow-2xl p-2" align="end">
+                  <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-3 py-2">
+                    Lọc theo trạng thái
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => onFilterChange?.('ALL')} className="rounded-xl py-2 px-3 focus:bg-primary/5 cursor-pointer">
+                    Tất cả buổi dạy
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={onExport} className="rounded-lg py-3 text-emerald-600 dark:text-emerald-400 focus:text-emerald-700 dark:focus:text-emerald-300">
-                    <FileDown className="w-4 h-4 mr-3" />
-                    Xuất Excel
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="opacity-40" />
-                  <DropdownMenuItem onClick={onDeleteAll} className="rounded-lg py-3 text-destructive dark:text-red-400 focus:text-red-500">
-                    <Trash2 className="w-4 h-4 mr-3" />
-                    Xóa tất cả
-                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {Object.entries(LESSON_STATUS_LABELS).map(([status, label]) => {
+                    const colors = getStatusColors(status as any);
+                    return (
+                      <DropdownMenuItem
+                        key={status}
+                        onClick={() => onFilterChange?.(status)}
+                        className="rounded-xl py-2 px-3 focus:bg-primary/5 cursor-pointer flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className={cn("w-2 h-2 rounded-full", colors.dot)} />
+                          <span>{label}</span>
+                        </div>
+                        {currentFilter === status && <CheckCircle2 size={14} className="text-primary" />}
+                      </DropdownMenuItem>
+                    );
+                  })}
                 </DropdownMenuContent>
               </DropdownMenu>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="flex items-center gap-2">
+              <Button size="sm" className="h-10 rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-widest text-[10px] px-4 sm:px-6 shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all" onClick={onAddSession}>
+                <Plus className="w-4 h-4 sm:mr-2" strokeWidth={3} />
+                <span className="hidden sm:inline">Tiết học mới</span>
+                <span className="sm:hidden">Thêm</span>
+              </Button>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="icon" className="h-10 w-10 rounded-2xl border-border/40 hover:bg-muted/50 shink-0">
+                    <Info size={16} className="sm:w-[18px] sm:h-[18px]" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-6 rounded-[2rem] border-border/60 shadow-2xl" align="end">
+                  <div className="space-y-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Chú thích màu sắc</p>
+                    <div className="grid gap-3">
+                      {Object.entries(LESSON_STATUS_LABELS).map(([status, label]) => {
+                        const colors = getStatusColors(status as any);
+                        return (
+                          <div key={status} className="flex items-center gap-3 group">
+                            <div className={cn("w-3 h-3 rounded-full transition-transform group-hover:scale-125", colors.dot)} />
+                            <span className="text-xs font-bold text-muted-foreground group-hover:text-foreground transition-colors">{label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="pt-4 mt-4 border-t border-border/40">
+                      <Button variant="ghost" size="sm" className="w-full justify-start h-10 rounded-xl px-3 font-black uppercase tracking-widest text-[10px] text-muted-foreground" onClick={onGenerateInvoice} disabled={isGenerating}>
+                        {isGenerating ? "Đang xử lý..." : "Chi tiết doanh thu"}
+                      </Button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </div>
 
-        {/* View Switcher Controls Mobile / Non-LG Desktop */}
-        {!isScrolled && (
-          <div className="flex items-center gap-4 lg:hidden">
-            <div className="flex-1 flex items-center bg-muted/60 dark:bg-zinc-900/60 p-1 rounded-xl border border-border/40 shadow-inner">
-              {(Object.entries(VIEW_CONFIG) as [CalendarViewType, typeof VIEW_CONFIG[keyof typeof VIEW_CONFIG]][]).map(([view, config]) => {
-                const Icon = config.icon;
-                const isActive = currentView === view;
-
-                return (
-                  <button
-                    key={view}
-                    onClick={() => onViewChange(view)}
-                    className={cn(
-                      "relative flex-1 flex items-center justify-center gap-2 h-10 px-2 rounded-lg text-[11px] font-black tracking-widest uppercase transition-all duration-300",
-                      isActive
-                        ? "bg-white dark:bg-zinc-100 text-primary dark:text-zinc-950 shadow-lg active:scale-[0.98]"
-                        : "text-muted-foreground dark:text-zinc-400 hover:text-foreground dark:hover:text-zinc-200"
-                    )}
-                  >
-                    <Icon className={cn("w-4 h-4", isActive ? "text-primary dark:text-zinc-950" : "text-muted-foreground dark:text-zinc-400")} />
-                    <span className="hidden sm:inline-block md:inline-block">{config.label}</span>
-                    {isActive && (
-                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-primary" />
-                    )}
-                  </button>
-                );
-              })}
+        {/* Empty State / Tips Banner (Optional) */}
+        {sessions.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 rounded-3xl bg-gradient-to-r from-primary/5 via-primary/10 to-transparent border border-primary/10 flex items-center gap-4"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center text-primary">
+              <Sparkles size={20} />
             </div>
-
-            <div className="lg:hidden">
-              <button
-                onClick={() => setIsStatsExpanded(!isStatsExpanded)}
-                className={cn(
-                  "flex items-center justify-center h-12 w-12 rounded-xl transition-all border shrink-0 shadow-lg active:scale-95",
-                  isStatsExpanded
-                    ? "bg-primary/10 dark:bg-primary/20 border-primary/40 text-primary shadow-primary/20"
-                    : "bg-muted/40 dark:bg-zinc-900 border-border/40 text-muted-foreground dark:text-zinc-400"
-                )}
-              >
-                <TrendingUp className="w-4 h-4" />
-              </button>
+            <div>
+              <p className="text-xs font-black uppercase tracking-wider text-muted-foreground">Bắt đầu ngay</p>
+              <p className="text-sm font-bold">Tháng này chưa có lịch dạy. Nhấn vào bất kỳ ngày nào trên lịch để thêm buổi học mới!</p>
             </div>
-          </div>
+          </motion.div>
         )}
-
-        {/* Scrolled View Switcher for Mobile */}
-        {isScrolled && (
-          <div className="lg:hidden flex items-center bg-muted/60 dark:bg-zinc-900/60 p-0.5 rounded-xl border border-border/40 shadow-inner">
-            {(Object.entries(VIEW_CONFIG) as [CalendarViewType, typeof VIEW_CONFIG[keyof typeof VIEW_CONFIG]][]).map(([view, config]) => {
-              const Icon = config.icon;
-              const isActive = currentView === view;
-
-              return (
-                <button
-                  key={view}
-                  onClick={() => onViewChange(view)}
-                  className={cn(
-                    "flex-1 flex items-center justify-center gap-1.5 h-8 px-2 rounded-lg text-[8px] sm:text-[9px] font-black tracking-widest uppercase transition-all duration-300 whitespace-nowrap",
-                    isActive
-                      ? "bg-white dark:bg-zinc-100 text-primary dark:text-zinc-950 shadow-md"
-                      : "text-muted-foreground dark:text-zinc-400 hover:text-foreground active:scale-95"
-                  )}
-                >
-                  <Icon className={cn("w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0", isActive ? "text-primary dark:text-zinc-950" : "text-muted-foreground dark:text-zinc-400")} />
-                  <span className="hidden xs:inline-block">{config.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Dynamic Stats View - Hidden when scrolled OR when collapsed */}
-        {!isScrolled && isHeaderExpanded && (
-          <div className={cn(
-            "grid gap-3 transition-all duration-300 animate-in fade-in slide-in-from-top-2",
-            "lg:grid lg:grid-cols-3",
-            isStatsExpanded ? "grid grid-cols-1 md:grid-cols-3" : "hidden lg:grid"
-          )}>
-            <StatBox label="Đã dạy" value={stats.completed} subValue={stats.total} />
-            <StatBox label="Doanh thu" value={formatCurrency(stats.revenue)} colorClass="text-primary" />
-            <StatBox label="Chưa thu" value={stats.pending} suffix="buổi" colorClass="text-orange-600 dark:text-orange-400" />
-          </div>
-        )}
-
-        {/* Primary Action Button - Hidden when scrolled OR when collapsed */}
-        {!isScrolled && isHeaderExpanded && (
-          <div className={cn("transition-all duration-300 overflow-hidden animate-in fade-in slide-in-from-top-4 mt-1")}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={onAutoGenerate}
-                  disabled={isGenerating}
-                  className="w-full h-12 bg-primary dark:bg-primary/90 text-primary-foreground hover:bg-primary/95 rounded-xl font-black transition-all flex items-center justify-center gap-3 shadow-[0_8px_20px_rgba(var(--primary-rgb),0.3)] hover:shadow-[0_12px_28px_rgba(var(--primary-rgb),0.4)] active:scale-[0.99] disabled:opacity-50 uppercase tracking-[0.2em] text-[13px]"
-                >
-                  {isGenerating ? (
-                    <Loader2 className="animate-spin w-4 h-4" />
-                  ) : (
-                    <Zap className="w-5 h-5" fill="currentColor" />
-                  )}
-                  <span>
-                    <span className="sm:hidden">Tạo Lịch</span>
-                    <span className="hidden sm:inline">Lập Lịch Tự Động</span>
-                  </span>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent sideOffset={4}>Thông minh hóa việc quản lý lịch dạy</TooltipContent>
-            </Tooltip>
-          </div>
-        )}
-
-        {/* Mobile FAB for Auto-Generate (Visible only when scrolled and on small screens) */}
-        {isScrolled && (
-          <div className="fixed bottom-6 right-6 z-50 sm:hidden animate-in fade-in zoom-in-50 duration-300 slide-in-from-bottom-10">
-            <button
-              onClick={onAutoGenerate}
-              disabled={isGenerating}
-              className="group relative flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-[0_8px_24px_rgba(var(--primary-rgb),0.5)] active:scale-90 transition-all focus:outline-none ring-2 ring-primary/20"
-            >
-              {isGenerating ? (
-                <Loader2 className="animate-spin w-6 h-6" />
-              ) : (
-                <Zap className="w-7 h-7 fill-white group-hover:scale-110 transition-transform" />
-              )}
-            </button>
-          </div>
-        )}
-
       </div>
-    </TooltipProvider>
+    </header>
   );
 };

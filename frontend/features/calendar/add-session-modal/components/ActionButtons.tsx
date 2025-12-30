@@ -1,21 +1,22 @@
-import { ChevronRight } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export const ActionButtons = ({ onClose }: { onClose: () => void }) => (
-  <div className="flex gap-3 pt-2">
+  <div className="flex gap-4">
     <Button
       type="button"
-      variant="outline"
+      variant="ghost"
       onClick={onClose}
-      className="flex-1 h-12 text-base font-bold"
+      className="h-14 flex-1 rounded-2xl font-black uppercase tracking-widest text-[11px] hover:bg-muted/50 transition-all"
     >
-      Hủy
+      Hủy bỏ
     </Button>
     <Button
       type="submit"
-      className="flex-[2] h-12 text-base font-bold group"
+      className="h-14 flex-[2] rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest text-[11px] shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all"
     >
-      Xác nhận <ChevronRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
+      <Plus className="w-4 h-4 mr-2" strokeWidth={3} />
+      Thêm buổi học
     </Button>
   </div>
 );

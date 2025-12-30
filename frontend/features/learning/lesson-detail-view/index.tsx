@@ -226,7 +226,7 @@ export default function LessonDetailView({ lessonId, onClose, isPreview = false 
         >
           {/* Tabs/Actions Header for content */}
           <div className={cn(
-            "flex-shrink-0 px-8 pt-8 pb-4 flex items-center justify-between border-b backdrop-blur-md sticky top-0 z-10",
+            "flex-shrink-0 px-4 pt-4 sm:px-8 sm:pt-8 pb-4 flex items-center justify-between border-b backdrop-blur-md lg:sticky lg:top-0 z-10",
             contentTheme === 'light' ? "bg-white/80 border-slate-200" : "bg-[#0A0A0A]/80 border-white/5"
           )}>
             <h2 className={cn(

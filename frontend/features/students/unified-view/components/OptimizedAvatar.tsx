@@ -1,0 +1,44 @@
+import React, { useMemo } from 'react';
+import { cn } from '@/lib/utils';
+
+interface OptimizedAvatarProps {
+    name: string;
+    isActive?: boolean;
+    className?: string; // Allow custom sizing/styling
+}
+
+export function OptimizedAvatar({ name, isActive, className }: OptimizedAvatarProps) {
+    const initial = name.charAt(0).toUpperCase();
+    const hue = useMemo(() => {
+        // Generate consistent color from name
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return Math.abs(hash % 360);
+    }, [name]);
+
+    return (
+        <div
+            className={cn(
+                "relative w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg",
+                className
+            )}
+            style={{
+                background: `linear-gradient(135deg, hsl(${hue}, 70%, 50%) 0%, hsl(${hue}, 70%, 40%) 100%)`
+            }}
+        >
+            {initial}
+
+            {/* Status dot - pure CSS, no image */}
+            {isActive !== undefined && (
+                <div
+                    className={cn(
+                        "absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-background",
+                        isActive ? "bg-green-500" : "bg-gray-400"
+                    )}
+                />
+            )}
+        </div>
+    );
+}

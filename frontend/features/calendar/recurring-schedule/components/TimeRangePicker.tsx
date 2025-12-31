@@ -2,6 +2,8 @@
 // 📁 recurring-schedule/components/TimeRangePicker.tsx
 // ============================================================================
 import { Clock } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 interface TimeRangePickerProps {
   startTime: string;
@@ -12,36 +14,39 @@ interface TimeRangePickerProps {
 
 export function TimeRangePicker({ startTime, endTime, hoursPerSession, onChange }: TimeRangePickerProps) {
   return (
-    <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm space-y-5">
-      <div className="flex items-center gap-2 mb-2">
-        <Clock size={18} className="text-indigo-500 dark:text-indigo-400" />
-        <span className="font-bold text-slate-700 dark:text-slate-200">Khung giờ học</span>
+    <div className="bg-gradient-to-br from-primary/5 to-blue-500/5 p-5 rounded-2xl border border-primary/10 space-y-5">
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-semibold flex items-center gap-1.5">
+          <Clock className="w-4 h-4 text-primary" />
+          Khung giờ học
+        </Label>
+        {hoursPerSession > 0 && (
+          <div className="px-2.5 py-1 bg-primary/15 border border-primary/30 rounded-full text-xs font-bold text-primary flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            <span>{hoursPerSession} giờ</span>
+          </div>
+        )}
       </div>
-      
+
       <div className="grid grid-cols-2 gap-6">
         <div className="space-y-2">
-          <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">Bắt đầu</label>
-          <input
+          <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wide px-1">Bắt đầu</div>
+          <Input
             type="time"
             value={startTime}
             onChange={e => onChange('startTime', e.target.value)}
-            className="w-full p-3 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-800 dark:text-white font-semibold focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-slate-800 transition-all outline-none"
+            className="h-14 px-4 rounded-xl border-2 border-border/40 focus:border-primary hover:border-primary/50 transition-all font-bold text-lg bg-background shadow-sm hover:shadow-md"
           />
         </div>
         <div className="space-y-2">
-          <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">Kết thúc</label>
-          <input
+          <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wide px-1">Kết thúc</div>
+          <Input
             type="time"
             value={endTime}
             onChange={e => onChange('endTime', e.target.value)}
-            className="w-full p-3 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-800 dark:text-white font-semibold focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-slate-800 transition-all outline-none"
+            className="h-14 px-4 rounded-xl border-2 border-border/40 focus:border-primary hover:border-primary/50 transition-all font-bold text-lg bg-background shadow-sm hover:shadow-md"
           />
         </div>
-      </div>
-      
-      <div className="flex items-center justify-between pt-2 border-t border-slate-50 dark:border-slate-700">
-        <span className="text-sm text-slate-500 dark:text-slate-400">Tổng thời lượng:</span>
-        <span className="text-lg font-black text-indigo-600 dark:text-indigo-400">{hoursPerSession}h</span>
       </div>
     </div>
   );

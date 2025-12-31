@@ -23,18 +23,27 @@ const AdminDashboard = dynamic(() => import('@/features/dashboard/admin-dashboar
     loading: () => <LoadingState />, // Or DashboardSkeleton from features/dashboard/admin-dashboard/components/DashboardSkeleton if exported
     ssr: false // Enable client-side caching
 });
+
 const StudentDashboard = dynamic(() => import('@/features/dashboard/student-dashboard'));
 
-const StudentList = dynamic(() => import('@/features/students/student-list'));
+const UnifiedStudentView = dynamic(() => import('@/features/students/unified-view'), {
+    loading: () => <LoadingState />
+});
+// const StudentList = dynamic(() => import('@/features/students/student-list')); // Deprecated
 const MonthlyView = dynamic(() => import('@/features/finance/monthly-view'), {
     loading: () => <MonthlyViewSkeleton />
 });
-const ParentsView = dynamic(() => import('@/features/students/parents-view'));
+// const ParentsView = dynamic(() => import('@/features/students/parents-view')); // Deprecated - Merged into UnifiedStudentView
 const UnpaidSessionsView = dynamic(() => import('@/features/finance/unpaid-sessions'));
 const StudentHomeworkView = dynamic(() => import('@/features/learning/homework/student-homework'));
 const TutorHomeworkView = dynamic(() => import('@/features/learning/homework/tutor-homework-view'));
 const DocumentLibrary = dynamic(() => import('@/features/documents/document-library'));
 const CalendarView = dynamic(() => import('@/features/calendar/calendar-view'));
+
+// ... (keep middle imports) ...
+
+
+
 
 // Lesson Views - Different components for different roles
 const LessonViewWrapper = dynamic(() => import('@/features/learning/lesson-view-wrapper'));
@@ -85,13 +94,13 @@ function AppContent() {
     const navItems: NavItem[] = useMemo(() => {
         const allItems: NavItem[] = [
             { id: 'dashboard', label: 'Tổng Quan', icon: LayoutDashboard },
-            { id: 'students', label: 'Học Sinh', icon: GraduationCap },
+            { id: 'students', label: 'Học Sinh & PH', icon: GraduationCap },
             { id: 'monthly', label: 'Thống Kê', icon: TrendingUp },
             { id: 'calendar', label: 'Lịch Dạy', icon: CalendarDays },
             { id: 'lessons', label: 'Bài Giảng', icon: BookOpen }, // Hiển thị cho tất cả roles
             { id: 'homework', label: 'Bài Tập', icon: BookCheck },
             { id: 'unpaid', label: 'Công Nợ', icon: AlertCircle },
-            { id: 'parents', label: 'Phụ Huynh', icon: UserCheck },
+            // { id: 'parents', label: 'Phụ Huynh', icon: UserCheck }, // Hidden/Removed
             { id: 'documents', label: 'Tài Liệu', icon: FileText },
         ];
 
@@ -215,7 +224,7 @@ function AppContent() {
                         {currentView === 'dashboard' && hasAnyRole(['STUDENT']) && <StudentDashboard />}
 
                         {/* All feature-based views */}
-                        {currentView === 'students' && hasAnyRole(['ADMIN', 'TUTOR']) && <StudentList />}
+                        {(currentView === 'students' || currentView === 'parents') && hasAnyRole(['ADMIN', 'TUTOR']) && <UnifiedStudentView />}
                         {currentView === 'monthly' && hasAnyRole(['ADMIN', 'TUTOR']) && <MonthlyView />}
                         {currentView === 'calendar' && hasAnyRole(['ADMIN', 'TUTOR']) && <CalendarView />}
 
@@ -234,7 +243,7 @@ function AppContent() {
 
                         {/* Other views */}
                         {currentView === 'unpaid' && hasAnyRole(['ADMIN', 'TUTOR']) && <UnpaidSessionsView />}
-                        {currentView === 'parents' && hasAnyRole(['ADMIN', 'TUTOR']) && <ParentsView />}
+
                         {currentView === 'documents' && <DocumentLibrary />}
 
                         {/* Fallback */}

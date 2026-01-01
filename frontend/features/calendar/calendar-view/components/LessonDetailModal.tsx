@@ -1,18 +1,6 @@
-import type { SessionRecord, SessionRecordUpdateRequest } from '@/lib/types/finance';
-import type { LessonStatus } from '@/lib/types/lesson-status';
-import {
-    X, Trash2, Copy, Pencil, Save, BookOpen,
-    Calendar, Clock, DollarSign, FileText,
-    CheckCircle2, Check, ChevronRight
-} from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
-import { LESSON_STATUS_LABELS } from '@/lib/types/lesson-status';
-import { sessionsApi } from '@/lib/services';
-import { getStatusColors } from '../utils/statusColors';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
     Select,
     SelectContent,
@@ -20,10 +8,29 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useUI } from '@/contexts/UIContext';
+import { sessionsApi } from '@/lib/services';
+import type { SessionRecord, SessionRecordUpdateRequest } from '@/lib/types/finance';
+import type { LessonStatus } from '@/lib/types/lesson-status';
+import { LESSON_STATUS_LABELS, isCompletedStatus } from '@/lib/types/lesson-status';
+import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
+import {
+    BookOpen,
+    Calendar,
+    Check,
+    Clock,
+    Copy,
+    DollarSign, FileText,
+    Pencil, Save,
+    Trash2,
+    X
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { toast } from 'sonner';
+import { SmartFeedbackForm } from "../../../feedback/components/SmartFeedbackForm";
+import { getStatusColors } from '../utils/statusColors';
 
 interface LessonDetailModalProps {
     session: SessionRecord;
@@ -167,6 +174,8 @@ export function LessonDetailModal({ session, onClose, onUpdate, onDelete, initia
 
     if (typeof document === 'undefined') return null;
 
+    const isTaughtOrPaid = isCompletedStatus(localSession.status as LessonStatus);
+
     return createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             {/* Backdrop */}
@@ -179,28 +188,32 @@ export function LessonDetailModal({ session, onClose, onUpdate, onDelete, initia
             />
 
             <motion.div
-                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                initial={{ scale: 0.95, opacity: 0, y: 10 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
-                className="relative bg-card rounded-[2.5rem] shadow-2xl w-full max-w-lg overflow-hidden border border-border/60"
+                className={cn(
+                    "relative bg-card rounded-[2rem] shadow-2xl w-full border border-border/60 flex flex-col overflow-hidden",
+                    isTaughtOrPaid
+                        ? "max-w-6xl lg:h-[90vh] max-h-[85vh] lg:max-h-none overflow-y-auto lg:overflow-hidden"
+                        : "max-w-lg"
+                )}
             >
                 {/* Header with Gradient */}
                 <div className={cn(
-                    "relative p-6 sm:p-8 pb-12 sm:pb-16 transition-all duration-500",
-                    localSession.paid ? "bg-gradient-to-br from-emerald-500 to-teal-600" : "bg-gradient-to-br from-blue-500 to-indigo-600",
+                    "relative p-6 transition-all duration-500 shrink-0 sticky top-0 z-50",
+                    localSession.paid ? "bg-gradient-to-r from-emerald-600 to-teal-600" : "bg-gradient-to-r from-blue-600 to-indigo-600",
                     localSession.status === 'CANCELLED_BY_STUDENT' || localSession.status === 'CANCELLED_BY_TUTOR'
-                        ? "from-slate-500 to-slate-700" : ""
+                        ? "from-slate-600 to-slate-700" : ""
                 )}>
-                    {/* Decorative element */}
-                    <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
 
                     <div className="relative flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white">
-                                <BookOpen size={24} />
+                            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-sm">
+                                <BookOpen size={20} />
                             </div>
                             <div>
-                                <h3 className="text-white font-black uppercase tracking-widest text-sm">Chi tiết buổi học</h3>
-                                <p className="text-white/70 text-xs font-bold mt-1">
+                                <h3 className="text-white font-black uppercase tracking-widest text-xs">Chi tiết buổi học</h3>
+                                <p className="text-white/80 text-[11px] font-bold mt-0.5">
                                     #{localSession.id} • {localSession.sessionDate}
                                 </p>
                             </div>
@@ -210,218 +223,232 @@ export function LessonDetailModal({ session, onClose, onUpdate, onDelete, initia
                             variant="ghost"
                             size="icon"
                             onClick={onClose}
-                            className="rounded-full text-white hover:bg-white/10 h-10 w-10"
+                            className="rounded-full text-white hover:bg-white/20 h-8 w-8"
                         >
-                            <X size={24} />
+                            <X size={18} />
                         </Button>
                     </div>
                 </div>
 
-                {/* Student Card (overlapping) */}
-                <div className="relative z-10 -mt-8 mx-4 sm:mx-8">
-                    <motion.div
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        className="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 rounded-3xl bg-card border border-border/60 shadow-2xl relative overflow-hidden"
-                    >
-                        {/* Dimensional Background */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent dark:from-white/[0.02] pointer-events-none" />
+                {/* Main Content Area */}
+                <div className={cn(
+                    "flex-1 w-full",
+                    isTaughtOrPaid ? "flex flex-col lg:grid lg:grid-cols-12 lg:overflow-hidden" : "overflow-hidden"
+                )}>
 
-                        <div className="relative z-10">
-                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white font-black text-2xl shadow-lg ring-4 ring-background">
-                                {localSession.studentName?.charAt(0).toUpperCase()}
-                            </div>
-                            <div className={cn("absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-4 border-background shadow-sm", statusColors.dot)} />
-                        </div>
+                    {/* LEFT COLUMN: Session Info */}
+                    <div className={cn(
+                        "flex flex-col bg-background",
+                        isTaughtOrPaid ? "lg:h-full lg:col-span-4 border-r border-border/60 lg:overflow-hidden" : "w-full overflow-hidden h-full"
+                    )}>
+                        <div className="p-6 flex-1 lg:overflow-y-auto no-scrollbar space-y-6">
 
-                        <div className="flex-1 relative z-10">
-                            <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Học sinh</div>
-                            <h4 className="text-xl font-black capitalize tracking-tight">{localSession.studentName}</h4>
-                        </div>
-
-                        <Badge className={cn("relative z-10 rounded-full px-4 py-1.5 font-black uppercase text-[10px] tracking-widest border-0 shadow-sm", statusColors.bg, statusColors.text)}>
-                            {LESSON_STATUS_LABELS[localSession.status as keyof typeof LESSON_STATUS_LABELS] || localSession.status}
-                        </Badge>
-                    </motion.div>
-                </div>
-
-                {/* Main Content */}
-                <div className="p-5 sm:p-8 space-y-6 sm:space-y-8 max-h-[60vh] overflow-y-auto no-scrollbar">
-                    {mode === 'view' ? (
-                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            {/* Time & Date Grid */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <InfoCard
-                                    icon={<Calendar size={18} className="text-blue-500" />}
-                                    label="Ngày dạy"
-                                    value={localSession.sessionDate}
-                                    variant="blue"
-                                />
-                                <InfoCard
-                                    icon={<Clock size={18} className="text-purple-500" />}
-                                    label="Thời gian"
-                                    value={`${localSession.startTime} - ${localSession.endTime}`}
-                                    variant="purple"
-                                />
-                            </div>
-
-                            {/* Payment Card */}
-                            <div className={cn(
-                                "p-6 rounded-[2rem] border-2 flex items-center justify-between group transition-all duration-500 hover:scale-[1.02]",
-                                localSession.paid
-                                    ? "bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-800"
-                                    : "bg-orange-50/50 dark:bg-orange-950/20 border-orange-200/50 dark:border-orange-800"
-                            )}>
-                                <div>
-                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-1">Thanh toán</p>
-                                    <p className="text-3xl font-black tracking-tighter">
-                                        {formatCurrency(localSession.totalAmount)}
-                                    </p>
-                                    <p className="text-[10px] font-bold text-muted-foreground mt-1 flex items-center gap-1">
-                                        <Clock size={10} />
-                                        {localSession.hours}h × {formatCurrency(localSession.pricePerHour)}/h
-                                    </p>
-                                </div>
-
-                                <div className={cn(
-                                    "w-16 h-16 rounded-full flex items-center justify-center transition-transform group-hover:rotate-12 duration-500",
-                                    localSession.paid ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30" : "bg-orange-500 text-white shadow-lg shadow-orange-500/30"
-                                )}>
-                                    {localSession.paid ? <Check size={32} strokeWidth={3} /> : <DollarSign size={32} />}
-                                </div>
-                            </div>
-
-                            {/* Notes Section */}
-                            {localSession.notes && (
-                                <div className="p-5 rounded-3xl bg-muted/30 border border-border/40">
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <FileText size={16} className="text-muted-foreground" />
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nội dung / Ghi chú</span>
+                            {/* Student Card */}
+                            <div className="relative">
+                                <div className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border/60 shadow-sm relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
+                                    <div className="relative z-10">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white font-black text-lg shadow-md">
+                                            {localSession.studentName?.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div className={cn("absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-background shadow-sm", statusColors.dot)} />
                                     </div>
-                                    <p className="text-sm font-medium leading-relaxed italic opacity-80 whitespace-pre-wrap">
-                                        "{localSession.notes}"
-                                    </p>
+                                    <div className="flex-1 relative z-10">
+                                        <div className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-0.5">Học sinh</div>
+                                        <h4 className="text-base font-black capitalize tracking-tight leading-none">{localSession.studentName}</h4>
+                                    </div>
+                                    <Badge className={cn("relative z-10 rounded-lg px-2.5 py-1 font-black uppercase text-[9px] tracking-widest border-0 shadow-sm", statusColors.bg, statusColors.text)}>
+                                        {LESSON_STATUS_LABELS[localSession.status as keyof typeof LESSON_STATUS_LABELS] || localSession.status}
+                                    </Badge>
                                 </div>
+                            </div>
+
+                            {mode === 'view' ? (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                    {/* Time & Date Grid */}
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <InfoCard
+                                            icon={<Calendar size={14} className="text-blue-500" />}
+                                            label="Ngày dạy"
+                                            value={localSession.sessionDate}
+                                            variant="blue"
+                                        />
+                                        <InfoCard
+                                            icon={<Clock size={14} className="text-purple-500" />}
+                                            label="Thời gian"
+                                            value={`${localSession.startTime} - ${localSession.endTime}`}
+                                            variant="purple"
+                                        />
+                                    </div>
+
+                                    {/* Payment Card */}
+                                    <div className={cn(
+                                        "p-4 rounded-2xl border flex items-center justify-between group transition-all duration-300",
+                                        localSession.paid
+                                            ? "bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-800"
+                                            : "bg-orange-50/50 dark:bg-orange-950/20 border-orange-200/50 dark:border-orange-800"
+                                    )}>
+                                        <div>
+                                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-0.5">Thanh toán</p>
+                                            <p className="text-xl font-black tracking-tighter">
+                                                {formatCurrency(localSession.totalAmount)}
+                                            </p>
+                                            <p className="text-[9px] font-bold text-muted-foreground flex items-center gap-1">
+                                                {localSession.hours}h × {formatCurrency(localSession.pricePerHour)}/h
+                                            </p>
+                                        </div>
+                                        <div className={cn(
+                                            "w-10 h-10 rounded-full flex items-center justify-center transition-transform group-hover:rotate-12 duration-500",
+                                            localSession.paid ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30" : "bg-orange-500 text-white shadow-lg shadow-orange-500/30"
+                                        )}>
+                                            {localSession.paid ? <Check size={18} strokeWidth={3} /> : <DollarSign size={18} />}
+                                        </div>
+                                    </div>
+
+                                    {/* Notes Section */}
+                                    {localSession.notes && (
+                                        <div className="p-4 rounded-2xl bg-muted/30 border border-border/40">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <FileText size={14} className="text-muted-foreground" />
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Ghi chú</span>
+                                            </div>
+                                            <p className="text-xs font-medium leading-relaxed italic opacity-80 whitespace-pre-wrap">
+                                                "{localSession.notes}"
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <form id="premium-edit-form" onSubmit={handleSubmit} className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-300">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Bắt đầu</label>
+                                            <input
+                                                type="time"
+                                                value={formData.startTime}
+                                                onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                                                className="w-full h-10 px-3 rounded-xl bg-muted/40 border-border/60 focus:bg-background focus:ring-2 focus:ring-primary/10 text-xs font-bold outline-none transition-all"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Kết thúc</label>
+                                            <input
+                                                type="time"
+                                                value={formData.endTime}
+                                                onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                                                className="w-full h-10 px-3 rounded-xl bg-muted/40 border-border/60 focus:bg-background focus:ring-2 focus:ring-primary/10 text-xs font-bold outline-none transition-all"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Môn học</label>
+                                        <input
+                                            type="text"
+                                            value={formData.subject}
+                                            onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                                            placeholder="Môn học..."
+                                            className="w-full h-10 px-3 rounded-xl bg-muted/40 border-border/60 focus:bg-background focus:ring-2 focus:ring-primary/10 text-xs font-bold outline-none transition-all"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Trạng thái</label>
+                                        <Select
+                                            value={formData.status}
+                                            onValueChange={(val) => setFormData({ ...formData, status: val as LessonStatus })}
+                                        >
+                                            <SelectTrigger className="h-10 px-3 rounded-xl bg-muted/40 border-border/60 focus:bg-background text-xs font-bold shadow-none">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-xl border-border/60 shadow-xl">
+                                                {Object.entries(LESSON_STATUS_LABELS).map(([val, label]) => (
+                                                    <SelectItem key={val} value={val} className="text-xs font-medium">
+                                                        {label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Ghi chú</label>
+                                        <textarea
+                                            value={formData.notes}
+                                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                            rows={3}
+                                            className="w-full p-3 rounded-xl bg-muted/40 border-border/60 focus:bg-background focus:ring-2 focus:ring-primary/10 text-xs font-medium outline-none resize-none no-scrollbar"
+                                        />
+                                    </div>
+                                </form>
                             )}
                         </div>
-                    ) : (
-                        <form id="premium-edit-form" onSubmit={handleSubmit} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Giờ bắt đầu</label>
-                                    <input
-                                        type="time"
-                                        value={formData.startTime}
-                                        onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                                        className="w-full h-14 px-5 rounded-2xl bg-muted/40 border-border/60 focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all font-bold outline-none"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Giờ kết thúc</label>
-                                    <input
-                                        type="time"
-                                        value={formData.endTime}
-                                        onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                                        className="w-full h-14 px-5 rounded-2xl bg-muted/40 border-border/60 focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all font-bold outline-none"
-                                    />
-                                </div>
-                            </div>
 
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Môn học</label>
-                                <input
-                                    type="text"
-                                    value={formData.subject}
-                                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                                    placeholder="Toán 12, Lý 11..."
-                                    className="w-full h-14 px-5 rounded-2xl bg-muted/40 border-border/60 focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all font-bold outline-none"
-                                />
+                        {/* Actions Footer - Left Side */}
+                        <div className="p-4 bg-muted/10 border-t border-border/60 shrink-0">
+                            <div className="flex gap-2">
+                                {mode === 'view' ? (
+                                    <>
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() => setConfirmDeleteOpen(true)}
+                                            className="h-10 w-10 p-0 rounded-xl text-red-500 hover:bg-red-500/10 shrink-0"
+                                        >
+                                            <Trash2 size={16} />
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            onClick={handleDuplicate}
+                                            disabled={loading}
+                                            className="h-10 flex-1 rounded-xl border-border/60 font-black uppercase tracking-widest text-[10px]"
+                                        >
+                                            <Copy className="w-3.5 h-3.5 mr-1.5" />
+                                            Nhân bản
+                                        </Button>
+                                        <Button
+                                            onClick={() => setMode('edit')}
+                                            className="h-10 flex-1 rounded-xl bg-primary text-white font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20"
+                                        >
+                                            <Pencil className="w-3.5 h-3.5 mr-1.5" />
+                                            Sửa
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() => setMode('view')}
+                                            className="h-10 flex-1 rounded-xl font-black uppercase tracking-widest text-[10px]"
+                                        >
+                                            Hủy
+                                        </Button>
+                                        <Button
+                                            form="premium-edit-form"
+                                            type="submit"
+                                            disabled={loading || !isDirty}
+                                            className="h-10 flex-[2] rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase tracking-widest text-[10px] shadow-lg shadow-emerald-500/20"
+                                        >
+                                            {loading ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Save className="w-3.5 h-3.5 mr-1.5" />}
+                                            Lưu
+                                        </Button>
+                                    </>
+                                )}
                             </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Trạng thái</label>
-                                <Select
-                                    value={formData.status}
-                                    onValueChange={(val) => setFormData({ ...formData, status: val as LessonStatus })}
-                                >
-                                    <SelectTrigger className="h-14 px-5 rounded-2xl bg-muted/40 border-border/60 focus:bg-background font-bold transition-all">
-                                        <SelectValue placeholder="Chọn trạng thái" />
-                                    </SelectTrigger>
-                                    <SelectContent className="rounded-2xl border-border/60 shadow-2xl">
-                                        {Object.entries(LESSON_STATUS_LABELS).map(([val, label]) => (
-                                            <SelectItem key={val} value={val} className="py-3 rounded-xl focus:bg-primary/10 focus:text-primary">
-                                                {label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Ghi chú</label>
-                                <textarea
-                                    value={formData.notes}
-                                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                    rows={3}
-                                    placeholder="Ghi chú bài học..."
-                                    className="w-full p-5 rounded-2xl bg-muted/40 border-border/60 focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all font-bold outline-none resize-none no-scrollbar"
-                                />
-                            </div>
-                        </form>
-                    )}
-                </div>
-
-                {/* Actions Footer */}
-                <div className="p-5 sm:p-8 bg-muted/10 border-t border-border/60">
-                    <div className="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-3">
-                        {mode === 'view' ? (
-                            <>
-                                <Button
-                                    variant="ghost"
-                                    onClick={() => setConfirmDeleteOpen(true)}
-                                    className="h-14 flex-1 rounded-2xl text-red-500 hover:bg-red-500/10 font-black uppercase tracking-widest text-[11px]"
-                                >
-                                    <Trash2 className="w-4 h-4 mr-2" />
-                                    Xóa
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    onClick={handleDuplicate}
-                                    disabled={loading}
-                                    className="h-14 flex-1 rounded-2xl border-border/60 font-black uppercase tracking-widest text-[11px]"
-                                >
-                                    <Copy className="w-4 h-4 mr-2" />
-                                    Nhân bản
-                                </Button>
-                                <Button
-                                    onClick={() => setMode('edit')}
-                                    className="h-14 flex-1 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-[11px] shadow-lg shadow-primary/20"
-                                >
-                                    <Pencil className="w-4 h-4 mr-2" />
-                                    Sửa
-                                </Button>
-                            </>
-                        ) : (
-                            <>
-                                <Button
-                                    variant="ghost"
-                                    onClick={() => setMode('view')}
-                                    className="h-14 flex-1 rounded-2xl font-black uppercase tracking-widest text-[11px]"
-                                >
-                                    Hủy
-                                </Button>
-                                <Button
-                                    form="premium-edit-form"
-                                    type="submit"
-                                    disabled={loading || !isDirty}
-                                    className="h-14 flex-[2] rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase tracking-widest text-[11px] shadow-lg shadow-emerald-500/20"
-                                >
-                                    {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                                    {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
-                                </Button>
-                            </>
-                        )}
+                        </div>
                     </div>
+
+                    {/* RIGHT COLUMN: Feedback Form (Only if Taught/Paid) */}
+                    {isTaughtOrPaid && (
+                        <div className="lg:col-span-8 bg-muted/5 lg:h-full lg:overflow-hidden flex flex-col">
+                            <div className="flex-1 lg:overflow-hidden flex flex-col">
+                                <SmartFeedbackForm
+                                    sessionRecordId={localSession.id}
+                                    studentId={localSession.studentId}
+                                    studentName={localSession.studentName}
+                                />
+                            </div>
+                        </div>
+                    )}
                 </div>
             </motion.div>
 

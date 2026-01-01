@@ -6,21 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/auth/UserRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/auth/UserRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseAssignmentRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseAssignmentRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseAssignmentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseAssignmentService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseLessonRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseLessonRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/LessonProgressRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/LessonProgressRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/InvoiceService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/InvoiceService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/LessonAssignmentRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/LessonAssignmentRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/LessonRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/LessonRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/LessonService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/LessonService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/student/StudentRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/student/StudentRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/student/StudentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/student/StudentService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/LessonDetailModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/LessonDetailModal.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -170,7 +156,8 @@
       <workItem from="1766938038405" duration="1950000" />
       <workItem from="1767030332845" duration="1105000" />
       <workItem from="1767252929656" duration="1600000" />
-      <workItem from="1767265149246" duration="1349000" />
+      <workItem from="1767265149246" duration="2994000" />
+      <workItem from="1767288599450" duration="4736000" />
     </task>
     <servers />
   </component>

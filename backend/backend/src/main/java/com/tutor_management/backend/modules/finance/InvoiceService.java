@@ -1,19 +1,22 @@
 package com.tutor_management.backend.modules.finance;
 
-import com.tutor_management.backend.modules.finance.dto.request.InvoiceRequest;
-import com.tutor_management.backend.modules.finance.dto.response.BankInfo;
-import com.tutor_management.backend.modules.finance.dto.response.InvoiceItem;
-import com.tutor_management.backend.modules.finance.dto.response.InvoiceResponse;
-import com.tutor_management.backend.modules.student.Student;
-import com.tutor_management.backend.modules.student.StudentRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
+import com.tutor_management.backend.modules.finance.dto.request.InvoiceRequest;
+import com.tutor_management.backend.modules.finance.dto.response.BankInfo;
+import com.tutor_management.backend.modules.finance.dto.response.InvoiceItem;
+import com.tutor_management.backend.modules.finance.dto.response.InvoiceResponse;
+import com.tutor_management.backend.modules.student.Student;
+import com.tutor_management.backend.modules.student.StudentRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -226,11 +229,8 @@ public class InvoiceService {
 
         private InvoiceResponse generateInvoiceForMultipleStudents(InvoiceRequest request) {
                 // Lấy tất cả session records của các học sinh được chọn trong tháng
-                List<SessionRecord> allRecords = sessionRecordRepository.findAll()
-                                .stream()
-                                .filter(r -> r.getMonth().equals(request.getMonth()))
-                                .filter(r -> request.getSelectedStudentIds().contains(r.getStudent().getId()))
-                                .toList();
+                List<SessionRecord> allRecords = sessionRecordRepository.findByMonthAndStudentIdIn(request.getMonth(),
+                                request.getSelectedStudentIds());
 
                 if (allRecords.isEmpty()) {
                         throw new RuntimeException("No sessions found for selected students");
@@ -305,10 +305,7 @@ public class InvoiceService {
         }
 
         private InvoiceResponse generateMonthlyInvoiceForAll(String month) {
-                List<SessionRecord> allRecords = sessionRecordRepository.findAll()
-                                .stream()
-                                .filter(r -> r.getMonth().equals(month))
-                                .toList();
+                List<SessionRecord> allRecords = sessionRecordRepository.findByMonth(month);
 
                 if (allRecords.isEmpty()) {
                         throw new RuntimeException("No sessions found for this month");

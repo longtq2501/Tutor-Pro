@@ -1,21 +1,31 @@
 package com.tutor_management.backend.modules.course;
 
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.course.dto.request.AssignCourseRequest;
 import com.tutor_management.backend.modules.course.dto.request.CourseRequest;
 import com.tutor_management.backend.modules.course.dto.response.CourseAssignmentResponse;
 import com.tutor_management.backend.modules.course.dto.response.CourseDetailResponse;
 import com.tutor_management.backend.modules.course.dto.response.CourseResponse;
+import com.tutor_management.backend.modules.course.projection.CourseListProjection;
 import com.tutor_management.backend.modules.shared.dto.response.ApiResponse;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/courses")
@@ -27,8 +37,9 @@ public class CourseController {
     private final CourseService courseService;
     private final CourseAssignmentService courseAssignmentService;
 
+    // ✅ OPTIMIZED: Returns Projection instead of full entity
     @GetMapping
-    public ResponseEntity<ApiResponse<List<CourseResponse>>> getAllCourses() {
+    public ResponseEntity<ApiResponse<List<CourseListProjection>>> getAllCourses() {
         return ResponseEntity.ok(ApiResponse.success(courseService.getAllCourses()));
     }
 

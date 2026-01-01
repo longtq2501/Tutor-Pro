@@ -1,20 +1,22 @@
 package com.tutor_management.backend.modules.lesson;
 
-import com.tutor_management.backend.modules.course.CourseAssignmentService;
-import com.tutor_management.backend.modules.lesson.dto.response.LessonResponse;
-import com.tutor_management.backend.modules.lesson.dto.response.LessonStatsResponse;
-import com.tutor_management.backend.exception.ResourceNotFoundException;
-import com.tutor_management.backend.modules.student.StudentRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.hibernate.Hibernate;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import com.tutor_management.backend.exception.ResourceNotFoundException;
+import com.tutor_management.backend.modules.course.CourseAssignmentService;
+import com.tutor_management.backend.modules.lesson.dto.response.LessonResponse;
+import com.tutor_management.backend.modules.lesson.dto.response.LessonStatsResponse;
+import com.tutor_management.backend.modules.student.StudentRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +29,7 @@ public class LessonService {
     private final StudentRepository studentRepository;
     private final CourseAssignmentService courseAssignmentService;
 
+    // ✅ OPTIMIZED: Use @EntityGraph method to prevent N+1 queries
     @Cacheable(value = "lessons", key = "'student-' + #studentId")
     @Transactional(readOnly = true)
     public List<LessonResponse> getStudentLessons(Long studentId) {
@@ -36,7 +39,8 @@ public class LessonService {
             throw new ResourceNotFoundException("Student not found with id: " + studentId);
         }
 
-        List<LessonAssignment> assignments = assignmentRepository.findByStudentIdOrderByAssignedDateDesc(studentId);
+        // ✅ Use optimized method with @EntityGraph
+        List<LessonAssignment> assignments = assignmentRepository.findByStudentIdWithDetails(studentId);
 
         // Initialize collections for each lesson
         return getLessonResponses(assignments);
@@ -75,8 +79,8 @@ public class LessonService {
     @Transactional(readOnly = true)
     public List<LessonResponse> getLessonsByMonthYear(Long studentId, int year, int month) {
 
-        // Get all assignments for student
-        List<LessonAssignment> assignments = assignmentRepository.findByStudentIdOrderByAssignedDateDesc(studentId);
+        // ✅ Use optimized method with @EntityGraph
+        List<LessonAssignment> assignments = assignmentRepository.findByStudentIdWithDetails(studentId);
 
         // Filter by lesson date
         List<LessonAssignment> filtered = assignments.stream()

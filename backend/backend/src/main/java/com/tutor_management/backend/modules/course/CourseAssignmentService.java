@@ -1,5 +1,15 @@
 package com.tutor_management.backend.modules.course;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.tutor_management.backend.exception.ResourceNotFoundException;
 import com.tutor_management.backend.modules.course.dto.request.AssignCourseRequest;
 import com.tutor_management.backend.modules.course.dto.response.CourseAssignmentResponse;
@@ -10,17 +20,9 @@ import com.tutor_management.backend.modules.lesson.LessonAssignment;
 import com.tutor_management.backend.modules.lesson.LessonAssignmentRepository;
 import com.tutor_management.backend.modules.student.Student;
 import com.tutor_management.backend.modules.student.StudentRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -96,14 +98,16 @@ public class CourseAssignmentService {
                 return responses;
         }
 
+        // ✅ OPTIMIZED: Use @EntityGraph method to prevent N+1 queries
         public List<CourseAssignmentResponse> getCourseAssignments(Long courseId) {
-                return courseAssignmentRepository.findByCourseId(courseId).stream()
+                return courseAssignmentRepository.findByCourseIdWithDetails(courseId).stream()
                                 .map(CourseAssignmentResponse::fromEntity)
                                 .collect(Collectors.toList());
         }
 
+        // ✅ OPTIMIZED: Use @EntityGraph method to prevent N+1 queries
         public List<CourseAssignmentResponse> getStudentCourses(Long studentId) {
-                return courseAssignmentRepository.findByStudentId(studentId).stream()
+                return courseAssignmentRepository.findByStudentIdWithDetails(studentId).stream()
                                 .map(CourseAssignmentResponse::fromEntity)
                                 .collect(Collectors.toList());
         }
@@ -154,10 +158,8 @@ public class CourseAssignmentService {
         }
 
         public void removeStudentFromCourse(Long courseId, Long studentId) {
-                courseAssignmentRepository.findAll().stream()
-                                .filter(a -> a.getCourse().getId().equals(courseId)
-                                                && a.getStudent().getId().equals(studentId))
-                                .findFirst()
+                // ✅ OPTIMIZED: Use direct query instead of findAll().stream().filter()
+                courseAssignmentRepository.findByCourseIdAndStudentId(courseId, studentId)
                                 .ifPresent(courseAssignmentRepository::delete);
 
                 // Note: Usually we don't automatically delete lesson assignments as they might

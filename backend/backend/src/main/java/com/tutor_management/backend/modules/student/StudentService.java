@@ -36,11 +36,100 @@ public class StudentService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // ✅ OPTIMIZED: Batch load session records to prevent N+1 query
     public List<StudentResponse> getAllStudents() {
-        List<Student> students = studentRepository.findAllByOrderByCreatedAtDesc();
-        return students.stream()
-                .map(this::convertToResponse)
+        // Step 1: Load all students with parent (1 query)
+        List<Student> students = studentRepository.findAllWithParentOrderByCreatedAtDesc();
+
+        if (students.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Step 2: Extract student IDs
+        List<Long> studentIds = students.stream()
+                .map(Student::getId)
                 .collect(Collectors.toList());
+
+        // Step 3: Batch load session records ONLY for these students (1 query instead
+        // of N)
+        List<SessionRecord> allRecords = sessionRecordRepository.findByStudentIdIn(studentIds);
+
+        // Step 4: Group session records by student ID (no filter needed - already
+        // filtered)
+        Map<Long, List<SessionRecord>> recordsByStudentId = allRecords.stream()
+                .collect(Collectors.groupingBy(record -> record.getStudent().getId()));
+
+        // Step 5: Batch load user accounts ONLY for these students (1 query instead of
+        // N)
+        List<User> allUsers = userRepository.findByStudentIdIn(studentIds);
+        Map<Long, User> usersByStudentId = allUsers.stream()
+                .collect(Collectors.toMap(User::getStudentId, user -> user, (u1, u2) -> u1));
+
+        // Step 6: Convert to response using pre-loaded data
+        return students.stream()
+                .map(student -> convertToResponseOptimized(
+                        student,
+                        recordsByStudentId.getOrDefault(student.getId(), new ArrayList<>()),
+                        usersByStudentId.get(student.getId())))
+                .collect(Collectors.toList());
+    }
+
+    // ✅ NEW: Optimized version that doesn't query database
+    private StudentResponse convertToResponseOptimized(Student student, List<SessionRecord> records, User user) {
+        Long totalPaid = records.stream()
+                .filter(SessionRecord::getPaid)
+                .mapToLong(SessionRecord::getTotalAmount)
+                .sum();
+
+        Long totalUnpaid = records.stream()
+                .filter(r -> !r.getPaid())
+                .mapToLong(SessionRecord::getTotalAmount)
+                .sum();
+
+        // Calculate lastActiveMonth
+        String lastActiveMonth = null;
+        if (!records.isEmpty()) {
+            lastActiveMonth = records.stream()
+                    .map(SessionRecord::getMonth)
+                    .max(String::compareTo)
+                    .orElse(null);
+        }
+
+        Integer monthsLearned = calculateMonthsLearned(student.getStartMonth(), lastActiveMonth);
+        String learningDuration = buildLearningDuration(student.getStartMonth(), monthsLearned);
+
+        StudentResponse response = StudentResponse.builder()
+                .id(student.getId())
+                .name(student.getName())
+                .phone(student.getPhone())
+                .schedule(student.getSchedule())
+                .pricePerHour(student.getPricePerHour())
+                .notes(student.getNotes())
+                .active(student.getActive())
+                .startMonth(student.getStartMonth())
+                .lastActiveMonth(lastActiveMonth)
+                .monthsLearned(monthsLearned)
+                .learningDuration(learningDuration)
+                .createdAt(student.getCreatedAt().format(formatter))
+                .totalPaid(totalPaid)
+                .totalUnpaid(totalUnpaid)
+                .build();
+
+        // Add parent info (already loaded via JOIN FETCH)
+        if (student.getParent() != null) {
+            Parent parent = student.getParent();
+            response.setParentId(parent.getId());
+            response.setParentName(parent.getName());
+            response.setParentEmail(parent.getEmail());
+            response.setParentPhone(parent.getPhone());
+        }
+
+        // Add account info (already loaded in batch)
+        if (user != null) {
+            response.setAccountEmail(user.getEmail());
+        }
+
+        return response;
     }
 
     public StudentResponse getStudentById(Long id) {

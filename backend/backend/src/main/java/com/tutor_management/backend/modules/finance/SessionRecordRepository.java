@@ -81,4 +81,28 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, Lo
         List<SessionRecord> findByStudentAndMonthOrderByCreatedAtDesc(
                         @Param("student") Student student,
                         @Param("month") String month);
+
+        // ✅ OPTIMIZED: Get all sessions for a month (for invoice generation)
+        @Query("SELECT sr FROM SessionRecord sr " +
+                        "LEFT JOIN FETCH sr.student " +
+                        "WHERE sr.month = :month " +
+                        "ORDER BY sr.createdAt DESC")
+        List<SessionRecord> findByMonth(@Param("month") String month);
+
+        // ✅ OPTIMIZED: Get sessions for specific students in a month (for multi-student
+        // invoice)
+        @Query("SELECT sr FROM SessionRecord sr " +
+                        "LEFT JOIN FETCH sr.student " +
+                        "WHERE sr.month = :month AND sr.student.id IN :studentIds " +
+                        "ORDER BY sr.createdAt DESC")
+        List<SessionRecord> findByMonthAndStudentIdIn(
+                        @Param("month") String month,
+                        @Param("studentIds") List<Long> studentIds);
+
+        // ✅ OPTIMIZED: Batch load session records for multiple students
+        @Query("SELECT sr FROM SessionRecord sr " +
+                        "LEFT JOIN FETCH sr.student " +
+                        "WHERE sr.student.id IN :studentIds " +
+                        "ORDER BY sr.createdAt DESC")
+        List<SessionRecord> findByStudentIdIn(@Param("studentIds") List<Long> studentIds);
 }

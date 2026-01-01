@@ -4,13 +4,13 @@
 // =========================================================================
 package com.tutor_management.backend.modules.student;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface StudentRepository extends JpaRepository<Student, Long> {
@@ -26,4 +26,10 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
     @Query("SELECT s FROM Student s LEFT JOIN FETCH s.parent WHERE s.active = true")
     List<Student> findByActiveTrueWithParent();
+
+    // ✅ OPTIMIZED: Load all students with parent in one query
+    @Query("SELECT DISTINCT s FROM Student s " +
+            "LEFT JOIN FETCH s.parent " +
+            "ORDER BY s.createdAt DESC")
+    List<Student> findAllWithParentOrderByCreatedAtDesc();
 }

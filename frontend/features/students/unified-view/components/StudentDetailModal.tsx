@@ -33,6 +33,7 @@ interface StudentDetailModalProps {
     onViewSchedule: (student: Student) => void;
 }
 
+// TODO: Implement StudentDetailModal
 export function StudentDetailModal({
     open,
     onClose,

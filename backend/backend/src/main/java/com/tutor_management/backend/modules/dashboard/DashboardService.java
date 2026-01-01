@@ -1,15 +1,17 @@
 package com.tutor_management.backend.modules.dashboard;
 
-import com.tutor_management.backend.modules.dashboard.dto.response.DashboardStats;
-import com.tutor_management.backend.modules.finance.dto.response.MonthlyStats;
-import com.tutor_management.backend.modules.finance.SessionRecordRepository;
-import com.tutor_management.backend.modules.student.StudentRepository;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import com.tutor_management.backend.modules.dashboard.dto.response.DashboardStats;
+import com.tutor_management.backend.modules.finance.SessionRecordRepository;
+import com.tutor_management.backend.modules.finance.dto.response.MonthlyStats;
+import com.tutor_management.backend.modules.student.StudentRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -25,14 +27,15 @@ public class DashboardService {
         Long totalPaid = sessionRecordRepository.sumTotalPaid();
         Long totalUnpaid = sessionRecordRepository.sumTotalUnpaid();
 
-        Long currentMonthTotal = sessionRecordRepository.sumTotalPaidByMonth(currentMonth);
+        Long currentMonthPaid = sessionRecordRepository.sumTotalPaidByMonth(currentMonth);
         Long currentMonthUnpaid = sessionRecordRepository.sumTotalUnpaidByMonth(currentMonth);
 
         return DashboardStats.builder()
                 .totalStudents(totalStudents)
                 .totalPaidAllTime(totalPaid != null ? totalPaid : 0L)
                 .totalUnpaidAllTime(totalUnpaid != null ? totalUnpaid : 0L)
-                .currentMonthTotal(currentMonthTotal != null ? currentMonthTotal : 0L)
+                .currentMonthTotal((currentMonthPaid != null ? currentMonthPaid : 0L)
+                        + (currentMonthUnpaid != null ? currentMonthUnpaid : 0L))
                 .currentMonthUnpaid(currentMonthUnpaid != null ? currentMonthUnpaid : 0L)
                 .build();
     }

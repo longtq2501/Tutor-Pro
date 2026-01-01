@@ -1,23 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import {
-    UserPlus, X, UserCircle, Plus, ChevronRight, Check, Loader2, Calendar
-} from 'lucide-react';
-import { cn, formatCurrency } from '@/lib/utils';
+import { Textarea } from '@/components/ui/textarea';
+import { useParents } from '@/features/students/parents-view/hooks/useParents';
 import { useStudentForm } from '@/features/students/student-modal/hooks/useStudentForm';
 import type { Student } from '@/lib/types';
-import { useParents } from '@/features/students/parents-view/hooks/useParents';
+import { cn, formatCurrency } from '@/lib/utils';
+import {
+    Check,
+    ChevronRight,
+    Eye,
+    EyeOff,
+    Loader2,
+    Lock,
+    Mail,
+    Plus,
+    RefreshCw,
+    ShieldCheck,
+    UserCircle,
+    UserPlus
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { QuickAddParentModal } from './QuickAddParentModal';
 
 interface EnhancedAddStudentModalProps {
@@ -50,6 +60,26 @@ export function EnhancedAddStudentModal({
         }
     }, [open]);
 
+    const [showPassword, setShowPassword] = useState(false);
+
+    const generatePassword = () => {
+        const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+        let pass = "";
+        for (let i = 0; i < 10; i++) {
+            pass += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        updateField('password', pass);
+    };
+
+    const generateEmailFromStudentName = () => {
+        if (!formData.name) return;
+        const normalized = formData.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const email = normalized.toLowerCase()
+            .replace(/\s+/g, "")
+            .replace(/[^a-z0-9]/g, "") + "@students.tutormanagement.com";
+        updateField('email', email);
+    };
+
     // Handle successful parent addition
     const handleParentAdded = (newParentId?: number) => {
         loadParents(); // Refresh list
@@ -70,7 +100,7 @@ export function EnhancedAddStudentModal({
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[550px] w-[95vw] max-w-[95vw] sm:w-full max-h-[92vh] p-0 overflow-hidden bg-card rounded-3xl shadow-2xl border-2 border-border/50 transition-all duration-300 flex flex-col">
+            <DialogContent className="sm:max-w-[550px] w-[95vw] max-w-[95vw] sm:w-full max-h-[90vh] p-0 overflow-hidden bg-card rounded-[32px] shadow-2xl border-none transition-all duration-300 flex flex-col">
                 {/* Header */}
                 <div className="p-6 border-b bg-gradient-to-br from-muted/30 to-muted/10 rounded-t-3xl flex-shrink-0">
                     <div className="flex items-center gap-4">
@@ -82,7 +112,9 @@ export function EnhancedAddStudentModal({
                                 {editingStudent ? 'Cập Nhật Hồ Sơ' : 'Thêm Học Sinh Mới'}
                             </DialogTitle>
                             <p className="text-sm text-muted-foreground mt-0.5">
-                                {step === 1 ? 'Thông tin cá nhân & liên hệ' : 'Thiết lập học vụ & ghi chú'}
+                                {step === 1 ? 'Thông tin cá nhân & liên hệ' :
+                                    step === 2 ? 'Thiết lập học vụ & ghi chú' :
+                                        'Tài khoản đăng nhập (Tùy chọn)'}
                             </p>
                         </div>
                         {/* Close Button removed */}
@@ -97,6 +129,10 @@ export function EnhancedAddStudentModal({
                         <div className={cn(
                             "flex-1 h-2 rounded-full transition-all duration-500 shadow-sm",
                             step >= 2 ? "bg-primary" : "bg-muted"
+                        )} />
+                        <div className={cn(
+                            "flex-1 h-2 rounded-full transition-all duration-500 shadow-sm",
+                            step >= 3 ? "bg-primary" : "bg-muted"
                         )} />
                     </div>
                 </div>
@@ -267,6 +303,130 @@ export function EnhancedAddStudentModal({
                             </div>
                         </div>
                     )}
+
+                    {step === 3 && (
+                        <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
+                            {/* Create Account Toggle */}
+                            <div className={cn(
+                                "p-5 rounded-2xl border transition-all duration-300",
+                                formData.createAccount
+                                    ? "bg-primary/5 border-primary/30 shadow-sm"
+                                    : "bg-muted/30 border-border"
+                            )}>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className={cn(
+                                            "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
+                                            formData.createAccount ? "bg-primary text-primary-foreground" : "bg-muted-foreground/20 text-muted-foreground"
+                                        )}>
+                                            <ShieldCheck className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <Label className="text-base font-bold cursor-pointer" htmlFor="createAccount">
+                                                Tạo tài khoản học sinh
+                                            </Label>
+                                            <p className="text-xs text-muted-foreground">Cho phép học sinh đăng nhập vào hệ thống</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        id="createAccount"
+                                        onClick={() => updateField('createAccount', !formData.createAccount)}
+                                        className={cn(
+                                            "w-12 h-6 rounded-full relative transition-colors duration-200 focus:outline-none",
+                                            formData.createAccount ? "bg-primary" : "bg-muted-foreground/30"
+                                        )}
+                                    >
+                                        <div className={cn(
+                                            "absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 shadow-sm",
+                                            formData.createAccount ? "translate-x-6" : "translate-x-0"
+                                        )} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {formData.createAccount && (
+                                <div className="space-y-5 animate-in fade-in zoom-in-95 duration-300">
+                                    {/* Email */}
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <Label htmlFor="email" className="text-sm font-medium flex items-center gap-2">
+                                                <Mail className="w-4 h-4 text-muted-foreground" />
+                                                Email đăng nhập
+                                            </Label>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-7 text-[10px] px-2 text-primary hover:text-primary/80"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    generateEmailFromStudentName();
+                                                }}
+                                            >
+                                                Tự động tạo
+                                            </Button>
+                                        </div>
+                                        <Input
+                                            id="email"
+                                            type="email"
+                                            placeholder="hocsinh@students.tutormanagement.com"
+                                            className="h-11 rounded-xl border-muted-foreground/20 focus:border-primary/50"
+                                            value={formData.email}
+                                            onChange={e => updateField('email', e.target.value)}
+                                        />
+                                    </div>
+
+                                    {/* Password */}
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <Label htmlFor="pass" className="text-sm font-medium flex items-center gap-2">
+                                                <Lock className="w-4 h-4 text-muted-foreground" />
+                                                Mật khẩu
+                                            </Label>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-7 text-[10px] px-2 text-primary hover:text-primary/80"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    generatePassword();
+                                                }}
+                                            >
+                                                <RefreshCw className="w-3 h-3 mr-1" />
+                                                Ngẫu nhiên
+                                            </Button>
+                                        </div>
+                                        <div className="relative">
+                                            <Input
+                                                id="pass"
+                                                type={showPassword ? "text" : "password"}
+                                                placeholder="Sử dụng mật khẩu mạnh"
+                                                className="h-11 pl-4 pr-12 rounded-xl border-muted-foreground/20 focus:border-primary/50"
+                                                value={formData.password}
+                                                onChange={e => updateField('password', e.target.value)}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                            >
+                                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {!formData.createAccount && (
+                                <div className="text-center py-8 px-4 bg-muted/20 rounded-2xl border border-dashed border-border/60">
+                                    <ShieldCheck className="w-8 h-8 text-muted-foreground/40 mx-auto mb-3" />
+                                    <p className="text-sm text-muted-foreground max-w-[280px] mx-auto">
+                                        Học sinh sẽ không có tài khoản đăng nhập. Bạn có thể thiết lập tài khoản này sau bất cứ lúc nào.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Footer */}
@@ -274,16 +434,16 @@ export function EnhancedAddStudentModal({
                     <Button
                         variant="outline"
                         className="flex-1 h-11 rounded-xl hover:bg-muted/50 transition-all"
-                        onClick={step === 1 ? onClose : () => setStep(1)}
+                        onClick={step === 1 ? onClose : () => setStep(prev => prev - 1)}
                         disabled={loading}
                     >
                         {step === 1 ? 'Hủy Bỏ' : 'Quay lại'}
                     </Button>
 
-                    {step < 2 ? (
+                    {step < 3 ? (
                         <Button
                             className="flex-1 h-11 rounded-xl shadow-md hover:shadow-lg transition-all"
-                            onClick={handleNextStep}
+                            onClick={() => setStep(prev => prev + 1)}
                             disabled={!formData.name || !formData.schedule} // Basic Validation
                         >
                             Tiếp tục

@@ -1,36 +1,38 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-    UserCircle,
-    ChevronDown,
-    Mail,
-    Phone,
-    DollarSign,
-    Calendar,
-    AlertCircle,
-    CalendarClock,
-    Plus,
-    Edit2
-} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { OptimizedAvatar } from './OptimizedAvatar';
 import type { Student } from '@/lib/types';
-import { formatCurrency } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+    AlertCircle,
+    Calendar,
+    CalendarClock,
+    ChevronDown,
+    DollarSign,
+    Edit2,
+    Eye,
+    Mail,
+    Phone,
+    Plus,
+    UserCircle
+} from 'lucide-react';
+import { useState } from 'react';
+import { OptimizedAvatar } from './OptimizedAvatar';
 
 interface UnifiedStudentCardProps {
     student: Student;
     onViewSchedule: (student: Student) => void;
     onAddSession: (student: Student) => void;
     onEdit?: (student: Student) => void;
+    onViewDetails?: (student: Student) => void;
 }
 
 export function UnifiedStudentCard({
     student,
     onViewSchedule,
     onAddSession,
-    onEdit
+    onEdit,
+    onViewDetails
 }: UnifiedStudentCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -97,6 +99,16 @@ export function UnifiedStudentCard({
                                         title="Chỉnh sửa thông tin"
                                     >
                                         <Edit2 className="w-4 h-4" />
+                                    </button>
+                                )}
+
+                                {onViewDetails && (
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); onViewDetails(student); }}
+                                        className="p-1.5 text-muted-foreground hover:text-indigo-600 bg-muted/50 dark:bg-muted/30 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 rounded-full transition-all shadow-sm border border-transparent hover:border-indigo-300 dark:hover:border-indigo-800"
+                                        title="Xem chi tiết hồ sơ"
+                                    >
+                                        <Eye className="w-4 h-4" />
                                     </button>
                                 )}
                             </div>

@@ -1,18 +1,5 @@
 package com.tutor_management.backend.modules.student;
 
-import com.tutor_management.backend.modules.auth.Role;
-import com.tutor_management.backend.modules.auth.User;
-import com.tutor_management.backend.modules.auth.UserRepository;
-import com.tutor_management.backend.modules.parent.Parent;
-import com.tutor_management.backend.modules.parent.ParentRepository;
-import com.tutor_management.backend.modules.student.dto.request.StudentRequest;
-import com.tutor_management.backend.modules.student.dto.response.StudentResponse;
-import com.tutor_management.backend.modules.finance.SessionRecord;
-import com.tutor_management.backend.modules.finance.SessionRecordRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -20,6 +7,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tutor_management.backend.modules.auth.Role;
+import com.tutor_management.backend.modules.auth.User;
+import com.tutor_management.backend.modules.auth.UserRepository;
+import com.tutor_management.backend.modules.finance.SessionRecord;
+import com.tutor_management.backend.modules.finance.SessionRecordRepository;
+import com.tutor_management.backend.modules.parent.Parent;
+import com.tutor_management.backend.modules.parent.ParentRepository;
+import com.tutor_management.backend.modules.student.dto.request.StudentRequest;
+import com.tutor_management.backend.modules.student.dto.response.StudentResponse;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -54,24 +57,29 @@ public class StudentService {
                 .pricePerHour(request.getPricePerHour())
                 .notes(request.getNotes())
                 .active(request.getActive() != null ? request.getActive() : true)
-                .startMonth(request.getStartMonth() != null ? request.getStartMonth() :
-                        YearMonth.now().toString())
+                .startMonth(request.getStartMonth() != null ? request.getStartMonth() : YearMonth.now().toString())
                 .build();
 
         if (request.getParentId() != null) {
             Parent parent = parentRepository.findById(request.getParentId())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy phụ huynh với ID: " + request.getParentId()));
+                    .orElseThrow(
+                            () -> new RuntimeException("Không tìm thấy phụ huynh với ID: " + request.getParentId()));
             student.setParent(parent);
         }
 
         Student saved = studentRepository.save(student);
 
-        // ✅ AUTO-CREATE USER ACCOUNT
-        try {
-            createUserAccountForStudent(saved);
-        } catch (Exception e) {
-            // Log but don't fail - student creation should succeed
-            System.err.println("Failed to create user account for student: " + saved.getName() + " - " + e.getMessage());
+        // ✅ CREATE ACCOUNT IF REQUESTED
+        if (Boolean.TRUE.equals(request.getCreateAccount())) {
+            try {
+                if (request.getEmail() != null && request.getPassword() != null) {
+                    createExplicitUserAccount(saved, request.getEmail(), request.getPassword());
+                } else {
+                    createUserAccountForStudent(saved);
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to create user account: " + e.getMessage());
+            }
         }
 
         return convertToResponse(saved);
@@ -98,11 +106,38 @@ public class StudentService {
         // ✅ Cập nhật parent
         if (request.getParentId() != null) {
             Parent parent = parentRepository.findById(request.getParentId())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy phụ huynh với ID: " + request.getParentId()));
+                    .orElseThrow(
+                            () -> new RuntimeException("Không tìm thấy phụ huynh với ID: " + request.getParentId()));
             student.setParent(parent);
         } else {
             // Nếu parentId = null, xóa liên kết
             student.setParent(null);
+        }
+
+        // ✅ Cập nhật account info
+        List<User> users = userRepository.findByStudentId(id);
+        if (!users.isEmpty()) {
+            User user = users.get(0);
+            if (request.getEmail() != null && !request.getEmail().isEmpty()) {
+                // Check if email already used by ANOTHER user
+                userRepository.findByEmail(request.getEmail()).ifPresent(existing -> {
+                    if (!existing.getId().equals(user.getId())) {
+                        throw new RuntimeException("Email đã được sử dụng bởi người dùng khác: " + request.getEmail());
+                    }
+                });
+                user.setEmail(request.getEmail());
+            }
+            if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+                user.setPassword(passwordEncoder.encode(request.getPassword()));
+            }
+            userRepository.save(user);
+        } else if (Boolean.TRUE.equals(request.getCreateAccount())) {
+            // Create account if requested but didn't exist
+            if (request.getEmail() != null && request.getPassword() != null) {
+                createExplicitUserAccount(student, request.getEmail(), request.getPassword());
+            } else {
+                createUserAccountForStudent(student);
+            }
         }
 
         Student updated = studentRepository.save(student);
@@ -116,6 +151,10 @@ public class StudentService {
         // Delete all session records for this student
         List<SessionRecord> records = sessionRecordRepository.findByStudentIdOrderByCreatedAtDesc(id);
         sessionRecordRepository.deleteAll(records);
+
+        // ✅ Delete associated user accounts
+        List<User> users = userRepository.findByStudentId(id);
+        userRepository.deleteAll(users);
 
         studentRepository.delete(student);
     }
@@ -181,11 +220,18 @@ public class StudentService {
             response.setParentPhone(parent.getPhone());
         }
 
+        // ✅ Thêm account info
+        List<User> users = userRepository.findByStudentId(student.getId());
+        if (!users.isEmpty()) {
+            response.setAccountEmail(users.get(0).getEmail());
+        }
+
         return response;
     }
 
     private Integer calculateMonthsLearned(String startMonth, String lastActiveMonth) {
-        if (startMonth == null || lastActiveMonth == null) return 0;
+        if (startMonth == null || lastActiveMonth == null)
+            return 0;
 
         try {
             YearMonth start = YearMonth.parse(startMonth);
@@ -197,7 +243,8 @@ public class StudentService {
     }
 
     private String buildLearningDuration(String startMonth, Integer monthsLearned) {
-        if (startMonth == null) return "";
+        if (startMonth == null)
+            return "";
 
         try {
             String[] parts = startMonth.split("-");
@@ -254,8 +301,7 @@ public class StudentService {
                 "studentName", student.getName(),
                 "email", email,
                 "password", password,
-                "message", "Tài khoản đã được tạo thành công"
-        );
+                "message", "Tài khoản đã được tạo thành công");
     }
 
     /**
@@ -278,7 +324,8 @@ public class StudentService {
                 String email = generateEmailFromName(student.getName());
 
                 if (userRepository.existsByEmail(email)) {
-                    email = generateEmailFromName(student.getName()) + student.getId() + "@students.tutormanagement.com";
+                    email = generateEmailFromName(student.getName()) + student.getId()
+                            + "@students.tutormanagement.com";
                 }
 
                 String password = "student123";
@@ -298,8 +345,7 @@ public class StudentService {
                 created.add(Map.of(
                         "name", student.getName(),
                         "email", email,
-                        "password", password
-                ));
+                        "password", password));
 
             } catch (Exception e) {
                 skipped.add(student.getName() + " (lỗi)");
@@ -312,8 +358,29 @@ public class StudentService {
                 "created", created.size(),
                 "skipped", skipped.size(),
                 "accounts", created,
-                "skippedList", skipped
-        );
+                "skippedList", skipped);
+    }
+
+    /**
+     * Create account with provided email and password
+     */
+    private void createExplicitUserAccount(Student student, String email, String password) {
+        if (userRepository.existsByEmail(email)) {
+            throw new RuntimeException("Email already exists: " + email);
+        }
+
+        User user = User.builder()
+                .fullName(student.getName())
+                .email(email)
+                .password(passwordEncoder.encode(password))
+                .role(Role.STUDENT)
+                .enabled(true)
+                .accountNonLocked(true)
+                .studentId(student.getId())
+                .build();
+
+        userRepository.save(user);
+        System.out.println("✅ Created explicit account for: " + student.getName() + " | Email: " + email);
     }
 
     /**
@@ -341,7 +408,8 @@ public class StudentService {
 
             userRepository.save(user);
 
-            System.out.println("✅ Auto-created account for: " + student.getName() + " | Email: " + email + " | Password: " + password);
+            System.out.println("✅ Auto-created account for: " + student.getName() + " | Email: " + email
+                    + " | Password: " + password);
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to create user account: " + e.getMessage());

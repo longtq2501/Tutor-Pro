@@ -6,11 +6,22 @@
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/AdminLessonService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/AdminLessonService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/Lesson.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/Lesson.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/dto/request/CreateLessonRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/dto/request/CreateLessonRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/dto/response/AdminLessonResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/dto/response/AdminLessonResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/dto/response/LessonResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/dto/response/LessonResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/student/StudentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/student/StudentService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/student/dto/request/StudentRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/student/dto/request/StudentRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/student/dto/response/StudentResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/student/dto/response/StudentResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarHeader.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/dashboard/admin-dashboard/hooks/useDashboardData.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/dashboard/admin-dashboard/hooks/useDashboardData.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/finance/unpaid-sessions/components/StudentGroup.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/finance/unpaid-sessions/components/StudentGroup.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/finance/unpaid-sessions/hooks/useUnpaidSessions.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/finance/unpaid-sessions/hooks/useUnpaidSessions.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/students/student-modal/hooks/useStudentForm.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/student-modal/hooks/useStudentForm.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/students/unified-view/components/EnhancedAddStudentModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/unified-view/components/EnhancedAddStudentModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/students/unified-view/components/OptimizedStudentGrid.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/unified-view/components/OptimizedStudentGrid.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/students/unified-view/components/UnifiedStudentCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/unified-view/components/UnifiedStudentCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/students/unified-view/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/unified-view/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/types/student.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/types/student.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -159,6 +170,7 @@
       <workItem from="1766836822229" duration="3192000" />
       <workItem from="1766938038405" duration="1950000" />
       <workItem from="1767030332845" duration="1105000" />
+      <workItem from="1767252929656" duration="1600000" />
     </task>
     <servers />
   </component>

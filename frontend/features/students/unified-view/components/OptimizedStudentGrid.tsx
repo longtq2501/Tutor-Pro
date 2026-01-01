@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
 import { Student } from '@/lib/types';
-import { UnifiedStudentCard } from './UnifiedStudentCard';
+import { useEffect, useRef, useState } from 'react';
 import { StudentCardSkeleton } from './StudentCardSkeleton';
+import { UnifiedStudentCard } from './UnifiedStudentCard';
 
 interface OptimizedStudentGridProps {
     students: Student[];
@@ -9,6 +9,7 @@ interface OptimizedStudentGridProps {
     onViewSchedule: (student: Student) => void;
     onAddSession: (student: Student) => void;
     onEdit?: (student: Student) => void;
+    onViewDetails?: (student: Student) => void;
 }
 
 export function OptimizedStudentGrid({
@@ -16,7 +17,8 @@ export function OptimizedStudentGrid({
     isLoading,
     onViewSchedule,
     onAddSession,
-    onEdit
+    onEdit,
+    onViewDetails
 }: OptimizedStudentGridProps) {
     const [visibleCount, setVisibleCount] = useState(6); // Show 6 initially
     const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -71,6 +73,7 @@ export function OptimizedStudentGrid({
                         onViewSchedule={onViewSchedule}
                         onAddSession={onAddSession}
                         onEdit={onEdit}
+                        onViewDetails={onViewDetails}
                     />
                 ))}
             </div>

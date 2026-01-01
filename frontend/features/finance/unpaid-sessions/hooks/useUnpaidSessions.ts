@@ -1,6 +1,6 @@
 // 📁 unpaid-sessions/hooks/useUnpaidSessions.ts
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { sessionsApi } from '@/lib/services';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export function useUnpaidSessions() {
@@ -14,7 +14,7 @@ export function useUnpaidSessions() {
   } = useQuery({
     queryKey: ['unpaid-sessions'],
     queryFn: () => sessionsApi.getUnpaid(),
-    select: (data) => data.filter(r => r.completed), // Only show taught sessions
+    select: (data) => data.filter(r => r.status === 'COMPLETED' || r.status === 'PENDING_PAYMENT'), // Only show taught/pending sessions
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });

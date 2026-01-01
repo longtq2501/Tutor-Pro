@@ -1,6 +1,5 @@
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { dashboardApi } from '@/lib/services';
-import type { DashboardStats, MonthlyStats } from '@/lib/types';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 export const useDashboardData = () => {
   const currentMonth = new Date().toISOString().slice(0, 7);
@@ -13,10 +12,14 @@ export const useDashboardData = () => {
     gcTime: 10 * 60 * 1000,
     placeholderData: keepPreviousData,
     initialData: () => {
+      // Temporarily bypass cache to ensure fresh data after fix
+      return undefined;
+      /*
       if (typeof window !== 'undefined') {
         const saved = localStorage.getItem(`dashboard-stats-${currentMonth}`);
         return saved ? JSON.parse(saved) : undefined;
       }
+      */
     }
   });
 
@@ -28,10 +31,13 @@ export const useDashboardData = () => {
     gcTime: 15 * 60 * 1000,
     placeholderData: keepPreviousData,
     initialData: () => {
+      return undefined;
+      /*
       if (typeof window !== 'undefined') {
         const saved = localStorage.getItem('dashboard-monthly');
         return saved ? JSON.parse(saved) : undefined;
       }
+      */
     }
   });
 

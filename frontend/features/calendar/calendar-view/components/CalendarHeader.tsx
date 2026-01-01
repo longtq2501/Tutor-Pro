@@ -1,33 +1,37 @@
 'use client';
 
-import { memo, useMemo } from 'react';
-import {
-  ChevronLeft, ChevronRight, Plus, Sparkles,
-  Calendar as CalendarIcon, MousePointer2,
-  Download, Trash2, Filter, Info, CheckCircle2,
-  Clock, XCircle, AlertCircle, Ban, DollarSign,
-  Columns, List
-} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MONTHS } from '../constants';
-import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
 import type { SessionRecord } from '@/lib/types/finance';
 import { LESSON_STATUS_LABELS } from '@/lib/types/lesson-status';
+import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
+import {
+  Calendar as CalendarIcon,
+  CheckCircle2,
+  ChevronLeft, ChevronRight,
+  Columns,
+  DollarSign,
+  Filter, Info,
+  List,
+  Plus, Sparkles
+} from 'lucide-react';
+import { memo } from 'react';
+import { MONTHS } from '../constants';
+import type { CalendarStats } from '../types';
 import { getStatusColors } from '../utils/statusColors';
 import type { CalendarViewType } from './ViewSwitcher';
 
@@ -41,6 +45,7 @@ interface Props {
   onGenerateInvoice: () => void;
   isGenerating?: boolean;
   sessions: SessionRecord[];
+  stats: CalendarStats;
   isScrolled: boolean;
   onFilterChange?: (status: string | 'ALL') => void;
   currentFilter?: string;
@@ -82,19 +87,12 @@ export const CalendarHeader = ({
   onGenerateInvoice,
   isGenerating = false,
   sessions,
+  stats,
   isScrolled,
   onFilterChange,
   currentFilter = 'ALL'
 }: Props) => {
 
-  const stats = useMemo(() => {
-    const total = sessions.length;
-    const completed = sessions.filter(s => s.completed).length;
-    const paid = sessions.filter(s => s.paid).length;
-    const revenue = sessions.reduce((acc, s) => acc + s.totalAmount, 0);
-
-    return { total, completed, paid, revenue };
-  }, [sessions]);
 
   const activeFilterLabel = currentFilter === 'ALL' ? 'Tất cả' : LESSON_STATUS_LABELS[currentFilter as keyof typeof LESSON_STATUS_LABELS];
 

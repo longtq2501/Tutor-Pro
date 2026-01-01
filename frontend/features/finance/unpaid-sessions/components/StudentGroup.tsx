@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import type { StudentGroup as StudentGroupType } from '../utils/groupSessions';
 import { PremiumStudentDebtCard } from './PremiumStudentDebtCard';
 

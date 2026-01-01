@@ -31,4 +31,9 @@ public class StudentRequest {
 
     // ✅ THÊM FIELD PARENT
     private Long parentId;
+
+    // ✅ THÊM FIELD ACCOUNT
+    private Boolean createAccount;
+    private String email;
+    private String password;
 }

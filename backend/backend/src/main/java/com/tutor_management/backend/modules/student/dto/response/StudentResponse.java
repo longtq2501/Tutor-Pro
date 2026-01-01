@@ -30,4 +30,7 @@ public class StudentResponse {
     private String parentName;
     private String parentEmail;
     private String parentPhone;
+
+    // ✅ THÊM FIELD ACCOUNT
+    private String accountEmail;
 }

@@ -1,14 +1,15 @@
-import React, { useState, useMemo } from 'react';
-import { UnifiedContactHeader } from './components/UnifiedContactHeader';
-import { OptimizedStudentGrid } from './components/OptimizedStudentGrid';
-import { useStudents } from '@/features/students/student-list/hooks/useStudents';
-import { Student } from '@/lib/types';
-import { toast } from 'sonner';
-import { EnhancedAddStudentModal } from './components/EnhancedAddStudentModal';
 import { RecurringScheduleModal } from '@/features/calendar/recurring-schedule/components/RecurringScheduleModal';
-import { AddSessionModal } from './components/AddSessionModal';
+import { useStudents } from '@/features/students/student-list/hooks/useStudents';
 import { recurringSchedulesApi } from '@/lib/services/recurring-schedule';
 import type { RecurringSchedule } from '@/lib/types';
+import { Student } from '@/lib/types';
+import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { AddSessionModal } from './components/AddSessionModal';
+import { EnhancedAddStudentModal } from './components/EnhancedAddStudentModal';
+import { OptimizedStudentGrid } from './components/OptimizedStudentGrid';
+import { StudentDetailModal } from './components/StudentDetailModal';
+import { UnifiedContactHeader } from './components/UnifiedContactHeader';
 
 export default function UnifiedContactManagement() {
     const { students, loading } = useStudents();
@@ -25,6 +26,10 @@ export default function UnifiedContactManagement() {
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
     const [existingSchedule, setExistingSchedule] = useState<RecurringSchedule | null>(null);
     const [isFetchingSchedule, setIsFetchingSchedule] = useState(false);
+
+    // Detail Modal State
+    const [detailModalOpen, setDetailModalOpen] = useState(false);
+    const [selectedStudentDetail, setSelectedStudentDetail] = useState<Student | null>(null);
 
     // Computed Stats
     const stats = useMemo(() => {
@@ -101,6 +106,11 @@ export default function UnifiedContactManagement() {
         setIsModalOpen(true);
     };
 
+    const handleViewDetails = (student: Student) => {
+        setSelectedStudentDetail(student);
+        setDetailModalOpen(true);
+    };
+
     return (
         <div className="container mx-auto p-4 sm:p-6 space-y-6 sm:space-y-8 max-w-7xl">
             <UnifiedContactHeader
@@ -118,6 +128,7 @@ export default function UnifiedContactManagement() {
                 onViewSchedule={handleViewSchedule}
                 onAddSession={handleAddSession}
                 onEdit={handleEditStudent}
+                onViewDetails={handleViewDetails}
             />
 
             {isModalOpen && (
@@ -153,6 +164,27 @@ export default function UnifiedContactManagement() {
                     student={selectedStudent}
                     onSuccess={() => {
                         // Optional: Refresh some stats if needed
+                    }}
+                />
+            )}
+
+            {/* Student Detail Modal */}
+            {detailModalOpen && selectedStudentDetail && (
+                <StudentDetailModal
+                    open={detailModalOpen}
+                    student={selectedStudentDetail}
+                    onClose={() => setDetailModalOpen(false)}
+                    onEdit={(s) => {
+                        setDetailModalOpen(false);
+                        handleEditStudent(s);
+                    }}
+                    onAddSession={(s) => {
+                        setDetailModalOpen(false);
+                        handleAddSession(s);
+                    }}
+                    onViewSchedule={(s) => {
+                        setDetailModalOpen(false);
+                        handleViewSchedule(s);
                     }}
                 />
             )}

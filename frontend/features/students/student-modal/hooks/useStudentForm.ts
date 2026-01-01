@@ -1,9 +1,9 @@
 // ============================================================================
 // 📁 student-modal/hooks/useStudentForm.ts
 // ============================================================================
-import { useState, useEffect } from 'react';
 import { studentsApi } from '@/lib/services';
 import type { Student, StudentRequest } from '@/lib/types';
+import { useEffect, useState } from 'react';
 
 const initialFormData: StudentRequest = {
   name: '',
@@ -14,6 +14,9 @@ const initialFormData: StudentRequest = {
   active: true,
   startMonth: new Date().toISOString().slice(0, 7),
   parentId: undefined,
+  createAccount: false,
+  email: '',
+  password: '',
 };
 
 export function useStudentForm(student: Student | null, onSuccess: () => void) {
@@ -31,6 +34,9 @@ export function useStudentForm(student: Student | null, onSuccess: () => void) {
         active: student.active,
         startMonth: student.startMonth || new Date().toISOString().slice(0, 7),
         parentId: student.parentId,
+        createAccount: !!student.accountEmail,
+        email: student.accountEmail || '',
+        password: '',
       });
     } else {
       setFormData(initialFormData);

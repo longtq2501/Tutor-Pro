@@ -1,15 +1,3 @@
-import { useState, useEffect } from 'react';
-import AddSessionModal from '@/features/calendar/add-session-modal';
-import { useCalendarView } from './hooks/useCalendarView';
-import { CalendarHeader } from './components/CalendarHeader';
-import { CalendarGrid } from './components/CalendarGrid';
-import { WeekView } from './components/WeekView';
-import { DayView } from './components/DayView';
-import { ListView } from './components/ListView';
-import { LessonDetailModal } from './components/LessonDetailModal';
-import { DayDetailModal } from './components/DayDetailModal';
-import { ContextMenu } from './components/ContextMenu';
-import { CalendarSkeleton } from './components/CalendarSkeleton';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +8,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import AddSessionModal from '@/features/calendar/add-session-modal';
+import { useState } from 'react';
+import { CalendarGrid } from './components/CalendarGrid';
+import { CalendarHeader } from './components/CalendarHeader';
+import { CalendarSkeleton } from './components/CalendarSkeleton';
+import { ContextMenu } from './components/ContextMenu';
+import { DayDetailModal } from './components/DayDetailModal';
+import { DayView } from './components/DayView';
+import { LessonDetailModal } from './components/LessonDetailModal';
+import { ListView } from './components/ListView';
+import { WeekView } from './components/WeekView';
+import { useCalendarView } from './hooks/useCalendarView';
 import { getMonthStr } from './utils';
 
 export default function CalendarView() {
@@ -145,6 +145,7 @@ export default function CalendarView() {
         onGenerateInvoice={handleAutoGenerate}
         isGenerating={isGenerating}
         sessions={sessions}
+        stats={stats}
         isScrolled={isScrolled}
         onFilterChange={setStatusFilter}
         currentFilter={statusFilter}

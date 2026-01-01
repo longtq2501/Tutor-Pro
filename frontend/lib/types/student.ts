@@ -36,6 +36,7 @@ export interface Student {
   parentName?: string; // TÊN PHỤ HUYNH (DÙNG ĐỂ HIỂN THỊ NHANH)
   parentEmail?: string; // EMAIL PHỤ HUYNH (DÙNG ĐỂ GỬI HÓA ĐƠN)
   parentPhone?: string; // SĐT PHỤ HUYNH (DÙNG ĐỂ LIÊN HỆ)
+  accountEmail?: string; // EMAIL TÀI KHOẢN ĐĂNG NHẬP
 }
 
 export interface StudentRequest {
@@ -47,4 +48,9 @@ export interface StudentRequest {
   active?: boolean; // THIẾT LẬP TRẠNG THÁI HOẠT ĐỘNG
   startMonth?: string; // THÁNG BẮT ĐẦU (ĐỊNH DẠNG YYYY-MM)
   parentId?: number; // LIÊN KẾT VỚI ID PHỤ HUYNH CÓ SẴN
+
+  // ✅ THÊM FIELD ACCOUNT
+  createAccount?: boolean;
+  email?: string;
+  password?: string;
 }

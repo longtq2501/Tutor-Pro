@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Calendar, AlertCircle, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { AnimatePresence, motion } from 'framer-motion';
+import { AlertCircle, Calendar, ChevronDown, Clock } from 'lucide-react';
+import React, { memo, useState } from 'react';
 import { formatCurrency, getMonthName } from '../utils/formatters';
-import { PremiumSessionCard } from './PremiumSessionCard';
 import type { StudentGroup } from '../utils/groupSessions';
+import { PremiumSessionCard } from './PremiumSessionCard';
 
 interface PremiumStudentDebtCardProps {
     group: StudentGroup;
@@ -30,13 +30,13 @@ function StatsPill({ icon, label, variant }: { icon: React.ReactNode, label: str
     );
 }
 
-export function PremiumStudentDebtCard({
+export const PremiumStudentDebtCard = memo(({
     group,
     isSelected,
     selectedSessions,
     onToggleStudent,
     onToggleSession
-}: PremiumStudentDebtCardProps) {
+}: PremiumStudentDebtCardProps) => {
     const [isExpanded, setIsExpanded] = useState(true);
 
     return (
@@ -48,7 +48,8 @@ export function PremiumStudentDebtCard({
                 "group relative overflow-hidden",
                 "rounded-2xl sm:rounded-3xl border bg-card",
                 "shadow-sm hover:shadow-xl transition-all duration-300",
-                "hover:border-primary/20"
+                "hover:border-primary/20",
+                "will-change-transform contain-layout" // GPU Acceleration
             )}
         >
             {/* Gradient background decoration */}
@@ -194,4 +195,4 @@ export function PremiumStudentDebtCard({
             </div>
         </motion.div>
     );
-}
+});

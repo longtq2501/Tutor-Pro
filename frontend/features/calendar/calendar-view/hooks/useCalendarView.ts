@@ -1,13 +1,13 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
-import { sessionsApi, recurringSchedulesApi } from '@/lib/services';
+import { recurringSchedulesApi, sessionsApi } from '@/lib/services';
+import type { SessionRecord } from '@/lib/types/finance';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import type { CalendarViewType } from '../components/ViewSwitcher';
+import type { CalendarDay } from '../types';
+import { getMonthStr } from '../utils';
 import { useCalendarData } from './useCalendarData';
 import { useCalendarDays } from './useCalendarDays';
 import { useCalendarStats } from './useCalendarStats';
-import { getMonthStr } from '../utils';
-import type { CalendarDay } from '../types';
-import type { CalendarViewType } from '../components/ViewSwitcher';
-import type { SessionRecord } from '@/lib/types/finance';
 
 export const useCalendarView = () => {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -73,8 +73,10 @@ export const useCalendarView = () => {
     };
 
     // ... (rest of the functions)
-    const calendarDays = useCalendarDays(currentDate, sessions);
-    const stats = useCalendarStats(sessions);
+    // Memoize heavy calculations to prevent re-runs on every render (e.g. during scroll)
+    const calendarDays = useMemo(() => useCalendarDays(currentDate, sessions), [currentDate, sessions]);
+    const stats = useCalendarStats(sessions); // useCalendarStats is now internaly memoized, but wrapping it here for safety and clarity if needed is also fine, though its internal useMemo handles sessions change. Actually let's just make it clear.
+
 
     // Get current day for Day View
     const currentDayInfo = useMemo(() => {

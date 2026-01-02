@@ -1,13 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+  CardContent
 } from '@/components/ui/card';
 import {
   Table,
@@ -17,54 +14,104 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import {
-  BookMarked,
-  MoreVertical,
-  Plus,
-  Trash2,
-  Edit,
-  Loader2,
-  Eye,
-  EyeOff,
-  Calendar,
-  User,
-  Tag,
-  ChevronLeft,
-  ChevronRight,
-} from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import {
-  useAdminLessons,
-  useDeleteAdminLesson,
-  useTogglePublishLesson,
-} from '../hooks/useAdminLessons';
-import type { LessonDTO } from '../types';
-import { CategoryDashboard } from './CategoryDashboard';
+  BookMarked,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  EyeOff,
+  Loader2,
+  User,
+  Users
+} from 'lucide-react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { LessonDetailModal } from '../../lesson-view-wrapper/components/LessonDetailModal';
-import { Users } from 'lucide-react';
+import {
+  useAdminLessons
+} from '../hooks/useAdminLessons';
+import { CategoryDashboard } from './CategoryDashboard';
 
 const ITEMS_PER_PAGE = 10;
+
+const AdminLessonRow = memo(({ lesson, onPreview }: { lesson: any; onPreview: (id: number) => void }) => (
+  <TableRow className="cursor-pointer hover:bg-muted/50" onClick={() => onPreview(lesson.id)}>
+    <TableCell className="font-medium">
+      <div className="flex flex-col gap-1">
+        <span className="line-clamp-1 text-base font-semibold">{lesson.title}</span>
+        <div className="flex flex-wrap items-center gap-2">
+          {lesson.category && (
+            <Badge
+              variant="outline"
+              className="text-[10px] uppercase font-bold px-1.5 py-0 h-5 border-0"
+              style={{
+                backgroundColor: `${lesson.category.color}15`,
+                color: lesson.category.color
+              }}
+            >
+              {lesson.category.name}
+            </Badge>
+          )}
+          <span className="md:hidden text-xs text-muted-foreground">
+            {format(new Date(lesson.lessonDate), 'dd/MM/yyyy')}
+          </span>
+          {lesson.assignedStudentCount !== undefined && (
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <Users className="w-3 h-3" />
+              {lesson.assignedStudentCount} <span className="hidden sm:inline">học sinh</span>
+            </span>
+          )}
+        </div>
+      </div>
+    </TableCell>
+    <TableCell className="hidden md:table-cell">
+      <div className="flex items-center gap-2">
+        <User className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm">{lesson.tutorName}</span>
+      </div>
+    </TableCell>
+    <TableCell className="hidden md:table-cell">
+      <div className="flex items-center gap-2">
+        <Calendar className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm">
+          {format(new Date(lesson.lessonDate), 'dd/MM/yyyy', {
+            locale: vi,
+          })}
+        </span>
+      </div>
+    </TableCell>
+    <TableCell className="hidden md:table-cell">
+      <Badge
+        variant={lesson.isPublished ? 'default' : 'secondary'}
+      >
+        {lesson.isPublished ? 'Đã xuất bản' : 'Nháp'}
+      </Badge>
+    </TableCell>
+    <TableCell className="hidden md:table-cell">
+      {lesson.isPublished ? (
+        <div className="flex items-center gap-1.5 text-green-600 text-sm font-medium">
+          <Eye className="h-4 w-4" />
+          Public
+        </div>
+      ) : (
+        <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
+          <EyeOff className="h-4 w-4" />
+          Private
+        </div>
+      )}
+    </TableCell>
+    <TableCell className="text-right">
+      <Button variant="ghost" size="icon" onClick={(e) => {
+        e.stopPropagation();
+        onPreview(lesson.id);
+      }}>
+        <Eye className="h-4 w-4 text-primary" />
+      </Button>
+    </TableCell>
+  </TableRow>
+));
 
 export function AdminLessonsTab() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
@@ -75,7 +122,7 @@ export function AdminLessonsTab() {
   const { data: lessons = [], isLoading } = useAdminLessons();
 
   // Calculate counts for dashboard
-  const lessonCounts = lessons.reduce((acc, lesson) => {
+  const lessonCounts = useMemo(() => lessons.reduce((acc, lesson) => {
     // Total count (using -1 as key for "All")
     acc[-1] = (acc[-1] || 0) + 1;
 
@@ -84,23 +131,26 @@ export function AdminLessonsTab() {
       acc[lesson.category.id] = (acc[lesson.category.id] || 0) + 1;
     }
     return acc;
-  }, {} as Record<number, number>);
+  }, {} as Record<number, number>), [lessons]);
 
-  const handlePreview = (lessonId: number) => {
+  const handlePreview = useCallback((lessonId: number) => {
     setSelectedLessonId(lessonId);
     setIsPreviewOpen(true);
-  };
+  }, []);
 
-  const filteredLessons = selectedCategoryId
+  const filteredLessons = useMemo(() => selectedCategoryId
     ? lessons.filter(l => l.category?.id === selectedCategoryId)
-    : lessons;
+    : lessons, [lessons, selectedCategoryId]);
 
   // Pagination Logic
-  const totalPages = Math.ceil(filteredLessons.length / ITEMS_PER_PAGE);
-  const paginatedLessons = filteredLessons.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  const { totalPages, paginatedLessons } = useMemo(() => {
+    const total = Math.ceil(filteredLessons.length / ITEMS_PER_PAGE);
+    const paginated = filteredLessons.slice(
+      (currentPage - 1) * ITEMS_PER_PAGE,
+      currentPage * ITEMS_PER_PAGE
+    );
+    return { totalPages: total, paginatedLessons: paginated };
+  }, [filteredLessons, currentPage]);
 
   if (isLoading) {
     return (
@@ -170,81 +220,7 @@ export function AdminLessonsTab() {
                   </TableHeader>
                   <TableBody>
                     {paginatedLessons.map((lesson) => (
-                      <TableRow key={lesson.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handlePreview(lesson.id)}>
-                        <TableCell className="font-medium">
-                          <div className="flex flex-col gap-1">
-                            <span className="line-clamp-1 text-base font-semibold">{lesson.title}</span>
-                            <div className="flex flex-wrap items-center gap-2">
-                              {lesson.category && (
-                                <Badge
-                                  variant="outline"
-                                  className="text-[10px] uppercase font-bold px-1.5 py-0 h-5 border-0"
-                                  style={{
-                                    backgroundColor: `${lesson.category.color}15`,
-                                    color: lesson.category.color
-                                  }}
-                                >
-                                  {lesson.category.name}
-                                </Badge>
-                              )}
-                              {/* Mobile Only: Date */}
-                              <span className="md:hidden text-xs text-muted-foreground">
-                                {format(new Date(lesson.lessonDate), 'dd/MM/yyyy')}
-                              </span>
-                              {lesson.assignedStudentCount !== undefined && (
-                                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <Users className="w-3 h-3" />
-                                  {lesson.assignedStudentCount} <span className="hidden sm:inline">học sinh</span>
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <div className="flex items-center gap-2">
-                            <User className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{lesson.tutorName}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">
-                              {format(new Date(lesson.lessonDate), 'dd/MM/yyyy', {
-                                locale: vi,
-                              })}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <Badge
-                            variant={lesson.isPublished ? 'default' : 'secondary'}
-                          >
-                            {lesson.isPublished ? 'Đã xuất bản' : 'Nháp'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          {lesson.isPublished ? (
-                            <div className="flex items-center gap-1.5 text-green-600 text-sm font-medium">
-                              <Eye className="h-4 w-4" />
-                              Public
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
-                              <EyeOff className="h-4 w-4" />
-                              Private
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="icon" onClick={(e) => {
-                            e.stopPropagation();
-                            handlePreview(lesson.id);
-                          }}>
-                            <Eye className="h-4 w-4 text-primary" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
+                      <AdminLessonRow key={lesson.id} lesson={lesson} onPreview={handlePreview} />
                     ))}
                   </TableBody>
                 </Table>

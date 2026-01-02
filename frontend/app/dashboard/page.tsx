@@ -1,17 +1,22 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
 import {
-    AlertCircle, CalendarDays, GraduationCap, LayoutDashboard,
-    TrendingUp, UserCheck, FileText, LogOut, BookCheck, BookOpen
+    AlertCircle,
+    BookCheck, BookOpen,
+    CalendarDays,
+    FileText,
+    GraduationCap, LayoutDashboard,
+    LogOut,
+    TrendingUp
 } from 'lucide-react';
+import React, { useCallback, useMemo, useState } from 'react';
 
 // ============================================================================
 // FEATURE-BASED IMPORTS (All refactored)
 // ============================================================================
-import dynamic from 'next/dynamic';
-import { MonthlyViewSkeleton } from '@/features/finance/monthly-view/components/MonthlyViewSkeleton';
 import { LoadingState } from '@/features/dashboard/admin-dashboard/components/LoadingState';
+import { MonthlyViewSkeleton } from '@/features/finance/monthly-view/components/MonthlyViewSkeleton';
+import dynamic from 'next/dynamic';
 
 // ============================================================================
 // FEATURE-BASED IMPORTS (Refactored to Dynamic)
@@ -52,10 +57,11 @@ const AdminLessonManager = dynamic(() => import('@/features/learning/lessons'));
 // ============================================================================
 // UI COMPONENTS (Keep in /components - not feature-specific)
 // ============================================================================
-import { Sidebar, View, NavItem } from '@/components/Sidebar';
 import { ModeToggle } from '@/components/ModeToggle';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { useAuth } from '@/contexts/AuthContext';
+import { NavItem, Sidebar, View } from '@/components/Sidebar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -64,12 +70,118 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useAuth } from '@/contexts/AuthContext';
 import { UIProvider } from '@/contexts/UIContext';
-import { BackgroundBeams } from '@/components/ui/background-beams';
 
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+
+// ============================================================================
+// MEMOIZED SUB-COMPONENTS FOR RENDERING ISOLATION
+// ============================================================================
+
+const AppHeader = React.memo(({ title, user, initials, roleBadge, logout }: {
+    title: string;
+    user: any;
+    initials: string;
+    roleBadge: any;
+    logout: () => void;
+}) => (
+    <header className="border-b border-border bg-background/50 backdrop-blur-sm sticky top-0 z-20">
+        <div className="flex items-center justify-between h-14 lg:h-16 px-4 lg:px-6">
+            <div className="flex-1 min-w-0 pl-12 lg:pl-0">
+                <h1 className="text-base sm:text-lg lg:text-2xl font-bold text-foreground truncate">{title}</h1>
+                <p className="text-xs lg:text-sm text-muted-foreground hidden lg:block truncate">
+                    Chào mừng trở lại, {user?.fullName}.
+                </p>
+            </div>
+            <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
+                <ModeToggle />
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="relative h-8 w-8 lg:h-10 lg:w-10 rounded-full">
+                            <Avatar className="h-8 w-8 lg:h-10 lg:w-10">
+                                <AvatarFallback className="bg-primary text-primary-foreground text-xs lg:text-base">
+                                    {initials}
+                                </AvatarFallback>
+                            </Avatar>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                        <DropdownMenuLabel className="font-normal">
+                            <div className="flex flex-col space-y-1">
+                                <p className="text-sm font-medium leading-none">{user?.fullName}</p>
+                                <p className="text-xs leading-none text-muted-foreground truncate">
+                                    {user?.email}
+                                </p>
+                                {roleBadge && (
+                                    <span className={`inline-flex items-center px-2 py-1 mt-2 rounded-full text-xs font-medium ${roleBadge.color}`}>
+                                        {roleBadge.label}
+                                    </span>
+                                )}
+                            </div>
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => logout()} className="text-red-600 dark:text-red-400 cursor-pointer">
+                            <LogOut className="mr-2 h-4 w-4" />
+                            <span>Đăng xuất</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+        </div>
+    </header>
+));
+AppHeader.displayName = 'AppHeader';
+
+import { AnimatePresence, motion } from 'framer-motion';
+
+const MainContentSwitcher = React.memo(({ currentView, hasAnyRole }: {
+    currentView: View;
+    hasAnyRole: (roles: ("ADMIN" | "TUTOR" | "STUDENT")[]) => boolean;
+}) => (
+    <main className="flex-1 overflow-y-auto min-w-0 overscroll-none relative bg-background">
+        <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+                key={currentView}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.1, ease: "easeInOut" }}
+                className="p-4 min-h-full"
+            >
+                {/* Dashboard */}
+                {currentView === 'dashboard' && hasAnyRole(['ADMIN', 'TUTOR']) && <AdminDashboard />}
+                {currentView === 'dashboard' && hasAnyRole(['STUDENT']) && <StudentDashboard />}
+
+                {/* All feature-based views */}
+                {(currentView === 'students' || currentView === 'parents') && hasAnyRole(['ADMIN', 'TUTOR']) && <UnifiedStudentView />}
+                {currentView === 'monthly' && hasAnyRole(['ADMIN', 'TUTOR']) && <MonthlyView />}
+                {currentView === 'calendar' && hasAnyRole(['ADMIN', 'TUTOR']) && <CalendarView />}
+
+                {/* Admin/Tutor Lesson Manager */}
+                {currentView === 'lessons' && hasAnyRole(['ADMIN', 'TUTOR']) && <AdminLessonManager />}
+                {/* Student Lesson View */}
+                {currentView === 'lessons' && hasAnyRole(['STUDENT']) && <LessonViewWrapper />}
+
+                {/* Homework */}
+                {currentView === 'homework' && hasAnyRole(['STUDENT']) && <StudentHomeworkView />}
+                {currentView === 'homework' && hasAnyRole(['ADMIN', 'TUTOR']) && <TutorHomeworkView />}
+
+                {/* Other views */}
+                {currentView === 'unpaid' && hasAnyRole(['ADMIN', 'TUTOR']) && <UnpaidSessionsView />}
+                {currentView === 'documents' && <DocumentLibrary />}
+
+                {/* Fallback */}
+                {currentView === 'dashboard' && !hasAnyRole(['ADMIN', 'TUTOR', 'STUDENT']) && (
+                    <div className="text-center py-20">
+                        <p className="text-muted-foreground">Bạn không có quyền xem trang này</p>
+                    </div>
+                )}
+            </motion.div>
+        </AnimatePresence>
+    </main>
+));
+MainContentSwitcher.displayName = 'MainContentSwitcher';
 
 function AppContent() {
     const searchParams = useSearchParams();
@@ -81,15 +193,30 @@ function AppContent() {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const { user, logout, hasAnyRole } = useAuth();
 
-    // Sync state to URL when changed
-    const handleSetCurrentView = (view: View | ((prev: View) => View)) => {
-        const newView = typeof view === 'function' ? view(currentView) : view;
-        setCurrentView(newView);
+    // Sync state to URL when currentView changes
+    React.useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const urlView = params.get('view');
 
-        const params = new URLSearchParams(searchParams.toString());
-        params.set('view', newView);
-        router.push(`${pathname}?${params.toString()}`);
-    };
+        if (urlView !== currentView) {
+            const newParams = new URLSearchParams();
+            newParams.set('view', currentView);
+            router.replace(`${pathname}?${newParams.toString()}`, { scroll: false });
+        }
+    }, [currentView, pathname, router]);
+
+    // Sync URL changes to state (browser back/forward)
+    React.useEffect(() => {
+        const viewFromUrl = (searchParams.get('view') as View) || 'dashboard';
+        if (viewFromUrl !== currentView) {
+            setCurrentView(viewFromUrl);
+        }
+    }, [searchParams]); // Remove currentView from deps to avoid loop
+
+    // Simple handler - just update state, let useEffect handle URL
+    const handleSetCurrentView = useCallback((view: View | ((prev: View) => View)) => {
+        setCurrentView(view);
+    }, []);
 
     const navItems: NavItem[] = useMemo(() => {
         const allItems: NavItem[] = [
@@ -97,10 +224,9 @@ function AppContent() {
             { id: 'students', label: 'Học Sinh & PH', icon: GraduationCap },
             { id: 'monthly', label: 'Thống Kê', icon: TrendingUp },
             { id: 'calendar', label: 'Lịch Dạy', icon: CalendarDays },
-            { id: 'lessons', label: 'Bài Giảng', icon: BookOpen }, // Hiển thị cho tất cả roles
+            { id: 'lessons', label: 'Bài Giảng', icon: BookOpen },
             { id: 'homework', label: 'Bài Tập', icon: BookCheck },
             { id: 'unpaid', label: 'Công Nợ', icon: AlertCircle },
-            // { id: 'parents', label: 'Phụ Huynh', icon: UserCheck }, // Hidden/Removed
             { id: 'documents', label: 'Tài Liệu', icon: FileText },
         ];
 
@@ -108,20 +234,10 @@ function AppContent() {
             if (item.id === 'students' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
             if (item.id === 'monthly' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
             if (item.id === 'unpaid' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
-            if (item.id === 'parents' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
             if (item.id === 'calendar' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
-            // lessons: Hiển thị cho tất cả roles nhưng nội dung khác nhau
             return true;
         });
     }, [hasAnyRole]);
-
-    // Sync URL changes to state (for programmatic navigation)
-    React.useEffect(() => {
-        const viewFromUrl = searchParams.get('view') as View;
-        if (viewFromUrl && viewFromUrl !== currentView) {
-            setCurrentView(viewFromUrl);
-        }
-    }, [searchParams]);
 
     const currentTitle = useMemo(() => {
         return navItems.find(item => item.id === currentView)?.label || 'Dashboard';
@@ -145,21 +261,14 @@ function AppContent() {
         return badges[role as keyof typeof badges] || badges.STUDENT;
     };
 
-    const roleBadge = user ? getRoleBadge(user.role) : null;
+    const roleBadge = useMemo(() => user ? getRoleBadge(user.role) : null, [user]);
+    const initials = useMemo(() => user ? getInitials(user.fullName) : '', [user]);
 
     return (
-        <div className="flex h-screen relative isolate">
-
-            {/* Animated gradient background - Hidden in light mode for pure white look */}
+        <div className="flex h-screen relative isolate bg-background">
+            {/* Background elements */}
             <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none hidden dark:block">
-                <div className="absolute top-0 left-0 w-full h-[500px] dark:h-full bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-background dark:from-primary/10 dark:via-purple-900/10 dark:to-transparent rounded-b-[80px] dark:rounded-none transition-all duration-500" />
-                <div className="absolute top-20 -right-40 w-96 h-96 bg-purple-500/10 dark:bg-purple-500/10 rounded-full blur-[100px]" />
-                <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500/10 dark:bg-blue-500/10 rounded-full blur-[100px]" />
-
-                {/* Background Beams - Only visible in dark mode, desktop only for performance */}
-                <div className="hidden dark:hidden lg:dark:flex absolute inset-0 z-0">
-                    <BackgroundBeams />
-                </div>
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/5 via-purple-500/5 to-background transition-all duration-500" />
             </div>
 
             <Sidebar
@@ -170,90 +279,19 @@ function AppContent() {
                 setIsCollapsed={setIsCollapsed}
             />
 
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
-                <header className="border-b border-border bg-background/50 backdrop-blur-sm sticky top-0 z-20">
-                    <div className="flex items-center justify-between h-14 lg:h-16 px-4 lg:px-6">
-                        <div className="flex-1 min-w-0 pl-12 lg:pl-0">
-                            <h1 className="text-base sm:text-lg lg:text-2xl font-bold text-foreground truncate">{currentTitle}</h1>
-                            <p className="text-xs lg:text-sm text-muted-foreground hidden lg:block truncate">
-                                Chào mừng trở lại, {user?.fullName}.
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
-                            <ModeToggle />
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10 bg-background" style={{ scrollbarGutter: 'stable' }}>
+                <AppHeader
+                    title={currentTitle}
+                    user={user}
+                    initials={initials}
+                    roleBadge={roleBadge}
+                    logout={logout}
+                />
 
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="relative h-8 w-8 lg:h-10 lg:w-10 rounded-full">
-                                        <Avatar className="h-8 w-8 lg:h-10 lg:w-10">
-                                            <AvatarFallback className="bg-primary text-primary-foreground text-xs lg:text-base">
-                                                {user && getInitials(user.fullName)}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-56" align="end" forceMount>
-                                    <DropdownMenuLabel className="font-normal">
-                                        <div className="flex flex-col space-y-1">
-                                            <p className="text-sm font-medium leading-none">{user?.fullName}</p>
-                                            <p className="text-xs leading-none text-muted-foreground truncate">
-                                                {user?.email}
-                                            </p>
-                                            {roleBadge && (
-                                                <span className={`inline-flex items-center px-2 py-1 mt-2 rounded-full text-xs font-medium ${roleBadge.color}`}>
-                                                    {roleBadge.label}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={() => logout()} className="text-red-600 dark:text-red-400 cursor-pointer">
-                                        <LogOut className="mr-2 h-4 w-4" />
-                                        <span>Đăng xuất</span>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                    </div>
-                </header>
-
-                <main className="flex-1 overflow-y-auto min-w-0">
-                    <div className="p-4">
-                        {/* Dashboard */}
-                        {currentView === 'dashboard' && hasAnyRole(['ADMIN', 'TUTOR']) && <AdminDashboard />}
-                        {currentView === 'dashboard' && hasAnyRole(['STUDENT']) && <StudentDashboard />}
-
-                        {/* All feature-based views */}
-                        {(currentView === 'students' || currentView === 'parents') && hasAnyRole(['ADMIN', 'TUTOR']) && <UnifiedStudentView />}
-                        {currentView === 'monthly' && hasAnyRole(['ADMIN', 'TUTOR']) && <MonthlyView />}
-                        {currentView === 'calendar' && hasAnyRole(['ADMIN', 'TUTOR']) && <CalendarView />}
-
-                        {/* ============================================================ */}
-                        {/* LESSONS - Different views for different roles                */}
-                        {/* ============================================================ */}
-                        {/* ADMIN/TUTOR: Quản lý bài giảng (tạo, sửa, xóa, giao bài) */}
-                        {currentView === 'lessons' && hasAnyRole(['ADMIN', 'TUTOR']) && <AdminLessonManager />}
-
-                        {/* STUDENT: Xem bài giảng (timeline + detail modal) */}
-                        {currentView === 'lessons' && hasAnyRole(['STUDENT']) && <LessonViewWrapper />}
-
-                        {/* Homework */}
-                        {currentView === 'homework' && hasAnyRole(['STUDENT']) && <StudentHomeworkView />}
-                        {currentView === 'homework' && hasAnyRole(['ADMIN', 'TUTOR']) && <TutorHomeworkView />}
-
-                        {/* Other views */}
-                        {currentView === 'unpaid' && hasAnyRole(['ADMIN', 'TUTOR']) && <UnpaidSessionsView />}
-
-                        {currentView === 'documents' && <DocumentLibrary />}
-
-                        {/* Fallback */}
-                        {currentView === 'dashboard' && !hasAnyRole(['ADMIN', 'TUTOR', 'STUDENT']) && (
-                            <div className="text-center py-20">
-                                <p className="text-muted-foreground">Bạn không có quyền xem trang này</p>
-                            </div>
-                        )}
-                    </div>
-                </main>
+                <MainContentSwitcher
+                    currentView={currentView}
+                    hasAnyRole={hasAnyRole}
+                />
             </div>
         </div>
     );

@@ -1,8 +1,8 @@
 'use client';
 
+import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Check, Layers } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { ReactNode, memo } from 'react';
 
 interface PremiumCategoryCardProps {
@@ -33,6 +33,7 @@ export const PremiumCategoryCard = memo(({
                 "group relative overflow-hidden",
                 "p-6 rounded-2xl border-2 text-left w-full h-full",
                 "transition-all duration-300",
+                "will-change-transform contain-layout", // GPU Acceleration
                 isActive
                     ? "border-primary bg-primary/5 shadow-xl shadow-primary/10"
                     : "border-border hover:border-primary/50 bg-card shadow-sm hover:shadow-md"

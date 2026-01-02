@@ -1,8 +1,9 @@
+import type { SessionRecord } from '@/lib/types/finance';
+import { cn } from '@/lib/utils';
+import { memo } from 'react';
 import { DAYS } from '../constants';
 import type { CalendarDay } from '../types';
-import type { SessionRecord } from '@/lib/types/finance';
 import { CalendarCell } from './CalendarCell';
-import { cn } from '@/lib/utils';
 
 interface Props {
   days: CalendarDay[];
@@ -15,7 +16,7 @@ interface Props {
   onContextMenu?: (e: React.MouseEvent, session: SessionRecord) => void;
 }
 
-export const CalendarGrid = ({
+export const CalendarGrid = memo(({
   days,
   onDayClick,
   onAddSession,
@@ -24,7 +25,7 @@ export const CalendarGrid = ({
   onContextMenu
 }: Props) => (
 
-  <div className="bg-card rounded-2xl shadow-xl border border-border/40 overflow-hidden transition-all duration-500 hover:shadow-2xl">
+  <div className="bg-card rounded-2xl shadow-xl border border-border/40 overflow-hidden transition-all duration-500 hover:shadow-2xl will-change-transform contain-layout">
     {/* Weekday Headers */}
     <div className="grid grid-cols-7 border-b bg-muted/30 dark:bg-zinc-900/50">
       {DAYS.map((day, index) => (
@@ -57,4 +58,4 @@ export const CalendarGrid = ({
       ))}
     </div>
   </div>
-);
+));

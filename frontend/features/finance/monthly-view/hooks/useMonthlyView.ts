@@ -1,10 +1,10 @@
-import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useMonthlyRecords } from './useMonthlyRecords';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { calculateSelectedStats, calculateTotalStats, groupRecordsByStudent } from '../utils/groupRecords';
 import { useAutoGenerate } from './useAutoGenerate';
-import { useStudentSelection } from './useStudentSelection';
 import { useInvoiceActions } from './useInvoiceActions';
-import { groupRecordsByStudent, calculateTotalStats, calculateSelectedStats } from '../utils/groupRecords';
+import { useMonthlyRecords } from './useMonthlyRecords';
+import { useStudentSelection } from './useStudentSelection';
 
 export function useMonthlyView() {
     const searchParams = useSearchParams();
@@ -43,32 +43,32 @@ export function useMonthlyView() {
         [selection.selectedStudents, groupedRecordsMap]
     );
 
-    const changeMonth = (direction: number) => {
+    const changeMonth = useCallback((direction: number) => {
         const date = new Date(selectedMonth + '-01');
         date.setMonth(date.getMonth() + direction);
         setSelectedMonth(date.toISOString().slice(0, 7));
         selection.clear();
-    };
+    }, [selectedMonth, selection]);
 
-    const handleAutoGenerate = () => {
+    const handleAutoGenerate = useCallback(() => {
         autoGen.generate(loadRecords);
-    };
+    }, [autoGen, loadRecords]);
 
-    const handleGenerateCombinedInvoice = async () => {
+    const handleGenerateCombinedInvoice = useCallback(async () => {
         if (selection.selectedStudents.length === 0) return;
         const allSessionIds = selection.selectedStudents.flatMap(
             id => groupedRecordsMap[id]?.sessions.map((s: any) => s.id) || []
         );
         await invoice.generateCombined(selection.selectedStudents, selectedMonth, allSessionIds);
-    };
+    }, [selection.selectedStudents, groupedRecordsMap, invoice, selectedMonth]);
 
-    const handleSendEmail = async () => {
+    const handleSendEmail = useCallback(async () => {
         if (selection.selectedStudents.length === 0) return;
         const result = await invoice.sendEmail(selection.selectedStudents, selectedMonth);
         if (result) {
             setEmailResult(result);
         }
-    };
+    }, [selection.selectedStudents, invoice, selectedMonth]);
 
     return {
         selectedMonth,

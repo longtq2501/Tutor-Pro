@@ -1,27 +1,25 @@
-// ============================================================================
-// FILE: admin-dashboard/index.tsx (MAIN COMPONENT)
-// ============================================================================
 'use client';
 
-import { Users, CheckCircle, XCircle, TrendingUp, BarChart3 } from 'lucide-react';
+import { useMemo } from 'react';
+
+import { BarChart3, CheckCircle, TrendingUp, Users, XCircle } from 'lucide-react';
+import { EnhancedRevenueChart } from './components/EnhancedRevenueChart';
+import { StatCard } from './components/StatCard';
 import { useDashboardData } from './hooks/useDashboardData';
 import { useMonthlyChartData } from './hooks/useMonthlyChartData';
 import { formatCurrency } from './utils/formatters';
-import { LoadingState } from './components/LoadingState';
-import { StatCard } from './components/StatCard';
-import { EnhancedRevenueChart } from './components/EnhancedRevenueChart';
 
 export default function AdminDashboard() {
   const { stats, monthlyStats, loadingStats, loadingMonthly } = useDashboardData();
   const chartData = useMonthlyChartData(monthlyStats);
 
   // Default stats to prevent crash when loading
-  const safeStats = stats || {
+  const safeStats = useMemo(() => stats || {
     totalStudents: 0,
     currentMonthTotal: 0,
     totalPaidAllTime: 0,
     totalUnpaidAllTime: 0
-  };
+  }, [stats]);
 
   // Calculate trends from monthly data
   const calculateTrend = (current: number, previous: number) => {
@@ -33,21 +31,25 @@ export default function AdminDashboard() {
     } as const;
   };
 
-  // Get current and previous month data for trends
-  const currentMonthData = monthlyStats[0];
-  const previousMonthData = monthlyStats[1];
-
-  const revenueTrend = currentMonthData && previousMonthData
-    ? calculateTrend(
-      currentMonthData.totalPaid + currentMonthData.totalUnpaid,
-      previousMonthData.totalPaid + previousMonthData.totalUnpaid
-    )
-    : undefined;
+  const revenueTrend = useMemo(() => {
+    const currentMonthData = monthlyStats[0];
+    const previousMonthData = monthlyStats[1];
+    return currentMonthData && previousMonthData
+      ? calculateTrend(
+        currentMonthData.totalPaid + currentMonthData.totalUnpaid,
+        previousMonthData.totalPaid + previousMonthData.totalUnpaid
+      )
+      : undefined;
+  }, [monthlyStats]);
 
   // Calculate progress percentages
-  const totalAllTime = safeStats.totalPaidAllTime + safeStats.totalUnpaidAllTime;
-  const paidPercentage = totalAllTime > 0 ? Math.round((safeStats.totalPaidAllTime / totalAllTime) * 100) : 0;
-  const unpaidPercentage = totalAllTime > 0 ? Math.round((safeStats.totalUnpaidAllTime / totalAllTime) * 100) : 0;
+  const { paidPercentage, unpaidPercentage } = useMemo(() => {
+    const totalAllTime = safeStats.totalPaidAllTime + safeStats.totalUnpaidAllTime;
+    return {
+      paidPercentage: totalAllTime > 0 ? Math.round((safeStats.totalPaidAllTime / totalAllTime) * 100) : 0,
+      unpaidPercentage: totalAllTime > 0 ? Math.round((safeStats.totalUnpaidAllTime / totalAllTime) * 100) : 0
+    };
+  }, [safeStats]);
 
   return (
     <div className="space-y-6 lg:space-y-8">

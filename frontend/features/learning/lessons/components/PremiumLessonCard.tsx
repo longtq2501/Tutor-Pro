@@ -1,21 +1,5 @@
 'use client';
 
-import { useState, memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-    Video,
-    Play,
-    MoreVertical,
-    Pencil,
-    Copy,
-    Trash2,
-    User,
-    Calendar,
-    Eye,
-    CheckCircle2,
-    Clock,
-    Users
-} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,6 +11,22 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+    Calendar,
+    CheckCircle2,
+    Clock,
+    Copy,
+    Eye,
+    MoreVertical,
+    Pencil,
+    Play,
+    Trash2,
+    User,
+    Users,
+    Video
+} from 'lucide-react';
+import { memo, useState } from 'react';
 import { LessonLibraryDTO } from '../types';
 
 interface PremiumLessonCardProps {
@@ -55,7 +55,8 @@ export const PremiumLessonCard = memo(({
                 "group relative overflow-hidden flex flex-col h-full",
                 "rounded-2xl border bg-card cursor-pointer",
                 "transition-all duration-500",
-                "hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/40"
+                "hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/40",
+                "will-change-transform contain-layout contain-paint" // GPU Acceleration & Isolation
             )}
             onClick={() => onPreview?.(lesson.id)}
         >

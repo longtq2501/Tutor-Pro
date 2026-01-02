@@ -2,6 +2,7 @@
 // FILE: document-library/components/SearchBar.tsx
 // ============================================================================
 import { Search } from 'lucide-react';
+import { memo } from 'react';
 
 interface Props {
   value: string;
@@ -9,7 +10,7 @@ interface Props {
   disabled?: boolean;
 }
 
-export const SearchBar = ({ value, onChange, disabled }: Props) => (
+export const SearchBar = memo(({ value, onChange, disabled }: Props) => (
   <div className="mb-6">
     <div className="relative">
       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
@@ -23,4 +24,4 @@ export const SearchBar = ({ value, onChange, disabled }: Props) => (
       />
     </div>
   </div>
-);
+));

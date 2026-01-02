@@ -1,15 +1,16 @@
 // ============================================================================
 // 📁 recurring-schedule/components/DaySelector.tsx
 
-import { DAYS_OF_WEEK } from "../utils/timeCalculation";
 import { Label } from '@/components/ui/label';
+import { memo } from 'react';
+import { DAYS_OF_WEEK } from "../utils/timeCalculation";
 
 interface DaySelectorProps {
   selectedDays: number[];
   onToggle: (day: number) => void;
 }
 
-export function DaySelector({ selectedDays, onToggle }: DaySelectorProps) {
+export const DaySelector = memo(({ selectedDays, onToggle }: DaySelectorProps) => {
   return (
     <div className="space-y-4">
       <Label className="block text-sm font-semibold text-foreground">
@@ -36,4 +37,4 @@ export function DaySelector({ selectedDays, onToggle }: DaySelectorProps) {
       </div>
     </div>
   );
-}
+});

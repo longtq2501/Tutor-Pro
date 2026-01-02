@@ -1,15 +1,23 @@
 // ============================================================================
 // FILE: document-library/hooks/useDocumentLibrary.ts
 // ============================================================================
-import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { documentsApi } from '@/lib/services';
 import type { Document, DocumentCategory } from '@/lib/types';
+import { useQuery } from '@tanstack/react-query';
+import { useEffect, useMemo, useState } from 'react';
 import { formatFileSize } from '../utils';
 
 export const useDocumentLibrary = () => {
   const [selectedCategory, setSelectedCategory] = useState<DocumentCategory | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   // 1. Single source of truth (Cache all docs)
   const {
@@ -31,13 +39,13 @@ export const useDocumentLibrary = () => {
       docs = docs.filter(doc => doc.category === selectedCategory);
     }
 
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
+    if (debouncedSearchQuery) {
+      const q = debouncedSearchQuery.toLowerCase();
       docs = docs.filter(doc => doc.title.toLowerCase().includes(q));
     }
 
     return docs;
-  }, [allDocuments, selectedCategory, searchQuery]);
+  }, [allDocuments, selectedCategory, debouncedSearchQuery]);
 
   // 3. Stats calculation
   const stats = useMemo(() => {

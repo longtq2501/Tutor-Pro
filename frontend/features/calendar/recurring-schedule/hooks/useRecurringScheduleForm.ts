@@ -1,9 +1,9 @@
 // ============================================================================
 // 📁 recurring-schedule/hooks/useRecurringScheduleForm.ts
 // ============================================================================
-import { useState, useEffect } from 'react';
 import { recurringSchedulesApi } from '@/lib/services';
 import type { RecurringSchedule, RecurringScheduleRequest } from '@/lib/types';
+import { useCallback, useEffect, useState } from 'react';
 import { calculateHours } from '../utils/timeCalculation';
 
 export function useRecurringScheduleForm(
@@ -43,7 +43,7 @@ export function useRecurringScheduleForm(
     }
   }, [existingSchedule]);
 
-  const toggleDay = (day: number) => {
+  const toggleDay = useCallback((day: number) => {
     setError(null);
     setFormData(prev => ({
       ...prev,
@@ -51,9 +51,9 @@ export function useRecurringScheduleForm(
         ? prev.daysOfWeek.filter(d => d !== day)
         : [...prev.daysOfWeek, day].sort((a, b) => a - b),
     }));
-  };
+  }, []);
 
-  const updateTime = (field: 'startTime' | 'endTime', value: string) => {
+  const updateTime = useCallback((field: 'startTime' | 'endTime', value: string) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
       if (updated.startTime && updated.endTime) {
@@ -61,11 +61,11 @@ export function useRecurringScheduleForm(
       }
       return updated;
     });
-  };
+  }, []);
 
-  const updateField = (field: keyof RecurringScheduleRequest, value: any) => {
+  const updateField = useCallback((field: keyof RecurringScheduleRequest, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  }, []);
 
   const validate = (): boolean => {
     if (formData.daysOfWeek.length === 0) {
@@ -83,7 +83,7 @@ export function useRecurringScheduleForm(
     return true;
   };
 
-  const submit = async (): Promise<boolean> => {
+  const submit = useCallback(async (): Promise<boolean> => {
     setError(null);
     if (!validate()) return false;
 
@@ -103,7 +103,7 @@ export function useRecurringScheduleForm(
     } finally {
       setLoading(false);
     }
-  };
+  }, [formData, existingSchedule, onSuccess]);
 
   return { formData, loading, error, toggleDay, updateTime, updateField, submit };
 }

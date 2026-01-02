@@ -1,5 +1,4 @@
-'use client';
-
+import { memo } from 'react';
 import type { StudentGroup as StudentGroupType } from '../utils/groupSessions';
 import { PremiumStudentDebtCard } from './PremiumStudentDebtCard';
 
@@ -12,13 +11,13 @@ interface StudentGroupProps {
   onDeleteSession: (sessionId: number) => void;
 }
 
-export function StudentGroup({
+export const StudentGroup = memo(({
   group,
   isSelected,
   selectedSessions,
   onToggleStudent,
   onToggleSession,
-}: StudentGroupProps) {
+}: StudentGroupProps) => {
   return (
     <PremiumStudentDebtCard
       group={group}
@@ -28,4 +27,4 @@ export function StudentGroup({
       onToggleSession={onToggleSession}
     />
   );
-}
+});

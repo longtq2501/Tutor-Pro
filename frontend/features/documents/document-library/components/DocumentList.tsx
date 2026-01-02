@@ -1,8 +1,9 @@
 // ============================================================================
 // FILE: document-library/components/DocumentList.tsx
 // ============================================================================
-import { FileText, Download, Eye, Trash2, Upload } from 'lucide-react';
 import type { Document } from '@/lib/types';
+import { Download, Eye, FileText, Trash2, Upload } from 'lucide-react';
+import { memo } from 'react';
 
 interface Props {
   documents: Document[];
@@ -13,7 +14,7 @@ interface Props {
   onAddNew: () => void;
 }
 
-export const DocumentList = ({ documents, searchQuery, onPreview, onDownload, onDelete, onAddNew }: Props) => {
+export const DocumentList = memo(({ documents, searchQuery, onPreview, onDownload, onDelete, onAddNew }: Props) => {
   if (documents.length === 0) {
     return (
       <div className="text-center py-16">
@@ -32,7 +33,7 @@ export const DocumentList = ({ documents, searchQuery, onPreview, onDownload, on
   return (
     <div className="space-y-3">
       {documents.map((doc) => (
-        <div key={doc.id} className="border border-border bg-card rounded-lg p-3 lg:p-4 hover:shadow-md transition-all group">
+        <div key={doc.id} className="border border-border bg-card rounded-lg p-3 lg:p-4 hover:shadow-md transition-all group will-change-transform contain-layout">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-2 lg:gap-3 mb-2">
@@ -52,7 +53,7 @@ export const DocumentList = ({ documents, searchQuery, onPreview, onDownload, on
                 <span className="hidden sm:inline">{new Date(doc.createdAt).toLocaleDateString('vi-VN')}</span>
               </div>
             </div>
-            
+
             <div className="flex gap-2 lg:ml-4">
               <button onClick={() => onPreview(doc)} className="flex-1 lg:flex-none bg-muted hover:bg-muted/80 text-foreground px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm" title="Xem trước">
                 <Eye size={16} />
@@ -71,4 +72,4 @@ export const DocumentList = ({ documents, searchQuery, onPreview, onDownload, on
       ))}
     </div>
   );
-};
+});

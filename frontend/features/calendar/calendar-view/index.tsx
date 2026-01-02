@@ -9,7 +9,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import AddSessionModal from '@/features/calendar/add-session-modal';
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { CalendarGrid } from './components/CalendarGrid';
 import { CalendarHeader } from './components/CalendarHeader';
 import { CalendarSkeleton } from './components/CalendarSkeleton';
@@ -66,18 +66,18 @@ export default function CalendarView() {
 
   const [statusFilter, setStatusFilter] = useState<string | 'ALL'>('ALL');
 
-  const filteredSessions = sessions.filter(s =>
+  const filteredSessions = useMemo(() => sessions.filter(s =>
     statusFilter === 'ALL' || s.status === statusFilter
-  );
+  ), [sessions, statusFilter]);
 
-  const filteredCalendarDays = calendarDays.map(day => ({
+  const filteredCalendarDays = useMemo(() => calendarDays.map(day => ({
     ...day,
     sessions: day.sessions.filter(s =>
       statusFilter === 'ALL' || s.status === statusFilter
     )
-  }));
+  })), [calendarDays, statusFilter]);
 
-  const renderView = () => {
+  const renderView = useCallback(() => {
     if (loading || isInitialLoad) return (
       <div className="px-6">
         <CalendarSkeleton />
@@ -131,7 +131,10 @@ export default function CalendarView() {
           </div>
         );
     }
-  };
+  }, [
+    loading, isInitialLoad, currentView, filteredCalendarDays, setSelectedDay, openAddSessionModal,
+    handleSessionClick, handleSessionEdit, handleUpdateSession, currentDayInfo, filteredSessions, setContextMenu
+  ]);
 
   return (
     <div className="min-h-screen bg-transparent">

@@ -2,6 +2,7 @@
 // FILE: document-library/components/CategoryGrid.tsx
 // ============================================================================
 import type { DocumentCategory } from '@/lib/types';
+import { memo, useMemo } from 'react';
 import { CATEGORIES } from '../constants';
 
 interface Props {
@@ -9,20 +10,23 @@ interface Props {
   onCategoryClick: (category: DocumentCategory) => void;
 }
 
-export const CategoryGrid = ({ documents, onCategoryClick }: Props) => {
-  const getCategoryCount = (category: string) => {
-    return documents.filter(doc => doc.category === category as DocumentCategory).length;
-  };
+export const CategoryGrid = memo(({ documents, onCategoryClick }: Props) => {
+  const categoryCounts = useMemo(() => {
+    return CATEGORIES.reduce((acc, cat) => {
+      acc[cat.key] = documents.filter(doc => doc.category === cat.key).length;
+      return acc;
+    }, {} as Record<string, number>);
+  }, [documents]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
       {CATEGORIES.map((category) => {
-        const count = getCategoryCount(category.key);
+        const count = categoryCounts[category.key] || 0;
         return (
           <button
             key={category.key}
             onClick={() => onCategoryClick(category.key as DocumentCategory)}
-            className={`bg-gradient-to-r ${category.color} text-white rounded-xl p-4 lg:p-6 text-left hover:shadow-lg transition-all transform hover:scale-[1.02]`}
+            className={`bg-gradient-to-r ${category.color} text-white rounded-xl p-4 lg:p-6 text-left hover:shadow-lg transition-all transform hover:scale-[1.02] will-change-transform contain-layout`}
           >
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2 lg:gap-3">
@@ -41,4 +45,4 @@ export const CategoryGrid = ({ documents, onCategoryClick }: Props) => {
       })}
     </div>
   );
-};
+});

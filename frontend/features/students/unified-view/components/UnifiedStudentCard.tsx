@@ -16,7 +16,7 @@ import {
     Plus,
     UserCircle
 } from 'lucide-react';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { OptimizedAvatar } from './OptimizedAvatar';
 
 interface UnifiedStudentCardProps {
@@ -27,7 +27,7 @@ interface UnifiedStudentCardProps {
     onViewDetails?: (student: Student) => void;
 }
 
-export function UnifiedStudentCard({
+export const UnifiedStudentCard = memo(function UnifiedStudentCard({
     student,
     onViewSchedule,
     onAddSession,
@@ -45,6 +45,7 @@ export function UnifiedStudentCard({
                 "group relative overflow-hidden",
                 "rounded-2xl border-2 shadow-lg",
                 "transition-all duration-300",
+                "will-change-transform contain-layout", // GPU Acceleration & Optimization
                 student.active
                     ? "bg-gradient-to-br from-card via-card to-primary/5 dark:to-primary/10 border-primary/30 dark:border-primary/40 hover:border-primary/60 dark:hover:border-primary/70 hover:shadow-2xl hover:shadow-primary/20 dark:hover:shadow-primary/30"
                     : "bg-card border-border/40 dark:border-border/30 hover:border-border/60 hover:shadow-xl opacity-80 hover:opacity-90"
@@ -241,4 +242,4 @@ export function UnifiedStudentCard({
             </div>
         </motion.div>
     );
-}
+});

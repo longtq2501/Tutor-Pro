@@ -1,25 +1,25 @@
 // 📁 monthly-view/components/StudentCard.tsx
-import React from 'react';
-import {
-  CheckCircle,
-  AlertTriangle,
-  Trash2,
-  Check,
-  Wallet,
-  Clock,
-  Calendar as CalendarIcon,
-  TrendingUp,
-  Receipt,
-  Info
-} from 'lucide-react';
-import { formatCurrency, formatDate } from '../utils/formatters';
-import type { GroupedRecord } from '../types';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  AlertTriangle,
+  Calendar as CalendarIcon,
+  Check,
+  CheckCircle,
+  Clock,
+  Info,
+  Receipt,
+  Trash2,
+  TrendingUp,
+  Wallet
+} from 'lucide-react';
+import React from 'react';
+import type { GroupedRecord } from '../types';
+import { formatCurrency, formatDate } from '../utils/formatters';
 
 interface StudentCardProps {
   group: GroupedRecord;
@@ -53,7 +53,7 @@ const StudentCardComponent = ({
   return (
     <TooltipProvider>
       <div
-        className={`group/card bg-card rounded-xl border transition-all duration-300 overflow-hidden ${isSelected
+        className={`group/card bg-card rounded-xl border transition-all duration-300 overflow-hidden will-change-transform contain-layout ${isSelected
           ? 'border-primary ring-2 ring-primary/20 shadow-lg translate-y-[-2px]'
           : 'border-border hover:border-primary/40 hover:shadow-md shadow-sm'
           }`}

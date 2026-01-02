@@ -1,22 +1,22 @@
 'use client';
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, Filter, Download, Plus, CheckCircle, CheckCircle2, Loader2 } from 'lucide-react';
-import { useUnpaidSessions } from './hooks/useUnpaidSessions';
-import { useSessionSelection } from './hooks/useSessionSelection';
-import { useInvoiceActions } from './hooks/useInvoiceActions';
-import { groupSessionsByStudent } from './utils/groupSessions';
-import { getMonthName } from './utils/formatters';
-import { SummaryCards } from './components/SummaryCards';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { cn } from '@/lib/utils';
+import { AnimatePresence, motion } from 'framer-motion';
+import { AlertCircle, CheckCircle, CheckCircle2, Download, Filter, Loader2, Plus } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { ActionSection } from './components/ActionSection';
 import { EmailResultModal } from './components/EmailResultModal';
-import { StudentGroup } from './components/StudentGroup';
+import { PremiumActionButton } from './components/PremiumActionButton';
 import { PremiumEmptyState } from './components/PremiumEmptyState';
 import { PremiumLoadingSkeleton } from './components/PremiumLoadingSkeleton';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { PremiumActionButton } from './components/PremiumActionButton';
-import { cn } from '@/lib/utils';
+import { StudentGroup } from './components/StudentGroup';
+import { SummaryCards } from './components/SummaryCards';
+import { useInvoiceActions } from './hooks/useInvoiceActions';
+import { useSessionSelection } from './hooks/useSessionSelection';
+import { useUnpaidSessions } from './hooks/useUnpaidSessions';
+import { getMonthName } from './utils/formatters';
+import { groupSessionsByStudent } from './utils/groupSessions';
 
 const pageVariants = {
   initial: { opacity: 0, y: 20 },
@@ -34,17 +34,25 @@ const pageVariants = {
 export default function UnpaidSessionsView() {
   const { records, loading, loadUnpaidRecords, deleteRecord } = useUnpaidSessions();
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
   const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
 
   // Filter records based on search term
   const filteredRecords = React.useMemo(() => {
-    if (!searchTerm.trim()) return records;
-    const term = searchTerm.toLowerCase();
+    if (!debouncedSearchTerm.trim()) return records;
+    const term = debouncedSearchTerm.toLowerCase();
     return records.filter(r =>
       r.studentName.toLowerCase().includes(term) ||
       getMonthName(r.month).toLowerCase().includes(term)
     );
-  }, [records, searchTerm]);
+  }, [records, debouncedSearchTerm]);
 
   const groupedRecords = groupSessionsByStudent(filteredRecords);
   const [showSuccess, setShowSuccess] = useState(false);

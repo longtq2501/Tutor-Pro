@@ -1,10 +1,10 @@
 'use client';
 
-import React from 'react';
+import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Calendar, Check, CheckCircle2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { formatDate, formatCurrency } from '../utils/formatters';
+import { memo } from 'react';
+import { formatCurrency, formatDate } from '../utils/formatters';
 
 interface SessionCardProps {
     session: {
@@ -18,11 +18,11 @@ interface SessionCardProps {
     onToggle: (id: number) => void;
 }
 
-export function PremiumSessionCard({
+export const PremiumSessionCard = memo(({
     session,
     isSelected,
     onToggle
-}: SessionCardProps) {
+}: SessionCardProps) => {
     return (
         <motion.label
             whileHover={{ scale: 1.01 }}
@@ -31,6 +31,7 @@ export function PremiumSessionCard({
                 "group/session relative flex items-start gap-3 sm:gap-4",
                 "p-3 sm:p-4 rounded-xl cursor-pointer",
                 "border-2 transition-all duration-300",
+                "will-change-transform", // GPU Acceleration
 
                 // Unselected/Unpaid state (mimicking the prompt's logic)
                 !isSelected && [
@@ -141,4 +142,4 @@ export function PremiumSessionCard({
             )} />
         </motion.label>
     );
-}
+});

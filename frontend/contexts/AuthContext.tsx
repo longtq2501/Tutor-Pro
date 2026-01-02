@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService, type UserInfo } from '@/lib/services';
 import { useRouter } from 'next/navigation';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 
 interface AuthContextType {
   user: UserInfo | null;
@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadUser();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     try {
       const response = await authService.login({ email, password });
 
@@ -74,24 +74,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Login error:', error);
       throw new Error(error.response?.data?.message || 'Đăng nhập thất bại');
     }
-  };
+  }, [router]);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await authService.logout();
     } finally {
       setUser(null);
       router.push('/login');
     }
-  };
+  }, [router]);
 
-  const hasRole = (role: 'ADMIN' | 'TUTOR' | 'STUDENT'): boolean => {
+  const hasRole = useCallback((role: 'ADMIN' | 'TUTOR' | 'STUDENT'): boolean => {
     return user?.role === role;
-  };
+  }, [user]);
 
-  const hasAnyRole = (roles: Array<'ADMIN' | 'TUTOR' | 'STUDENT'>): boolean => {
+  const hasAnyRole = useCallback((roles: Array<'ADMIN' | 'TUTOR' | 'STUDENT'>): boolean => {
     return user ? roles.includes(user.role) : false;
-  };
+  }, [user]);
 
   return (
     <AuthContext.Provider

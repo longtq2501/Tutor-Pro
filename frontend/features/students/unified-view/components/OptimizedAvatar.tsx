@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
 import { cn } from '@/lib/utils';
+import { useMemo } from 'react';
 
 interface OptimizedAvatarProps {
     name: string;
@@ -21,14 +21,15 @@ export function OptimizedAvatar({ name, isActive, className }: OptimizedAvatarPr
     return (
         <div
             className={cn(
-                "relative w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg",
+                "relative w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg shrink-0 overflow-hidden",
+                "contain-paint will-change-transform", // Performance optimization
                 className
             )}
             style={{
                 background: `linear-gradient(135deg, hsl(${hue}, 70%, 50%) 0%, hsl(${hue}, 70%, 40%) 100%)`
             }}
         >
-            {initial}
+            <span className="select-none">{initial}</span>
 
             {/* Status dot - pure CSS, no image */}
             {isActive !== undefined && (

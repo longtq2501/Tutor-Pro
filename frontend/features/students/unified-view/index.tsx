@@ -3,7 +3,7 @@ import { useStudents } from '@/features/students/student-list/hooks/useStudents'
 import { recurringSchedulesApi } from '@/lib/services/recurring-schedule';
 import type { RecurringSchedule } from '@/lib/types';
 import { Student } from '@/lib/types';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { AddSessionModal } from './components/AddSessionModal';
 import { EnhancedAddStudentModal } from './components/EnhancedAddStudentModal';
@@ -30,6 +30,15 @@ export default function UnifiedContactManagement() {
     // Detail Modal State
     const [detailModalOpen, setDetailModalOpen] = useState(false);
     const [selectedStudentDetail, setSelectedStudentDetail] = useState<Student | null>(null);
+
+    // Custom useDebounce hook logic
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+        }, 300);
+        return () => clearTimeout(handler);
+    }, [searchTerm]);
 
     // Computed Stats
     const stats = useMemo(() => {
@@ -63,22 +72,22 @@ export default function UnifiedContactManagement() {
             if (filter === 'inactive' && student.active) return false;
 
             // 2. Search Filter
-            if (searchTerm) {
-                const lowerTerm = searchTerm.toLowerCase();
+            if (debouncedSearchTerm) {
+                const lowerTerm = debouncedSearchTerm.toLowerCase();
                 const matchName = student.name.toLowerCase().includes(lowerTerm);
-                const matchPhone = student.phone?.includes(searchTerm) || false;
+                const matchPhone = student.phone?.includes(debouncedSearchTerm) || false;
                 const matchParent = student.parentName?.toLowerCase().includes(lowerTerm) || false;
-                const matchParentPhone = student.parentPhone?.includes(searchTerm) || false;
+                const matchParentPhone = student.parentPhone?.includes(debouncedSearchTerm) || false;
 
                 return matchName || matchPhone || matchParent || matchParentPhone;
             }
 
             return true;
         });
-    }, [students, filter, searchTerm]);
+    }, [students, filter, debouncedSearchTerm]);
 
     // Handlers
-    const handleViewSchedule = (student: Student) => {
+    const handleViewSchedule = useCallback((student: Student) => {
         setSelectedStudent(student);
         setScheduleModalOpen(true);
         setExistingSchedule(null);
@@ -89,27 +98,27 @@ export default function UnifiedContactManagement() {
         }).finally(() => {
             setIsFetchingSchedule(false);
         });
-    };
+    }, []);
 
-    const handleAddSession = (student: Student) => {
+    const handleAddSession = useCallback((student: Student) => {
         setSelectedStudent(student);
         setSessionModalOpen(true);
-    };
+    }, []);
 
-    const handleAddStudent = () => {
+    const handleAddStudent = useCallback(() => {
         setEditingStudent(null);
         setIsModalOpen(true);
-    };
+    }, []);
 
-    const handleEditStudent = (student: Student) => {
+    const handleEditStudent = useCallback((student: Student) => {
         setEditingStudent(student);
         setIsModalOpen(true);
-    };
+    }, []);
 
-    const handleViewDetails = (student: Student) => {
+    const handleViewDetails = useCallback((student: Student) => {
         setSelectedStudentDetail(student);
         setDetailModalOpen(true);
-    };
+    }, []);
 
     return (
         <div className="container mx-auto p-4 sm:p-6 space-y-6 sm:space-y-8 max-w-7xl">

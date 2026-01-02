@@ -15,6 +15,13 @@ export const useCalendarDays = (currentDate: Date, sessions: SessionRecord[]): C
   const endDate = new Date(lastDay);
   endDate.setDate(endDate.getDate() + (6 - endDate.getDay()));
 
+  // 1. Pre-calculate Session Map for O(N+M) performance
+  const sessionMap = sessions.reduce((acc, s) => {
+    if (!acc[s.sessionDate]) acc[s.sessionDate] = [];
+    acc[s.sessionDate].push(s);
+    return acc;
+  }, {} as Record<string, SessionRecord[]>);
+
   const days: CalendarDay[] = [];
   const iterator = new Date(startDate);
   iterator.setHours(0, 0, 0, 0);
@@ -26,7 +33,7 @@ export const useCalendarDays = (currentDate: Date, sessions: SessionRecord[]): C
     days.push({
       date: new Date(iterator),
       dateStr,
-      sessions: sessions.filter(s => s.sessionDate === dateStr),
+      sessions: sessionMap[dateStr] || [], // Direct lookup (O(1)) instead of .filter (O(M))
       isCurrentMonth: iterator.getMonth() === month,
       isToday: iterator.getTime() === today.getTime()
     });

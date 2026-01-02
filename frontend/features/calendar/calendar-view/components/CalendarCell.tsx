@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, CheckCircle2, Clock } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { CalendarDay } from '../types';
 import type { SessionRecord } from '@/lib/types/finance';
+import { cn } from '@/lib/utils';
+import { AnimatePresence, motion } from 'framer-motion';
+import { CheckCircle2, Clock, Plus } from 'lucide-react';
+import { memo, useState } from 'react';
+import type { CalendarDay } from '../types';
 import { getStatusColors } from '../utils/statusColors';
 
 interface CalendarCellProps {
@@ -17,7 +17,7 @@ interface CalendarCellProps {
     onContextMenu?: (e: React.MouseEvent, session: SessionRecord) => void;
 }
 
-export function CalendarCell({
+export const CalendarCell = memo(({
     day,
     isToday,
     isCurrentMonth,
@@ -26,7 +26,7 @@ export function CalendarCell({
     onSessionClick,
     onAddSession,
     onContextMenu
-}: CalendarCellProps) {
+}: CalendarCellProps) => {
     const [isHovered, setIsHovered] = useState(false);
     const visibleSessions = sessions.slice(0, 3);
     const hiddenCount = sessions.length - 3;
@@ -196,4 +196,4 @@ export function CalendarCell({
             )}
         </motion.div>
     );
-}
+});

@@ -1,11 +1,10 @@
 // ============================================================================
 // FILE: admin-dashboard/components/StatCard.tsx (PREMIUM VERSION)
 // ============================================================================
-'use client';
-
-import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
+import { TrendingDown, TrendingUp } from 'lucide-react';
+import { memo } from 'react';
 
 interface StatCardProps {
   title: string;
@@ -39,7 +38,7 @@ const bgColors = {
   purple: 'bg-purple-50 dark:bg-purple-950/20'
 };
 
-export const StatCard = ({
+export const StatCard = memo(({
   title,
   value,
   subtitle,
@@ -81,7 +80,8 @@ export const StatCard = ({
         "transition-all duration-300",
         bgColors[variant],
         "hover:shadow-2xl hover:shadow-black/10 hover:border-transparent",
-        "dark:border-white/10"
+        "dark:border-white/10",
+        "will-change-transform contain-layout" // GPU Acceleration
       )}
     >
       {/* Animated Gradient Background */}
@@ -206,4 +206,4 @@ export const StatCard = ({
       </div>
     </motion.div>
   );
-};
+});

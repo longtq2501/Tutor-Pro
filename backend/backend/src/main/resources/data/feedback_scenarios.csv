@@ -1,0 +1,552 @@
+category,rating_level,keyword,template_text,variation_group
+ATTITUDE,TE,GENERAL,"Hôm nay {Student} rất mất tập trung, hay làm việc riêng và không chú ý vào bài giảng. Cô phải nhắc nhở nhiều lần nhưng con vẫn không cải thiện.",1
+ATTITUDE,TE,GENERAL,"{Student} học trong tâm trạng uể oải, liên tục ngáp và không có hứng thú với bài học. Điều này ảnh hưởng nghiêm trọng đến hiệu quả tiếp thu.",2
+ATTITUDE,TE,GENERAL,Con thể hiện thái độ thiếu hợp tác trong giờ học. {Student} không tham gia các hoạt động nhóm và từ chối trả lời khi được gọi tên.,3
+ATTITUDE,TE,GENERAL,"Thái độ học tập của {Student} hôm nay rất kém. Con hay nói chuyện riêng, không làm bài tập và tỏ ra khó chịu khi được nhắc nhở.",4
+ATTITUDE,TE,GENERAL,{Student} đến lớp trong trạng thái buồn ngủ và không thể tập trung. Con gục đầu nhiều lần và không theo kịp tiến độ bài giảng.,5
+ATTITUDE,TE,GENERAL,"Hôm nay con học rất tâm bất tại tâm, hay nhìn ra ngoài cửa sổ hoặc mải mê với đồ dùng cá nhân. {Student} cần điều chỉnh thái độ nghiêm túc hơn.",6
+ATTITUDE,TE,GENERAL,"{Student} thể hiện sự chán nản rõ rệt với bài học. Con không ghi chép, không làm bài tập và thường xuyên hỏi 'bao giờ hết giờ'.",7
+ATTITUDE,TE,GENERAL,"Con học trong tâm trạng tiêu cực, phàn nàn về độ khó của bài và từ chối cố gắng. Thái độ này của {Student} cần được thay đổi ngay.",8
+ATTITUDE,TE,GENERAL,"{Student} hay bị phân tâm bởi các yếu tố xung quanh, không duy trì được sự tập trung. Cô phải liên tục gọi tên để con quay lại bài.",9
+ATTITUDE,TE,GENERAL,Hôm nay {Student} có thái độ thiếu tôn trọng. Con hay cắt ngang lời giáo viên và không lắng nghe hướng dẫn.,10
+ATTITUDE,TRUNG_BINH,GENERAL,{Student} có chú ý nghe giảng nhưng chưa thực sự chủ động trong việc tham gia xây dựng bài. Con cần tích cực hơn nữa để nâng cao hiệu quả học tập.,1
+ATTITUDE,TRUNG_BINH,GENERAL,Thái độ học của {Student} hôm nay ở mức trung bình khá. Con nghe giảng đều đặn nhưng thiếu sự nhiệt huyết và tương tác với giáo viên.,2
+ATTITUDE,TRUNG_BINH,GENERAL,"Con học với thái độ bình thường, không có gì nổi bật. {Student} làm đúng những gì được yêu cầu nhưng chưa vượt ra ngoài kỳ vọng.",3
+ATTITUDE,TRUNG_BINH,GENERAL,{Student} có vẻ hơi thụ động trong giờ học. Con chỉ trả lời khi được gọi tên chứ không tự giác đặt câu hỏi hay phát biểu ý kiến.,4
+ATTITUDE,TRUNG_BINH,GENERAL,Hôm nay {Student} học với thái độ ổn định nhưng chưa thật sự say mê. Con cần thêm động lực để thể hiện hết khả năng của mình.,5
+ATTITUDE,TRUNG_BINH,GENERAL,Con tập trung nghe giảng nhưng có lúc bị xao nhãng. {Student} cần cải thiện khả năng duy trì sự chú ý trong thời gian dài hơn.,6
+ATTITUDE,TRUNG_BINH,GENERAL,"{Student} thể hiện thái độ học tập chấp nhận được, không quá tốt cũng không quá xấu. Con làm bài đầy đủ nhưng thiếu sự tỉ mỉ.",7
+ATTITUDE,TRUNG_BINH,GENERAL,Thái độ học của con hôm nay khá bình thường. {Student} tham gia các hoạt động nhưng chưa thực sự nhiệt tình như những buổi trước.,8
+ATTITUDE,TRUNG_BINH,GENERAL,{Student} có vẻ hơi mệt mỏi trong giờ học hôm nay. Con vẫn cố gắng theo dõi bài giảng nhưng năng lượng không cao như thường lệ.,9
+ATTITUDE,TRUNG_BINH,GENERAL,"Con học với thái độ trung bình, thỉnh thoảng còn bị sao nhãng. {Student} cần tập trung hơn để tiếp thu kiến thức hiệu quả hơn.",10
+ATTITUDE,KHA,GENERAL,"{Student} có ý thức học tập tốt, ghi chép bài đầy đủ và trật tự lắng nghe giảng. Con thể hiện sự tiếp thu tích cực trong suốt buổi học.",1
+ATTITUDE,KHA,GENERAL,"Hôm nay {Student} học rất có trách nhiệm. Con chuẩn bị bài cũ tốt, làm bài tập đầy đủ và luôn sẵn sàng tham gia các hoạt động trong lớp.",2
+ATTITUDE,KHA,GENERAL,"Thái độ học của {Student} rất đáng khen ngợi. Con tập trung cao độ, tích cực ghi chép và không bỏ sót bất kỳ kiến thức nào.",3
+ATTITUDE,KHA,GENERAL,{Student} thể hiện sự nhiệt tình và hứng thú với bài học mới. Con chủ động đặt câu hỏi khi chưa hiểu rõ phần nào đó.,4
+ATTITUDE,KHA,GENERAL,Con học với thái độ nghiêm túc và có phương pháp. {Student} ghi chép có hệ thống và thường xuyên ôn lại kiến thức cũ.,5
+ATTITUDE,KHA,GENERAL,Hôm nay {Student} rất chủ động trong việc học bài mới. Con không ngại thử nghiệm và tự tin đưa ra câu trả lời dù chưa hoàn toàn chắc chắn.,6
+ATTITUDE,KHA,GENERAL,"{Student} có thái độ học tập đáng khích lệ. Con luôn đúng giờ, chuẩn bị đồ dùng học tập đầy đủ và tham gia tích cực vào bài giảng.",7
+ATTITUDE,KHA,GENERAL,Con thể hiện sự cố gắng rõ rệt trong buổi học hôm nay. {Student} làm hết bài tập được giao và tự giác hỏi thêm khi còn thắc mắc.,8
+ATTITUDE,KHA,GENERAL,{Student} học với thái độ nghiêm túc và tập trung. Con biết cách quản lý thời gian làm bài và hoàn thành đúng tiến độ yêu cầu.,9
+ATTITUDE,KHA,GENERAL,Thái độ học tập của {Student} hôm nay rất tích cực. Con không chỉ nghe giảng mà còn chủ động ghi chú những điểm quan trọng.,10
+ATTITUDE,GIOI,GENERAL,"{Student} học rất tập trung, tiếp thu bài nhanh và luôn chủ động hỏi lại khi chưa hiểu rõ. Con thể hiện sự say mê học tập đáng ngưỡng mộ.",1
+ATTITUDE,GIOI,GENERAL,Hôm nay {Student} thể hiện thái độ học tập xuất sắc. Con không chỉ làm bài tốt mà còn giúp đỡ các bạn khác trong nhóm.,2
+ATTITUDE,GIOI,GENERAL,{Student} có thái độ học tập rất chuyên nghiệp. Con chuẩn bị kỹ càng cho từng buổi học và luôn hoàn thành bài tập trước deadline.,3
+ATTITUDE,GIOI,GENERAL,Con học với sự nhiệt huyết cao độ và tinh thần trách nhiệm tốt. {Student} là tấm gương về thái độ học tập cho các bạn khác.,4
+ATTITUDE,GIOI,GENERAL,{Student} thể hiện sự chủ động và tích cực đáng khen. Con không chỉ nghe giảng mà còn tự nghiên cứu thêm tài liệu bổ trợ.,5
+ATTITUDE,GIOI,GENERAL,Thái độ học tập của {Student} hôm nay thật ấn tượng. Con tập trung cao độ và có khả năng tự điều chỉnh khi gặp khó khăn.,6
+ATTITUDE,GIOI,GENERAL,{Student} học với tư duy tích cực và không ngại thử thách. Con luôn tìm cách tiếp cận bài toán từ nhiều góc độ khác nhau.,7
+ATTITUDE,GIOI,GENERAL,Con thể hiện thái độ học tập nghiêm túc và có phương pháp rõ ràng. {Student} biết cách tự đánh giá và cải thiện bản thân.,8
+ATTITUDE,GIOI,GENERAL,{Student} có động lực học tập mạnh mẽ và kiên trì. Con không bỏ cuộc ngay cả khi đối mặt với những phần bài khó.,9
+ATTITUDE,GIOI,GENERAL,Hôm nay {Student} thể hiện sự tập trung đáng kinh ngạc. Con theo sát từng phần bài giảng và đặt ra những câu hỏi rất có chất lượng.,10
+ATTITUDE,XUAT_SAC,GENERAL,"Thái độ học tập của {Student} là tấm gương sáng cho cả lớp. Con học với niềm say mê lớn, luôn tìm tòi và khám phá kiến thức mới một cách chủ động.",1
+ATTITUDE,XUAT_SAC,GENERAL,{Student} thể hiện thái độ học tập đỉnh cao hôm nay. Con không chỉ hoàn thành xuất sắc nhiệm vụ cá nhân mà còn tạo động lực tích cực cho cả nhóm.,2
+ATTITUDE,XUAT_SAC,GENERAL,Con học với sự nhiệt huyết và tập trung tuyệt đối. {Student} luôn có những câu hỏi sâu sắc và ý tưởng sáng tạo độc đáo trong giờ học.,3
+ATTITUDE,XUAT_SAC,GENERAL,{Student} thể hiện tinh thần lãnh đạo và trách nhiệm cao. Con không chỉ học giỏi mà còn nhiệt tình hướng dẫn các bạn khác.,4
+ATTITUDE,XUAT_SAC,GENERAL,"Thái độ học của {Student} hôm nay thật đáng ngưỡng mộ. Con tập trung tuyệt đối, tiếp thu nhanh và còn chủ động nghiên cứu thêm ngoài giáo trình.",5
+ATTITUDE,XUAT_SAC,GENERAL,{Student} học với tư duy phản biện và sáng tạo đặc biệt. Con không chỉ tiếp thu mà còn đặt ra những góc nhìn mới mẻ về vấn đề.,6
+ATTITUDE,XUAT_SAC,GENERAL,"Con thể hiện sự kỷ luật tự giác và động lực nội tại mạnh mẽ. {Student} là người học đích thực, luôn khao khát mở rộng kiến thức.",7
+ATTITUDE,XUAT_SAC,GENERAL,"{Student} có thái độ học tập đỉnh cao, kết hợp hoàn hảo giữa tập trung, sáng tạo và khả năng làm việc nhóm. Cô rất tự hào về con.",8
+ATTITUDE,XUAT_SAC,GENERAL,Hôm nay {Student} thể hiện sự trưởng thành vượt bậc trong học tập. Con tự quản lý thời gian tốt và biết cách tối ưu hóa hiệu quả học.,9
+ATTITUDE,XUAT_SAC,GENERAL,"{Student} học với thái độ chuyên nghiệp như một học giả nhí. Con tỉ mỉ, chu đáo và luôn hướng tới sự hoàn hảo trong từng chi tiết.",10
+ATTITUDE,TE,READING,"{Student} chưa tập trung trong phần Reading, con thường xuyên bỏ lỡ các ý chính và cần cô nhắc nhở nhiều.",1
+ATTITUDE,TE,READING,"Ở phần Đọc, {Student} tỏ ra khá uể oải và chưa chủ động tra cứu từ mới khi gặp khó khăn.",2
+ATTITUDE,TE,READING,"Con có thái độ thiếu kiên nhẫn khi đọc các đoạn văn dài, dẫn đến việc làm sai nhiều câu hỏi đọc hiểu.",3
+ATTITUDE,TE,READING,"Hôm nay {Student} không tập trung vào bài đọc, con hay nói chuyện riêng hoặc làm việc khác trong giờ.",4
+ATTITUDE,TE,READING,"Thái độ của {Student} trong phần Reading còn khá hời hợt, con chỉ đọc lướt mà không suy nghĩ kỹ.",5
+ATTITUDE,TE,READING,"Con chưa có ý thức tự giác làm bài đọc, cần giáo viên phải kèm cặp sát sao từng câu.",6
+ATTITUDE,TE,READING,"{Student} thường xuyên mất tập trung khi gặp từ mới, con dễ nản lòng và không muốn tiếp tục đọc.",7
+ATTITUDE,TE,READING,"Phần Reading của {Student} hôm nay chưa tốt do con thiếu sự chuẩn bị và không chú ý nghe giảng.",8
+ATTITUDE,TE,READING,"Con tỏ thái độ không hợp tác khi được yêu cầu dịch bài hoặc trả lời câu hỏi đọc hiểu.",9
+ATTITUDE,TE,READING,"Hôm nay {Student} rất lười đọc, con hay né tránh các bài tập khó và không tập trung vào văn bản.",10
+ATTITUDE,TRUNG_BINH,READING,"{Student} có thái độ học tập ổn định trong phần Reading, tuy nhiên con cần chú ý hơn đến các tiểu tiết trong bài đọc.",1
+ATTITUDE,TRUNG_BINH,READING,"Trong phần Đọc, {Student} tỏ ra khá hợp tác nhưng đôi lúc vẫn còn bị xao nhãng bởi các yếu tố bên ngoài.",2
+ATTITUDE,TRUNG_BINH,READING,"Con có ý thức làm bài đọc nhưng tốc độ còn hơi chậm, {Student} cần rèn luyện thêm sự tập trung.",3
+ATTITUDE,TRUNG_BINH,READING,"Thái độ của {Student} khi đọc bài khá bình thường, chưa thực sự thể hiện sự hào hứng hay chủ động tìm tòi.",4
+ATTITUDE,TRUNG_BINH,READING,"Hôm nay con học phần Reading với thái độ chấp nhận được, cần cô nhắc nhở đôi lần để quay lại mạch bài.",5
+ATTITUDE,TRUNG_BINH,READING,"{Student} tập trung ở mức trung bình trong giờ Đọc, con cần nỗ lực hơn để nắm bắt từ mới nhanh hơn.",6
+ATTITUDE,TRUNG_BINH,READING,"Ý thức tự giác của con trong phần Reading hôm nay chỉ ở mức vừa phải, chưa thực sự bứt phá.",7
+ATTITUDE,TRUNG_BINH,READING,"{Student} làm bài đọc đầy đủ nhưng đôi khi còn làm cho xong chuyện mà chưa suy nghĩ sâu.",8
+ATTITUDE,TRUNG_BINH,READING,"Con có thái độ ôn hòa trong giờ học Reading, nhưng cần thêm một chút nhiệt huyết và sôi nổi hơn.",9
+ATTITUDE,TRUNG_BINH,READING,"Hôm nay {Student} học phần Đọc hơi thụ động, con nghe giảng bài nhưng ít đóng góp ý kiến cá nhân.",10
+ATTITUDE,KHA,READING,"{Student} có ý thức học tập tốt trong phần Reading, con chủ động tra từ điển khi gặp cấu trúc khó.",1
+ATTITUDE,KHA,READING,"Thái độ của {Student} trong giờ Đọc rất tích cực, con ghi chép cẩn thận các từ vựng mới được học.",2
+ATTITUDE,KHA,READING,"Con thể hiện sự kiên trì khi đọc các đoạn văn dài và luôn cố gắng trả lời hết các câu hỏi.",3
+ATTITUDE,KHA,READING,"Hôm nay {Student} rất tập trung vào bài đọc, con theo kịp tiến độ và tham gia thảo luận cùng cô.",4
+ATTITUDE,KHA,READING,"Ý thức tự giác của {Student} trong phần Reading rất đáng khen, con không cần cô nhắc nhở nhiều.",5
+ATTITUDE,KHA,READING,"Con có thái độ làm việc nghiêm túc, {Student} luôn suy nghĩ kỹ trước khi đưa ra đáp án cho bài đọc hiểu.",6
+ATTITUDE,KHA,READING,"{Student} tỏ ra hào hứng với chủ đề bài đọc hôm nay và đặt nhiều câu hỏi hay về nội dung văn bản.",7
+ATTITUDE,KHA,READING,"Thái độ học tập chuyên nghiệp của {Student} giúp phần Reading đạt hiệu quả cao và tiết kiệm thời gian.",8
+ATTITUDE,KHA,READING,"Con lắng nghe hướng dẫn về kỹ năng đọc lướt (skimming) rất chăm chú và áp dụng tốt vào thực hành.",9
+ATTITUDE,KHA,READING,"Hôm nay {Student} thể hiện sự cầu tiến, con luôn muốn tìm hiểu sâu hơn nghĩa bóng của các cụm từ.",10
+ATTITUDE,GIOI,READING,"{Student} học phần Reading với tinh thần say mê, con thẩm thấu nội dung nhanh và rất chủ động.",1
+ATTITUDE,GIOI,READING,"Thái độ của {Student} trong giờ Đọc hôm nay thật tuyệt vời, con thể hiện sự yêu thích ngôn ngữ rõ rệt.",2
+ATTITUDE,GIOI,READING,"Con tập trung tuyệt đối vào văn bản, {Student} có khả năng tự giải quyết các bài đọc khó một cách tự tin.",3
+ATTITUDE,GIOI,READING,"Hôm nay {Student} thể hiện sự thông minh và nhạy bén khi phân tích các ý chính của bài đọc.",4
+ATTITUDE,GIOI,READING,"Ý thức học tập của {Student} là tấm gương sáng, con không ngại thử thách với những văn bản chuyên ngành.",5
+ATTITUDE,GIOI,READING,"Con rèn luyện kỹ năng Reading một cách bền bỉ và luôn hướng tới sự hoàn thiện trong từng câu trả lời.",6
+ATTITUDE,GIOI,READING,"{Student} chủ động tìm hiểu các ngữ cảnh văn hóa trong bài đọc, thái độ này rất đáng khích lệ.",7
+ATTITUDE,GIOI,READING,"Thái độ học tập của con hôm nay xuất sắc, {Student} hoàn thành bài đọc nhanh và chính xác tuyệt đối.",8
+ATTITUDE,GIOI,READING,"Con dành sự tập trung cao độ để nghiên cứu cấu trúc câu phức, {Student} rất chăm chỉ và nghiêm túc.",9
+ATTITUDE,GIOI,READING,"Hôm nay {Student} thể hiện sự vượt trội về thái độ học tập, con luôn sẵn sàng giúp bạn hiểu bài đọc.",10
+ATTITUDE,XUAT_SAC,READING,"{Student} thể hiện tinh thần tự học tuyệt vời, con không chỉ đọc hiểu mà còn phân tích sâu sắc các tầng ý nghĩa.",1
+ATTITUDE,XUAT_SAC,READING,"Thái độ học tập phần Reading của {Student} là hình mẫu lý tưởng, con luôn chuẩn bị bài trước khi đến lớp.",2
+ATTITUDE,XUAT_SAC,READING,"Con có niềm đam mê đặc biệt với việc đọc sách tiếng Anh, {Student} luôn tìm kiếm những bài đọc ngoài giáo trình.",3
+ATTITUDE,XUAT_SAC,READING,"Hôm nay {Student} thể hiện sự tập trung cao độ và đóng góp nhiều góc nhìn thú vị về văn bản cho cả lớp.",4
+ATTITUDE,XUAT_SAC,READING,"Ý thức làm bài của {Student} cực kỳ cao, con tỉ mỉ soát lỗi và không bỏ sót bất kỳ chi tiết nhỏ nào.",5
+ATTITUDE,XUAT_SAC,READING,"Con rèn luyện kỹ năng đọc hiểu với thái độ chuyên nghiệp, {Student} luôn hướng tới việc nâng cao vốn từ vựng.",6
+ATTITUDE,XUAT_SAC,READING,"{Student} rất chủ động trong việc giúp đỡ các bạn khác cùng tiến bộ trong các bài tập đọc hiểu nhóm.",7
+ATTITUDE,XUAT_SAC,READING,"Thái độ của {Student} trong giờ học hôm nay xuất sắc, con vượt qua mọi giới hạn và hoàn thành bài đọc khó nhanh chóng.",8
+ATTITUDE,XUAT_SAC,READING,"Con thể hiện sự kỷ luật và kiên nhẫn đáng kinh ngạc khi đối mặt với các dạng đề Reading phức tạp.",9
+ATTITUDE,XUAT_SAC,READING,"Hôm nay {Student} là ngôi sao của phần Reading, thái độ tích cực của con lan tỏa năng lượng tốt cho cả lớp.",10
+ATTITUDE,TE,LISTENING,"{Student} lười nghe, thường xuyên tháo tai nghe hoặc làm việc riêng khi đến phần luyện nghe.",1
+ATTITUDE,TE,LISTENING,"Con tỏ thái độ chán nản, không muốn nghe và hay phàn nàn rằng bài nghe quá khó.",2
+ATTITUDE,TE,LISTENING,"{Student} không tập trung nghe giảng, hay quay sang nói chuyện với bạn khi đang nghe băng.",3
+ATTITUDE,TE,LISTENING,"Con thể hiện sự thiếu kiên nhẫn, thường xuyên đòi bỏ qua phần nghe hoặc đoán bừa đáp án.",4
+ATTITUDE,TE,LISTENING,"Hôm nay {Student} rất mất tập trung, con không theo kịp mạch bài nghe và tỏ ra thờ ơ.",5
+ATTITUDE,TRUNG_BINH,LISTENING,"{Student} có thái độ học tập ổn định trong phần luyện nghe, tuy nhiên con cần rèn luyện thêm khả năng tập trung cao độ.",1
+ATTITUDE,TRUNG_BINH,LISTENING,"Trong giờ Listening, {Student} tỏ ra khá hợp tác nhưng đôi lúc vẫn chưa thực sự chủ động ghi chú thông tin.",2
+ATTITUDE,TRUNG_BINH,LISTENING,"Con có ý thức nghe giảng nhưng tốc độ phản xạ còn hơi chậm, {Student} cần tích cực tham gia các bài tập nhóm hơn.",3
+ATTITUDE,TRUNG_BINH,LISTENING,"Thái độ của {Student} khi nghe bài khá bình thường, con làm đúng yêu cầu nhưng chưa thể hiện sự bứt phá.",4
+ATTITUDE,TRUNG_BINH,LISTENING,"Hôm nay {Student} học phần nghe với thái độ chấp nhận được, cần được cô khích lệ thường xuyên.",5
+ATTITUDE,TRUNG_BINH,LISTENING,"{Student} tập trung ở mức trung bình trong giờ Nghe, con cần nỗ lực hơn để nắm bắt các âm đuôi.",6
+ATTITUDE,TRUNG_BINH,LISTENING,"Ý thức tự giác của con trong phần Listening hôm nay ở mức vừa phải, chưa thực sự tập trung hoàn toàn.",7
+ATTITUDE,TRUNG_BINH,LISTENING,"{Student} hoàn thành các bài nghe cơ bản đầy đủ nhưng đôi khi còn bị xao nhãng bởi tiếng ồn xung quanh.",8
+ATTITUDE,TRUNG_BINH,LISTENING,"Con có thái độ ôn hòa trong giờ Listening, nhưng cần thêm một chút nhiệt huyết và sôi nổi hơn khi trả lời câu hỏi.",9
+ATTITUDE,TRUNG_BINH,LISTENING,"Hôm nay {Student} học phần Nghe hơi thụ động, con nghe bài đầy đủ nhưng ít khi chủ động đặt câu hỏi.",10
+ATTITUDE,KHA,LISTENING,"{Student} có ý thức học tập rất tốt trong phần Listening, con luôn sẵn sàng tập trung vào các đoạn hội thoại khó.",1
+ATTITUDE,KHA,LISTENING,"Thái độ của {Student} trong giờ Nghe rất tích cực, con chủ động ghi chép các cấu trúc câu mới nghe được.",2
+ATTITUDE,KHA,LISTENING,"Con thể hiện sự kiên trì khi luyện nghe các bài hội thoại dài và không ngại nghe lại nhiều lần.",3
+ATTITUDE,KHA,LISTENING,"Hôm nay {Student} rất tập trung vào bài nghe, con bắt nhịp nhanh với nội dung và trả lời câu hỏi chính xác.",4
+ATTITUDE,KHA,LISTENING,"Ý thức tự giác của {Student} trong phần Listening rất đáng khen, con luôn chuẩn bị sẵn sàng tâm thế để nghe.",5
+ATTITUDE,KHA,LISTENING,"Con có thái độ rèn luyện nghiêm túc, {Student} luôn cố gắng phân tích các từ khóa để hiểu nội dung sâu hơn.",6
+ATTITUDE,KHA,LISTENING,"{Student} tỏ ra hào hứng với các bài luyện nghe qua bài hát và phim, thái độ này giúp con tiến bộ nhanh.",7
+ATTITUDE,KHA,LISTENING,"Thái độ học tập chuyên nghiệp của {Student} giúp phần Listening đạt hiệu quả cao và không khí lớp học sôi nổi.",8
+ATTITUDE,KHA,LISTENING,"Con lắng nghe hướng dẫn về cách nhận diện âm nối rất chăm chú và áp dụng tốt vào các bài tập thực hành.",9
+ATTITUDE,KHA,LISTENING,"Hôm nay {Student} thể hiện sự cầu tiến trong kỹ năng nghe, con luôn muốn thử thách với các bài nghe tốc độ nhanh.",10
+ATTITUDE,GIOI,LISTENING,"{Student} rất tập trung trong phần nghe, con luôn cố gắng nắm bắt từ khóa và hoàn thành bài tập rất nhanh.",1
+ATTITUDE,GIOI,LISTENING,"Thái độ của {Student} trong phần Listening rất đáng khen, con luôn chủ động hỏi khi không nghe rõ.",2
+ATTITUDE,GIOI,LISTENING,"Con thể hiện sự hào hứng khi tham gia các hoạt động luyện nghe, khả năng tập trung của {Student} rất tốt.",3
+ATTITUDE,GIOI,LISTENING,"{Student} lắng nghe rất chăm chú và có phản xạ nhanh với các câu hỏi sau bài nghe.",4
+ATTITUDE,GIOI,LISTENING,"Ý thức học tập phần Listening của con rất tốt, con luôn chuẩn bị kỹ sổ tay để ghi chú từ mới.",5
+ATTITUDE,GIOI,LISTENING,"Hôm nay {Student} rèn luyện kĩ năng nghe một cách nghiêm túc và say mê, kết quả rất ấn tượng.",6
+ATTITUDE,GIOI,LISTENING,"Con biết cách phân bổ sự chú ý để không bỏ lỡ các thông tin quan trọng trong đoạn băng.",7
+ATTITUDE,GIOI,LISTENING,"{Student} thể hiện sự tự tin và tập trung cao độ khi làm các bài thi nghe thử.",8
+ATTITUDE,GIOI,LISTENING,"Thái độ học tập tích cực giúp {Student} tiến bộ rõ rệt trong việc nhận diện các âm tiết khó.",9
+ATTITUDE,GIOI,LISTENING,"Con luôn sẵn sàng thử thách bản thân với những bài nghe tốc độ cao và thể hiện sự kiên trì.",10
+ATTITUDE,XUAT_SAC,LISTENING,"{Student} tập trung tuyệt đối vào bài nghe, con có khả năng bắt từ khóa và hiểu nội dung rất nhanh.",1
+ATTITUDE,XUAT_SAC,LISTENING,"Thái độ luyện nghe của con thật đáng ngưỡng mộ, con luôn cố gắng nghe hiểu cả những chi tiết nhỏ nhất.",2
+ATTITUDE,XUAT_SAC,LISTENING,"{Student} thể hiện sự say mê và quyết tâm cao độ khi đối mặt với những bài nghe nâng cao.",3
+ATTITUDE,XUAT_SAC,LISTENING,"Con là một 'active listener' thực thụ, luôn chủ động tương tác và phản hồi lại nội dung đoạn băng.",4
+ATTITUDE,XUAT_SAC,LISTENING,"Hôm nay {Student} thể hiện sự tập trung đỉnh cao, con dường như không bỏ sót bất kỳ thông tin nào.",5
+ATTITUDE,TE,SPEAKING,"{Student} còn rất ngại ngùng khi giao tiếp, con thường im lặng và cần được động viên nhiều mới dám mở lời.",1
+ATTITUDE,TE,SPEAKING,"Trong phần Nói hôm nay, {Student} tỏ thái độ thiếu kiên nhẫn khi phải lặp lại các âm tiết khó.",2
+ATTITUDE,TE,SPEAKING,"Con thường xuyên làm việc riêng trong giờ luyện nói, {Student} chưa thực sự chú trọng vào việc cải thiện ngữ điệu.",3
+ATTITUDE,TE,SPEAKING,"Thái độ của {Student} khi thực hành Speaking còn mang tính đối phó, con chỉ trả lời cho có mà chưa đầu tư.",4
+ATTITUDE,TE,SPEAKING,"Hôm nay {Student} có vẻ mệt mỏi và không muốn tham gia vào các bài tập đàm thoại cùng bạn.",5
+ATTITUDE,TE,SPEAKING,"Con tỏ ra nản lòng khi gặp lỗi sai phát âm, {Student} cần rèn luyện tinh thần cầu tiến và không ngại mắc lỗi.",6
+ATTITUDE,TE,SPEAKING,"{Student} hay bị xao nhãng và không lắng nghe kỹ mẫu câu cô hướng dẫn trong phần Speaking.",7
+ATTITUDE,TE,SPEAKING,"Con chưa có ý thức tự giác luyện tập phản xạ, thường chỉ thụ động chờ sự giúp đỡ từ giáo viên.",8
+ATTITUDE,TE,SPEAKING,"Hôm nay thái độ của {Student} trong giờ học giao tiếp chưa ổn định, con hay cáu gắt khi cô sửa lỗi phát âm.",9
+ATTITUDE,TE,SPEAKING,"Con né tránh các hoạt động Speaking nhóm và không thể hiện sự cố gắng trong việc sử dụng tiếng Anh.",10
+ATTITUDE,TRUNG_BINH,SPEAKING,"{Student} có thái độ hợp tác khi thực hành nói, tuy nhiên con cần chủ động hơn thay vì chờ cô gợi ý.",1
+ATTITUDE,TRUNG_BINH,SPEAKING,"Con thực hiện các bài tập Speaking đầy đủ nhưng chưa thực sự tự tin và hào hứng.",2
+ATTITUDE,TRUNG_BINH,SPEAKING,"{Student} tập trung nghe hướng dẫn nhưng còn ngại ngùng, cần được khích lệ nhiều hơn để nói to rõ.",3
+ATTITUDE,TRUNG_BINH,SPEAKING,"Thái độ của con trong giờ Speaking ổn định, nhưng cần thêm sự bứt phá và chủ động tương tác.",4
+ATTITUDE,TRUNG_BINH,SPEAKING,"Hôm nay {Student} khá trật tự và thực hành nói đều đặn, dù đôi khi vẫn còn bị phân tâm.",5
+ATTITUDE,KHA,SPEAKING,"{Student} có thái độ học tập rất tích cực trong giờ Speaking, con tự tin thực hành nói các mẫu câu mới.",1
+ATTITUDE,KHA,SPEAKING,"Thái độ của {Student} khi học phát âm rất đáng khen, con luôn chú ý lắng nghe và sửa lỗi theo cô.",2
+ATTITUDE,KHA,SPEAKING,"Con thể hiện sự hào hứng khi tham gia vào các hoạt động đóng vai và thảo luận nhóm bằng tiếng Anh.",3
+ATTITUDE,KHA,SPEAKING,"Hôm nay {Student} rất chủ động trong việc luyện nói, con không ngại mắc lỗi và luôn cầu tiến.",4
+ATTITUDE,KHA,SPEAKING,"Ý thức tự giác luyện tập của {Student} rất tốt, con thường xuyên đặt câu hỏi để mở rộng nội dung bài nói.",5
+ATTITUDE,KHA,SPEAKING,"Con có thái độ rèn luyện nghiêm túc, {Student} cố gắng áp dụng các từ vựng mới vào trong giao tiếp.",6
+ATTITUDE,KHA,SPEAKING,"{Student} luôn sẵn sàng giúp đỡ bạn cùng cặp trong giờ thực hành nói, thái độ này rất chuyên nghiệp.",7
+ATTITUDE,KHA,SPEAKING,"Thái độ học tập của con hôm nay rất sôi nổi, con tạo ra năng lượng tích cực cho phần thực hành Speaking.",8
+ATTITUDE,KHA,SPEAKING,"Con lắng nghe nhận xét về phát âm của cô rất chăm chú và nỗ lực cải thiện ngay trong buổi học.",9
+ATTITUDE,KHA,SPEAKING,"Hôm nay {Student} thể hiện sự tự tin và chủ động vượt bậc khi trình bày ý kiến cá nhân trước lớp.",10
+ATTITUDE,GIOI,SPEAKING,"{Student} rất nhiệt tình và tự tin trong các bài thực hành nói, con luôn chủ động dẫn dắt cuộc hội thoại.",1
+ATTITUDE,GIOI,SPEAKING,"Thái độ của con trong giờ Speaking rất xuất sắc, con không ngại thử thách với những cấu trúc câu khó.",2
+ATTITUDE,GIOI,SPEAKING,"{Student} thể hiện sự say mê rõ rệt khi được thực hành giao tiếp, con luôn tập trung lắng nghe để sửa lỗi.",3
+ATTITUDE,GIOI,SPEAKING,"Con là một trong những học sinh tích cực nhất giờ Speaking hôm nay, luôn tràn đầy năng lượng khi mở lời.",4
+ATTITUDE,GIOI,SPEAKING,"Thái độ chủ động và tự tin giúp {Student} làm chủ các tình huống giao tiếp một cách tự nhiên nhất.",5
+ATTITUDE,XUAT_SAC,SPEAKING,"{Student} thể hiện thái độ luyện nói cực kỳ chuyên nghiệp, con luôn tìm cách mở rộng ý tưởng và dùng từ mới.",1
+ATTITUDE,XUAT_SAC,SPEAKING,"Con học Speaking với niềm đam mê lớn, luôn chủ động giúp đỡ các bạn khác cùng thực hành nhóm.",2
+ATTITUDE,XUAT_SAC,SPEAKING,"{Student} luôn có sự chuẩn bị kỹ càng và tinh thần cầu tiến tuyệt vời trong mỗi tiết học giao tiếp.",3
+ATTITUDE,XUAT_SAC,SPEAKING,"Thái độ của con hôm nay thật đáng kinh ngạc, con dường như không bao giờ nản lòng trước những âm khó.",4
+ATTITUDE,XUAT_SAC,SPEAKING,"{Student} thể hiện tinh thần học tập tự giác và sáng tạo, luôn mang đến những góc nhìn thú vị khi thảo luận.",5
+ATTITUDE,XUAT_SAC,SPEAKING,"Hôm nay {Student} thể hiện sự tự tin và chủ động vượt bậc khi trình bày ý kiến cá nhân trước lớp.",10
+ATTITUDE,TE,WRITING,"{Student} còn rất lười viết, con thường xuyên nộp bài trễ hoặc viết rất đối phó.",1
+ATTITUDE,TE,WRITING,"Trong giờ Writing, {Student} hay sao nhãng và không tập trung vào việc triển khai ý tưởng.",2
+ATTITUDE,TE,WRITING,"Con tỏ thái độ ngại viết các câu dài, {Student} thường chỉ viết những từ đơn lẻ.",3
+ATTITUDE,TE,WRITING,"Thái độ của {Student} đối với phần bài tập về nhà Writing còn chưa nghiêm túc.",4
+ATTITUDE,TE,WRITING,"Hôm nay {Student} không hợp tác trong việc sửa lỗi sai bài viết, con có vẻ nản lòng nhanh.",5
+ATTITUDE,TE,WRITING,"{Student} thường xuyên bỏ trống các phần bài tập viết đoạn văn, cần giáo viên nhắc nhở nhiều.",6
+ATTITUDE,TE,WRITING,"Ý thức tự học phần Writing của con còn rất thấp, {Student} hay copy bài của bạn hoặc dùng Google dịch.",7
+ATTITUDE,TE,WRITING,"Con không thể hiện sự cố gắng khi được yêu cầu lập dàn ý, thái độ của {Student} còn thụ động.",8
+ATTITUDE,TE,WRITING,"Hôm nay {Student} làm bài viết rất cẩu thả, con không kiểm tra lại lỗi chính tả trước khi nộp.",9
+ATTITUDE,TE,WRITING,"Con tỏ vẻ khó chịu khi phải viết lại bài, {Student} cần rèn luyện tính kiên trì hơn.",10
+ATTITUDE,TRUNG_BINH,WRITING,"{Student} hoàn thành các bài viết ở mức đạt yêu cầu, tuy nhiên con cần trau chuốt hơn về cách dùng từ.",1
+ATTITUDE,TRUNG_BINH,WRITING,"Thái độ của {Student} trong giờ Writing khá ổn định, con có ý thức làm bài nhưng chưa thực sự sáng tạo.",2
+ATTITUDE,TRUNG_BINH,WRITING,"Con viết bài đầy đủ theo hướng dẫn của cô, {Student} cần rèn luyện thêm khả năng tư duy phản biện khi viết.",3
+ATTITUDE,KHA,WRITING,"{Student} rất chủ động trong việc tìm kiếm các cấu trúc mới để đưa vào bài viết của mình.",4
+ATTITUDE,KHA,WRITING,"Thái độ học tập tích cực giúp {Student} tiến bộ nhanh trong kỹ năng viết đoạn văn ngắn.",5
+ATTITUDE,KHA,WRITING,"Con luôn chuẩn bị bài viết rất kỹ lưỡng và thường xuyên hỏi cô cách diễn đạt hay hơn.",6
+ATTITUDE,GIOI,WRITING,"{Student} thể hiện niềm đam mê viết lách, con luôn cố gắng dùng các từ vựng học thuật vào bài làm.",1
+ATTITUDE,GIOI,WRITING,"Thái độ của {Student} trong giờ Writing rất đáng khen, con luôn hoàn thành bài viết trước thời hạn.",2
+ATTITUDE,GIOI,WRITING,"Con có ý thức tự giác cao trong việc trau chuốt câu chữ, {Student} thường xuyên tự sửa bài sau khi cô góp ý.",3
+ATTITUDE,XUAT_SAC,WRITING,"{Student} có thái độ học tập cực kỳ chuyên nghiệp, con luôn tìm tòi những cách diễn đạt mới lạ và sáng tạo.",4
+ATTITUDE,XUAT_SAC,WRITING,"Sự nỗ lực của {Student} trong phần Writing là tấm gương cho cả lớp, bài viết của con luôn đạt chất lượng cao.",5
+ATTITUDE,XUAT_SAC,WRITING,"Con thể hiện sự bứt phá vượt bậc về tư duy ngôn ngữ, {Student} luôn chủ động thách thức bản thân với các đề tài khó.",6
+ATTITUDE,TE,GRAMMAR,"{Student} còn lơ là trong việc học ngữ pháp, con thường xuyên không làm bài tập củng cố.",1
+ATTITUDE,TE,GRAMMAR,"Trong giờ Grammar, {Student} hay làm việc riêng và không chú ý nghe cô giảng công thức.",2
+ATTITUDE,TE,GRAMMAR,"Con có thái độ ngại học các cấu trúc khó, {Student} thường bỏ qua thay vì đặt câu hỏi.",3
+ATTITUDE,TE,GRAMMAR,"Thái độ của {Student} đối với việc sửa lỗi sai ngữ pháp còn đối phó, chưa thực sự cầu tiến.",4
+ATTITUDE,TE,GRAMMAR,"Hôm nay {Student} học phần ngữ pháp rất thụ động, con chỉ chép bài mà không hiểu bản chất.",5
+ATTITUDE,TE,GRAMMAR,"{Student} thường xuyên quên các quy tắc cơ bản đã học, do ý thức ôn tập tại nhà chưa tốt.",6
+ATTITUDE,TE,GRAMMAR,"Ý thức học tập của con trong phần ngữ pháp hôm nay ở mức thấp, {Student} dễ bị xao nhãng.",7
+ATTITUDE,TE,GRAMMAR,"Con không thể hiện sự nỗ lực khi làm các bài tập vận dụng ngữ pháp cao, {Student} hay nản chí.",8
+ATTITUDE,TE,GRAMMAR,"Hôm nay {Student} làm bài tập ngữ pháp rất cẩu thả, con chọn bừa đáp án cho xong bài.",9
+ATTITUDE,TE,GRAMMAR,"Con thường xuyên phàn nàn về việc học ngữ pháp khô khan thay vì tập trung rèn luyện.",10
+ATTITUDE,TRUNG_BINH,GRAMMAR,"{Student} nắm được các cấu trúc ngữ pháp cơ bản, con cần rèn luyện thêm tính cẩn thận khi làm bài tập.",1
+ATTITUDE,TRUNG_BINH,GRAMMAR,"Thái độ của {Student} trong giờ học Ngữ pháp khá ngoan, con chú ý nghe giảng nhưng ít khi phát biểu.",2
+ATTITUDE,TRUNG_BINH,GRAMMAR,"Con hoàn thành các bài tập ngữ pháp đầy đủ, {Student} nên dành nhiều thời gian hơn để ôn tập các thì khó.",3
+ATTITUDE,KHA,GRAMMAR,"{Student} rất hào hứng với các hoạt động thi đua giải đố ngữ pháp tại lớp.",4
+ATTITUDE,KHA,GRAMMAR,"Ý thức học tập của {Student} rất tốt, con luôn cố gắng tự mình giải quyết các bài tập cấu trúc phức tạp.",5
+ATTITUDE,KHA,GRAMMAR,"Con có thái độ cầu tiến, {Student} luôn ghi chú cẩn thận các lưu ý của giáo viên về lỗi ngữ pháp thường gặp.",6
+ATTITUDE,GIOI,GRAMMAR,"{Student} rất tập trung trong các giờ học Ngữ pháp, con luôn là người đầu tiên đưa ra đáp án chính xác.",1
+ATTITUDE,GIOI,GRAMMAR,"Thái độ của {Student} rất tích cực, con không chỉ nắm vững công thức mà còn hiểu sâu cách áp dụng.",2
+ATTITUDE,GIOI,GRAMMAR,"Con thể hiện sự hứng thú đặc biệt với các hiện tượng ngữ pháp nâng cao, {Student} rất chịu khó tìm tòi.",3
+ATTITUDE,XUAT_SAC,GRAMMAR,"{Student} có thái độ học tập xuất sắc, con nắm vững các cấu trúc ngữ pháp khó một cách rất tự nhiên.",4
+ATTITUDE,XUAT_SAC,GRAMMAR,"Ý thức rèn luyện của {Student} là tuyệt vời, con luôn tự đặt ra những câu phức tạp để thử thách bản thân.",5
+ATTITUDE,XUAT_SAC,GRAMMAR,"Con thể hiện sự thông minh và cẩn thận tuyệt đối trong từng bài tập ngữ pháp, {Student} rất đáng khen ngợi.",6
+ATTITUDE,TE,VOCABULARY,"{Student} tỏ thái độ lười học từ mới, con không ghi chép đầy đủ và thường xuyên quên nghĩa của từ cũ.",1
+ATTITUDE,TE,VOCABULARY,"Trong giờ học Từ vựng, {Student} hay mất tập trung và không thực hiện các bài tập nối nghĩa/đặt câu.",2
+ATTITUDE,TE,VOCABULARY,"Con có vẻ nản lòng khi gặp các từ dài, {Student} không chủ động tra cứu hay hỏi giáo viên để hiểu rõ hơn.",3
+ATTITUDE,TE,VOCABULARY,"Thái độ của {Student} đối với phần Vocabulary còn thụ động, con chỉ chép từ mà không hề tư duy về cách dùng.",4
+ATTITUDE,TE,VOCABULARY,"Hôm nay {Student} hay sao nhãng, không chú ý vào các ví dụ minh họa từ vựng mà cô đưa ra.",5
+ATTITUDE,TE,VOCABULARY,"Con chưa có ý thức tự giác ôn tập từ vựng tại lớp, cần giáo viên phải nhắc nhở từng chút một.",6
+ATTITUDE,TE,VOCABULARY,"{Student} thường xuyên làm việc riêng khi đến phần học từ mới, gây ảnh hưởng đến tiến độ của lớp.",7
+ATTITUDE,TE,VOCABULARY,"Con tỏ thái độ đối phó khi được yêu cầu đặt câu với từ mới, các câu của {Student} còn rất sơ sài.",8
+ATTITUDE,TE,VOCABULARY,"Hôm nay {Student} học từ vựng một cách thiếu nghiêm túc, con hay đùa nghịch thay vì ghi nhớ từ.",9
+ATTITUDE,TE,VOCABULARY,"Con không thể hiện sự cố gắng trong việc phát âm từ mới, thái độ này khiến {Student} chậm tiến bộ.",10
+ATTITUDE,TRUNG_BINH,VOCABULARY,"{Student} học từ vựng ở mức độ khá ổn định, tuy nhiên con cần rèn thêm cách dùng từ trong ngữ cảnh.",1
+ATTITUDE,TRUNG_BINH,VOCABULARY,"Con có ý thức ghi chép từ mới nhưng đôi khi vẫn còn thiếu tập trung khi luyện phát âm.",2
+ATTITUDE,KHA,VOCABULARY,"{Student} rất tích cực tham gia các trò chơi học từ vựng, con có khả năng ghi nhớ từ nhanh.",3
+ATTITUDE,KHA,VOCABULARY,"Thái độ của {Student} hôm nay rất tốt, con chủ động đặt câu với những từ vựng khó vừa học.",4
+ATTITUDE,GIOI,VOCABULARY,"{Student} tỏ ra rất hào hứng khi khám phá các chủ đề từ vựng mới, con luôn chuẩn bị bài trước ở nhà.",5
+ATTITUDE,GIOI,VOCABULARY,"Con thể hiện sự chuyên nghiệp khi học từ vựng, {Student} thường xuyên tra cứu từ điển để hiểu sâu nghĩa của từ.",6
+ATTITUDE,XUAT_SAC,VOCABULARY,"{Student} có tinh thần tự học rất tuyệt vời, con luôn tìm cách mở rộng vốn từ của mình qua sách báo.",7
+ATTITUDE,XUAT_SAC,VOCABULARY,"Sự nỗ lực của {Student} trong việc tích lũy từ vựng là rất lớn, con nắm bắt được cả những từ vựng chuyên ngành khó.",8
+ABSORPTION,TE,GENERAL,Khả năng tiếp thu hôm nay của {Student} khá chậm. Con cần giảng giải nhiều lần mới hiểu được kiến thức cơ bản.,1
+ABSORPTION,TE,GENERAL,{Student} gặp nhiều khó khăn trong việc tiếp thu bài mới. Con dường như không theo kịp tốc độ bài giảng và hay quên ngay sau khi học.,2
+ABSORPTION,TE,GENERAL,Con tiếp thu kiến thức hôm nay rất chậm chạp. {Student} cần được hỗ trợ thêm để hiểu rõ bài học.,3
+ABSORPTION,TE,GENERAL,"{Student} gặp rào cản lớn trong việc tiếp nhận kiến thức mới, con cần sự kiên nhẫn và lộ trình học chậm hơn.",4
+ABSORPTION,TE,GENERAL,"Khả năng thẩm thấu bài học của {Student} hôm nay khá thấp, con dễ bị 'hổng' kiến thức nếu không ôn tập kỹ.",5
+ABSORPTION,TE,GENERAL,"Con mất rất nhiều thời gian để hiểu một khái niệm đơn giản, {Student} cần sự hỗ trợ sát sao từ giáo viên.",6
+ABSORPTION,TE,GENERAL,"Tốc độ xử lý thông tin của {Student} còn chậm, con hay bị rối khi bài học có nhiều thông tin mới.",7
+ABSORPTION,TE,GENERAL,"Hôm nay {Student} tiếp thu bài một cách máy móc, con chưa thể tự mình liên hệ kiến thức vào thực tiễn.",8
+ABSORPTION,TE,GENERAL,"Khả năng ghi nhớ bài học của con còn hạn chế, {Student} thường quên ngay nội dung vừa mới nghe giảng.",9
+ABSORPTION,TE,GENERAL,"Con dường như chưa bắt nhịp được với phương pháp giảng dạy, dẫn đến việc tiếp thu không hiệu quả.",10
+ABSORPTION,TRUNG_BINH,GENERAL,{Student} tiếp thu bài ở mức độ trung bình. Con hiểu được phần cơ bản nhưng cần thêm thời gian để nắm vững kiến thức nâng cao.,1
+ABSORPTION,TRUNG_BINH,GENERAL,Khả năng tiếp thu của {Student} hôm nay ổn định. Con cần lặp lại kiến thức 2-3 lần mới nhớ lâu được.,2
+ABSORPTION,TRUNG_BINH,GENERAL,Con tiếp thu bài ở tốc độ bình thường. {Student} cần ôn tập thêm ở nhà để củng cố kiến thức.,3
+ABSORPTION,TRUNG_BINH,GENERAL,"Khả năng bắt nhịp của {Student} với kiến thức mới ở mức khá, con cần thêm một chút tập trung để hiểu sâu hơn.",4
+ABSORPTION,TRUNG_BINH,GENERAL,"{Student} tiếp thu được các ý chính của bài, nhưng đôi khi vẫn còn lúng túng với các chi tiết nhỏ.",5
+ABSORPTION,TRUNG_BINH,GENERAL,"Mức độ thẩm thấu bài học của con ổn định, {Student} nên chủ động đặt câu hỏi khi gặp phần chưa rõ.",6
+ABSORPTION,TRUNG_BINH,GENERAL,"Con nắm bắt bài vở ở tốc độ trung bình, kết quả học tập của {Student} phản ánh đúng sự nỗ lực này.",7
+ABSORPTION,KHA,GENERAL,{Student} tiếp thu bài khá nhanh hôm nay. Con hiểu được hầu hết kiến thức sau lần giảng đầu tiên.,1
+ABSORPTION,KHA,GENERAL,Con có khả năng tiếp thu tốt. {Student} nắm bắt nhanh ý chính và có thể áp dụng vào bài tập ngay lập tức.,2
+ABSORPTION,KHA,GENERAL,Khả năng tiếp thu của {Student} khá ấn tượng. Con hiểu bài nhanh và ghi nhớ tốt các kiến thức đã học.,3
+ABSORPTION,GIOI,GENERAL,{Student} có tư duy ngôn ngữ rất sắc bén. Con hiểu bản chất vấn đề nhanh chóng và áp dụng linh hoạt vào nhiều tình huống.,1
+ABSORPTION,GIOI,GENERAL,Khả năng tiếp thu của {Student} rất ấn tượng. Con không chỉ hiểu mà còn rút ra được quy luật chung từ các ví dụ.,2
+ABSORPTION,GIOI,GENERAL,Con tiếp thu kiến thức với tốc độ đáng kinh ngạc. {Student} hiểu ngay và còn đặt ra những câu hỏi sâu sắc.,3
+ABSORPTION,XUAT_SAC,GENERAL,"{Student} có khả năng tiếp thu đỉnh cao. Con hiểu ngay từ lần giảng đầu, thậm chí còn suy luận được những điểm chưa được dạy.",1
+ABSORPTION,XUAT_SAC,GENERAL,Khả năng tiếp thu của {Student} thật đáng kinh ngạc. Con không chỉ hiểu nhanh mà còn vận dụng cực kỳ linh hoạt vào thực tế.,2
+ABSORPTION,XUAT_SAC,GENERAL,"Con tiếp thu kiến thức với tốc độ phi thường. {Student} như 'bộ não siêu nhân', hiểu mọi thứ ngay lập tức.",3
+ABSORPTION,TE,READING,"{Student} gặp khó khăn lớn trong việc hiểu nội dung bài đọc, con thường xuyên nhầm lẫn ý nghĩa của các đoạn văn.",1
+ABSORPTION,TE,READING,"Khả năng tiếp thu bài đọc của {Student} hôm nay khá chậm, con cần cô giải thích nhiều lần mới hiểu được đại ý.",2
+ABSORPTION,TE,READING,"Con dường như bị quá tải với các từ vựng mới trong bài đọc, dẫn đến việc tiếp thu kiến thức không hiệu quả.",3
+ABSORPTION,TE,READING,"{Student} chưa nắm bắt được kỹ năng quét thông tin (scanning), con mất nhiều thời gian nhưng vẫn không tìm thấy đáp án.",4
+ABSORPTION,TE,READING,"Khả năng ghi nhớ thông tin từ bài đọc của {Student} còn hạn chế, con hay quên ngay nội dung vừa mới đọc xong.",5
+ABSORPTION,TE,READING,"Con gặp trở ngại khi phải xâu chuỗi các sự kiện trong bài đọc, {Student} cần rèn luyện thêm tư duy logic.",6
+ABSORPTION,TE,READING,"Hôm nay {Student} không theo kịp tốc độ giải bài đọc của lớp, con còn lúng túng với các cấu trúc câu phức.",7
+ABSORPTION,TE,READING,"Phần tiếp thu kiến thức đọc hiểu của {Student} chưa tốt, con cần được kèm cặp riêng để nắm vững các phương pháp đọc.",8
+ABSORPTION,TE,READING,"Con dễ bị nản lòng khi gặp các bài đọc dài và khó, khả năng thẩm thấu ngôn ngữ của {Student} còn thấp.",9
+ABSORPTION,TE,READING,"Hôm nay {Student} tiếp thu phần Reading một cách thụ động, con chưa thể tự mình suy luận ra ý nghĩa của văn bản.",10
+ABSORPTION,TRUNG_BINH,READING,"{Student} hiểu được nội dung cơ bản của bài đọc nhưng còn lúng túng với các câu hỏi mang tính suy luận.",1
+ABSORPTION,TRUNG_BINH,READING,"Khả năng tiếp thu phần Reading của {Student} ở mức ổn định, con nắm bắt được các từ khóa quan trọng.",2
+ABSORPTION,TRUNG_BINH,READING,"Con cần thêm thời gian để tiêu hóa các thông tin phức tạp trong bài đọc, {Student} tiếp thu ở mức độ vừa phải.",3
+ABSORPTION,TRUNG_BINH,READING,"{Student} hiểu bài đọc sau khi được cô hướng dẫn sơ bộ, con chưa thể tự mình phân tích sâu vấn đề.",4
+ABSORPTION,TRUNG_BINH,READING,"Mức độ thẩm thấu kiến thức đọc hiểu của {Student} hôm nay khá bình thường, con ghi nhớ được khoảng 60-70% nội dung.",5
+ABSORPTION,TRUNG_BINH,READING,"Con tiếp thu tốt các đoạn văn ngắn nhưng lại gặp khó khăn khi bài đọc trở nên dài và nhiều chi tiết hơn.",6
+ABSORPTION,TRUNG_BINH,READING,"{Student} có khả năng nhận biết từ mới tốt nhưng đôi khi vẫn chưa hiểu được cách dùng từ trong ngữ cảnh bài đọc.",7
+ABSORPTION,TRUNG_BINH,READING,"Khả năng đọc hiểu của con hôm nay dừng lại ở mức đủ dùng, {Student} cần nỗ lực nhiều hơn để đạt mức độ chuyên sâu.",8
+ABSORPTION,TRUNG_BINH,READING,"Con bắt nhịp được với bài giảng về kỹ năng Reading, tuy nhiên phản xạ trả lời câu hỏi còn hơi chậm.",9
+ABSORPTION,TRUNG_BINH,READING,"{Student} nắm vững được cấu trúc bài đọc nhưng cần luyện tập thêm để cải thiện tốc độ tiếp nhận thông tin.",10
+ABSORPTION,KHA,READING,"{Student} tiếp thu khá tốt các kỹ thuật đọc hiểu, con biết cách tìm thông tin nhanh trong văn bản.",1
+ABSORPTION,KHA,READING,"Khả năng thẩm thấu bài đọc của {Student} hôm nay rất khả quan, con hiểu được các tầng nghĩa ẩn dụ.",2
+ABSORPTION,GIOI,READING,"{Student} có tư duy đọc hiểu rất sắc bén, con nắm bắt cấu trúc bài đọc và ý đồ tác giả nhanh chóng.",3
+ABSORPTION,GIOI,READING,"Khả năng tiếp thu kiến thức Reading của con rất ấn tượng, {Student} có vốn từ vựng phong phú để hỗ trợ đọc.",4
+ABSORPTION,XUAT_SAC,READING,"{Student} thể hiện khả năng đọc hiểu xuất sắc, con không chỉ hiểu bài mà còn có thể phản biện lại nội dung.",5
+ABSORPTION,XUAT_SAC,READING,"Tốc độ tiếp nhận thông tin từ bài đọc của {Student} cực nhanh, con xử lý tốt cả những văn bản học thuật khó.",6
+ABSORPTION,TE,LISTENING,"{Student} gặp rất nhiều khó khăn khi nghe, con thường xuyên bỏ lỡ các thông tin quan trọng trong đoạn băng.",1
+ABSORPTION,TE,LISTENING,"Khả năng bắt âm của {Student} còn yếu, con cần nghe lại nhiều lần mới nhận diện được từ quen thuộc.",2
+ABSORPTION,TRUNG_BINH,LISTENING,"{Student} hiểu được đại ý bài nghe nhưng còn lúng túng với các chi tiết nhỏ và các bẫy trong bài.",3
+ABSORPTION,TRUNG_BINH,LISTENING,"Khả năng tiếp thu phần Listening của con ở mức trung bình, {Student} cần luyện tập thêm phản xạ nghe.",4
+ABSORPTION,KHA,LISTENING,"{Student} tiếp thu tốt các bài nghe, con có kỹ năng ghi chú (note-taking) thông tin khá hiệu quả.",5
+ABSORPTION,KHA,LISTENING,"Con nắm bắt nhanh ngữ điệu và trọng âm của người nói, giúp việc tiếp thu nội dung dễ dàng hơn.",6
+ABSORPTION,GIOI,LISTENING,"{Student} có đôi tai rất nhạy bén, con hiểu được cả những đoạn hội thoại có tốc độ nhanh và âm nối.",7
+ABSORPTION,GIOI,LISTENING,"Khả năng thẩm thấu ngôn ngữ qua đường nghe của {Student} rất tốt, con học từ mới qua bài nghe rất nhanh.",10
+ABSORPTION,XUAT_SAC,LISTENING,"{Student} thể hiện khả năng nghe hiểu vượt bậc, con xử lý tốt mọi loại accent và ngữ cảnh giao tiếp.",11
+ABSORPTION,XUAT_SAC,LISTENING,"Sự tiếp nhận thông tin qua thính giác của {Student} cực kỳ chính xác, con hầu như không bao giờ mắc lỗi nghe.",12
+ABSORPTION,TE,SPEAKING,"{Student} còn rất rụt rè khi nói, con cần nhiều thời gian để sắp xếp ý tưởng trước khi phát ngôn.",1
+ABSORPTION,TE,SPEAKING,"Khả năng phản xạ tiếng Anh của {Student} còn chậm, con dường như đang dịch từ tiếng Việt sang tiếng Anh trong đầu.",2
+ABSORPTION,TRUNG_BINH,SPEAKING,"{Student} có thể giao tiếp ở mức cơ bản nhưng đôi khi vẫn còn ngập ngừng khi gặp các từ vựng mới.",3
+ABSORPTION,TRUNG_BINH,SPEAKING,"Khả năng tiếp thu phần Speaking của con ở mức ổn định, con cần rèn thêm ngữ điệu tự nhiên hơn.",4
+ABSORPTION,KHA,SPEAKING,"{Student} tiếp thu tốt các kỹ thuật phát âm, con có khả năng bắt chước ngữ điệu của giáo viên rất nhanh.",5
+ABSORPTION,KHA,SPEAKING,"Con có phản xạ nói khá tốt, {Student} có thể duy trì cuộc hội thoại ngắn một cách tự tin.",6
+ABSORPTION,GIOI,SPEAKING,"{Student} có tư duy ngôn ngữ nhạy bén, con diễn đạt ý tưởng một cách mạch lạc và trôi chảy.",7
+ABSORPTION,GIOI,SPEAKING,"Khả năng thẩm thấu phong cách nói của người bản xứ của {Student} rất ấn tượng, con dùng từ rất tự nhiên.",8
+ABSORPTION,XUAT_SAC,SPEAKING,"{Student} thể hiện khả năng Speaking xuất chúng, con có lối diễn đạt thông minh và đầy sức thuyết phục.",9
+ABSORPTION,XUAT_SAC,SPEAKING,"Phản xạ ngôn ngữ của {Student} đạt mức độ hoàn hảo, con có thể thảo luận về nhiều chủ đề phức tạp.",10
+ABSORPTION,TE,WRITING,"{Student} gặp rào cản lớn trong việc triển khai ý tưởng thành văn bản, con cần sự hỗ trợ sát sao về cấu trúc câu.",1
+ABSORPTION,TE,WRITING,"Khả năng tiếp thu kỹ năng viết của {Student} còn chậm, con thường xuyên lúng túng khi phải viết đoạn văn dài.",2
+ABSORPTION,TRUNG_BINH,WRITING,"{Student} nắm được cách viết các câu đơn giản nhưng còn gặp khó khăn khi kết nối chúng thành một đoạn văn hoàn chỉnh.",3
+ABSORPTION,TRUNG_BINH,WRITING,"Khả năng tiếp thu phần Writing của con ở mức ổn định, {Student} cần rèn thêm cách dùng từ nối để bài viết mạch lạc hơn.",4
+ABSORPTION,KHA,WRITING,"{Student} tiếp thu tốt các phương pháp lập dàn ý, con biết cách tổ chức ý tưởng bài viết một cách logic.",5
+ABSORPTION,KHA,WRITING,"Khả năng thẩm thấu phong cách viết của con rất triển vọng, {Student} bắt đầu biết cách dùng các từ vựng hay vào bài.",6
+ABSORPTION,GIOI,WRITING,"{Student} có tư duy viết rất sáng tạo và linh hoạt, con nắm bắt nhanh các yêu cầu về bố cục và nội dung bài viết.",7
+ABSORPTION,GIOI,WRITING,"Khả năng tiếp thu kiến thức bổ trợ cho kỹ năng viết của {Student} rất tốt, con học hỏi nhanh qua các bài viết mẫu.",8
+ABSORPTION,XUAT_SAC,WRITING,"{Student} thể hiện khả năng viết lách xuất sắc, con có lối tư duy ngôn ngữ sâu sắc và cách trình bày rất chuyên nghiệp.",9
+ABSORPTION,XUAT_SAC,WRITING,"Tốc độ tiếp nhận và phản hồi thông tin qua văn bản của {Student} cực nhanh, con xử lý tốt các đề tài viết hóc búa.",10
+ABSORPTION,TE,GRAMMAR,"{Student} gặp nhiều trở ngại khi tiếp thu các cấu trúc ngữ pháp mới, con thường nhầm lẫn giữa các thì.",1
+ABSORPTION,TE,GRAMMAR,"Khả năng thẩm thấu các quy tắc ngữ pháp của {Student} còn chậm, con cần làm nhiều bài tập bổ trợ để ghi nhớ lâu hơn.",2
+ABSORPTION,TRUNG_BINH,GRAMMAR,"{Student} có thể áp dụng được các công thức ngữ pháp cơ bản nhưng vẫn còn lúng túng với các trường hợp đặc biệt.",3
+ABSORPTION,TRUNG_BINH,GRAMMAR,"Khả năng tiếp thu phần Grammar của con ở mức trung bình, {Student} nên chú ý hơn đến các tiểu tiết trong cấu trúc.",4
+ABSORPTION,KHA,GRAMMAR,"{Student} tiếp thu nhanh các điểm ngữ pháp mới và biết cách vận dụng vào việc đặt câu khá chính xác.",5
+ABSORPTION,KHA,GRAMMAR,"Con có tư duy logic khá tốt đối với các quy tắc ngôn ngữ, giúp việc tiếp thu ngữ pháp trở nên dễ dàng hơn.",6
+ABSORPTION,GIOI,GRAMMAR,"{Student} nắm bắt bản chất của các cấu trúc ngữ pháp rất nhanh, con dường như không gặp khó khăn với các bài tập nâng cao.",7
+ABSORPTION,GIOI,GRAMMAR,"Khả năng thẩm thấu và phản xạ ngữ pháp của {Student} rất ấn tượng, con ít khi mắc lỗi chia động từ cơ bản.",8
+ABSORPTION,XUAT_SAC,GRAMMAR,"{Student} thể hiện khả năng tiếp thu ngữ pháp xuất sắc, con có thể giải thích lại các quy tắc khó cho bạn khác hiểu.",9
+ABSORPTION,XUAT_SAC,GRAMMAR,"Sự nhạy bén của {Student} đối với các cấu trúc câu phức tạp thật đáng nể, con học một hiểu mười.",10
+ABSORPTION,TE,VOCABULARY,"{Student} gặp khó khăn trong việc ghi nhớ từ mới, con thường quên nghĩa của từ ngay sau buổi học.",1
+ABSORPTION,TE,VOCABULARY,"Khả năng thẩm thấu từ vựng của {Student} còn hạn chế, con cần nhiều ví dụ minh họa và hình ảnh sinh động hơn.",2
+ABSORPTION,TRUNG_BINH,VOCABULARY,"{Student} có vốn từ vựng ở mức độ vừa đủ dùng, con cần mở rộng thêm các từ đồng nghĩa và trái nghĩa.",3
+ABSORPTION,TRUNG_BINH,VOCABULARY,"Khả năng tiếp thu phần Vocabulary của con ổn định, {Student} nên thường xuyên ôn tập để tránh tình trạng học trước quên sau.",4
+ABSORPTION,KHA,VOCABULARY,"{Student} tiếp thu từ mới khá nhanh, con biết cách liên kết các từ vựng theo chủ đề để dễ ghi nhớ.",5
+ABSORPTION,KHA,VOCABULARY,"Con có trí nhớ tốt về mặt chữ, giúp việc tiếp thu và mở rộng vốn từ vựng trở nên hiệu quả hơn.",6
+ABSORPTION,GIOI,VOCABULARY,"{Student} có khả năng thẩm thấu từ vựng rất ấn tượng, con nắm bắt được cả những sắc thái nghĩa khác nhau của từ.",7
+ABSORPTION,GIOI,VOCABULARY,"Khả năng học từ mới qua ngữ cảnh của {Student} rất sắc bén, con dùng từ rất linh hoạt trong giao tiếp.",8
+ABSORPTION,XUAT_SAC,VOCABULARY,"{Student} thể hiện khả năng làm chủ vốn từ vựng xuất sắc, con có thể sử dụng các từ vựng học thuật một cách tự nhiên.",9
+ABSORPTION,XUAT_SAC,VOCABULARY,"Tốc độ tích lũy từ vựng của {Student} thật đáng kinh ngạc, con luôn khao khát tìm hiểu những từ ngữ mới lạ.",10
+GAPS,ANY,PRESENT_SIMPLE,{Student} chưa nắm vững thì Hiện tại đơn. Con hay quên thêm -s/-es cho ngôi thứ 3 số ít (he/she/it).,1
+GAPS,ANY,PRESENT_SIMPLE,"Con còn nhầm lẫn khi chia động từ Hiện tại đơn. {Student} cần chú ý quy tắc thêm -es với các từ kết thúc bằng -o, -s, -x, -ch, -sh.",2
+GAPS,ANY,PRESENT_SIMPLE,{Student} chưa phân biệt rõ khi nào dùng Hiện tại đơn. Con hay nhầm với Hiện tại tiếp diễn trong các câu diễn tả thói quen.,3
+GAPS,ANY,PRESENT_SIMPLE,Con sử dụng trợ động từ do/does chưa chính xác trong câu phủ định và nghi vấn. {Student} hay quên hoặc dùng sai vị trí.,4
+GAPS,ANY,PRESENT_SIMPLE,"{Student} chưa nhớ các dấu hiệu nhận biết thì Hiện tại đơn như always, usually, often, sometimes, never.",5
+GAPS,ANY,PRESENT_SIMPLE,Con hay quên quy tắc: sau 'he/she/it' phải thêm -s/-es. {Student} thường viết 'He go' thay vì 'He goes'.,6
+GAPS,ANY,PRESENT_SIMPLE,{Student} nhầm lẫn giữa 'doesn't' và 'don't'. Con chưa phân biệt rõ khi nào dùng từ nào.,7
+GAPS,ANY,PRESENT_SIMPLE,"Con chưa biết một số động từ đặc biệt: have → has, do → does. {Student} thường viết sai dạng ngôi thứ 3.",8
+GAPS,ANY,PRESENT_SIMPLE,{Student} hay dùng sai thì Hiện tại đơn với các câu diễn tả thói quen. Con thường nhầm với quá khứ đơn.,9
+GAPS,ANY,PRESENT_SIMPLE,"Con chưa nhớ quy tắc phát âm -s/-es cuối động từ: /s/, /z/, /iz/. {Student} thường phát âm không đúng.",10
+GAPS,ANY,PRESENT_SIMPLE,{Student} gặp khó khăn với câu hỏi Yes/No. Con hay quên đảo 'Do/Does' lên đầu câu.,11
+GAPS,ANY,PRESENT_SIMPLE,Con chưa thuần thục với câu hỏi Wh- ở thì hiện tại đơn. {Student} hay thiếu 'do/does' trong câu.,12
+GAPS,ANY,PRESENT_SIMPLE,{Student} nhầm lẫn khi dùng 'be' (am/is/are) và động từ thường. Con thường viết 'He is go' (sai).,13
+GAPS,ANY,PRESENT_SIMPLE,Con chưa hiểu rõ sự khác biệt giữa sự thật hiển nhiên và thói quen. {Student} hay dùng sai thì.,14
+GAPS,ANY,PRESENT_SIMPLE,"{Student} chưa nắm vững cách dùng Hiện tại đơn cho lịch trình, thời gian biểu. Con thường dùng tương lai thay vì hiện tại.",15
+GAPS,ANY,PRESENT_CONTINUOUS,"{Student} chưa nắm vững cấu trúc 'be + V-ing', con hay quên chia động từ tobe đi kèm.",1
+GAPS,ANY,PRESENT_CONTINUOUS,"Con còn nhầm lẫn khi thêm đuôi -ing cho các động từ kết thúc bằng 'e' hoặc có một nguyên âm kẹp giữa hai phụ âm.",2
+GAPS,ANY,PRESENT_CONTINUOUS,"{Student} chưa nhớ các dấu hiệu nhận biết như now, at the moment, right now.",3
+GAPS,ANY,PRESENT_CONTINUOUS,"Con hay nhầm thì Hiện tại tiếp diễn với Hiện tại đơn khi nói về các hành động đang xảy ra.",4
+GAPS,ANY,PRESENT_CONTINUOUS,"{Student} còn lúng túng khi đặt câu hỏi ở thì Hiện tại tiếp diễn, con hay quên đảo tobe lên đầu câu.",5
+GAPS,ANY,PAST_SIMPLE,"{Student} chưa nắm vững cách chia động từ ở thì Quá khứ đơn, đặc biệt là các động từ bất quy tắc.",1
+GAPS,ANY,PAST_SIMPLE,"Con còn hay quên thêm đuôi -ed vào sau động từ thường khi nói về các hành động trong quá khứ.",2
+GAPS,ANY,PAST_SIMPLE,"{Student} chưa nhớ các dấu hiệu nhận biết của thì Quá khứ đơn như yesterday, ago, last week.",3
+GAPS,ANY,PAST_SIMPLE,"Con còn lúng túng khi dùng trợ động từ 'did' trong câu phủ định và câu hỏi, thường nhầm lẫn với trợ động từ của hiện tại.",4
+GAPS,ANY,PAST_SIMPLE,"{Student} cần rèn luyện thêm về cách phát âm đuôi -ed: /t/, /d/, /id/.",5
+GAPS,ANY,PAST_CONTINUOUS,"{Student} chưa nắm vững cấu trúc 'was/were + V-ing' để diễn tả hành động đang xảy ra tại một thời điểm trong quá khứ.",1
+GAPS,ANY,PAST_CONTINUOUS,"Con còn nhầm lẫn khi sử dụng 'when' và 'while' trong câu kết hợp giữa Quá khứ đơn và Quá khứ tiếp diễn.",2
+GAPS,ANY,PAST_CONTINUOUS,"{Student} hay quên chọn đúng dạng 'was' hay 'were' phù hợp với chủ ngữ.",3
+GAPS,ANY,PRESENT_PERFECT,"{Student} chưa nắm vững cấu trúc 'have/has + V3/ed', con hay nhầm lẫn giữa hai trợ động từ này.",1
+GAPS,ANY,PRESENT_PERFECT,"Con còn lúng túng khi sử dụng 'since' và 'for' trong thì Hiện tại hoàn thành.",2
+GAPS,ANY,PRESENT_PERFECT,"{Student} chưa nhớ bảng động từ bất quy tắc ở cột 3, dẫn đến việc chia động từ sai.",3
+GAPS,ANY,PRESENT_PERFECT,"Con thường nhầm lẫn giữa thì Hiện tại hoàn thành và Quá khứ đơn khi diễn tả hành động không rõ thời gian.",4
+GAPS,ANY,FUTURE_SIMPLE,"{Student} chưa nắm vững cấu trúc 'will + V-bare' để nói về các dự định hoặc dự đoán trong tương lai.",1
+GAPS,ANY,FUTURE_SIMPLE,"Con còn nhầm lẫn giữa 'will' và 'be going to' khi diễn tả các loại kế hoạch khác nhau.",2
+GAPS,ANY,FUTURE_SIMPLE,"{Student} hay quên đảo 'will' lên đầu câu khi đặt câu hỏi nghi vấn.",3
+GAPS,ANY,PASSIVE_VOICE,"{Student} chưa nắm vững cách chuyển đổi sang câu bị động, con hay quên chia động từ ở dạng V3/ed.",1
+GAPS,ANY,PASSIVE_VOICE,"Con còn lúng túng khi xác định tân ngữ để đưa lên làm chủ ngữ trong câu bị động.",2
+GAPS,ANY,PASSIVE_VOICE,"{Student} cần chú ý hơn đến việc sử dụng 'by + O' trong các câu bị động cho phù hợp.",3
+GAPS,ANY,PASSIVE_VOICE,"Khả năng sử dụng câu bị động của con còn hạn chế, {Student} hay nhầm lẫn giữa các thì.",4
+GAPS,ANY,PASSIVE_VOICE,"Con hay quên thêm động từ 'to be' khi viết câu bị động, {Student} cần luyện tập thêm phần này.",5
+GAPS,ANY,PASSIVE_VOICE,"{Student} còn lúng túng với các cấu trúc bị động đặc biệt như bị động với 'get' hoặc 'have'.",6
+GAPS,ANY,PASSIVE_VOICE,"Kiến thức về câu bị động của con còn hổng, {Student} cần ôn tập lại công thức tổng quát.",7
+GAPS,ANY,PASSIVE_VOICE,"{Student} cần ôn tập thêm về bảng phân từ hai (V3/ed) để sử dụng câu bị động chính xác hơn.",8
+GAPS,ANY,PASSIVE_VOICE,"Con hay bị nhầm lẫn khi chuyển đổi các câu có hai tân ngữ sang dạng bị động.",9
+GAPS,ANY,CONDITIONAL_SENTENCES,"{Student} thường xuyên nhầm lẫn giữa câu điều kiện loại 1 và loại 2, con cần chú ý kỹ ngữ cảnh.",1
+GAPS,ANY,CONDITIONAL_SENTENCES,"Con còn lúng túng khi sử dụng 'unless' thay cho 'if...not' trong các bài tập viết lại câu.",2
+GAPS,ANY,CONDITIONAL_SENTENCES,"{Student} chưa nắm chắc cấu trúc của mệnh đề 'If' và mệnh đề chính, hay chia sai thì của động từ.",3
+GAPS,ANY,CONDITIONAL_SENTENCES,"Kiến thức về câu điều kiện của {Student} còn sơ sài, con hay quên lùi thì ở loại 2 và loại 3.",4
+GAPS,ANY,CONDITIONAL_SENTENCES,"Con gặp khó khăn khi chuyển đổi các tình huống thực tế sang dạng câu điều kiện phù hợp.",5
+GAPS,ANY,CONDITIONAL_SENTENCES,"{Student} cần ôn tập thêm về các trường hợp đảo ngữ của câu điều kiện để đạt điểm cao hơn.",6
+GAPS,ANY,CONDITIONAL_SENTENCES,"Phần câu điều kiện hỗn hợp (mixed conditionals) còn quá khó đối với {Student} ở thời điểm này.",7
+GAPS,ANY,CONDITIONAL_SENTENCES,"{Student} cần lưu ý cấu trúc 'If I were you' trong câu điều kiện loại 2 để đưa ra lời khuyên.",8
+GAPS,ANY,CONDITIONAL_SENTENCES,"Con còn lúng túng với các từ thay thế cho 'If' như 'Provided that', 'As long as'.",9
+GAPS,ANY,CONDITIONAL_SENTENCES,"{Student} hay nhầm lẫn thì trong mệnh đề chính của câu điều kiện loại 3, con cần luyện tập thêm.",10
+GAPS,ANY,RELATIVE_CLAUSES,"{Student} chưa phân biệt rõ cách dùng giữa 'who', 'whom' và 'whose' trong mệnh đề quan hệ.",1
+GAPS,ANY,RELATIVE_CLAUSES,"Con còn lúng túng khi sử dụng 'which' để thay thế cho cả một mệnh đề phía trước.",2
+GAPS,ANY,RELATIVE_CLAUSES,"{Student} hay quên dùng dấu phẩy trong mệnh đề quan hệ không xác định (non-defining relative clauses).",3
+GAPS,ANY,RELATIVE_CLAUSES,"Con gặp khó khăn khi rút gọn mệnh đề quan hệ bằng cách dùng V-ing hoặc V3/ed.",4
+GAPS,ANY,COMPARISON,"{Student} còn nhầm lẫn giữa tính từ ngắn và tính từ dài khi chia ở cấp độ so sánh hơn và so sánh nhất.",1
+GAPS,ANY,COMPARISON,"Con hay quên thêm 'the' trước tính từ so sánh nhất, {Student} cần cẩn thận hơn.",2
+GAPS,ANY,COMPARISON,"{Student} chưa nắm vững các dạng so sánh bất quy tắc như good-better-best, bad-worse-worst.",3
+GAPS,ANY,COMPARISON,"Con còn lúng túng khi sử dụng cấu trúc so sánh bằng 'as...as' trong câu phủ định.",4
+GAPS,ANY,MODAL_VERBS,"{Student} chưa phân biệt rõ cách dùng của các động từ khuyết thiếu như 'must', 'have to' và 'should'.",1
+GAPS,ANY,MODAL_VERBS,"Con hay quên rằng sau động từ khuyết thiếu phải là một động từ nguyên mẫu không 'to'.",2
+GAPS,ANY,MODAL_VERBS,"{Student} còn lúng túng với dạng phủ định của modal verbs, đặc biệt là sự khác nhau giữa 'mustn't' và 'don't have to'.",3
+GAPS,ANY,MODAL_VERBS,"Con chưa nắm bắt được cách dùng modal verbs ở quá khứ như 'should have V3' hay 'must have V3'.",4
+GAPS,ANY,GERUND_INFINITIVE,"{Student} hay nhầm lẫn khi nào dùng V-ing và khi nào dùng to-V sau các động từ nhất định.",1
+GAPS,ANY,GERUND_INFINITIVE,"Con còn lúng túng với các động từ có thể đi kèm cả hai dạng nhưng khác nghĩa như 'remember', 'forget', 'stop'.",2
+GAPS,ANY,GERUND_INFINITIVE,"{Student} cần lưu ý các cấu trúc đi kèm với 'suggest', 'consider' luôn phải là V-ing.",3
+GAPS,ANY,GERUND_INFINITIVE,"Con hay quên dùng to-V sau các tính từ như 'it is easy to...', 'it is important to...'.",4
+GAPS,ANY,SUBJECT_VERB_AGREEMENT,"{Student} hay quên chia động từ theo chủ ngữ số ít, đặc biệt là khi chủ ngữ dài và phức tạp.",1
+GAPS,ANY,SUBJECT_VERB_AGREEMENT,"Con còn lúng túng với sự hòa hợp giữa chủ ngữ và động từ khi dùng các cấu trúc 'either...or', 'neither...nor'.",2
+GAPS,ANY,SUBJECT_VERB_AGREEMENT,"{Student} chưa nắm vững quy tắc chia động từ với các đại từ bất định như 'everyone', 'someone'.",3
+GAPS,ANY,SUBJECT_VERB_AGREEMENT,"Con còn nhầm lẫn khi chia động từ với các danh từ tập hợp như 'family', 'team', 'class'.",4
+GAPS,ANY,ARTICLES,"{Student} còn hay bỏ sót mạo từ 'a/an/the' trước các danh từ đếm được số ít.",1
+GAPS,ANY,ARTICLES,"Con còn lúng túng khi lựa chọn giữa 'a' và 'an' dựa trên cách phát âm của từ đứng sau.",2
+GAPS,ANY,ARTICLES,"{Student} chưa nắm vững các trường hợp không dùng mạo từ (zero article).",3
+GAPS,ANY,ARTICLES,"Con hay nhầm lẫn cách dùng 'the' để chỉ những vật duy nhất hoặc đã được xác định trước đó.",4
+GAPS,ANY,PREPOSITIONS,"{Student} hay dùng sai giới từ đi kèm với các tính từ và động từ thông dụng.",1
+GAPS,ANY,PREPOSITIONS,"Con thường xuyên nhầm lẫn giữa các giới từ chỉ thời gian như 'in', 'on', 'at'.",2
+GAPS,ANY,PREPOSITIONS,"{Student} cần chú ý hơn đến giới từ chỉ nơi chốn, đặc biệt là trong các trường hợp đặc biệt.",3
+GAPS,ANY,PREPOSITIONS,"Kiến thức về giới từ của con còn khá yếu, {Student} hay dịch word-by-word từ tiếng Việt sang.",4
+GAPS,ANY,PREPOSITIONS,"Con gặp khó khăn trong việc ghi nhớ các cụm giới từ cố định (prepositional phrases).",5
+GAPS,ANY,PREPOSITIONS,"{Student} cần luyện tập thêm để phân biệt cách dùng 'to' và 'for' trong các tình huống cụ thể.",6
+GAPS,ANY,PREPOSITIONS,"Phần giới từ sau danh từ của {Student} còn hay bị sai sót, con cần lập danh mục để học thuộc.",7
+GAPS,ANY,PREPOSITIONS,"{Student} cần lập danh mục các giới từ đi kèm với động từ thường gặp để dễ ôn tập hơn.",8
+GAPS,ANY,PREPOSITIONS,"Con hay quên không dùng giới từ sau một số động từ đặc biệt, {Student} nên chú ý kỹ.",9
+GAPS,ANY,REPORTED_SPEECH,"{Student} chưa nắm vững quy tắc lùi thì khi chuyển đổi từ câu trực tiếp sang gián tiếp.",1
+GAPS,ANY,REPORTED_SPEECH,"Con còn lúng túng khi thay đổi các đại từ và trạng từ chỉ thời gian, nơi chốn trong câu tường thuật.",2
+GAPS,ANY,REPORTED_SPEECH,"{Student} hay quên thay đổi cấu trúc câu hỏi thành câu trần thuật khi tường thuật lại.",3
+GAPS,ANY,REPORTED_SPEECH,"Con cần chú ý hơn đến các động từ tường thuật đặc biệt như 'suggest', 'remind', 'advise'.",4
+GAPS,ANY,QUESTION_FORMS,"{Student} còn nhầm lẫn khi đặt câu hỏi với động từ 'to be' và động từ thường, hay quên đảo trợ động từ.",1
+GAPS,ANY,QUESTION_FORMS,"Con gặp khó khăn khi sử dụng các từ để hỏi (Wh-questions) sao cho đúng ngữ pháp và ngữ cảnh.",2
+GAPS,ANY,QUESTION_FORMS,"{Student} cần lưu ý cấu trúc câu hỏi đuôi (tag questions), con hay nhầm lẫn về thì và thể của đuôi.",3
+GAPS,ANY,QUESTION_FORMS,"Con hay quên dùng trợ động từ 'do/does/did' trong câu hỏi phủ định.",4
+GAPS,ANY,WORD_FORM,"{Student} chưa phân biệt rõ cách dùng danh từ, động từ, tính từ và trạng từ trong một câu cụ thể.",1
+GAPS,ANY,WORD_FORM,"Con còn lúng túng khi sử dụng các hậu tố (suffixes) để chuyển đổi loại từ, ví dụ như biến tính từ thành danh từ.",2
+GAPS,ANY,WORD_FORM,"{Student} hay dùng sai loại từ sau các giới từ hoặc mạo từ, cần chú ý kỹ hơn về cấu trúc ngữ pháp.",3
+GAPS,ANY,WORD_FORM,"Con cần rèn luyện thêm về các tiền tố (prefixes) mang nghĩa phủ định như 'un-', 'im-', 'in-'.",4
+GAPS,ANY,PHRASAL_VERBS,"{Student} còn gặp nhiều khó khăn trong việc ghi nhớ ý nghĩa đa dạng của các cụm động từ thông dụng.",1
+GAPS,ANY,PHRASAL_VERBS,"Con hay nhầm lẫn giữa các phrasal verbs có cùng động từ chính nhưng khác giới từ đi kèm.",2
+GAPS,ANY,PHRASAL_VERBS,"{Student} cần lưu ý vị trí của tân ngữ trong các cụm động từ có thể tách rời (separable phrasal verbs).",3
+GAPS,ANY,PHRASAL_VERBS,"Con hay lúng túng khi sử dụng phrasal verbs trong văn viết, đôi khi dùng chưa đúng ngữ cảnh trang trọng.",4
+GAPS,ANY,PRONUNCIATION,"{Student} còn phát âm sai một số âm đuôi (ending sounds) quan trọng như /s/, /ed/, /t/.",1
+GAPS,ANY,PRONUNCIATION,"Con gặp khó khăn trong việc nhấn trọng âm của từ (word stress), làm cho lời nói chưa có ngữ điệu tự nhiên.",2
+GAPS,ANY,PRONUNCIATION,"{Student} thường xuyên nhầm lẫn giữa các nguyên âm ngắn và nguyên âm dài (short vs long vowels).",3
+GAPS,ANY,PRONUNCIATION,"Cách phát âm các phụ âm kép của {Student} còn chưa rõ ràng, khiến người nghe khó nắm bắt ý.",4
+GAPS,ANY,PRONUNCIATION,"Con chưa nắm vững quy tắc nối âm (linking sounds) trong các câu giao tiếp thông thường.",5
+GAPS,ANY,PRONUNCIATION,"{Student} cần chú ý hơn đến ngữ điệu (intonation) khi lên giọng ở câu hỏi và xuống giọng ở câu trần thuật.",6
+GAPS,ANY,PRONUNCIATION,"Phát âm của {Student} còn bị ảnh hưởng nhiều bởi tiếng mẹ đẻ, cần luyện tập để âm gió chuẩn hơn.",7
+GAPS,ANY,PRONUNCIATION,"Con hay bỏ sót các âm tiết ở giữa của những từ dài (3-4 âm tiết).",8
+GAPS,ANY,PRONUNCIATION,"{Student} còn lúng túng khi phát âm các từ có chứa âm /θ/ và /ð/.",9
+GAPS,ANY,PRONUNCIATION,"Con cần luyện tập thêm về cách phát âm âm /r/ và /l/ để tránh gây nhầm lẫn khi nói.",10
+GAPS,ANY,PRONUNCIATION,"{Student} cần rèn luyện thêm về cách phát âm của các nguyên âm đôi (diphthongs).",11
+GAPS,ANY,PRONUNCIATION,"Con hay gặp lỗi nuốt âm (elision) ở những từ có cấu trúc âm tiết phức tạp.",12
+GAPS,ANY,LISTENING,"{Student} còn lúng túng khi nghe các đoạn hội thoại có tốc độ nói nhanh.",1
+GAPS,ANY,LISTENING,"Con gặp khó khăn trong việc nhận diện các từ đồng âm hoặc có phát âm tương tự nhau.",2
+GAPS,ANY,LISTENING,"{Student} thường chỉ bắt được từ khóa lẻ tẻ mà chưa hiểu được toàn bộ nội dung đoạn văn.",3
+GAPS,ANY,LISTENING,"Khả năng nghe và chép chính tả (dictation) của con còn hạn chế do chưa thuộc kỹ mặt chữ.",4
+GAPS,ANY,LISTENING,"Con dễ bị mất tập trung khi đoạn băng có nhiều tiếng ồn nền hoặc nhiều nhân vật nói chuyện.",5
+GAPS,ANY,LISTENING,"{Student} còn yếu trong việc nghe và phân biệt các con số, ngày tháng hoặc số điện thoại.",6
+GAPS,ANY,LISTENING,"Con cần luyện tập thêm kỹ năng nghe lấy ý chính (skimming) để không bị quá tải thông tin.",7
+GAPS,ANY,LISTENING,"{Student} thường xuyên hiểu sai ý của người nói do chưa nắm chắc các cấu trúc ngữ pháp thông dụng.",8
+GAPS,ANY,LISTENING,"Khả năng phản xạ của con với các câu hỏi sau bài nghe còn chậm, cần được rèn luyện thêm.",9
+GAPS,ANY,LISTENING,"Con gặp khó khăn khi nghe các bài có giọng (accent) khác lạ như Anh-Anh hoặc Anh-Úc.",10
+GAPS,ANY,LISTENING,"{Student} gặp khó khăn trong việc bắt kịp tốc độ nói tự nhiên của người bản xứ.",11
+GAPS,ANY,LISTENING,"Con còn lúng túng khi nghe các đoạn hội thoại có nhiều tiếng ồn nền hoặc tạp âm.",12
+GAPS,ANY,LISTENING,"{Student} thường xuyên bỏ lỡ các thông tin số liệu cụ thể như ngày tháng, giờ giấc trong bài nghe.",13
+GAPS,ANY,LISTENING,"Con cần rèn luyện thêm kỹ năng nghe chép chính tả để cải thiện khả năng ghi nhớ từ vựng qua âm thanh.",14
+GAPS,ANY,SPEAKING,"{Student} còn khá rụt rè khi giao tiếp, cần được khuyến khích mở lời nhiều hơn.",1
+GAPS,ANY,SPEAKING,"Con hay bị ngắt quãng do phải dừng lại suy nghĩ từ vựng, phản xạ giao tiếp chưa thực sự tự nhiên.",2
+GAPS,ANY,SPEAKING,"{Student} cần chú ý hơn đến ngữ điệu và trọng âm để lời nói truyền cảm và chính xác hơn.",3
+GAPS,ANY,SPEAKING,"Con đôi khi còn nhầm lẫn các cấu trúc ngữ pháp cơ bản khi đang tập nói nhanh.",4
+GAPS,ANY,READING,"{Student} thường nản lòng khi gặp các đoạn văn dài có nhiều cấu trúc phức tạp.",1
+GAPS,ANY,READING,"Con còn hay tra từ điển quá nhiều thay vì cố gắng đoán nghĩa từ vựng qua ngữ cảnh.",2
+GAPS,ANY,READING,"{Student} cần cải thiện kỹ năng tìm ý chính (skimming) để không bị mất quá nhiều thời gian cho một bài đọc.",3
+GAPS,ANY,READING,"Con thường xuyên nhầm lẫn giữa các chi tiết nhỏ dẫn đến việc trả lời sai các câu hỏi đọc hiểu.",4
+GAPS,ANY,WRITING,"{Student} còn viết câu đơn giản, chưa sử dụng được các từ nối để bài viết mạch lạc hơn.",1
+GAPS,ANY,WRITING,"Con hay mắc các lỗi viết hoa, dấu câu và trình bày đoạn văn chưa thực sự khoa học.",2
+GAPS,ANY,WRITING,"{Student} cần tích lũy thêm vốn từ vựng học thuật để bài viết có chiều sâu và chuyên nghiệp hơn.",3
+GAPS,ANY,WRITING,"Con còn lúng túng trong việc triển khai ý tưởng từ dàn ý thành một bài viết hoàn chỉnh.",4
+GAPS,ANY,VOCABULARY,"{Student} biết nhiều từ vựng nhưng còn lúng túng trong việc sử dụng chúng đúng ngữ cảnh.",1
+GAPS,ANY,VOCABULARY,"Con hay bị nhầm lẫn giữa các từ có nghĩa gần giống nhau hoặc các từ dễ gây nhầm lẫn (confusing words).",2
+GAPS,ANY,VOCABULARY,"{Student} cần rèn luyện thêm cách kết hợp từ (collocations) để diễn đạt tự nhiên như người bản xứ.",3
+GAPS,ANY,VOCABULARY,"Vốn từ vựng của con về các chủ điểm chuyên sâu còn hạn chế, cần đọc thêm tài liệu bổ trợ.",4
+GAPS,ANY,FLYERS,"{Student} còn lúng túng với phần 'Listening Part 1', cần chú ý kỹ hơn về các chi tiết nhỏ để điền từ đúng.",1
+GAPS,ANY,FLYERS,"Con gặp khó khăn ở phần 'Reading and Writing Part 4', đặc biệt là việc chọn từ đúng để điền vào đoạn văn.",2
+GAPS,ANY,FLYERS,"{Student} chưa thực sự tự tin ở phần 'Speaking', con cần luyện tập trả lời các câu hỏi mở rộng hơn.",3
+GAPS,ANY,FLYERS,"Con còn hay nhầm lẫn các thông tin trong phần 'Reading and Writing Part 2', cần đọc kỹ ngữ cảnh hơn.",4
+GAPS,ANY,KET,"{Student} gặp khó khăn ở phần 'Reading Part 5', con cần nắm chắc ngữ pháp cơ bản để điền từ đúng.",1
+GAPS,ANY,KET,"Con còn lúng túng khi viết tin nhắn (Writing Part 9), cần chú ý đầy đủ các ý yêu cầu.",2
+GAPS,ANY,KET,"{Student} cần rèn luyện thêm kỹ năng nghe lấy thông tin chi tiết ở phần 'Listening Part 4'.",3
+GAPS,ANY,PET,"Phần 'Reading Part 4' của đề thi PET còn quá khó với {Student}, con cần luyện kỹ năng đoán nghĩa từ.",1
+GAPS,ANY,PET,"Con còn lúng túng khi viết thư hoặc viết câu chuyện (Writing Part 2/3), cần đa dạng cấu trúc câu hơn.",2
+GAPS,ANY,PET,"{Student} chưa thực sự làm tốt phần 'Speaking Part 2' mô tả bức tranh, cần thêm nhiều từ vựng về vị trí.",3
+GAPS,ANY,GENERAL_EXAM,"{Student} gặp khó khăn trong việc quản lý thời gian khi làm đề thi tổng hợp, thường không kịp hoàn thành phần cuối.",1
+GAPS,ANY,GENERAL_EXAM,"Con còn hay bị nhầm lẫn giữa các câu hỏi bẫy trong phần trắc nghiệm ngữ pháp.",2
+GAPS,ANY,GENERAL_EXAM,"{Student} cần rèn luyện thêm kỹ năng đọc hiểu và tìm ý chính (skimming) để làm bài nhanh hơn.",3
+SOLUTIONS,ANY,PRESENT_SIMPLE,"Con cần làm thêm 20 bài tập về chia động từ hiện tại đơn mỗi ngày. Chú ý đặc biệt các dấu hiệu nhận biết: always, usually, often, sometimes, never.",1
+SOLUTIONS,ANY,PRESENT_SIMPLE,"Mỗi buổi học thuộc 5 câu ví dụ về Present Simple với các chủ ngữ khác nhau để nhớ quy tắc lâu hơn. Ví dụ: I go, He goes, They go.",2
+SOLUTIONS,ANY,PRESENT_SIMPLE,Tạo flashcard các động từ thường dùng ở dạng V-s/es. {Student} nên ôn lại mỗi ngày 10 phút trước khi ngủ.,3
+SOLUTIONS,ANY,PRESENT_SIMPLE,Xem video bài giảng về Present Simple trên YouTube kênh 'Learn English with TV Series' để hiểu rõ hơn.,4
+SOLUTIONS,ANY,PRESENT_SIMPLE,Làm 10 câu chia động từ mỗi ngày và kiểm tra đáp án. Con cần luyện tập đều đặn để thành thạo.,5
+SOLUTIONS,ANY,PRESENT_SIMPLE,"Viết nhật ký ngắn bằng tiếng Anh mỗi ngày, tập trung dùng thì Hiện tại đơn để mô tả thói quen.",6
+SOLUTIONS,ANY,PRESENT_SIMPLE,"Học thuộc 20 động từ có quy tắc -s/-es đặc biệt như: go-goes, do-does, have-has, watch-watches.",7
+SOLUTIONS,ANY,PRESENT_SIMPLE,Thực hành nói về thói quen hàng ngày của mình bằng tiếng Anh với ba mẹ hoặc bạn bè.,8
+SOLUTIONS,ANY,PRESENT_SIMPLE,Sử dụng app 'Duolingo' hoặc 'Quizlet' để luyện tập Present Simple 15 phút mỗi ngày.,9
+SOLUTIONS,ANY,PRESENT_SIMPLE,Làm bài kiểm tra trắc nghiệm online về thì Hiện tại đơn trên website English Grammar.,10
+SOLUTIONS,ANY,PRESENT_SIMPLE,Đọc truyện ngắn tiếng Anh và gạch chân tất cả động từ ở thì Hiện tại đơn để quen với cách dùng.,11
+SOLUTIONS,ANY,PRESENT_SIMPLE,Tham gia group học tiếng Anh online và thực hành viết câu về thói quen hàng ngày.,12
+SOLUTIONS,ANY,PRESENT_SIMPLE,"Xem phim hoạt hình tiếng Anh có phụ đề, chú ý các câu diễn tả thói quen của nhân vật.",13
+SOLUTIONS,ANY,PRESENT_SIMPLE,Làm bài tập trong sách Grammar in Use (Unit 5-7) về Present Simple.,14
+SOLUTIONS,ANY,PRESENT_SIMPLE,Nhờ giáo viên kiểm tra và chữa lỗi các câu con đã viết để cải thiện nhanh hơn.,15
+SOLUTIONS,ANY,PAST_SIMPLE,"Học thuộc lòng bảng động từ bất quy tắc, mỗi ngày 5 từ mới. Chú ý các từ hay gặp như: go, see, eat, drink, buy.",1
+SOLUTIONS,ANY,PAST_SIMPLE,Tập viết 10 câu về những việc con đã làm hôm qua sử dụng thì Quá khứ đơn.,2
+SOLUTIONS,ANY,PAST_SIMPLE,Làm bài tập phân biệt giữa thì Hiện tại đơn và Quá khứ đơn để nắm chắc cách dùng.,3
+SOLUTIONS,ANY,PASSIVE_VOICE,"Luyện tập chuyển đổi 10 câu chủ động sang bị động mỗi ngày, chú ý thì của động từ 'to be'.",1
+SOLUTIONS,ANY,PASSIVE_VOICE,"Ghi chú lại các bước chuyển đổi: Xác định tân ngữ -> Đưa lên làm chủ ngữ -> Chia to be -> V3/ed.",2
+SOLUTIONS,ANY,PASSIVE_VOICE,"Ôn tập kỹ bảng phân từ hai (past participle) vì đây là thành phần then chốt của câu bị động.",3
+SOLUTIONS,ANY,PREPOSITIONS,"Ghi nhớ giới từ theo cụm (fixed phrases) thay vì học lẻ tẻ từng từ.",1
+SOLUTIONS,ANY,PREPOSITIONS,"Học thuộc các giới từ chỉ thời gian và nơi chốn phổ biến qua sơ đồ tư duy (mind map).",2
+SOLUTIONS,ANY,PREPOSITIONS,"Mỗi khi học một tính từ hoặc động từ mới, hãy tra xem nó thường đi kèm với giới từ nào.",3
+SOLUTIONS,ANY,CONDITIONAL_SENTENCES,"Tập trung học kỹ công thức của 3 loại câu điều kiện cơ bản trước khi chuyển sang loại nâng cao.",1
+SOLUTIONS,ANY,CONDITIONAL_SENTENCES,"Luyện tập viết các câu điều kiện dựa trên những tình huống thực tế của con hàng ngày.",2
+SOLUTIONS,ANY,CONDITIONAL_SENTENCES,"Chú ý ghi nhớ các dấu hiệu nhận biết của từng loại câu điều kiện để tránh nhầm lẫn.",3
+SOLUTIONS,ANY,MODAL_VERBS,"Luyện tập sử dụng 'can/could' và 'must/have to' trong các tình huống yêu cầu hoặc bắt buộc thực tế.",1
+SOLUTIONS,ANY,MODAL_VERBS,"Ghi nhớ sự khác nhau về mức độ chắc chắn khi dùng: must, may, might, could.",2
+SOLUTIONS,ANY,MODAL_VERBS,"Ôn tập kỹ cách dùng 'should' để đưa ra lời khuyên trong các tình huống giao tiếp.",3
+SOLUTIONS,ANY,PRONUNCIATION,"Luyện tập phát âm bảng phiên âm quốc tế (IPA) 15 phút mỗi ngày cùng với app Elsa Speak.",1
+SOLUTIONS,ANY,PRONUNCIATION,"Đứng trước gương và quan sát khẩu hình miệng khi phát âm các âm khó như /θ/, /ð/.",2
+SOLUTIONS,ANY,PRONUNCIATION,"Ghi âm lại giọng nói của mình, sau đó so sánh với giọng bản ngữ để tự điều chỉnh.",3
+SOLUTIONS,ANY,LISTENING,"Nghe các đoạn hội thoại ngắn trên British Council và tóm tắt lại ý chính bằng tiếng Anh.",1
+SOLUTIONS,ANY,LISTENING,"Luyện kỹ năng nghe chép chính tả (dictation) để tăng khả năng nhận diện từ vựng.",2
+SOLUTIONS,ANY,LISTENING,"Xem phim hoạt hình hoặc nghe nhạc tiếng Anh có phụ đề để quen với ngữ điệu tự nhiên.",3
+SOLUTIONS,ANY,SPEAKING,"Tập nói về các chủ đề quen thuộc (gia đình, sở thích) mỗi ngày trong vòng 2-3 phút.",1
+SOLUTIONS,ANY,SPEAKING,"Tham gia các câu lạc bộ tiếng Anh hoặc nhóm học tập để có môi trường thực hành phản xạ.",2
+SOLUTIONS,ANY,SPEAKING,"Luyện tập phương pháp 'Shadowing' - nhại lại giọng bản ngữ để cải thiện ngữ điệu và tốc độ nói.",3
+SOLUTIONS,ANY,READING,"Đọc các mẩu tin ngắn, truyện tranh hoặc bài báo tiếng Anh đơn giản để tăng vốn từ vựng.",1
+SOLUTIONS,ANY,READING,"Rèn luyện kỹ năng Skimming (đọc lướt lấy ý chính) và Scanning (đọc nhanh lấy thông tin chi tiết).",2
+SOLUTIONS,ANY,READING,"Tập thói quen tra từ điển khi gặp từ mới nhưng hãy cố gắng đoán nghĩa qua ngữ cảnh trước.",3
+SOLUTIONS,ANY,WRITING,"Tập viết nhật ký hoặc viết blog ngắn bằng tiếng Anh về những việc diễn ra trong ngày.",1
+SOLUTIONS,ANY,WRITING,"Sử dụng các công cụ như Grammarly để tự kiểm tra lỗi ngữ pháp và từ vựng sau khi viết.",2
+SOLUTIONS,ANY,WRITING,"Luyện tập viết các đoạn văn ngắn có cấu trúc rõ ràng: mở đầu, thân bài và kết luận.",3
+SOLUTIONS,ANY,FLYERS,"Luyện làm đề thi thử FLYERS mỗi tuần để làm quen với cấu trúc đề và áp lực thời gian.",1
+SOLUTIONS,ANY,FLYERS,"Tập trung ôn tập các cụm từ vựng theo chủ đề thường xuất hiện trong các giáo trình Flyers.",2
+SOLUTIONS,ANY,KET,"Làm quen với các dạng bài đọc hiểu thông tin thực tế (email, thông báo) thường gặp trong đề KET.",1
+SOLUTIONS,ANY,KET,"Luyện nghe các đoạn hội thoại ngắn và tập trả lời các câu hỏi trắc nghiệm lấy ý chính nhanh.",2
+SOLUTIONS,ANY,PET,"Nâng cao vốn từ vựng học thuật cơ bản và luyện viết các câu phức để đạt điểm cao trong bài thi PET.",1
+SOLUTIONS,ANY,PET,"Tập quản lý thời gian làm bài hiệu quả, ưu tiên làm các phần dễ trước để tối ưu điểm số.",2
+SOLUTIONS,ANY,GENERAL_EXAM,"Tổng hợp lại các lỗi sai thường gặp khi làm đề để rút kinh nghiệm và không lặp lại.",1
+SOLUTIONS,ANY,GENERAL_EXAM,"Luyện tập giải đề thi của các năm trước để nắm bắt xu hướng ra đề và các dạng bài phổ biến.",2

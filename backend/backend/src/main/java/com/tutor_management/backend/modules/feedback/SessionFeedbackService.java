@@ -98,65 +98,134 @@ public class SessionFeedbackService {
         String category = request.getCategory();
         String ratingLevel = request.getRatingLevel();
         List<String> keywords = request.getKeywords();
-        String studentName = request.getStudentName() != null ? request.getStudentName() : "Con";
-
-        // 1. Fetch all scenarios for this Category + Rating
-        // (We fetch all matching rating/cat first to do in-memory random picking or
-        // specific DB query)
-        // For simple filtering, let's use the repo method with keyword logic
+        String studentName = (request.getStudentName() != null && !request.getStudentName().isEmpty())
+                ? request.getStudentName()
+                : "Con";
 
         List<FeedbackScenario> candidates = new ArrayList<>();
         List<Long> usedScenarioIds = new ArrayList<>();
-
-        // Strategy:
-        // If keywords provided -> Try to find scenarios matching keywords
-        // If not found or no keywords -> Fallback to "GENERAL" keyword scenarios
 
         if (keywords != null && !keywords.isEmpty()) {
             for (String keyword : keywords) {
                 List<FeedbackScenario> matched = feedbackScenarioRepository.findScenarios(category, ratingLevel,
                         keyword);
                 if (!matched.isEmpty()) {
-                    // Pick 1 random from this keyword group
                     candidates.add(matched.get(new Random().nextInt(matched.size())));
                 } else {
-                    // Fallback to GENERAL if specific keyword not found
-                    List<FeedbackScenario> general = feedbackScenarioRepository.findScenarios(category, ratingLevel,
-                            "GENERAL");
-                    if (!general.isEmpty())
-                        candidates.add(general.get(new Random().nextInt(general.size())));
+                    // Specific keyword fallback: try to find any scenario with this keyword
+                    // regardless of rating
+                    List<FeedbackScenario> anyRatingWithKeyword = feedbackScenarioRepository.findScenarios(category,
+                            "ANY", keyword);
+                    if (!anyRatingWithKeyword.isEmpty()) {
+                        candidates.add(anyRatingWithKeyword.get(new Random().nextInt(anyRatingWithKeyword.size())));
+                    }
+                }
+            }
+
+            // If few keywords provided, add a general one if not already enough
+            if (candidates.size() < 2) {
+                List<FeedbackScenario> general = feedbackScenarioRepository.findScenarios(category, ratingLevel,
+                        "GENERAL");
+                if (!general.isEmpty()) {
+                    candidates.add(general.get(new Random().nextInt(general.size())));
                 }
             }
         } else {
             // No keywords: Pick 1-2 GENERAL scenarios
             List<FeedbackScenario> general = feedbackScenarioRepository.findScenarios(category, ratingLevel, "GENERAL");
-            if (general.size() >= 2) {
+            if (!general.isEmpty()) {
                 Collections.shuffle(general);
                 candidates.add(general.get(0));
-                candidates.add(general.get(1));
-            } else if (!general.isEmpty()) {
-                candidates.add(general.get(0));
+                if (general.size() >= 2) {
+                    candidates.add(general.get(1));
+                }
             }
         }
 
-        // Deduplicate
-        candidates = candidates.stream().distinct().collect(Collectors.toList());
+        // Deduplicate and filter nulls
+        candidates = candidates.stream()
+                .filter(java.util.Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // If specific keywords matched specialized scenarios, and we have enough,
+        // consider removing a generic GENERAL one if it makes the result redundant.
+        if (keywords != null && !keywords.isEmpty() && candidates.size() > 1) {
+            boolean hasSpecialized = candidates.stream().anyMatch(s -> !s.getKeyword().equals("GENERAL"));
+            if (hasSpecialized) {
+                // Remove one GENERAL if we have more than 2 specialized or if 1 spec + 1 gen is
+                // redundant
+                List<FeedbackScenario> finalCandidates = candidates;
+                candidates.removeIf(s -> s.getKeyword().equals("GENERAL") && finalCandidates.size() > 1);
+            }
+        }
 
         if (candidates.isEmpty()) {
-            return GenerateCommentResponse.builder()
-                    .generatedComment("")
-                    .usedScenarioIds(Collections.emptyList())
-                    .build();
+            FeedbackScenario randomCandidate = feedbackScenarioRepository.findRandomByCriteria(category, ratingLevel,
+                    null);
+            if (randomCandidate != null) {
+                candidates.add(randomCandidate);
+            } else {
+                return GenerateCommentResponse.builder()
+                        .generatedComment("")
+                        .usedScenarioIds(Collections.emptyList())
+                        .build();
+            }
         }
 
         StringBuilder commentBuilder = new StringBuilder();
+        boolean nameUsed = false;
+        boolean todayUsed = false;
+
         for (FeedbackScenario scenario : candidates) {
             String text = scenario.getTemplateText();
-            // Replace placeholders
-            text = text.replace("{Student}", studentName);
-            // Replace {Student} if it appears again or ensure capitalization if at start
 
-            commentBuilder.append(text).append(" ");
+            // 1. Deduplicate "Hôm nay" / "Hôm nay " prefixes
+            String lowerText = text.toLowerCase();
+            if (todayUsed && (lowerText.startsWith("hôm nay ") || lowerText.startsWith("hôm nay,"))) {
+                // Strip "Hôm nay " (7 chars) or "Hôm nay," (8 chars)
+                int skip = lowerText.startsWith("hôm nay ") ? 8 : 9;
+                text = text.substring(skip);
+                // Ensure the new start is capitalized later
+            } else if (lowerText.contains("hôm nay")) {
+                todayUsed = true;
+            }
+
+            // 2. Handle Student Name vs Pronoun
+            if (nameUsed) {
+                // Replace subsequent {Student} with "con" (lowercase)
+                // but handle if it starts the sentence
+                text = text.replace("{Student}", "con");
+            } else if (text.contains("{Student}")) {
+                text = text.replace("{Student}", studentName);
+                nameUsed = true;
+            }
+
+            // 3. Sentence capitalization after join
+            text = text.trim();
+            if (text.isEmpty())
+                continue;
+
+            if (commentBuilder.length() > 0) {
+                String current = commentBuilder.toString().trim();
+                if (current.endsWith(".") || current.endsWith("!") || current.endsWith("?")) {
+                    // Capitalize first letter of next sentence
+                    text = text.substring(0, 1).toUpperCase() + text.substring(1);
+                } else {
+                    // Try to join with a comma or space
+                    commentBuilder.append(", ");
+                    text = text.substring(0, 1).toLowerCase() + text.substring(1);
+                }
+            } else {
+                // First sentence
+                text = text.substring(0, 1).toUpperCase() + text.substring(1);
+            }
+
+            commentBuilder.append(text);
+            if (!text.endsWith(".") && !text.endsWith("!") && !text.endsWith("?")) {
+                commentBuilder.append(".");
+            }
+            commentBuilder.append(" ");
             usedScenarioIds.add(scenario.getId());
         }
 

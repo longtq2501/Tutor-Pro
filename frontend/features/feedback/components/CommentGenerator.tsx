@@ -57,33 +57,30 @@ export function CommentGenerator({
     }, [currentRating]);
 
     const fetchKeywords = async (rating: string) => {
-        if (hideRating) {
-            try {
-                const kws = await feedbackService.getKeywords(category, "ANY");
-                setKeywords(kws);
-            } catch (e) {
-                console.error(e);
-                setKeywords([]);
-            }
-            return;
-        }
-
-        const ratingMap: Record<string, string> = {
-            "Xuất Sắc": "XUAT_SAC",
-            "Giỏi": "GIOI",
-            "Khá": "KHA",
-            "Trung Bình": "TRUNG_BINH",
-            "Tệ": "TE",
-        };
-        const level = ratingMap[rating] || "KHA";
+        // For GAPS and SOLUTIONS, we always want keywords for ANY rating level
+        const isWildcardCategory = category === "GAPS" || category === "SOLUTIONS";
+        const levelToFetch = isWildcardCategory ? "ANY" : (hideRating ? "ANY" : mapRatingToLevel(rating));
 
         try {
-            const kws = await feedbackService.getKeywords(category, level);
+            const kws = await feedbackService.getKeywords(category, levelToFetch);
             setKeywords(kws);
         } catch (e) {
             console.error(e);
             setKeywords([]);
         }
+    };
+
+    const mapRatingToLevel = (rating: string): string => {
+        const ratingMap: Record<string, string> = {
+            "Xuất sắc": "XUAT_SAC",
+            "Xuất Sắc": "XUAT_SAC",
+            "Giỏi": "GIOI",
+            "Khá": "KHA",
+            "Trung bình": "TRUNG_BINH",
+            "Trung Bình": "TRUNG_BINH",
+            "Tệ": "TE",
+        };
+        return ratingMap[rating] || "ANY";
     };
 
     const toggleKeyword = (keyword: string) => {
@@ -98,17 +95,8 @@ export function CommentGenerator({
         if (!currentRating && !hideRating) return;
         setIsGenerating(true);
         try {
-            let level = "ANY";
-            if (!hideRating && currentRating) {
-                const ratingMap: Record<string, string> = {
-                    "Xuất Sắc": "XUAT_SAC",
-                    "Giỏi": "GIOI",
-                    "Khá": "KHA",
-                    "Trung Bình": "TRUNG_BINH",
-                    "Tệ": "TE",
-                };
-                level = ratingMap[currentRating] || "KHA";
-            }
+            const isWildcardCategory = category === "GAPS" || category === "SOLUTIONS";
+            let level = isWildcardCategory ? "ANY" : (hideRating ? "ANY" : mapRatingToLevel(currentRating));
 
             const res = await feedbackService.generateComment({
                 category,

@@ -2,54 +2,59 @@
 
 import { useMemo } from 'react';
 
+// 1. Các thành phần nhẹ (Số liệu, Header) thì import cứng
 import { BarChart3, CheckCircle, TrendingUp, Users, XCircle } from 'lucide-react';
-import { EnhancedRevenueChart } from './components/EnhancedRevenueChart';
+import dynamic from 'next/dynamic';
 import { StatCard } from './components/StatCard';
 import { useDashboardData } from './hooks/useDashboardData';
 import { useMonthlyChartData } from './hooks/useMonthlyChartData';
-import { formatCurrency } from './utils/formatters';
+// Đã loại bỏ import formatCurrency vì không còn dùng tới
+
+// 2. Thành phần nặng (Biểu đồ) thì import động
+const EnhancedRevenueChart = dynamic(
+  () => import('./components/EnhancedRevenueChart').then(mod => mod.EnhancedRevenueChart),
+  {
+    ssr: false, // Biểu đồ chỉ vẽ được trên trình duyệt
+  }
+);
 
 export default function AdminDashboard() {
   const { stats, monthlyStats, loadingStats, loadingMonthly } = useDashboardData();
   const chartData = useMonthlyChartData(monthlyStats);
 
-  // Default stats to prevent crash when loading
+  // Đồng bộ Loading: Chỉ hiện dữ liệu khi CẢ HAI nguồn đã sẵn sàng
+  const isGlobalLoading = loadingStats || loadingMonthly;
+
+  // 1. Safe stats - Giữ nguyên logic của bạn nhưng thay mặc định thành String
   const safeStats = useMemo(() => stats || {
     totalStudents: 0,
-    currentMonthTotal: 0,
-    totalPaidAllTime: 0,
-    totalUnpaidAllTime: 0
+    currentMonthTotal: "0 đ",
+    totalPaidAllTime: "0 đ",
+    totalUnpaidAllTime: "0 đ",
+    revenueTrendValue: 0,
+    revenueTrendDirection: 'up'
   }, [stats]);
 
-  // Calculate trends from monthly data
-  const calculateTrend = (current: number, previous: number) => {
-    if (previous === 0) return undefined;
-    const change = ((current - previous) / previous) * 100;
-    return {
-      direction: change >= 0 ? 'up' : 'down',
-      value: Math.abs(Math.round(change))
-    } as const;
-  };
-
+  // 2. TẬN DỤNG TREND TỪ BACKEND - Giữ nguyên logic gán giá trị
   const revenueTrend = useMemo(() => {
-    const currentMonthData = monthlyStats[0];
-    const previousMonthData = monthlyStats[1];
-    return currentMonthData && previousMonthData
-      ? calculateTrend(
-        currentMonthData.totalPaid + currentMonthData.totalUnpaid,
-        previousMonthData.totalPaid + previousMonthData.totalUnpaid
-      )
-      : undefined;
-  }, [monthlyStats]);
-
-  // Calculate progress percentages
-  const { paidPercentage, unpaidPercentage } = useMemo(() => {
-    const totalAllTime = safeStats.totalPaidAllTime + safeStats.totalUnpaidAllTime;
+    if (safeStats.revenueTrendValue === undefined || safeStats.revenueTrendValue === 0) return undefined;
     return {
-      paidPercentage: totalAllTime > 0 ? Math.round((safeStats.totalPaidAllTime / totalAllTime) * 100) : 0,
-      unpaidPercentage: totalAllTime > 0 ? Math.round((safeStats.totalUnpaidAllTime / totalAllTime) * 100) : 0
+      direction: safeStats.revenueTrendDirection as 'up' | 'down',
+      value: safeStats.revenueTrendValue
     };
   }, [safeStats]);
+
+  // 3. Tính toán phần trăm chính xác dựa trên số liệu thô (Raw) từ stats
+  const { paidPercentage, unpaidPercentage } = useMemo(() => {
+    const paid = stats?.totalPaidRaw || 0;
+    const unpaid = stats?.totalUnpaidRaw || 0;
+    const total = paid + unpaid;
+
+    return {
+      paidPercentage: total > 0 ? Math.round((paid / total) * 100) : 0,
+      unpaidPercentage: total > 0 ? Math.round((unpaid / total) * 100) : 0
+    };
+  }, [stats]);
 
   return (
     <div className="space-y-6 lg:space-y-8">
@@ -62,7 +67,7 @@ export default function AdminDashboard() {
           value={safeStats.totalStudents}
           icon={<Users />}
           variant="blue"
-          isLoading={loadingStats}
+          isLoading={isGlobalLoading}
           badge={
             <div className="flex items-center text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/20 w-fit px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800/30">
               <TrendingUp size={12} className="mr-1 flex-shrink-0" />
@@ -74,45 +79,45 @@ export default function AdminDashboard() {
         {/* Revenue This Month */}
         <StatCard
           title="Doanh Thu Tháng"
-          value={formatCurrency(safeStats.currentMonthTotal)}
+          value={safeStats.currentMonthTotal}
           subtitle="Cập nhật thời gian thực"
           icon={<BarChart3 />}
           variant="blue"
           trend={revenueTrend}
-          isLoading={loadingStats}
+          isLoading={isGlobalLoading}
         />
 
         {/* Total Paid */}
         <StatCard
           title="Tổng Đã Thu"
-          value={formatCurrency(safeStats.totalPaidAllTime)}
+          value={safeStats.totalPaidAllTime}
           icon={<CheckCircle />}
           variant="green"
           progressBar={{
             percentage: paidPercentage,
             color: 'green'
           }}
-          isLoading={loadingStats}
+          isLoading={isGlobalLoading}
         />
 
         {/* Total Unpaid */}
         <StatCard
           title="Chưa Thu"
-          value={formatCurrency(safeStats.totalUnpaidAllTime)}
+          value={safeStats.totalUnpaidAllTime}
           icon={<XCircle />}
           variant="red"
           progressBar={{
             percentage: unpaidPercentage,
             color: 'red'
           }}
-          isLoading={loadingStats}
+          isLoading={isGlobalLoading}
         />
       </div>
 
       {/* Enhanced Revenue Chart */}
       <EnhancedRevenueChart
         data={chartData}
-        isLoading={loadingMonthly}
+        isLoading={isGlobalLoading}
       />
     </div>
   );

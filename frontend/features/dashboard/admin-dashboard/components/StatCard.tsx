@@ -56,12 +56,21 @@ export const StatCard = memo(({
         "animate-pulse",
         bgColors[variant]
       )}>
-        <div className="flex justify-between items-start gap-3">
-          <div className="flex-1 space-y-3">
-            <div className="h-3 bg-muted rounded w-20" />
-            <div className="h-8 bg-muted rounded w-32" />
+        <div className="space-y-4">
+          {/* 1. Header Row (Icon & Trend) */}
+          <div className="flex items-start justify-between">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-muted/50 rounded-2xl sm:rounded-3xl" />
+            <div className="h-6 w-16 bg-muted/50 rounded-full" />
           </div>
-          <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-muted rounded-2xl" />
+
+          {/* 2. Label - Khớp với height thực tế */}
+          <div className="h-3 sm:h-4 bg-muted/50 rounded w-24" />
+
+          {/* 3. Value - Chỉnh lại h-8/h-9 để không bị cao hơn thực tế */}
+          <div className="h-6 sm:h-7 lg:h-8 bg-muted/50 rounded w-48" />
+
+          {/* 4. Footer Placeholder (Badge/Subtitle) - Dùng h-5/h-6 để vừa khít */}
+          <div className="h-5 sm:h-6 bg-muted/40 rounded w-2/3" />
         </div>
       </div>
     );

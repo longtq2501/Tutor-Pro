@@ -7,11 +7,13 @@ package com.tutor_management.backend.modules.finance;
 
 import java.util.List;
 
+import com.tutor_management.backend.modules.dashboard.dto.response.DashboardStats;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.tutor_management.backend.modules.finance.dto.response.MonthlyStats;
 import com.tutor_management.backend.modules.student.Student;
 
 @Repository
@@ -40,6 +42,30 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, Lo
         // Distinct months - không cần join
         @Query("SELECT DISTINCT sr.month FROM SessionRecord sr ORDER BY sr.month DESC")
         List<String> findDistinctMonths();
+
+        @Query("SELECT new com.tutor_management.backend.modules.finance.dto.response.MonthlyStats(" +
+                "sr.month, " +
+                "SUM(CASE WHEN sr.paid = true " +
+                "AND sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) " +
+                "THEN sr.totalAmount ELSE 0L END), " +
+                "SUM(CASE WHEN sr.paid = false " +
+                "AND sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) " +
+                "THEN sr.totalAmount ELSE 0L END), " +
+                "CAST(SUM(CASE WHEN sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) " +
+                "THEN sr.sessions ELSE 0 END) AS integer)) " +
+                "FROM SessionRecord sr " +
+                "GROUP BY sr.month " +
+                "ORDER BY sr.month DESC")
+        List<MonthlyStats> findAllMonthlyStatsAggregated();
+
+        @Query("SELECT new com.tutor_management.backend.modules.dashboard.dto.response.DashboardStats(" +
+                "CAST(COUNT(DISTINCT sr.student.id) AS integer), " + // totalStudents
+                "SUM(CASE WHEN sr.paid = true AND sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) THEN sr.totalAmount ELSE 0L END), " + // totalPaidAllTime
+                "SUM(CASE WHEN sr.paid = false AND sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) THEN sr.totalAmount ELSE 0L END), " + // totalUnpaidAllTime
+                "SUM(CASE WHEN sr.month = :currentMonth AND sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) THEN sr.totalAmount ELSE 0L END), " + // currentMonthTotal
+                "SUM(CASE WHEN sr.month = :currentMonth AND sr.paid = false AND sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) THEN sr.totalAmount ELSE 0L END)) " + // currentMonthUnpaid
+                "FROM SessionRecord sr")
+        DashboardStats getFinanceSummary(@Param("currentMonth") String currentMonth);
 
         void deleteByMonth(String month);
 

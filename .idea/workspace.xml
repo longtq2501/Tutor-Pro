@@ -6,11 +6,15 @@
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/feedback/FeedbackDataInit.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/feedback/FeedbackScenarioRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/feedback/FeedbackScenarioRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/feedback/SessionFeedbackService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/feedback/SessionFeedbackService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/dashboard/dto/response/DashboardStats.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/dashboard/dto/response/DashboardStats.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/backend/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/feedback/components/CommentGenerator.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/feedback/components/CommentGenerator.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/dashboard/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/dashboard/admin-dashboard/components/EnhancedRevenueChart.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/dashboard/admin-dashboard/components/EnhancedRevenueChart.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/dashboard/admin-dashboard/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/dashboard/admin-dashboard/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/dashboard/admin-dashboard/types/dashboard.types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/dashboard/admin-dashboard/types/dashboard.types.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/services/dashboard.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/dashboard.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -163,7 +167,9 @@
       <workItem from="1767265149246" duration="2994000" />
       <workItem from="1767288599450" duration="5168000" />
       <workItem from="1767333909150" duration="603000" />
-      <workItem from="1767334761553" duration="8846000" />
+      <workItem from="1767334761553" duration="9335000" />
+      <workItem from="1767366311134" duration="2569000" />
+      <workItem from="1767369652035" duration="1352000" />
     </task>
     <servers />
   </component>

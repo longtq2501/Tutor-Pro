@@ -1,5 +1,6 @@
+import type { DashboardStats } from '@/features/dashboard/admin-dashboard/types/dashboard.types';
+import type { MonthlyStats } from '../types';
 import api from './axios-instance';
-import type { DashboardStats, MonthlyStats } from '../types';
 
 export const dashboardApi = {
   /** * LẤY THỐNG KÊ TỔNG QUAN DASHBOARD THEO THÁNG HIỆN TẠI

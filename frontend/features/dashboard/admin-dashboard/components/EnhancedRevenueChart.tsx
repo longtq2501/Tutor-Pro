@@ -1,12 +1,11 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { useState } from 'react';
-import { TrendingUp, DollarSign } from 'lucide-react';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
+import { DollarSign, TrendingUp } from 'lucide-react';
+import { useState } from 'react';
 import type { MonthlyChartData } from '../types/dashboard.types';
 import { PremiumMonthlyRevenueBar } from './PremiumMonthlyRevenueBar';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 interface EnhancedRevenueChartProps {
     data: MonthlyChartData[];

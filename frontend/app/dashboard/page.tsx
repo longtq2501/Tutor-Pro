@@ -14,41 +14,27 @@ import React, { useCallback, useMemo, useState } from 'react';
 // ============================================================================
 // FEATURE-BASED IMPORTS (All refactored)
 // ============================================================================
+import AdminDashboard from '@/features/dashboard/admin-dashboard';
 import { LoadingState } from '@/features/dashboard/admin-dashboard/components/LoadingState';
 import { MonthlyViewSkeleton } from '@/features/finance/monthly-view/components/MonthlyViewSkeleton';
+import { AnimatePresence, motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
 
-// ============================================================================
-// FEATURE-BASED IMPORTS (Refactored to Dynamic)
-// ============================================================================
-// FEATURE-BASED IMPORTS (Refactored to Dynamic)
-// ============================================================================
-// Dynamic imports for other views
-const AdminDashboard = dynamic(() => import('@/features/dashboard/admin-dashboard'), {
-    loading: () => <LoadingState />, // Or DashboardSkeleton from features/dashboard/admin-dashboard/components/DashboardSkeleton if exported
-    ssr: false // Enable client-side caching
-});
 
 const StudentDashboard = dynamic(() => import('@/features/dashboard/student-dashboard'));
 
 const UnifiedStudentView = dynamic(() => import('@/features/students/unified-view'), {
     loading: () => <LoadingState />
 });
-// const StudentList = dynamic(() => import('@/features/students/student-list')); // Deprecated
+
 const MonthlyView = dynamic(() => import('@/features/finance/monthly-view'), {
     loading: () => <MonthlyViewSkeleton />
 });
-// const ParentsView = dynamic(() => import('@/features/students/parents-view')); // Deprecated - Merged into UnifiedStudentView
 const UnpaidSessionsView = dynamic(() => import('@/features/finance/unpaid-sessions'));
 const StudentHomeworkView = dynamic(() => import('@/features/learning/homework/student-homework'));
 const TutorHomeworkView = dynamic(() => import('@/features/learning/homework/tutor-homework-view'));
 const DocumentLibrary = dynamic(() => import('@/features/documents/document-library'));
 const CalendarView = dynamic(() => import('@/features/calendar/calendar-view'));
-
-// ... (keep middle imports) ...
-
-
-
 
 // Lesson Views - Different components for different roles
 const LessonViewWrapper = dynamic(() => import('@/features/learning/lesson-view-wrapper'));
@@ -133,7 +119,6 @@ const AppHeader = React.memo(({ title, user, initials, roleBadge, logout }: {
 ));
 AppHeader.displayName = 'AppHeader';
 
-import { AnimatePresence, motion } from 'framer-motion';
 
 const MainContentSwitcher = React.memo(({ currentView, hasAnyRole }: {
     currentView: View;

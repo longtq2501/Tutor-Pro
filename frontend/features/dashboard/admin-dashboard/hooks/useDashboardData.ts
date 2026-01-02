@@ -12,14 +12,11 @@ export const useDashboardData = () => {
     gcTime: 10 * 60 * 1000,
     placeholderData: keepPreviousData,
     initialData: () => {
-      // Temporarily bypass cache to ensure fresh data after fix
-      return undefined;
-      /*
       if (typeof window !== 'undefined') {
         const saved = localStorage.getItem(`dashboard-stats-${currentMonth}`);
         return saved ? JSON.parse(saved) : undefined;
       }
-      */
+      return undefined;
     }
   });
 
@@ -31,13 +28,11 @@ export const useDashboardData = () => {
     gcTime: 15 * 60 * 1000,
     placeholderData: keepPreviousData,
     initialData: () => {
-      return undefined;
-      /*
       if (typeof window !== 'undefined') {
         const saved = localStorage.getItem('dashboard-monthly');
         return saved ? JSON.parse(saved) : undefined;
       }
-      */
+      return undefined;
     }
   });
 

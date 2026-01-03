@@ -14,11 +14,19 @@ export const dashboardApi = {
     return response.data;
   },
 
-  /** * LẤY DỮ LIỆU THỐNG KÊ BIẾN ĐỘNG THEO TỪNG THÁNG
-   * @returns {Promise<MonthlyStats[]>} Mảng dữ liệu dùng để vẽ biểu đồ tăng trưởng (Line/Bar Chart)
-   */
   getMonthlyStats: async (): Promise<MonthlyStats[]> => {
     const response = await api.get('/dashboard/monthly-stats');
     return response.data;
   },
+
+  /** * LẤY SỐ LIỆU DASHBOARD CHO HỌC SINH (Student Delight Edition)
+   * @param {number} studentId - ID của học sinh
+   * @param {string} currentMonth - Tháng hiện tại
+   */
+  getStudentStats: async (studentId: number, currentMonth: string): Promise<import('@/features/dashboard/student-dashboard/types/dashboard.types').StudentDashboardStats> => {
+    const response = await api.get('/dashboard/student/stats', {
+      params: { studentId, currentMonth }
+    });
+    return response.data;
+  }
 };

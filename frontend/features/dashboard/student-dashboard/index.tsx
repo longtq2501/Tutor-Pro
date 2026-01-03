@@ -1,123 +1,129 @@
 // ============================================================================
-// FILE: student-dashboard/index.tsx (MAIN COMPONENT)
+// FILE: student-dashboard/index.tsx (STUDENT DELIGHT EDITION - REFINED)
 // ============================================================================
 'use client';
 
-import { BookOpen, Clock, TrendingUp, CheckCircle, AlertCircle, FileText } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useDashboardData } from './hooks/useDashboardData';
-import { useDashboardStats } from './hooks/useDashboardStats';
-import { formatCurrency } from './utils/formatters';
+import { AnimatePresence, motion } from 'framer-motion';
+import { BookOpen, Clock, FileText, Sparkles } from 'lucide-react';
+import { DocumentsSection } from './components/DocumentsSection';
 import { LoadingState } from './components/LoadingState';
+import { MonthlySessionsList } from './components/MonthlySessionsList';
+import { ProgressSection } from './components/ProgressSection';
+import { ScheduleSection } from './components/ScheduleSection';
+import { StatCard } from './components/StatCard';
 import { UnlinkedAccountState } from './components/UnlinkedAccountState';
 import { WelcomeSection } from './components/WelcomeSection';
-import { StatCard } from './components/StatCard';
-import { UpcomingSessionsSection } from './components/UpcomingSessionsSection';
-import { ScheduleSection } from './components/ScheduleSection';
-import { DocumentsSection } from './components/DocumentsSection';
-import { ProgressSection } from './components/ProgressSection';
+import { useDashboardData } from './hooks/useDashboardData';
 
 export default function StudentDashboard() {
   const { user } = useAuth();
-  const { loading, sessions, documents, schedule, currentMonth } = useDashboardData(user?.studentId);
-  const stats = useDashboardStats(sessions, currentMonth);
+  const { loading, stats, sessions, documents, schedule, currentMonth, setCurrentMonth } = useDashboardData(user?.studentId);
 
-  if (loading) return <LoadingState />;
+  // Use values from stats or default to 0
+  const safeStats = stats || {
+    totalSessionsRaw: 0,
+    completedSessionsRaw: 0,
+    totalHoursRaw: 0,
+    totalPaidRaw: 0,
+    totalUnpaidRaw: 0,
+    totalAmountRaw: 0,
+    totalDocumentsRaw: 0,
+    totalHoursFormatted: "0h",
+    totalPaidFormatted: "0 đ",
+    totalUnpaidFormatted: "0 đ",
+    totalAmountFormatted: "0 đ",
+    motivationalQuote: "Chào mừng trở lại! Hãy bắt đầu học tập nào.",
+    showConfetti: false
+  };
+
+  if (loading && !stats) return <LoadingState />;
   if (!user?.studentId) return <UnlinkedAccountState />;
 
   return (
-    <div className="space-y-8">
-      <WelcomeSection userName={user.fullName || ''} />
+    <div className="space-y-8 relative">
+      {/* Confetti / Success Overlay */}
+      <AnimatePresence>
+        {safeStats.showConfetti && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed top-20 right-10 z-50 pointer-events-none"
+          >
+            <div className="bg-yellow-400/20 p-4 rounded-full backdrop-blur-md border border-yellow-400/50 flex items-center gap-2 text-yellow-600 dark:text-yellow-300 font-bold shadow-xl">
+              <Sparkles className="animate-spin-slow" />
+              <span>Tuyệt vời! Đã hoàn thành mục tiêu tháng!</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <WelcomeSection
+        userName={user.fullName || ''}
+        quote={safeStats.motivationalQuote}
+      />
+
+      {/* Stats Grid - REMOVED FINANCE CARD */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard
           title="Buổi Học Tháng Này"
-          value={stats.currentMonthSessions.length}
-          subtitle={`${stats.completedSessions} đã hoàn thành`}
-          icon={<BookOpen className="text-blue-600 dark:text-blue-400" size={24} />}
-          iconBgColor="bg-blue-100 dark:bg-blue-900/30"
-          iconColor="text-blue-600 dark:text-blue-400"
-          hoverColor="group-hover:text-primary"
-          progressPercent={
-            stats.currentMonthSessions.length > 0 
-              ? (stats.completedSessions / stats.currentMonthSessions.length) * 100 
-              : 0
-          }
+          value={safeStats.totalSessionsRaw}
+          subtitle={`${safeStats.completedSessionsRaw} buổi đã hoàn thành`}
+          icon={<BookOpen className="text-white" size={24} />}
+          variant="blue"
+          progressBar={{
+            percentage: safeStats.totalSessionsRaw > 0
+              ? (safeStats.completedSessionsRaw / safeStats.totalSessionsRaw) * 100
+              : 0,
+            color: 'blue'
+          }}
         />
 
         <StatCard
           title="Tổng Số Giờ"
-          value={`${stats.totalHours}h`}
-          subtitle="Trong tháng này"
-          icon={<Clock className="text-indigo-600 dark:text-indigo-400" size={24} />}
-          iconBgColor="bg-indigo-100 dark:bg-indigo-900/30"
-          iconColor="text-indigo-600 dark:text-indigo-400"
-          hoverColor="group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
+          value={safeStats.totalHoursFormatted}
+          subtitle="Thời gian học tháng này"
+          icon={<Clock className="text-white" size={24} />}
+          variant="indigo"
           badge={
-            <div className="flex items-center text-xs font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/20 w-fit px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800/30">
-              <TrendingUp size={14} className="mr-1.5" /> Tiếp tục phát huy!
+            <div className="bg-white/20 text-white text-xs px-2 py-0.5 rounded-full backdrop-blur-md border border-white/10">
+              Tháng {currentMonth.split('-')[1]}
             </div>
-          }
-        />
-
-        <StatCard
-          title="Học Phí Tháng Này"
-          value={formatCurrency(stats.totalAmount)}
-          subtitle={
-            stats.unpaidAmount > 0 
-              ? `Còn nợ ${formatCurrency(stats.unpaidAmount)}` 
-              : 'Đã thanh toán đầy đủ'
-          }
-          icon={
-            stats.unpaidAmount > 0 
-              ? <AlertCircle className="text-orange-600 dark:text-orange-400" size={24} />
-              : <CheckCircle className="text-emerald-600 dark:text-emerald-400" size={24} />
-          }
-          iconBgColor={
-            stats.unpaidAmount > 0 
-              ? 'bg-orange-100 dark:bg-orange-900/30' 
-              : 'bg-emerald-100 dark:bg-emerald-900/30'
-          }
-          iconColor={
-            stats.unpaidAmount > 0 
-              ? 'text-orange-600 dark:text-orange-400' 
-              : 'text-emerald-600 dark:text-emerald-400'
-          }
-          hoverColor="group-hover:text-emerald-600 dark:group-hover:text-emerald-400"
-          progressPercent={
-            stats.totalAmount > 0 
-              ? (stats.paidAmount / stats.totalAmount) * 100 
-              : 100
           }
         />
 
         <StatCard
           title="Tài Liệu"
           value={documents.length}
-          subtitle="Tài liệu có sẵn"
-          icon={<FileText className="text-purple-600 dark:text-purple-400" size={24} />}
-          iconBgColor="bg-purple-100 dark:bg-purple-900/30"
-          iconColor="text-purple-600 dark:text-purple-400"
-          hoverColor="group-hover:text-purple-600 dark:group-hover:text-purple-400"
+          subtitle="Tài liệu học tập"
+          icon={<FileText className="text-white" size={24} />}
+          variant="purple"
         />
       </div>
 
-      {/* Main Content */}
+      {/* Main Content - UPDATED SESSIONS LIST */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <UpcomingSessionsSection sessions={stats.upcomingSessions} />
-        
+        <div className="lg:col-span-2">
+          <MonthlySessionsList
+            sessions={sessions}
+            currentMonth={currentMonth}
+            onMonthChange={setCurrentMonth}
+            isLoading={loading}
+          />
+        </div>
+
         <div className="space-y-6">
           {schedule && <ScheduleSection schedule={schedule} />}
-          <DocumentsSection documents={documents} />
+          <DocumentsSection documents={documents.slice(0, 4)} />
         </div>
       </div>
 
-      {/* Progress */}
-      <ProgressSection 
-        completedSessions={stats.completedSessions}
-        totalHours={stats.totalHours}
-        totalSessions={stats.currentMonthSessions.length}
+      {/* Progress Section */}
+      <ProgressSection
+        completedSessions={safeStats.completedSessionsRaw}
+        totalHours={safeStats.totalHoursRaw}
+        totalSessions={safeStats.totalSessionsRaw}
       />
     </div>
   );

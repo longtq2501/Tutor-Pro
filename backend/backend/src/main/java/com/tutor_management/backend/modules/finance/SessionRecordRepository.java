@@ -7,12 +7,12 @@ package com.tutor_management.backend.modules.finance;
 
 import java.util.List;
 
-import com.tutor_management.backend.modules.dashboard.dto.response.DashboardStats;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.tutor_management.backend.modules.dashboard.dto.response.DashboardStats;
 import com.tutor_management.backend.modules.finance.dto.response.MonthlyStats;
 import com.tutor_management.backend.modules.student.Student;
 
@@ -44,27 +44,34 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, Lo
         List<String> findDistinctMonths();
 
         @Query("SELECT new com.tutor_management.backend.modules.finance.dto.response.MonthlyStats(" +
-                "sr.month, " +
-                "SUM(CASE WHEN sr.paid = true " +
-                "AND sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) " +
-                "THEN sr.totalAmount ELSE 0L END), " +
-                "SUM(CASE WHEN sr.paid = false " +
-                "AND sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) " +
-                "THEN sr.totalAmount ELSE 0L END), " +
-                "CAST(SUM(CASE WHEN sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) " +
-                "THEN sr.sessions ELSE 0 END) AS integer)) " +
-                "FROM SessionRecord sr " +
-                "GROUP BY sr.month " +
-                "ORDER BY sr.month DESC")
+                        "sr.month, " +
+                        "SUM(CASE WHEN sr.paid = true " +
+                        "AND sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) "
+                        +
+                        "THEN sr.totalAmount ELSE 0L END), " +
+                        "SUM(CASE WHEN sr.paid = false " +
+                        "AND sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) "
+                        +
+                        "THEN sr.totalAmount ELSE 0L END), " +
+                        "CAST(SUM(CASE WHEN sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) "
+                        +
+                        "THEN sr.sessions ELSE 0 END) AS integer)) " +
+                        "FROM SessionRecord sr " +
+                        "GROUP BY sr.month " +
+                        "ORDER BY sr.month DESC")
         List<MonthlyStats> findAllMonthlyStatsAggregated();
 
         @Query("SELECT new com.tutor_management.backend.modules.dashboard.dto.response.DashboardStats(" +
-                "CAST(COUNT(DISTINCT sr.student.id) AS integer), " + // totalStudents
-                "SUM(CASE WHEN sr.paid = true AND sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) THEN sr.totalAmount ELSE 0L END), " + // totalPaidAllTime
-                "SUM(CASE WHEN sr.paid = false AND sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) THEN sr.totalAmount ELSE 0L END), " + // totalUnpaidAllTime
-                "SUM(CASE WHEN sr.month = :currentMonth AND sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) THEN sr.totalAmount ELSE 0L END), " + // currentMonthTotal
-                "SUM(CASE WHEN sr.month = :currentMonth AND sr.paid = false AND sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) THEN sr.totalAmount ELSE 0L END)) " + // currentMonthUnpaid
-                "FROM SessionRecord sr")
+                        "CAST(COUNT(DISTINCT sr.student.id) AS integer), " + // totalStudents
+                        "SUM(CASE WHEN sr.paid = true AND sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) THEN sr.totalAmount ELSE 0L END), "
+                        + // totalPaidAllTime
+                        "SUM(CASE WHEN sr.paid = false AND sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) THEN sr.totalAmount ELSE 0L END), "
+                        + // totalUnpaidAllTime
+                        "SUM(CASE WHEN sr.month = :currentMonth AND sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) THEN sr.totalAmount ELSE 0L END), "
+                        + // currentMonthTotal
+                        "SUM(CASE WHEN sr.month = :currentMonth AND sr.paid = false AND sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) THEN sr.totalAmount ELSE 0L END)) "
+                        + // currentMonthUnpaid
+                        "FROM SessionRecord sr")
         DashboardStats getFinanceSummary(@Param("currentMonth") String currentMonth);
 
         void deleteByMonth(String month);
@@ -131,4 +138,31 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, Lo
                         "WHERE sr.student.id IN :studentIds " +
                         "ORDER BY sr.createdAt DESC")
         List<SessionRecord> findByStudentIdIn(@Param("studentIds") List<Long> studentIds);
+
+        // ✅ OPTIMIZED: Find by Student ID and Month (For Student Dashboard)
+        @Query("SELECT sr FROM SessionRecord sr " +
+                        "WHERE sr.student.id = :studentId AND sr.month = :month " +
+                        "ORDER BY sr.sessionDate DESC")
+        List<SessionRecord> findByStudentIdAndMonth(@Param("studentId") Long studentId, @Param("month") String month);
+
+        // ✅ OPTIMIZED: For Student List (Filtered & Sorted ASC)
+        @Query("SELECT DISTINCT sr FROM SessionRecord sr " +
+                        "LEFT JOIN FETCH sr.student s " +
+                        "LEFT JOIN FETCH sr.documents " +
+                        "LEFT JOIN FETCH sr.lessons " +
+                        "WHERE s = :student AND sr.month = :month " +
+                        "AND sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR) "
+                        +
+                        "ORDER BY sr.sessionDate ASC")
+        List<SessionRecord> findByStudentAndMonthFilteredOrderByDateAsc(
+                        @Param("student") Student student,
+                        @Param("month") String month);
+
+        // ✅ OPTIMIZED: Find by ID with Attachments
+        @Query("SELECT sr FROM SessionRecord sr " +
+                        "LEFT JOIN FETCH sr.student " +
+                        "LEFT JOIN FETCH sr.documents " +
+                        "LEFT JOIN FETCH sr.lessons " +
+                        "WHERE sr.id = :id")
+        java.util.Optional<SessionRecord> findByIdWithAttachments(@Param("id") Long id);
 }

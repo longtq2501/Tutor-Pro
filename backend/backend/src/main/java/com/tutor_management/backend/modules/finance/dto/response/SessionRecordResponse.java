@@ -31,4 +31,34 @@ public class SessionRecordResponse {
     private String subject; // Môn học (e.g., "Toán 10", "Lý 11")
     private String status; // Trạng thái chi tiết (SCHEDULED, CONFIRMED, COMPLETED, PAID, etc.)
     private Integer version; // Version for optimistic locking
+
+    // ========== ATTACHMENTS ==========
+    private java.util.List<DocumentDTO> documents;
+    private java.util.List<LessonDTO> lessons;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DocumentDTO {
+        private Long id;
+        private String title;
+        private String fileName;
+        private String fileType;
+        private Long fileSize;
+        private String filePath;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LessonDTO {
+        private Long id;
+        private String title;
+        private String summary;
+        private String thumbnailUrl;
+        private Integer durationMinutes;
+        private boolean isPublished;
+    }
 }

@@ -10,7 +10,7 @@ interface ModalHeaderProps {
   downloading: boolean;
   onClose: () => void;
   onDownload: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
   onOpenInNewTab: () => void;
 }
 
@@ -74,14 +74,16 @@ export function ModalHeader({
           )}
         </button>
 
-        <button
-          onClick={onDelete}
-          className="p-2 hover:bg-destructive/10 text-destructive rounded-lg transition-colors"
-          title="Xóa"
-          type="button"
-        >
-          <Trash2 size={18} />
-        </button>
+        {onDelete && (
+          <button
+            onClick={onDelete}
+            className="p-2 hover:bg-destructive/10 text-destructive rounded-lg transition-colors"
+            title="Xóa"
+            type="button"
+          >
+            <Trash2 size={18} />
+          </button>
+        )}
 
         <button
           onClick={onClose}

@@ -2,14 +2,15 @@ package com.tutor_management.backend.modules.dashboard;
 
 import java.util.List;
 
-import com.tutor_management.backend.util.FormatterUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tutor_management.backend.modules.dashboard.dto.response.DashboardStats;
+import com.tutor_management.backend.modules.finance.LessonStatus;
 import com.tutor_management.backend.modules.finance.SessionRecordRepository;
 import com.tutor_management.backend.modules.finance.dto.response.MonthlyStats;
 import com.tutor_management.backend.modules.student.StudentRepository;
+import com.tutor_management.backend.util.FormatterUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,25 +21,8 @@ public class DashboardService {
 
     private final StudentRepository studentRepository;
     private final SessionRecordRepository sessionRecordRepository;
-
-//    public DashboardStats getDashboardStats(String currentMonth) {
-//        int totalStudents = (int) studentRepository.count();
-//
-//        Long totalPaid = sessionRecordRepository.sumTotalPaid();
-//        Long totalUnpaid = sessionRecordRepository.sumTotalUnpaid();
-//
-//        Long currentMonthPaid = sessionRecordRepository.sumTotalPaidByMonth(currentMonth);
-//        Long currentMonthUnpaid = sessionRecordRepository.sumTotalUnpaidByMonth(currentMonth);
-//
-//        return DashboardStats.builder()
-//                .totalStudents(totalStudents)
-//                .totalPaidAllTime(totalPaid != null ? totalPaid : 0L)
-//                .totalUnpaidAllTime(totalUnpaid != null ? totalUnpaid : 0L)
-//                .currentMonthTotal((currentMonthPaid != null ? currentMonthPaid : 0L)
-//                        + (currentMonthUnpaid != null ? currentMonthUnpaid : 0L))
-//                .currentMonthUnpaid(currentMonthUnpaid != null ? currentMonthUnpaid : 0L)
-//                .build();
-//    }
+    private final com.tutor_management.backend.modules.document.DocumentRepository documentRepository; // Inject
+                                                                                                       // DocumentRepository
 
     public DashboardStats getDashboardStats(String currentMonth) {
         // 1. Lấy dữ liệu thô từ Repository (Hàm này bạn đã tối ưu SQL)
@@ -61,6 +45,89 @@ public class DashboardService {
             }
         }
         return stats;
+    }
+
+    // ✅ STUDENT DASHBOARD LOGIC (Mem-cache style)
+    public com.tutor_management.backend.modules.dashboard.dto.response.StudentDashboardStats getStudentDashboardStats(
+            Long studentId, String month) {
+        // 1. Fetch data in parallel (Optimized queries)
+        var records = sessionRecordRepository.findByStudentIdAndMonth(studentId, month);
+        int documentCount = documentRepository.countByStudentIdOrStudentIsNull(studentId).intValue();
+
+        // 2. Aggregate in memory (Dataset is small per student/month)
+        int totalSessions = 0;
+        int completedSessions = 0;
+        double totalHours = 0.0;
+        long totalPaid = 0;
+        long totalUnpaid = 0;
+        long totalAmount = 0;
+
+        for (var r : records) {
+            // Filter cancelled sessions
+            if (isCancelled(r.getStatus()))
+                continue;
+
+            totalSessions++;
+            if (isCompleted(r.getStatus())) {
+                completedSessions++;
+            }
+            if (r.getHours() != null) {
+                totalHours += r.getHours();
+            }
+            if (r.getTotalAmount() != null) {
+                long amount = r.getTotalAmount();
+                totalAmount += amount;
+                if (Boolean.TRUE.equals(r.getPaid())) {
+                    totalPaid += amount;
+                } else {
+                    totalUnpaid += amount;
+                }
+            }
+        }
+
+        // 3. Build DTO with Motivational Quote
+        String quote = getMotivationalQuote(completedSessions, totalSessions);
+        boolean showConfetti = totalSessions > 0 && completedSessions == totalSessions;
+
+        return com.tutor_management.backend.modules.dashboard.dto.response.StudentDashboardStats.builder()
+                .totalSessionsRaw(totalSessions)
+                .completedSessionsRaw(completedSessions)
+                .totalHoursRaw(totalHours)
+                .totalPaidRaw(totalPaid)
+                .totalUnpaidRaw(totalUnpaid)
+                .totalAmountRaw(totalAmount)
+                .totalDocumentsRaw(documentCount)
+                // Formatted
+                .totalHoursFormatted(String.format("%.1fh", totalHours))
+                .totalPaidFormatted(FormatterUtils.formatCurrency(totalPaid))
+                .totalUnpaidFormatted(FormatterUtils.formatCurrency(totalUnpaid))
+                .totalAmountFormatted(FormatterUtils.formatCurrency(totalAmount))
+                // Gamification
+                .motivationalQuote(quote)
+                .showConfetti(showConfetti)
+                .build();
+    }
+
+    private boolean isCancelled(LessonStatus status) {
+        return status == LessonStatus.CANCELLED_BY_STUDENT ||
+                status == LessonStatus.CANCELLED_BY_TUTOR;
+    }
+
+    private boolean isCompleted(LessonStatus status) {
+        return status == LessonStatus.COMPLETED || status == LessonStatus.PAID;
+    }
+
+    private String getMotivationalQuote(int completed, int total) {
+        if (total == 0)
+            return "Hãy kiểm tra lịch học sắp tới nhé!";
+        double percent = (double) completed / total;
+        if (percent >= 1.0)
+            return "Xuất sắc! Bạn đã hoàn thành tất cả buổi học.";
+        if (percent >= 0.8)
+            return "Tuyệt vời! Sắp về đích rồi.";
+        if (percent >= 0.5)
+            return "Cố lên! Bạn đã đi được một nửa chặng đường.";
+        return "Khởi đầu tốt! Hãy tiếp tục phát huy.";
     }
 
     public List<MonthlyStats> getMonthlyStats() {

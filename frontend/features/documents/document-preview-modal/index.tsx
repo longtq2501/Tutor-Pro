@@ -21,7 +21,7 @@ interface DocumentPreviewModalProps {
   document: Document;
   onClose: () => void;
   onDownload: (doc: Document) => void;
-  onDelete: (id: number) => void;
+  onDelete?: (id: number) => void;
 }
 
 export default function DocumentPreviewModal({
@@ -42,6 +42,8 @@ export default function DocumentPreviewModal({
   }, [doc, download]);
 
   const handleDelete = useCallback((e?: React.MouseEvent) => {
+    if (!onDelete) return;
+
     if (e) {
       e.preventDefault();
       e.stopPropagation();

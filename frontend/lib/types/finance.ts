@@ -23,6 +23,28 @@ export interface SessionRecord {
   subject?: string; // MÔN HỌC (e.g., "Toán 10", "Lý 11")
   status?: LessonStatus; // TRẠNG THÁI CHI TIẾT (SCHEDULED, CONFIRMED, COMPLETED, PAID, etc.)
   version?: number; // VERSION FOR OPTIMISTIC LOCKING
+
+  // ========== ATTACHMENTS (LIBRARY) ==========
+  documents?: DocumentDTO[];
+  lessons?: LessonDTO[];
+}
+
+export interface DocumentDTO {
+  id: number;
+  title: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  filePath: string;
+}
+
+export interface LessonDTO {
+  id: number;
+  title: string;
+  summary: string;
+  thumbnailUrl: string;
+  durationMinutes: number;
+  isPublished: boolean;
 }
 
 export interface SessionRecordRequest {
@@ -37,6 +59,8 @@ export interface SessionRecordRequest {
   endTime?: string;
   subject?: string;
   status?: LessonStatus;
+  documentIds?: number[];
+  lessonIds?: number[];
 }
 
 export interface SessionRecordUpdateRequest {
@@ -51,6 +75,8 @@ export interface SessionRecordUpdateRequest {
   subject?: string;
   status?: LessonStatus;
   version?: number;
+  documentIds?: number[];
+  lessonIds?: number[];
 }
 
 export interface InvoiceRequest {

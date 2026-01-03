@@ -20,4 +20,8 @@ public class SessionRecordUpdateRequest {
     private String subject;
     private String status;
     private Integer version;
+
+    // 🆕 Attachments
+    private java.util.List<Long> documentIds;
+    private java.util.List<Long> lessonIds;
 }

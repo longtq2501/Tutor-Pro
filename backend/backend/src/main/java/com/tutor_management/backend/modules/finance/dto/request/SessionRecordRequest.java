@@ -1,6 +1,10 @@
 package com.tutor_management.backend.modules.finance.dto.request;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,4 +38,8 @@ public class SessionRecordRequest {
     private String endTime;
     private String subject;
     private String status;
+
+    // 🆕 Attachments
+    private java.util.List<Long> documentIds;
+    private java.util.List<Long> lessonIds;
 }

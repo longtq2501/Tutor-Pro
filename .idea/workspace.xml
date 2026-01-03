@@ -6,15 +6,30 @@
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseAssignment.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseAssignment.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseAssignmentRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseAssignmentRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseAssignmentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/CourseAssignmentService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/LessonProgress.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/LessonProgress.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/LessonProgressRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/course/LessonProgressRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/DocumentRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/DocumentRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecord.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecord.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/LessonAssignmentRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/LessonAssignmentRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/LessonService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/LessonService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/resources/application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/dto/request/SessionRecordRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/dto/request/SessionRecordRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/dto/request/SessionRecordUpdateRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/dto/request/SessionRecordUpdateRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/dto/response/SessionRecordResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/dto/response/SessionRecordResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/LessonDetailModal.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/components/StatCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/components/StatCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/components/WelcomeSection.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/components/WelcomeSection.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/hooks/useDashboardData.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/hooks/useDashboardData.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/types/dashboard.types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/types/dashboard.types.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-preview-modal/components/ModalHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-preview-modal/components/ModalHeader.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-preview-modal/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-preview-modal/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lesson-view-wrapper/hooks/useLessonModal.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lesson-view-wrapper/hooks/useLessonModal.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lesson-view-wrapper/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lesson-view-wrapper/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/students/unified-view/components/AddSessionModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/unified-view/components/AddSessionModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/services/dashboard.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/dashboard.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/types/finance.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/types/finance.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -170,11 +185,23 @@
       <workItem from="1767334761553" duration="9335000" />
       <workItem from="1767366311134" duration="2569000" />
       <workItem from="1767369652035" duration="2065000" />
-      <workItem from="1767409496037" duration="469000" />
+      <workItem from="1767409496037" duration="1067000" />
+      <workItem from="1767430936476" duration="3429000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>

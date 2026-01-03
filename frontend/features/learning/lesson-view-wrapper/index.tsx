@@ -1,23 +1,50 @@
 // 📁 lesson-view-wrapper/index.tsx
 'use client';
 
-import { useState } from 'react';
-import LessonTimelineView from '../lesson-timeline-view';
-import { useLessonModal } from './hooks/useLessonModal';
-import { LessonDetailModal } from './components/LessonDetailModal';
-import MyCoursesView from '../courses/components/MyCoursesView';
-import CourseDetailView from '../courses/components/CourseDetailView';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BookOpen, Layers } from 'lucide-react';
+import { useState } from 'react';
+import CourseDetailView from '../courses/components/CourseDetailView';
+import MyCoursesView from '../courses/components/MyCoursesView';
+import LessonTimelineView from '../lesson-timeline-view';
+import { LessonDetailModal } from './components/LessonDetailModal';
+import { useLessonModal } from './hooks/useLessonModal';
+
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect } from 'react';
 
 /**
  * Wrapper component that manages both Timeline and Detail views
  * For inline navigation without separate routes
  */
 export default function LessonViewWrapper() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const { selectedLessonId, isOpen, open, close } = useLessonModal();
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<string>('courses');
+
+  // Logic to handle lessonId from URL (e.g., from Dashboard sessions list)
+  useEffect(() => {
+    const lessonIdParam = searchParams.get('lessonId');
+    if (lessonIdParam) {
+      const lessonId = parseInt(lessonIdParam);
+      if (!isNaN(lessonId)) {
+        open(lessonId);
+      }
+    }
+  }, [searchParams, open]);
+
+  const handleClose = useCallback(() => {
+    close();
+    // Clear lessonId from URL
+    const params = new URLSearchParams(searchParams.toString());
+    if (params.has('lessonId')) {
+      params.delete('lessonId');
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    }
+  }, [close, searchParams, router, pathname]);
 
   if (selectedCourseId) {
     return (
@@ -32,7 +59,7 @@ export default function LessonViewWrapper() {
           <LessonDetailModal
             lessonId={selectedLessonId}
             open={isOpen}
-            onClose={close}
+            onClose={handleClose}
           />
         )}
       </div>
@@ -68,7 +95,7 @@ export default function LessonViewWrapper() {
         <LessonDetailModal
           lessonId={selectedLessonId}
           open={isOpen}
-          onClose={close}
+          onClose={handleClose}
         />
       )}
     </div>

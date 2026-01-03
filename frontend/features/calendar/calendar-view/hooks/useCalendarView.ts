@@ -100,7 +100,7 @@ export const useCalendarView = () => {
         if (contextMenu?.session.id === updated.id) {
             setContextMenu(prev => prev ? { ...prev, session: updated } : null);
         }
-    }, [selectedDay, selectedSession, contextMenu, setSessions, loadData]);
+    }, [selectedDay, selectedSession, contextMenu, setSessions, loadData, updateSession, setSelectedSession, setContextMenu]);
 
     const handleAutoGenerate = async () => {
         const promise = recurringSchedulesApi.generateSessions(getMonthStr(currentDate));

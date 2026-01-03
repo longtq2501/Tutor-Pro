@@ -1,22 +1,24 @@
-import React, { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
+    DialogTitle
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import { Student } from '@/lib/types';
+import { documentsApi } from '@/lib/services/document';
+import { lessonLibraryApi } from '@/lib/services/lesson-admin';
 import { sessionsApi } from '@/lib/services/session';
+import { Student } from '@/lib/types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { addHours, format, parse, startOfHour } from 'date-fns';
+import { BookOpen, Calendar, Clock, FileText, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
-import { Loader2, Calendar, Clock, BookOpen, FileText } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
-import { format, addHours, startOfHour, parse } from 'date-fns';
-import { cn } from '@/lib/utils';
 
 interface AddSessionModalProps {
     open: boolean;
@@ -45,6 +47,32 @@ export function AddSessionModal({ open, onClose, student, onSuccess }: AddSessio
 
     const updateField = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    // 🆕 Fetch Attachments
+    const { data: documents } = useQuery({
+        queryKey: ['documents'],
+        queryFn: documentsApi.getAll
+    });
+
+    const { data: lessons } = useQuery({
+        queryKey: ['lesson-library'],
+        queryFn: lessonLibraryApi.getAll
+    });
+
+    const [selectedDocIds, setSelectedDocIds] = useState<number[]>([]);
+    const [selectedLessonIds, setSelectedLessonIds] = useState<number[]>([]);
+
+    const toggleDoc = (id: number) => {
+        setSelectedDocIds(prev =>
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
+    const toggleLesson = (id: number) => {
+        setSelectedLessonIds(prev =>
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
     };
 
     // Calculate duration
@@ -96,7 +124,10 @@ export function AddSessionModal({ open, onClose, student, onSuccess }: AddSessio
                 endTime: formData.endTime,
                 subject: formData.subject,
                 notes: formData.notes,
-                status: 'SCHEDULED'
+                status: 'SCHEDULED',
+                // 🆕 Attachments
+                documentIds: selectedDocIds,
+                lessonIds: selectedLessonIds
             });
 
             toast.success('Thêm buổi học thành công');
@@ -216,11 +247,73 @@ export function AddSessionModal({ open, onClose, student, onSuccess }: AddSessio
                             </Label>
                             <Textarea
                                 placeholder="Nội dung buổi học, bài tập, hoặc ghi chú khác..."
-                                rows={4}
+                                rows={2}
                                 className="resize-none rounded-xl border-2 border-muted-foreground/20 focus:border-primary/50 hover:border-primary/30 transition-all bg-muted/30"
                                 value={formData.notes}
                                 onChange={e => updateField('notes', e.target.value)}
                             />
+                        </div>
+
+                        {/* 🆕 Attachments Selection */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-border/50">
+                            {/* Lessons List */}
+                            <div className="space-y-2">
+                                <Label className="text-sm font-semibold flex items-center gap-1.5 text-orange-600 dark:text-orange-400">
+                                    <BookOpen className="w-3.5 h-3.5" />
+                                    Đính kèm Bài giảng
+                                    <Badge variant="secondary" className="ml-auto text-[10px] h-5 px-1.5">{selectedLessonIds.length} đã chọn</Badge>
+                                </Label>
+                                <ScrollArea className="h-[150px] w-full rounded-xl border border-border/50 bg-muted/20 p-2">
+                                    <div className="space-y-2">
+                                        {lessons?.map(lesson => (
+                                            <div key={lesson.id} className="flex items-start space-x-2 p-1.5 hover:bg-muted/50 rounded-lg transition-colors">
+                                                <Checkbox
+                                                    id={`lesson-${lesson.id}`}
+                                                    checked={selectedLessonIds.includes(lesson.id)}
+                                                    onCheckedChange={() => toggleLesson(lesson.id)}
+                                                />
+                                                <label
+                                                    htmlFor={`lesson-${lesson.id}`}
+                                                    className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer pt-0.5"
+                                                >
+                                                    {lesson.title}
+                                                    {lesson.summary && <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{lesson.summary}</p>}
+                                                </label>
+                                            </div>
+                                        ))}
+                                        {!lessons?.length && <p className="text-xs text-muted-foreground text-center py-4">Chưa có bài giảng nào</p>}
+                                    </div>
+                                </ScrollArea>
+                            </div>
+
+                            {/* Documents List */}
+                            <div className="space-y-2">
+                                <Label className="text-sm font-semibold flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+                                    <FileText className="w-3.5 h-3.5" />
+                                    Đính kèm Tài liệu
+                                    <Badge variant="secondary" className="ml-auto text-[10px] h-5 px-1.5">{selectedDocIds.length} đã chọn</Badge>
+                                </Label>
+                                <ScrollArea className="h-[150px] w-full rounded-xl border border-border/50 bg-muted/20 p-2">
+                                    <div className="space-y-2">
+                                        {documents?.map(doc => (
+                                            <div key={doc.id} className="flex items-center space-x-2 p-1.5 hover:bg-muted/50 rounded-lg transition-colors">
+                                                <Checkbox
+                                                    id={`doc-${doc.id}`}
+                                                    checked={selectedDocIds.includes(doc.id)}
+                                                    onCheckedChange={() => toggleDoc(doc.id)}
+                                                />
+                                                <label
+                                                    htmlFor={`doc-${doc.id}`}
+                                                    className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                                >
+                                                    {doc.title || doc.fileName}
+                                                </label>
+                                            </div>
+                                        ))}
+                                        {!documents?.length && <p className="text-xs text-muted-foreground text-center py-4">Chưa có tài liệu nào</p>}
+                                    </div>
+                                </ScrollArea>
+                            </div>
                         </div>
                     </form>
                 </div>

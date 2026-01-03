@@ -16,6 +16,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
@@ -98,6 +100,18 @@ public class SessionRecord {
     @Builder.Default
     @Version
     private Integer version = 0; // Optimistic locking to prevent concurrent updates
+
+    // ========== ATTACHMENTS (LIBRARY) ==========
+
+    @Builder.Default
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "session_lessons", joinColumns = @JoinColumn(name = "session_id"), inverseJoinColumns = @JoinColumn(name = "lesson_id"))
+    private java.util.Set<com.tutor_management.backend.modules.lesson.Lesson> lessons = new java.util.HashSet<>();
+
+    @Builder.Default
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "session_documents", joinColumns = @JoinColumn(name = "session_id"), inverseJoinColumns = @JoinColumn(name = "document_id"))
+    private java.util.Set<com.tutor_management.backend.modules.document.Document> documents = new java.util.HashSet<>();
 
     @PrePersist
     protected void onCreate() {

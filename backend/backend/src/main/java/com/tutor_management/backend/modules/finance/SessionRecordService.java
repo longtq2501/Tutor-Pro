@@ -1,19 +1,21 @@
 package com.tutor_management.backend.modules.finance;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.tutor_management.backend.modules.finance.dto.request.SessionRecordRequest;
 import com.tutor_management.backend.modules.finance.dto.request.SessionRecordUpdateRequest;
 import com.tutor_management.backend.modules.finance.dto.response.SessionRecordResponse;
 import com.tutor_management.backend.modules.student.Student;
 import com.tutor_management.backend.modules.student.StudentRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +25,8 @@ public class SessionRecordService {
 
     private final SessionRecordRepository sessionRecordRepository;
     private final StudentRepository studentRepository;
+    private final com.tutor_management.backend.modules.document.DocumentRepository documentRepository;
+    private final com.tutor_management.backend.modules.lesson.LessonRepository lessonRepository;
     private final StatusTransitionValidator statusTransitionValidator;
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
 
@@ -67,6 +71,18 @@ public class SessionRecordService {
                 .status(request.getStatus() != null ? LessonStatus.valueOf(request.getStatus())
                         : LessonStatus.SCHEDULED)
                 .build();
+
+        // 🆕 Attachments
+        if (request.getDocumentIds() != null && !request.getDocumentIds().isEmpty()) {
+            List<com.tutor_management.backend.modules.document.Document> docs = documentRepository
+                    .findAllById(request.getDocumentIds());
+            record.setDocuments(new java.util.HashSet<>(docs));
+        }
+        if (request.getLessonIds() != null && !request.getLessonIds().isEmpty()) {
+            List<com.tutor_management.backend.modules.lesson.Lesson> lessons = lessonRepository
+                    .findAllById(request.getLessonIds());
+            record.setLessons(new java.util.HashSet<>(lessons));
+        }
 
         SessionRecord saved = sessionRecordRepository.save(record);
         return convertToResponse(saved);
@@ -193,6 +209,18 @@ public class SessionRecordService {
             }
         }
 
+        // 🆕 Update Attachments
+        if (request.getDocumentIds() != null) {
+            List<com.tutor_management.backend.modules.document.Document> docs = documentRepository
+                    .findAllById(request.getDocumentIds());
+            record.setDocuments(new java.util.HashSet<>(docs));
+        }
+        if (request.getLessonIds() != null) {
+            List<com.tutor_management.backend.modules.lesson.Lesson> lessons = lessonRepository
+                    .findAllById(request.getLessonIds());
+            record.setLessons(new java.util.HashSet<>(lessons));
+        }
+
         SessionRecord updated = sessionRecordRepository.saveAndFlush(record);
         return convertToResponse(updated);
     }
@@ -244,7 +272,8 @@ public class SessionRecordService {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        List<SessionRecord> records = sessionRecordRepository.findByStudentAndMonthOrderByCreatedAtDesc(student, month);
+        List<SessionRecord> records = sessionRecordRepository.findByStudentAndMonthFilteredOrderByDateAsc(student,
+                month);
         return records.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
@@ -279,6 +308,27 @@ public class SessionRecordService {
                 .subject(record.getSubject())
                 .status(record.getStatus() != null ? record.getStatus().name() : null)
                 .version(record.getVersion())
+                // 🆕 Attachments mapping
+                .documents(record.getDocuments().stream()
+                        .map(doc -> SessionRecordResponse.DocumentDTO.builder()
+                                .id(doc.getId())
+                                .title(doc.getTitle())
+                                .fileName(doc.getFileName())
+                                .fileType(doc.getFileType())
+                                .fileSize(doc.getFileSize())
+                                .filePath(doc.getFilePath())
+                                .build())
+                        .collect(Collectors.toList()))
+                .lessons(record.getLessons().stream()
+                        .map(lesson -> SessionRecordResponse.LessonDTO.builder()
+                                .id(lesson.getId())
+                                .title(lesson.getTitle())
+                                .summary(lesson.getSummary())
+                                .thumbnailUrl(lesson.getThumbnailUrl())
+                                .durationMinutes(lesson.getDurationMinutes())
+                                .isPublished(lesson.getIsPublished())
+                                .build())
+                        .collect(Collectors.toList()))
                 .build();
     }
 
@@ -288,7 +338,7 @@ public class SessionRecordService {
      * Get a single session by ID
      */
     public SessionRecordResponse getSessionById(Long id) {
-        SessionRecord record = sessionRecordRepository.findById(id)
+        SessionRecord record = sessionRecordRepository.findByIdWithAttachments(id)
                 .orElseThrow(() -> new RuntimeException("Session not found with id: " + id));
         return convertToResponse(record);
     }

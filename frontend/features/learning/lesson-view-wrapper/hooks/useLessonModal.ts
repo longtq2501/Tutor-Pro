@@ -1,16 +1,16 @@
 // 📁 lesson-view-wrapper/hooks/useLessonModal.ts
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 export function useLessonModal() {
   const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
 
-  const open = (lessonId: number) => {
+  const open = useCallback((lessonId: number) => {
     setSelectedLessonId(lessonId);
-  };
+  }, []);
 
-  const close = () => {
+  const close = useCallback(() => {
     setSelectedLessonId(null);
-  };
+  }, []);
 
   const isOpen = selectedLessonId !== null;
 

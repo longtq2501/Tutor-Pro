@@ -9,7 +9,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import AddSessionModal from '@/features/calendar/add-session-modal';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback } from 'react';
 import { CalendarGrid } from './components/CalendarGrid';
 import { CalendarHeader } from './components/CalendarHeader';
 import { CalendarSkeleton } from './components/CalendarSkeleton';
@@ -19,11 +19,19 @@ import { DayView } from './components/DayView';
 import { LessonDetailModal } from './components/LessonDetailModal';
 import { ListView } from './components/ListView';
 import { WeekView } from './components/WeekView';
-import { useCalendarView } from './hooks/useCalendarView';
+import { useCalendarView } from './useCalendarView';
 import { getMonthStr } from './utils';
 
+/**
+ * Component CalendarView (Refactoring Specialist Edition)
+ * 
+ * Chức năng: Giao diện chính của Lịch học.
+ * UI-ONLY: Chỉ chịu trách nhiệm hiển thị các View (Month, Week, Day, List) và Modals.
+ * Toàn bộ Logic được đẩy vào useCalendarView hook.
+ */
 export default function CalendarView() {
   const {
+    // State & Data
     currentDate,
     currentView,
     isGenerating,
@@ -34,16 +42,24 @@ export default function CalendarView() {
     modalMode,
     contextMenu,
     students,
-    calendarDays,
+    filteredCalendarDays,
     stats,
     currentDayInfo,
-    sessions,
+    filteredSessions,
     deleteConfirmationOpen,
+    loadingSessions,
+    isScrolled,
+    loading,
+    isInitialLoad,
+    statusFilter,
+
+    // Actions & Handlers
     setDeleteConfirmationOpen,
     setCurrentView,
     setSelectedDay,
     setSelectedSession,
     setContextMenu,
+    setStatusFilter,
     navigateMonth,
     goToToday,
     handleAutoGenerate,
@@ -57,26 +73,9 @@ export default function CalendarView() {
     openAddSessionModal,
     closeAddSessionModal,
     handleConfirmDeleteAll,
-    loadingSessions,
-    isScrolled,
-    loading,
-    isInitialLoad
   } = useCalendarView();
 
-
-  const [statusFilter, setStatusFilter] = useState<string | 'ALL'>('ALL');
-
-  const filteredSessions = useMemo(() => sessions.filter(s =>
-    statusFilter === 'ALL' || s.status === statusFilter
-  ), [sessions, statusFilter]);
-
-  const filteredCalendarDays = useMemo(() => calendarDays.map(day => ({
-    ...day,
-    sessions: day.sessions.filter(s =>
-      statusFilter === 'ALL' || s.status === statusFilter
-    )
-  })), [calendarDays, statusFilter]);
-
+  // Render các loại View khác nhau dựa trên currentView
   const renderView = useCallback(() => {
     if (loading || isInitialLoad) return (
       <div className="px-6">
@@ -138,6 +137,7 @@ export default function CalendarView() {
 
   return (
     <div className="min-h-screen bg-transparent">
+      {/* Header điều hướng và Stats */}
       <CalendarHeader
         currentDate={currentDate}
         currentView={currentView}
@@ -147,7 +147,7 @@ export default function CalendarView() {
         onAddSession={() => openAddSessionModal(selectedDateStr || new Date().toISOString().split('T')[0])}
         onGenerateInvoice={handleAutoGenerate}
         isGenerating={isGenerating}
-        sessions={sessions}
+        sessions={filteredSessions} // Hiển thị sessions đã lọc
         stats={stats}
         isScrolled={isScrolled}
         onFilterChange={setStatusFilter}
@@ -158,7 +158,7 @@ export default function CalendarView() {
         {renderView()}
       </main>
 
-      {/* Delete All Confirmation Dialog */}
+      {/* Modal xác nhận xóa tất cả */}
       <AlertDialog open={deleteConfirmationOpen} onOpenChange={setDeleteConfirmationOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -180,6 +180,7 @@ export default function CalendarView() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Modal chi tiết ngày */}
       {selectedDay && (
         <DayDetailModal
           day={selectedDay}
@@ -193,6 +194,7 @@ export default function CalendarView() {
         />
       )}
 
+      {/* Modal chi tiết buổi học (Lesson) */}
       {selectedSession && (
         <LessonDetailModal
           session={selectedSession}
@@ -203,6 +205,7 @@ export default function CalendarView() {
         />
       )}
 
+      {/* Menu chuột phải (Context Menu) */}
       {contextMenu && (
         <ContextMenu
           session={contextMenu.session}
@@ -213,6 +216,7 @@ export default function CalendarView() {
         />
       )}
 
+      {/* Modal thêm buổi học mới */}
       {showAddSessionModal && (
         <AddSessionModal
           onClose={closeAddSessionModal}

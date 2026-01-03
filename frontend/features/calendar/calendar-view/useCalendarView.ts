@@ -2,14 +2,25 @@ import { recurringSchedulesApi, sessionsApi } from '@/lib/services';
 import type { SessionRecord } from '@/lib/types/finance';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import type { CalendarViewType } from '../components/ViewSwitcher';
-import type { CalendarDay } from '../types';
-import { getMonthStr } from '../utils';
-import { useCalendarData } from './useCalendarData';
-import { useCalendarDays } from './useCalendarDays';
-import { useCalendarStats } from './useCalendarStats';
+import { UseCalendarViewReturn } from './CalendarView.types';
+import type { CalendarViewType } from './components/ViewSwitcher';
+import { useCalendarData } from './hooks/useCalendarData';
+import { useCalendarDays } from './hooks/useCalendarDays';
+import { useCalendarStats } from './hooks/useCalendarStats';
+import type { CalendarDay } from './types';
+import { getMonthStr } from './utils';
 
-export const useCalendarView = () => {
+/**
+ * Hook useCalendarView (Refactoring Specialist Edition)
+ * 
+ * Chức năng: Quản lý toàn bộ State và Logic nghiệp vụ cho component CalendarView.
+ * Luồng dữ liệu:
+ * 1. Fetch data từ API (sessions, students) qua useCalendarData.
+ * 2. Xử lý Logic lọc (statusFilter) và phân bổ dữ liệu vào CalendarDays.
+ * 3. Cung cấp các Handlers để UI tương tác (Edit, Delete, Complete, v.v.)
+ */
+export const useCalendarView = (): UseCalendarViewReturn => {
+    // === 1. State cơ bản ===
     const [currentDate, setCurrentDate] = useState(new Date());
     const [currentView, setCurrentView] = useState<CalendarViewType>('month');
     const [isGenerating, setIsGenerating] = useState(false);
@@ -19,13 +30,15 @@ export const useCalendarView = () => {
     const [selectedDateStr, setSelectedDateStr] = useState('');
     const [modalMode, setModalMode] = useState<'view' | 'edit'>('view');
     const [contextMenu, setContextMenu] = useState<{ x: number; y: number; session: SessionRecord } | null>(null);
-
     const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
     const [loadingSessions, setLoadingSessions] = useState<Set<number>>(new Set());
     const [isScrolled, setIsScrolled] = useState(false);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-    // Throttled scroll listener
+    // === 2. State Lọc (Logic chuyển từ UI index.tsx sang) ===
+    const [statusFilter, setStatusFilter] = useState<string | 'ALL'>('ALL');
+
+    // === 3. Xử lý Hiệu năng (Scroll listener) ===
     useEffect(() => {
         let ticking = false;
         const handleScroll = () => {
@@ -41,47 +54,38 @@ export const useCalendarView = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    // === 4. Data Fetching ===
     const { sessions, setSessions, students, loading, loadData, updateSession } = useCalendarData(currentDate);
 
-    // Initial load tracking
     useEffect(() => {
         if (!loading) {
             setIsInitialLoad(false);
         }
     }, [loading]);
 
-    // ... (rest of the hooks)
+    // === 5. Logic xử lý dữ liệu & Filtering (Performance optimized) ===
+    const rawCalendarDays = useMemo(() => useCalendarDays(currentDate, sessions), [currentDate, sessions]);
+    const stats = useCalendarStats(sessions);
 
-    const handleInitiateDeleteAll = () => {
-        setDeleteConfirmationOpen(true);
-    };
+    // Lọc sessions dựa trên statusFilter
+    const filteredSessions = useMemo(() => sessions.filter(s =>
+        statusFilter === 'ALL' || s.status === statusFilter
+    ), [sessions, statusFilter]);
 
-    const handleConfirmDeleteAll = async () => {
-        const monthStr = getMonthStr(currentDate);
-        setDeleteConfirmationOpen(false); // Close dialog immediately or keep it open until success? UX choice. Let's close it first.
+    // Lọc calendarDays dựa trên statusFilter
+    const filteredCalendarDays = useMemo(() => rawCalendarDays.map(day => ({
+        ...day,
+        sessions: day.sessions.filter(s =>
+            statusFilter === 'ALL' || s.status === statusFilter
+        )
+    })), [rawCalendarDays, statusFilter]);
 
-        const promise = async () => {
-            await sessionsApi.deleteByMonth(monthStr);
-            loadData();
-        };
-
-        toast.promise(promise(), {
-            loading: `Đang xóa tất cả buổi học tháng ${monthStr}...`,
-            success: `Đã xóa tất cả buổi học tháng ${monthStr}`,
-            error: 'Lỗi khi xóa dữ liệu.'
-        });
-    };
-
-    // ... (rest of the functions)
-    // Memoize heavy calculations to prevent re-runs on every render (e.g. during scroll)
-    const calendarDays = useMemo(() => useCalendarDays(currentDate, sessions), [currentDate, sessions]);
-    const stats = useCalendarStats(sessions); // useCalendarStats is now internaly memoized, but wrapping it here for safety and clarity if needed is also fine, though its internal useMemo handles sessions change. Actually let's just make it clear.
-
-
-    // Get current day for Day View
+    // Lấy thông tin ngày hiện tại (cho Day View)
     const currentDayInfo = useMemo(() => {
-        return calendarDays.find(d => d.isToday) || calendarDays[0] || null;
-    }, [calendarDays]);
+        return filteredCalendarDays.find(d => d.isToday) || filteredCalendarDays[0] || null;
+    }, [filteredCalendarDays]);
+
+    // === 6. Handlers (Actions) ===
 
     const handleUpdateSession = useCallback((updated: SessionRecord) => {
         updateSession(updated);
@@ -100,11 +104,10 @@ export const useCalendarView = () => {
         if (contextMenu?.session.id === updated.id) {
             setContextMenu(prev => prev ? { ...prev, session: updated } : null);
         }
-    }, [selectedDay, selectedSession, contextMenu, setSessions, loadData, updateSession, setSelectedSession, setContextMenu]);
+    }, [selectedDay, selectedSession, contextMenu, updateSession]);
 
     const handleAutoGenerate = async () => {
         const promise = recurringSchedulesApi.generateSessions(getMonthStr(currentDate));
-
         toast.promise(promise, {
             loading: 'Đang tự động tạo lịch học...',
             success: (result) => {
@@ -119,20 +122,17 @@ export const useCalendarView = () => {
         const promise = async () => {
             await sessionsApi.delete(id);
             setSessions(prev => prev.filter(s => s.id !== id));
-
             if (selectedDay) {
                 setSelectedDay(prev => prev ? {
                     ...prev,
                     sessions: prev.sessions.filter(s => s.id !== id)
                 } : null);
             }
-
             if (selectedSession?.id === id) {
                 setSelectedSession(null);
             }
             loadData();
         };
-
         toast.promise(promise(), {
             loading: 'Đang xóa buổi học...',
             success: 'Đã xóa buổi học thành công',
@@ -152,18 +152,15 @@ export const useCalendarView = () => {
 
     const handleTogglePayment = async (sessionId: number, version?: number) => {
         if (loadingSessions.has(sessionId)) return;
-
         setLoadingSessions(prev => new Set(prev).add(sessionId));
 
         const promise = async () => {
-            // Use provided version or fallback to lookup
             let effectiveVersion = version;
             if (effectiveVersion === undefined) {
                 const currentSession = sessions.find(s => s.id === sessionId);
                 if (!currentSession) throw new Error("Session not found");
                 effectiveVersion = currentSession.version;
             }
-
             const updated = await sessionsApi.togglePayment(sessionId, effectiveVersion);
             handleUpdateSession(updated);
             setLoadingSessions(prev => {
@@ -188,29 +185,17 @@ export const useCalendarView = () => {
         });
     };
 
-    // ✅ BEST FIX - Bỏ fallback lookup
-    // useCalendarView.ts - Line ~142
-    const handleToggleComplete = async (
-        sessionId: number,
-        version?: number  // ← Cho phép undefined
-    ) => {
-        console.log('🔴 Version received:', version);
-
+    const handleToggleComplete = async (sessionId: number, version?: number) => {
         if (loadingSessions.has(sessionId)) return;
-
         setLoadingSessions(prev => new Set(prev).add(sessionId));
 
         const promise = async () => {
-            // ✅ Nếu undefined, lookup từ state (với functional update)
             let effectiveVersion = version;
-
             if (effectiveVersion === undefined) {
                 const currentSession = sessions.find(s => s.id === sessionId);
                 if (!currentSession) throw new Error("Session not found");
                 effectiveVersion = currentSession.version;
-                console.log('🟡 Fallback version from state:', effectiveVersion);
             }
-
             const updated = await sessionsApi.toggleCompleted(sessionId, effectiveVersion);
             handleUpdateSession(updated);
             setLoadingSessions(prev => {
@@ -235,33 +220,16 @@ export const useCalendarView = () => {
         });
     };
 
-    const handleAddSessionSubmit = async (
-        studentId: number,
-        sessionsCount: number,
-        hoursPerSession: number,
-        sessionDate: string,
-        month: string,
-        subject?: string,
-        startTime?: string,
-        endTime?: string
-    ) => {
+    const handleAddSessionSubmit = async (studentId: number, count: number, hours: number, date: string, month: string, subject?: string, start?: string, end?: string) => {
         const promise = async () => {
             await sessionsApi.create({
-                studentId,
-                sessions: sessionsCount,
-                hoursPerSession,
-                sessionDate,
-                month,
-                subject: subject || '',
-                startTime: startTime || '',
-                endTime: endTime || '',
-                status: 'SCHEDULED'
+                studentId, sessions: count, hoursPerSession: hours, sessionDate: date, month,
+                subject: subject || '', startTime: start || '', endTime: end || '', status: 'SCHEDULED'
             });
             setShowAddSessionModal(false);
             setSelectedDateStr('');
             loadData();
         };
-
         toast.promise(promise(), {
             loading: 'Đang thêm buổi học...',
             success: '✅ Đã thêm buổi học thành công!',
@@ -273,9 +241,7 @@ export const useCalendarView = () => {
         setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + dir));
     };
 
-    const goToToday = () => {
-        setCurrentDate(new Date());
-    };
+    const goToToday = () => setCurrentDate(new Date());
 
     const openAddSessionModal = (dateStr: string) => {
         setSelectedDateStr(dateStr);
@@ -287,57 +253,38 @@ export const useCalendarView = () => {
         setSelectedDateStr('');
     };
 
+    const handleConfirmDeleteAll = async () => {
+        const monthStr = getMonthStr(currentDate);
+        setDeleteConfirmationOpen(false);
+        const promise = async () => {
+            await sessionsApi.deleteByMonth(monthStr);
+            loadData();
+        };
+        toast.promise(promise(), {
+            loading: `Đang xóa tất cả buổi học tháng ${monthStr}...`,
+            success: `Đã xóa tất cả buổi học tháng ${monthStr}`,
+            error: 'Lỗi khi xóa dữ liệu.'
+        });
+    };
+
+    const exportToExcel = async () => {
+        const monthStr = getMonthStr(currentDate);
+        const promise = sessionsApi.exportToExcel(monthStr);
+        toast.promise(promise, {
+            loading: `Đang chuẩn bị file Excel tháng ${monthStr}...`,
+            success: `Đã tải xuống file Excel tháng ${monthStr}`,
+            error: 'Lỗi khi xuất file Excel.'
+        });
+    };
+
     return {
-        // State
-        currentDate,
-        currentView,
-        isGenerating,
-        selectedDay,
-        selectedSession,
-        showAddSessionModal,
-        selectedDateStr,
-        modalMode,
-        contextMenu,
-        sessions,
-        students,
-        loading,
-        calendarDays,
-        stats,
-        currentDayInfo,
-        deleteConfirmationOpen,
-        setDeleteConfirmationOpen,
-        isScrolled,
-        isInitialLoad,
-
-        // Actions
-        setCurrentView,
-        setSelectedDay,
-        setSelectedSession,
-        setContextMenu,
-        navigateMonth,
-        goToToday,
-        handleAutoGenerate,
-        handleUpdateSession,
-        handleDeleteSession,
-        handleSessionClick,
-        handleSessionEdit,
-        handleTogglePayment,
-        handleToggleComplete,
-        handleAddSessionSubmit,
-        openAddSessionModal,
-        closeAddSessionModal,
-        handleInitiateDeleteAll,
-        handleConfirmDeleteAll,
-        loadingSessions,
-        exportToExcel: async () => {
-            const monthStr = getMonthStr(currentDate);
-            const promise = sessionsApi.exportToExcel(monthStr);
-
-            toast.promise(promise, {
-                loading: `Đang chuẩn bị file Excel tháng ${monthStr}...`,
-                success: `Đã tải xuống file Excel tháng ${monthStr}`,
-                error: 'Lỗi khi xuất file Excel.'
-            });
-        }
+        currentDate, currentView, isGenerating, selectedDay, selectedSession, showAddSessionModal,
+        selectedDateStr, modalMode, contextMenu, deleteConfirmationOpen, loadingSessions, isScrolled,
+        loading, isInitialLoad, statusFilter, filteredSessions, filteredCalendarDays, stats,
+        currentDayInfo, students, setCurrentView, setSelectedDay, setSelectedSession, setContextMenu,
+        setStatusFilter, setDeleteConfirmationOpen, navigateMonth, goToToday, handleAutoGenerate,
+        handleUpdateSession, handleDeleteSession, handleSessionClick, handleSessionEdit,
+        handleTogglePayment, handleToggleComplete, handleAddSessionSubmit, openAddSessionModal,
+        closeAddSessionModal, handleConfirmDeleteAll, exportToExcel
     };
 };

@@ -1,9 +1,5 @@
-// ============================================================================
-// FILE: student-dashboard/index.tsx (STUDENT DELIGHT EDITION - REFINED)
-// ============================================================================
 'use client';
 
-import { useAuth } from '@/contexts/AuthContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import { BookOpen, Clock, FileText, Sparkles } from 'lucide-react';
 import { DocumentsSection } from './components/DocumentsSection';
@@ -14,37 +10,39 @@ import { ScheduleSection } from './components/ScheduleSection';
 import { StatCard } from './components/StatCard';
 import { UnlinkedAccountState } from './components/UnlinkedAccountState';
 import { WelcomeSection } from './components/WelcomeSection';
-import { useDashboardData } from './hooks/useDashboardData';
+import { useStudentDashboard } from './useStudentDashboard';
 
+/**
+ * Component StudentDashboard (Refactoring Specialist Edition)
+ * 
+ * Chức năng: Màn hình Dashboard chính dành cho Sinh viên.
+ * UI-ONLY: Chỉ chịu trách nhiệm sắp xếp layout (Grid) và truyền data vào các Sub-components.
+ * Toàn bộ Logic fetch data và xử lý "Safe Stats" được đẩy vào useStudentDashboard.
+ */
 export default function StudentDashboard() {
-  const { user } = useAuth();
-  const { loading, stats, sessions, documents, schedule, currentMonth, setCurrentMonth } = useDashboardData(user?.studentId);
+  const {
+    user,
+    loading,
+    stats,
+    sessions,
+    documents,
+    schedule,
+    currentMonth,
+    setCurrentMonth,
+    hasStudentId
+  } = useStudentDashboard();
 
-  // Use values from stats or default to 0
-  const safeStats = stats || {
-    totalSessionsRaw: 0,
-    completedSessionsRaw: 0,
-    totalHoursRaw: 0,
-    totalPaidRaw: 0,
-    totalUnpaidRaw: 0,
-    totalAmountRaw: 0,
-    totalDocumentsRaw: 0,
-    totalHoursFormatted: "0h",
-    totalPaidFormatted: "0 đ",
-    totalUnpaidFormatted: "0 đ",
-    totalAmountFormatted: "0 đ",
-    motivationalQuote: "Chào mừng trở lại! Hãy bắt đầu học tập nào.",
-    showConfetti: false
-  };
+  // 1. Loading State
+  if (loading) return <LoadingState />;
 
-  if (loading && !stats) return <LoadingState />;
-  if (!user?.studentId) return <UnlinkedAccountState />;
+  // 2. Unlinked Account State
+  if (!hasStudentId) return <UnlinkedAccountState />;
 
   return (
     <div className="space-y-8 relative">
-      {/* Confetti / Success Overlay */}
+      {/* Thông báo chúc mừng khi hoàn thành mục tiêu */}
       <AnimatePresence>
-        {safeStats.showConfetti && (
+        {stats.showConfetti && (
           <motion.div
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -59,22 +57,23 @@ export default function StudentDashboard() {
         )}
       </AnimatePresence>
 
+      {/* Lời chào */}
       <WelcomeSection
-        userName={user.fullName || ''}
-        quote={safeStats.motivationalQuote}
+        userName={user?.fullName || ''}
+        quote={stats.motivationalQuote}
       />
 
-      {/* Stats Grid - REMOVED FINANCE CARD */}
+      {/* Grid Chỉ số chính */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard
           title="Buổi Học Tháng Này"
-          value={safeStats.totalSessionsRaw}
-          subtitle={`${safeStats.completedSessionsRaw} buổi đã hoàn thành`}
+          value={stats.totalSessionsRaw}
+          subtitle={`${stats.completedSessionsRaw} buổi đã hoàn thành`}
           icon={<BookOpen className="text-white" size={24} />}
           variant="blue"
           progressBar={{
-            percentage: safeStats.totalSessionsRaw > 0
-              ? (safeStats.completedSessionsRaw / safeStats.totalSessionsRaw) * 100
+            percentage: stats.totalSessionsRaw > 0
+              ? (stats.completedSessionsRaw / stats.totalSessionsRaw) * 100
               : 0,
             color: 'blue'
           }}
@@ -82,7 +81,7 @@ export default function StudentDashboard() {
 
         <StatCard
           title="Tổng Số Giờ"
-          value={safeStats.totalHoursFormatted}
+          value={stats.totalHoursFormatted}
           subtitle="Thời gian học tháng này"
           icon={<Clock className="text-white" size={24} />}
           variant="indigo"
@@ -102,7 +101,7 @@ export default function StudentDashboard() {
         />
       </div>
 
-      {/* Main Content - UPDATED SESSIONS LIST */}
+      {/* Nội dung chính: Lịch học và Thời khóa biểu */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <MonthlySessionsList
@@ -119,11 +118,11 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      {/* Progress Section */}
+      {/* Phần tiến độ chi tiết */}
       <ProgressSection
-        completedSessions={safeStats.completedSessionsRaw}
-        totalHours={safeStats.totalHoursRaw}
-        totalSessions={safeStats.totalSessionsRaw}
+        completedSessions={stats.completedSessionsRaw}
+        totalHours={stats.totalHoursRaw}
+        totalSessions={stats.totalSessionsRaw}
       />
     </div>
   );

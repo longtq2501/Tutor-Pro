@@ -1,6 +1,5 @@
 // ============================================================================
-// FILE: student-dashboard/types/dashboard.types.ts (UPDATED)
-// ============================================================================
+import type { SessionRecord } from '@/lib/types';
 
 export interface StudentDashboardStats {
     // RAW DATA
@@ -21,4 +20,14 @@ export interface StudentDashboardStats {
     // GAMIFICATION
     motivationalQuote: string;
     showConfetti: boolean;
+}
+
+export interface DashboardStats {
+    currentMonthSessions: SessionRecord[];
+    totalHours: number;
+    totalAmount: number;
+    paidAmount: number;
+    unpaidAmount: number;
+    completedSessions: number;
+    upcomingSessions: SessionRecord[];
 }

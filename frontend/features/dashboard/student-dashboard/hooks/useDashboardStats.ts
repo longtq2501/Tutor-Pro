@@ -10,8 +10,8 @@ export const useDashboardStats = (sessions: SessionRecord[], currentMonth: strin
   const totalAmount = currentMonthSessions.reduce((sum, s) => sum + s.totalAmount, 0);
   const paidAmount = currentMonthSessions.filter(s => s.paid).reduce((sum, s) => sum + s.totalAmount, 0);
   const unpaidAmount = totalAmount - paidAmount;
-  const completedSessions = currentMonthSessions.filter(s => s.completed).length;
-  const upcomingSessions = currentMonthSessions.filter(s => !s.completed);
+  const completedSessions = currentMonthSessions.filter(s => s.status === 'COMPLETED' || s.status === 'PAID').length;
+  const upcomingSessions = currentMonthSessions.filter(s => s.status !== 'COMPLETED' && s.status !== 'PAID');
 
   return {
     currentMonthSessions,

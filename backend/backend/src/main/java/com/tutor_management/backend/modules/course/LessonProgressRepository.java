@@ -30,4 +30,16 @@ public interface LessonProgressRepository extends JpaRepository<LessonProgress, 
             @Param("lessonId") Long lessonId);
 
     boolean existsByStudentIdAndLessonId(Long studentId, Long lessonId);
+
+    // ✅ OPTIMIZED: Batch load progress for multiple lessons (1 query instead of N)
+    @Query("SELECT lp FROM LessonProgress lp WHERE lp.student.id = :studentId AND lp.lesson.id IN :lessonIds")
+    List<LessonProgress> findByStudentIdAndLessonIdIn(
+            @Param("studentId") Long studentId,
+            @Param("lessonIds") List<Long> lessonIds);
+
+    // ✅ OPTIMIZED: Count completed lessons in one query
+    @Query("SELECT COUNT(lp) FROM LessonProgress lp WHERE lp.student.id = :studentId AND lp.lesson.id IN :lessonIds AND lp.isCompleted = true")
+    long countCompletedByStudentIdAndLessonIdIn(
+            @Param("studentId") Long studentId,
+            @Param("lessonIds") List<Long> lessonIds);
 }

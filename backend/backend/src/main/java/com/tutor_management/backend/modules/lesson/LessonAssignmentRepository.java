@@ -41,4 +41,7 @@ public interface LessonAssignmentRepository extends JpaRepository<LessonAssignme
 
     // Delete specific assignment
     void deleteByLessonIdAndStudentId(Long lessonId, Long studentId);
+
+    // ✅ OPTIMIZED: Count total lessons for a student without loading list
+    long countByStudentId(Long studentId);
 }

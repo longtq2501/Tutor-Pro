@@ -140,8 +140,8 @@ public class LessonService {
 
     @Transactional(readOnly = true)
     public LessonStatsResponse getStudentStats(Long studentId) {
-        // Count total assignments
-        long totalLessons = assignmentRepository.findByStudentIdOrderByAssignedDateDesc(studentId).size();
+        // ✅ OPTIMIZED: Use COUNT query instead of loading full list
+        long totalLessons = assignmentRepository.countByStudentId(studentId);
 
         // Count completed assignments
         long completedLessons = assignmentRepository.countByStudentIdAndIsCompletedTrue(studentId);

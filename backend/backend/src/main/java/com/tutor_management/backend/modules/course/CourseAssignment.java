@@ -1,16 +1,38 @@
 package com.tutor_management.backend.modules.course;
 
-import com.tutor_management.backend.modules.course.enums.AssignmentStatus;
-import com.tutor_management.backend.modules.student.Student;
-import jakarta.persistence.*;
-import lombok.*;
+import java.time.LocalDateTime;
+
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
+import com.tutor_management.backend.modules.course.enums.AssignmentStatus;
+import com.tutor_management.backend.modules.student.Student;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "course_assignments", uniqueConstraints = {
         @UniqueConstraint(name = "uk_course_student", columnNames = { "course_id", "student_id" })
+}, indexes = {
+        @Index(name = "idx_ca_student_id", columnList = "student_id"),
+        @Index(name = "idx_ca_course_id", columnList = "course_id"),
+        @Index(name = "idx_ca_status", columnList = "status")
 })
 @Getter
 @Setter

@@ -1,15 +1,37 @@
 package com.tutor_management.backend.modules.finance;
 
-import com.tutor_management.backend.modules.student.Student;
-import jakarta.persistence.*;
-import lombok.*;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+import com.tutor_management.backend.modules.student.Student;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+import jakarta.persistence.Version;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Entity
-@Table(name = "session_records")
+@Table(name = "session_records", indexes = {
+        @Index(name = "idx_session_student_id", columnList = "student_id"),
+        @Index(name = "idx_session_month", columnList = "month"),
+        @Index(name = "idx_session_student_month", columnList = "student_id, month"),
+        @Index(name = "idx_session_date", columnList = "sessionDate")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

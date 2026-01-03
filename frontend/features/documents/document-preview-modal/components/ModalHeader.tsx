@@ -2,8 +2,8 @@
 // 📁 document-preview-modal/components/ModalHeader.tsx
 // ============================================================================
 
-import { X, Download, Trash2, ExternalLink, FileText, Loader2 } from 'lucide-react';
 import type { Document } from '@/lib/types';
+import { Download, ExternalLink, FileText, Loader2, Trash2, X } from 'lucide-react';
 
 interface ModalHeaderProps {
   document: Document;
@@ -23,14 +23,16 @@ export function ModalHeader({
   onOpenInNewTab,
 }: ModalHeaderProps) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border-b border-border bg-muted/30 dark:bg-gray-800 gap-3">
-      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-        <FileText className="text-muted-foreground dark:text-gray-400 flex-shrink-0" size={20} />
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 border-b border-border/50 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md gap-4 z-20">
+      <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+        <div className="p-2.5 bg-blue-50 dark:bg-blue-900/30 rounded-xl text-blue-600 dark:text-blue-400">
+          <FileText size={24} />
+        </div>
         <div className="flex-1 min-w-0">
-          <h2 className="text-base sm:text-lg font-semibold text-foreground dark:text-white truncate">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 truncate mb-1">
             {doc.title}
           </h2>
-          <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground dark:text-gray-400 flex-wrap">
+          <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground flex-wrap font-medium">
             <span className="truncate max-w-[120px] sm:max-w-none">{doc.fileName}</span>
             <span className="hidden sm:inline">•</span>
             <span>{doc.formattedFileSize}</span>
@@ -52,7 +54,7 @@ export function ModalHeader({
         >
           <ExternalLink size={18} className="text-foreground dark:text-gray-300" />
         </button>
-        
+
         <button
           onClick={onDownload}
           disabled={downloading}
@@ -71,7 +73,7 @@ export function ModalHeader({
             </>
           )}
         </button>
-        
+
         <button
           onClick={onDelete}
           className="p-2 hover:bg-destructive/10 text-destructive rounded-lg transition-colors"
@@ -80,7 +82,7 @@ export function ModalHeader({
         >
           <Trash2 size={18} />
         </button>
-        
+
         <button
           onClick={onClose}
           className="p-2 hover:bg-accent dark:hover:bg-gray-700 rounded-lg transition-colors"

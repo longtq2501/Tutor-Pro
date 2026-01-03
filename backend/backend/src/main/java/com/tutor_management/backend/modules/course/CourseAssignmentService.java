@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -112,19 +112,31 @@ public class CourseAssignmentService {
                                 .collect(Collectors.toList());
         }
 
+        // ✅ OPTIMIZED: Use batch loading to eliminate N+1 queries
         public StudentCourseDetailResponse getStudentCourseDetail(Long courseId, Long studentId) {
-                CourseAssignment assignment = courseAssignmentRepository.findByCourseIdAndStudentId(courseId, studentId)
+                // Use deep fetch to avoid lazy loading
+                CourseAssignment assignment = courseAssignmentRepository
+                                .findByCourseIdAndStudentIdWithFullDetails(courseId, studentId)
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 "Course assignment not found for student " + studentId + " and course "
                                                                 + courseId));
 
                 Course course = assignment.getCourse();
 
+                // ✅ BATCH LOAD: Get all lesson IDs first
+                List<Long> lessonIds = course.getCourseLessons().stream()
+                                .map(cl -> cl.getLesson().getId())
+                                .collect(Collectors.toList());
+
+                // ✅ SINGLE QUERY: Load all progress at once into a Map
+                Map<Long, LessonProgress> progressMap = lessonProgressRepository
+                                .findByStudentIdAndLessonIdIn(studentId, lessonIds).stream()
+                                .collect(Collectors.toMap(lp -> lp.getLesson().getId(), lp -> lp));
+
                 List<StudentCourseLessonDTO> lessons = course.getCourseLessons().stream()
                                 .map(cl -> {
-                                        Optional<LessonProgress> progress = lessonProgressRepository
-                                                        .findByStudentIdAndLessonId(studentId,
-                                                                        cl.getLesson().getId());
+                                        // ✅ O(1) lookup from Map instead of N queries
+                                        LessonProgress progress = progressMap.get(cl.getLesson().getId());
                                         return StudentCourseLessonDTO.builder()
                                                         .id(cl.getId())
                                                         .lessonId(cl.getLesson().getId())
@@ -132,10 +144,10 @@ public class CourseAssignmentService {
                                                         .summary(cl.getLesson().getSummary())
                                                         .lessonOrder(cl.getLessonOrder())
                                                         .isRequired(cl.getIsRequired())
-                                                        .isCompleted(progress.map(LessonProgress::getIsCompleted)
-                                                                        .orElse(false))
-                                                        .completedAt(progress.map(LessonProgress::getCompletedAt)
-                                                                        .orElse(null))
+                                                        .isCompleted(progress != null && Boolean.TRUE
+                                                                        .equals(progress.getIsCompleted()))
+                                                        .completedAt(progress != null ? progress.getCompletedAt()
+                                                                        : null)
                                                         .build();
                                 })
                                 .collect(Collectors.toList());
@@ -170,6 +182,7 @@ public class CourseAssignmentService {
          * Cập nhật tiến độ của một bài giảng trong các khóa học của học sinh.
          * Thường được gọi khi học sinh đánh dấu hoàn thành bài giảng.
          */
+        // ✅ OPTIMIZED: Use EntityGraph method to avoid N+1 queries
         public void updateProgressOnLessonCompletion(Long studentId, Long lessonId, boolean completed) {
                 lessonProgressRepository.findByStudentIdAndLessonId(studentId, lessonId)
                                 .ifPresent(progress -> {
@@ -180,11 +193,12 @@ public class CourseAssignmentService {
                                                         lessonId, completed);
                                 });
 
-                // Tìm tất cả khóa học của học sinh này
-                List<CourseAssignment> assignments = courseAssignmentRepository.findByStudentId(studentId);
+                // ✅ OPTIMIZED: Use EntityGraph method with pre-fetched courseLessons
+                List<CourseAssignment> assignments = courseAssignmentRepository
+                                .findByStudentIdWithCourseLessons(studentId);
 
                 for (CourseAssignment assignment : assignments) {
-                        // Kiểm tra xem bài giảng này có trong khóa học này không
+                        // courseLessons already loaded via EntityGraph - no extra queries
                         boolean isInCourse = assignment.getCourse().getCourseLessons().stream()
                                         .anyMatch(cl -> cl.getLesson().getId().equals(lessonId));
 
@@ -194,21 +208,20 @@ public class CourseAssignmentService {
                 }
         }
 
+        // ✅ OPTIMIZED: Use single COUNT query instead of N queries
         private void recalculateCourseProgress(CourseAssignment assignment) {
                 List<CourseLesson> courseLessons = assignment.getCourse().getCourseLessons();
                 if (courseLessons.isEmpty())
                         return;
 
-                long completedCount = 0;
-                for (CourseLesson cl : courseLessons) {
-                        Optional<LessonProgress> progress = lessonProgressRepository
-                                        .findByStudentIdAndLessonId(assignment.getStudent().getId(),
-                                                        cl.getLesson().getId());
+                // ✅ BATCH LOAD: Get all lesson IDs
+                List<Long> lessonIds = courseLessons.stream()
+                                .map(cl -> cl.getLesson().getId())
+                                .collect(Collectors.toList());
 
-                        if (progress.isPresent() && progress.get().getIsCompleted()) {
-                                completedCount++;
-                        }
-                }
+                // ✅ SINGLE QUERY: Count completed in one query
+                long completedCount = lessonProgressRepository
+                                .countCompletedByStudentIdAndLessonIdIn(assignment.getStudent().getId(), lessonIds);
 
                 int percentage = (int) ((completedCount * 100.0) / courseLessons.size());
                 assignment.setProgressPercentage(percentage);

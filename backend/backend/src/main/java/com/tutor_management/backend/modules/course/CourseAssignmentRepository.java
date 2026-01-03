@@ -27,4 +27,17 @@ public interface CourseAssignmentRepository extends JpaRepository<CourseAssignme
 
     // Keep existing method - already optimized
     Optional<CourseAssignment> findByCourseIdAndStudentId(Long courseId, Long studentId);
+
+    // ✅ OPTIMIZED: Deep fetch including course lessons to avoid N+1
+    @EntityGraph(attributePaths = { "student", "course", "course.tutor", "course.courseLessons",
+            "course.courseLessons.lesson" })
+    @Query("SELECT ca FROM CourseAssignment ca WHERE ca.course.id = :courseId AND ca.student.id = :studentId")
+    Optional<CourseAssignment> findByCourseIdAndStudentIdWithFullDetails(
+            @Param("courseId") Long courseId,
+            @Param("studentId") Long studentId);
+
+    // ✅ OPTIMIZED: Fetch assignments with courseLessons for progress calculation
+    @EntityGraph(attributePaths = { "student", "course", "course.courseLessons", "course.courseLessons.lesson" })
+    @Query("SELECT ca FROM CourseAssignment ca WHERE ca.student.id = :studentId")
+    List<CourseAssignment> findByStudentIdWithCourseLessons(@Param("studentId") Long studentId);
 }

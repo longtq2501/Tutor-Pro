@@ -5,11 +5,15 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Question entity representing a single question in an exercise
@@ -19,13 +23,16 @@ import java.util.List;
     @Index(name = "idx_question_exercise_id", columnList = "exercise_id"),
     @Index(name = "idx_question_order", columnList = "exercise_id, order_index")
 })
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Question {
     
     @Id
+    @EqualsAndHashCode.Include
     @Column(length = 36)
     private String id;
     
@@ -75,7 +82,7 @@ public class Question {
     @OrderBy("label ASC")
     @JsonManagedReference
     @Builder.Default
-    private List<Option> options = new ArrayList<>();
+    private Set<Option> options = new LinkedHashSet<>();
     
     /**
      * Helper method to add an option to the question

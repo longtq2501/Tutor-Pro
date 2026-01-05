@@ -4,8 +4,10 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Option entity representing a single option in a multiple choice question
@@ -14,13 +16,16 @@ import lombok.NoArgsConstructor;
 @Table(name = "options", indexes = {
     @Index(name = "idx_option_question_id", columnList = "question_id")
 })
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Option {
     
     @Id
+    @EqualsAndHashCode.Include
     @Column(length = 36)
     private String id;
     

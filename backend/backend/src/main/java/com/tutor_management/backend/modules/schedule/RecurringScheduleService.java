@@ -151,7 +151,25 @@ public class RecurringScheduleService {
             schedules = recurringScheduleRepository.findAllActiveWithStudent();
         }
 
+        if (schedules.isEmpty()) {
+            return 0;
+        }
+
+        // OPTIMIZATION: Fetch existing sessions for the month in ONE query
+        List<Long> studentIdsToScan = schedules.stream()
+                .map(s -> s.getStudent().getId())
+                .distinct()
+                .collect(Collectors.toList());
+
+        List<SessionRecord> existingRecords = sessionRecordRepository.findByMonthAndStudentIdIn(month, studentIdsToScan);
+        
+        // Build efficient lookup set: "studentId_date"
+        java.util.Set<String> existingSessionKeys = existingRecords.stream()
+                .map(sr -> sr.getStudent().getId() + "_" + sr.getSessionDate())
+                .collect(Collectors.toSet());
+
         int totalCreated = 0;
+        List<SessionRecord> sessionsToSave = new ArrayList<>();
 
         for (RecurringSchedule schedule : schedules) {
             // Check if schedule is valid for this month
@@ -159,12 +177,15 @@ public class RecurringScheduleService {
                 continue;
             }
 
-            // Generate sessions for this schedule
-            List<SessionRecord> sessions = generateSessionsForSchedule(schedule, month);
+            // Generate sessions for this schedule passing the lookup set
+            List<SessionRecord> sessions = generateSessionsForSchedule(schedule, month, existingSessionKeys);
+            sessionsToSave.addAll(sessions);
+        }
 
-            // Save sessions
-            sessionRecordRepository.saveAll(sessions);
-            totalCreated += sessions.size();
+        // Batch save
+        if (!sessionsToSave.isEmpty()) {
+            sessionRecordRepository.saveAll(sessionsToSave);
+            totalCreated = sessionsToSave.size();
         }
 
         return totalCreated;
@@ -190,7 +211,7 @@ public class RecurringScheduleService {
     /**
      * Tạo các session records cho 1 schedule trong 1 tháng
      */
-    private List<SessionRecord> generateSessionsForSchedule(RecurringSchedule schedule, String month) {
+    private List<SessionRecord> generateSessionsForSchedule(RecurringSchedule schedule, String month, java.util.Set<String> existingKeys) {
         List<SessionRecord> sessions = new ArrayList<>();
 
         YearMonth yearMonth = YearMonth.parse(month);
@@ -204,13 +225,10 @@ public class RecurringScheduleService {
             LocalDate date = firstDay.with(TemporalAdjusters.nextOrSame(getDayOfWeek(dayOfWeek)));
 
             while (!date.isAfter(lastDay)) {
-                // Check if session already exists for this date
-                LocalDate finalDate = date;
-                boolean exists = sessionRecordRepository.findByStudentIdOrderByCreatedAtDesc(
-                        schedule.getStudent().getId()).stream()
-                        .anyMatch(sr -> sr.getSessionDate().equals(finalDate) && sr.getMonth().equals(month));
-
-                if (!exists) {
+                // Check if session already exists using Memory Lookup
+                String key = schedule.getStudent().getId() + "_" + date;
+                
+                if (!existingKeys.contains(key)) {
                     // Create session record
                     SessionRecord session = SessionRecord.builder()
                             .student(schedule.getStudent())
@@ -222,7 +240,6 @@ public class RecurringScheduleService {
                                     (schedule.getHoursPerSession() * 1)))
                             .paid(false)
                             .sessionDate(date)
-                            .sessionDate(date)
                             .notes("Auto-generated from recurring schedule")
                             .startTime(schedule.getStartTime())
                             .endTime(schedule.getEndTime())
@@ -231,6 +248,8 @@ public class RecurringScheduleService {
                             .build();
 
                     sessions.add(session);
+                    // Add to keys to prevent duplicate creation if multiple schedules overlap? (Assuming logic allows overlaps if explicit, but here we prevent duplicates for same day/student)
+                    existingKeys.add(key); 
                 }
 
                 // Move to next week

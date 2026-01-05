@@ -33,15 +33,52 @@ public class SessionRecordService {
     public List<SessionRecordResponse> getAllRecords() {
         List<SessionRecord> records = sessionRecordRepository.findAllByOrderByCreatedAtDesc();
         return records.stream()
-                .map(this::convertToResponse)
+                .map(this::convertToListResponse)
                 .collect(Collectors.toList());
     }
 
     public List<SessionRecordResponse> getRecordsByMonth(String month) {
         List<SessionRecord> records = sessionRecordRepository.findByMonthOrderByCreatedAtDesc(month);
         return records.stream()
-                .map(this::convertToResponse)
+                .map(this::convertToListResponse)
                 .collect(Collectors.toList());
+    }
+    
+    // ... items in between ...
+
+
+
+    /**
+     * Lightweight converter for lists - avoids fetching attachments
+     */
+    private SessionRecordResponse convertToListResponse(SessionRecord record) {
+        return SessionRecordResponse.builder()
+                .id(record.getId())
+                .studentId(record.getStudent().getId())
+                .studentName(record.getStudent().getName())
+                .month(record.getMonth())
+                .sessions(record.getSessions())
+                .hours(record.getHours())
+                .pricePerHour(record.getPricePerHour())
+                .totalAmount(record.getTotalAmount())
+                .paid(record.getPaid())
+                .paidAt(record.getPaidAt() != null ? record.getPaidAt().format(formatter) : null)
+                .notes(record.getNotes())
+                .sessionDate(record.getSessionDate().toString())
+                .createdAt(record.getCreatedAt().format(formatter))
+                .completed(record.getCompleted())
+                .startTime(record.getStartTime() != null
+                        ? record.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm"))
+                        : null)
+                .endTime(record.getEndTime() != null ? record.getEndTime().format(DateTimeFormatter.ofPattern("HH:mm"))
+                        : null)
+                .subject(record.getSubject())
+                .status(record.getStatus() != null ? record.getStatus().name() : null)
+                .version(record.getVersion())
+                // Empty attachments for list view to avoid N+1
+                .documents(java.util.Collections.emptyList())
+                .lessons(java.util.Collections.emptyList())
+                .build();
     }
 
     public SessionRecordResponse createRecord(SessionRecordRequest request) {
@@ -124,7 +161,7 @@ public class SessionRecordService {
     public List<SessionRecordResponse> getAllUnpaidSessions() {
         List<SessionRecord> unpaidRecords = sessionRecordRepository.findByPaidFalseOrderBySessionDateDesc();
         return unpaidRecords.stream()
-                .map(this::convertToResponse)
+                .map(this::convertToListResponse)
                 .collect(Collectors.toList());
     }
 
@@ -261,7 +298,7 @@ public class SessionRecordService {
 
         List<SessionRecord> records = sessionRecordRepository.findByStudentOrderByCreatedAtDesc(student);
         return records.stream()
-                .map(this::convertToResponse)
+                .map(this::convertToListResponse)
                 .collect(Collectors.toList());
     }
 
@@ -275,7 +312,7 @@ public class SessionRecordService {
         List<SessionRecord> records = sessionRecordRepository.findByStudentAndMonthFilteredOrderByDateAsc(student,
                 month);
         return records.stream()
-                .map(this::convertToResponse)
+                .map(this::convertToListResponse)
                 .collect(Collectors.toList());
     }
 

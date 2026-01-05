@@ -86,7 +86,8 @@ public class HomeworkService {
     // Get homework by ID
     @Transactional(readOnly = true)
     public HomeworkResponse getHomeworkById(Long id) {
-        Homework homework = homeworkRepository.findById(id)
+        // OPTIMIZATION: Use eager fetch
+        Homework homework = homeworkRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Homework not found with id: " + id));
         return HomeworkResponse.fromEntity(homework);
     }
@@ -123,7 +124,7 @@ public class HomeworkService {
 
     // Update homework status (student can mark as IN_PROGRESS)
     public HomeworkResponse updateHomeworkStatus(Long homeworkId, HomeworkStatus status, Long studentId) {
-        Homework homework = homeworkRepository.findById(homeworkId)
+        Homework homework = homeworkRepository.findByIdWithDetails(homeworkId)
                 .orElseThrow(() -> new ResourceNotFoundException("Homework not found with id: " + homeworkId));
 
         if (!homework.getStudent().getId().equals(studentId)) {
@@ -143,7 +144,7 @@ public class HomeworkService {
     // Submit homework (student)
     public HomeworkResponse submitHomework(Long homeworkId, String submissionNotes,
                                            List<String> submissionUrls, Long studentId) {
-        Homework homework = homeworkRepository.findById(homeworkId)
+        Homework homework = homeworkRepository.findByIdWithDetails(homeworkId)
                 .orElseThrow(() -> new ResourceNotFoundException("Homework not found with id: " + homeworkId));
 
         if (!homework.getStudent().getId().equals(studentId)) {
@@ -200,7 +201,7 @@ public class HomeworkService {
 
     // Grade homework (tutor)
     public HomeworkResponse gradeHomework(Long homeworkId, Integer score, String feedback) {
-        Homework homework = homeworkRepository.findById(homeworkId)
+        Homework homework = homeworkRepository.findByIdWithDetails(homeworkId)
                 .orElseThrow(() -> new ResourceNotFoundException("Homework not found with id: " + homeworkId));
 
         if (homework.getStatus() != HomeworkStatus.SUBMITTED) {
@@ -229,7 +230,7 @@ public class HomeworkService {
 
     // Update homework (tutor can edit)
     public HomeworkResponse updateHomework(Long homeworkId, HomeworkRequest request) {
-        Homework homework = homeworkRepository.findById(homeworkId)
+        Homework homework = homeworkRepository.findByIdWithDetails(homeworkId)
                 .orElseThrow(() -> new ResourceNotFoundException("Homework not found with id: " + homeworkId));
 
         if (request.getTitle() != null) {

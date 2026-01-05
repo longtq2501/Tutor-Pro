@@ -17,6 +17,8 @@ import { cn, formatExerciseTitle } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
+import { Skeleton } from '@/components/ui/skeleton';
+
 interface GradingViewProps {
     submissionId: string;
     onBack: () => void;
@@ -36,6 +38,7 @@ export const GradingView: React.FC<GradingViewProps> = ({ submissionId, onBack, 
     useEffect(() => {
         const fetchData = async () => {
             try {
+                setIsLoading(true);
                 const subData = await submissionService.getById(submissionId);
                 setSubmission(subData);
                 setTeacherComment(subData.teacherComment || '');
@@ -117,8 +120,37 @@ export const GradingView: React.FC<GradingViewProps> = ({ submissionId, onBack, 
 
     if (isLoading || !submission || !exercise) {
         return (
-            <div className="flex justify-center items-center h-96">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div className="max-w-5xl mx-auto pb-24 space-y-6">
+                <Card className="shadow-sm">
+                    <CardHeader className="py-4">
+                        <div className="flex justify-between items-center">
+                            <div className="space-y-2">
+                                <Skeleton className="h-6 w-64" />
+                                <Skeleton className="h-4 w-48" />
+                            </div>
+                            <div className="flex gap-2">
+                                <Skeleton className="h-10 w-20" />
+                                <Skeleton className="h-10 w-20" />
+                            </div>
+                        </div>
+                    </CardHeader>
+                </Card>
+                <div className="space-y-4">
+                    {[1, 2, 3].map(i => (
+                        <Card key={i}>
+                            <CardHeader className="bg-muted/30">
+                                <Skeleton className="h-5 w-full" />
+                            </CardHeader>
+                            <CardContent className="py-6 space-y-4">
+                                <Skeleton className="h-24 w-full" />
+                                <div className="flex gap-4">
+                                    <Skeleton className="h-10 w-32" />
+                                    <Skeleton className="h-10 flex-1" />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
             </div>
         );
     }

@@ -71,4 +71,11 @@ public interface HomeworkRepository extends JpaRepository<Homework, Long> {
             @Param("studentId") Long studentId,
             @Param("keyword") String keyword
     );
+
+    // ✅ OPTIMIZED: Get single homework with details
+    @Query("SELECT h FROM Homework h " +
+            "LEFT JOIN FETCH h.student " +
+            "LEFT JOIN FETCH h.sessionRecord " +
+            "WHERE h.id = :id")
+    java.util.Optional<Homework> findByIdWithDetails(@Param("id") Long id);
 }

@@ -15,7 +15,10 @@ public interface LessonAssignmentRepository extends JpaRepository<LessonAssignme
 
     // ✅ OPTIMIZED: Use @EntityGraph to fetch lesson with category, images, and
     // resources
-    @EntityGraph(attributePaths = { "lesson", "lesson.category", "lesson.images", "lesson.resources" })
+    // ✅ OPTIMIZED: Use @EntityGraph to fetch lesson with category
+    // REMOVED 'images' and 'resources' from EntityGraph to avoid MultipleBagFetchException and Cartesian Product.
+    // These are handled efficiently by @Fetch(FetchMode.SUBSELECT) in Lesson entity and Hibernate.initialize() in Service.
+    @EntityGraph(attributePaths = { "lesson", "lesson.category" })
     @Query("SELECT la FROM LessonAssignment la WHERE la.student.id = :studentId ORDER BY la.assignedDate DESC")
     List<LessonAssignment> findByStudentIdWithDetails(@Param("studentId") Long studentId);
 
@@ -27,7 +30,8 @@ public interface LessonAssignmentRepository extends JpaRepository<LessonAssignme
     @Query("SELECT la FROM LessonAssignment la WHERE la.lesson.id = :lessonId ORDER BY la.assignedDate DESC")
     List<LessonAssignment> findByLessonIdWithDetails(@Param("lessonId") Long lessonId);
 
-    // Find specific assignment
+    // Find specific assignment with Lesson eagerly fetched
+    @EntityGraph(attributePaths = { "lesson" })
     Optional<LessonAssignment> findByLessonIdAndStudentId(Long lessonId, Long studentId);
 
     // Check if lesson already assigned to student

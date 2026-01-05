@@ -118,7 +118,8 @@ public class SubmissionServiceImpl implements SubmissionService {
     public SubmissionResponse getSubmission(String id) {
         log.info("Fetching submission: {}", id);
         
-        Submission submission = submissionRepository.findById(id)
+        // OPTIMIZATION: Fetch with answers eagerly for details view
+        Submission submission = submissionRepository.findByIdWithAnswers(id)
             .orElseThrow(() -> new ResourceNotFoundException("Submission not found with id: " + id));
         
         return mapToSubmissionResponse(submission);
@@ -144,8 +145,30 @@ public class SubmissionServiceImpl implements SubmissionService {
         
         List<Submission> submissions = submissionRepository.findByExerciseId(exerciseId);
         
+        if (submissions.isEmpty()) {
+            return List.of();
+        }
+
+        // OPTIMIZATION: Batch fetch users to avoid N+1
+        List<Long> studentIds = submissions.stream()
+            .filter(s -> s.getStudentId() != null)
+            .map(s -> {
+                try {
+                     return Long.parseLong(s.getStudentId());
+                } catch (NumberFormatException e) {
+                    log.warn("Invalid student ID format: {}", s.getStudentId());
+                    return null;
+                }
+            })
+            .filter(java.util.Objects::nonNull)
+            .distinct()
+            .collect(Collectors.toList());
+
+        Map<Long, User> userMap = userRepository.findAllById(studentIds).stream()
+            .collect(Collectors.toMap(User::getId, u -> u, (u1, u2) -> u1));
+        
         return submissions.stream()
-            .map(this::mapToListItemResponse)
+            .map(s -> mapToListItemResponse(s, userMap))
             .collect(Collectors.toList());
     }
     
@@ -166,7 +189,8 @@ public class SubmissionServiceImpl implements SubmissionService {
     public SubmissionResponse gradeSubmission(String submissionId, GradeSubmissionRequest request) {
         log.info("Grading submission: {}", submissionId);
         
-        Submission submission = submissionRepository.findById(submissionId)
+        // OPTIMIZATION: Fetch with answers eagerly to avoid N+1 during grading
+        Submission submission = submissionRepository.findByIdWithAnswers(submissionId)
             .orElseThrow(() -> new ResourceNotFoundException("Submission not found with id: " + submissionId));
         
         // Update pointed answers from request
@@ -270,14 +294,22 @@ public class SubmissionServiceImpl implements SubmissionService {
     /**
      * Map Submission entity to SubmissionListItemResponse DTO
      */
-    private SubmissionListItemResponse mapToListItemResponse(Submission submission) {
+    private SubmissionListItemResponse mapToListItemResponse(Submission submission, Map<Long, User> userMap) {
+        String studentName = "Unknown Student";
+        if (submission.getStudentId() != null) {
+            try {
+                Long studentId = Long.parseLong(submission.getStudentId());
+                User user = userMap.get(studentId);
+                if (user != null) {
+                    studentName = user.getFullName();
+                }
+            } catch (NumberFormatException ignored) {}
+        }
+
         return SubmissionListItemResponse.builder()
             .id(submission.getId())
             .studentId(submission.getStudentId())
-            .studentName(submission.getStudentId() != null ? 
-                userRepository.findById(Long.parseLong(submission.getStudentId()))
-                    .map(User::getFullName)
-                    .orElse("Unknown Student") : null)
+            .studentName(studentName)
             .status(submission.getStatus())
             .mcqScore(submission.getMcqScore())
             .essayScore(submission.getEssayScore())
@@ -285,5 +317,30 @@ public class SubmissionServiceImpl implements SubmissionService {
             .submittedAt(submission.getSubmittedAt())
             .gradedAt(submission.getGradedAt())
             .build();
+    }
+
+    /**
+     * Map Submission entity to SubmissionListItemResponse DTO (Legacy/Single use fallback)
+     */
+    private SubmissionListItemResponse mapToListItemResponse(Submission submission) {
+         // Fallback to fetch single user if map not provided (though avoid usage in loops)
+         String studentName = "Unknown Student";
+         if (submission.getStudentId() != null) {
+             studentName = userRepository.findById(Long.parseLong(submission.getStudentId()))
+                     .map(User::getFullName)
+                     .orElse("Unknown Student");
+         }
+         
+         return SubmissionListItemResponse.builder()
+             .id(submission.getId())
+             .studentId(submission.getStudentId())
+             .studentName(studentName)
+             .status(submission.getStatus())
+             .mcqScore(submission.getMcqScore())
+             .essayScore(submission.getEssayScore())
+             .totalScore(submission.getTotalScore())
+             .submittedAt(submission.getSubmittedAt())
+             .gradedAt(submission.getGradedAt())
+             .build();
     }
 }

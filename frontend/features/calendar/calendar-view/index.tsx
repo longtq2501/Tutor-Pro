@@ -73,6 +73,7 @@ export default function CalendarView() {
     openAddSessionModal,
     closeAddSessionModal,
     handleConfirmDeleteAll,
+    exportToExcel,
   } = useCalendarView();
 
   // Render các loại View khác nhau dựa trên currentView
@@ -145,7 +146,8 @@ export default function CalendarView() {
         onToday={goToToday}
         onViewChange={setCurrentView}
         onAddSession={() => openAddSessionModal(selectedDateStr || new Date().toISOString().split('T')[0])}
-        onGenerateInvoice={handleAutoGenerate}
+        onGenerateInvoice={exportToExcel}
+        onAutoGenerate={handleAutoGenerate}
         isGenerating={isGenerating}
         sessions={filteredSessions} // Hiển thị sessions đã lọc
         stats={stats}

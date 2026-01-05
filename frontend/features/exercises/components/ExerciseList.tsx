@@ -12,8 +12,8 @@ import {
 import { exerciseService } from '@/features/exercise-import/services/exerciseService';
 import { ExerciseListItemResponse, ExerciseStatus } from '@/features/exercise-import/types/exercise.types';
 import { format } from 'date-fns';
-import { Edit, FileText, Play, Plus, Trash2, UserPlus } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { Edit, FileText, Loader2, Play, Plus, Trash2, UserPlus } from 'lucide-react';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { formatExerciseTitle } from '@/lib/utils';
 import { studentsApi } from '@/lib/services/student';
@@ -35,6 +35,10 @@ import {
 } from "@/components/ui/select";
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { useExercises, useAssignedExercises } from '../hooks/useExercises';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@/lib/hooks/useQueryKeys';
 
 interface ExerciseListProps {
     role: 'STUDENT' | 'TEACHER' | 'ADMIN';
@@ -47,49 +51,29 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
     onSelectExercise,
     onCreateNew
 }) => {
-    const [exercises, setExercises] = useState<ExerciseListItemResponse[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [students, setStudents] = useState<Student[]>([]);
+    const queryClient = useQueryClient();
+    const isStudent = role === 'STUDENT';
+
+    // ⚡ React Query hooks
+    const { data: exercises = [], isLoading: isExercisesLoading } = isStudent
+        ? useAssignedExercises()
+        : useExercises();
+
+    // Students list for assign dialog (Keep as useQuery for consistency)
+    const { data: students = [], isLoading: isStudentsLoading } = useQuery({
+        queryKey: queryKeys.students.all,
+        queryFn: async () => {
+            const data = await studentsApi.getAll();
+            return data.filter(s => s.active && s.accountId);
+        },
+        enabled: !isStudent
+    });
+
     const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
     const [selectedExercise, setSelectedExercise] = useState<ExerciseListItemResponse | null>(null);
     const [assignStudentId, setAssignStudentId] = useState<string>('');
     const [assignDeadline, setAssignDeadline] = useState<string>('');
     const [isAssigning, setIsAssigning] = useState(false);
-
-    const loadExercises = async () => {
-        try {
-            setIsLoading(true);
-            let data: ExerciseListItemResponse[];
-
-            if (role === 'STUDENT') {
-                data = await exerciseService.getAssigned();
-                setExercises(data);
-            } else {
-                data = await exerciseService.getAll();
-                setExercises(data);
-            }
-        } catch (error) {
-            toast.error("Failed to load exercises");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        loadExercises();
-        if (role !== 'STUDENT') {
-            loadStudents();
-        }
-    }, [role]);
-
-    const loadStudents = async () => {
-        try {
-            const data = await studentsApi.getAll();
-            setStudents(data.filter(s => s.active && s.accountId)); // Only active students with accounts
-        } catch (error) {
-            console.error("Failed to load students", error);
-        }
-    };
 
     const handleDelete = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -97,7 +81,7 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
         try {
             await exerciseService.delete(id);
             toast.success("Exercise deleted");
-            loadExercises();
+            queryClient.invalidateQueries({ queryKey: queryKeys.exercises.all });
         } catch (error) {
             toast.error("Failed to delete exercise");
         }
@@ -122,6 +106,7 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
             setIsAssignDialogOpen(false);
             setAssignStudentId('');
             setAssignDeadline('');
+            queryClient.invalidateQueries({ queryKey: queryKeys.exercises.all });
         } catch (error) {
             toast.error("Không thể giao bài tập");
         } finally {
@@ -129,24 +114,54 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
         }
     };
 
-    if (isLoading) {
-        return <div className="text-center p-8">Loading exercises...</div>;
+    // ✨ Professional Loading State (Skeletons)
+    if (isExercisesLoading) {
+        return (
+            <Card className="animate-in fade-in duration-500">
+                <CardHeader className="py-3 px-4 flex flex-row items-center justify-between border-b">
+                    <Skeleton className="h-6 w-48" />
+                    <Skeleton className="h-8 w-24" />
+                </CardHeader>
+                <CardContent className="p-4 space-y-4">
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="flex items-center justify-between py-2 border-b border-dashed last:border-0">
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-64" />
+                                <Skeleton className="h-3 w-32" />
+                            </div>
+                            <div className="flex gap-2">
+                                <Skeleton className="h-8 w-20" />
+                                <Skeleton className="h-8 w-8 rounded-full" />
+                            </div>
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+        );
     }
 
     return (
-        <Card>
+        <Card className="animate-in fade-in slide-in-from-bottom-2 duration-400">
             <CardHeader className="py-3 px-4 flex flex-row items-center justify-between border-b">
-                <CardTitle className="text-lg">Danh sách bài tập ({exercises.length})</CardTitle>
+                <CardTitle className="text-lg flex items-center gap-2">
+                    Danh sách bài tập ({exercises.length})
+                    {isExercisesLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                </CardTitle>
                 {(role === 'TEACHER' || role === 'ADMIN') && (
-                    <Button onClick={onCreateNew} size="sm" className="h-8">
+                    <Button onClick={onCreateNew} size="sm" className="h-8 shadow-sm">
                         <Plus className="mr-2 h-4 w-4" /> Tạo mới
                     </Button>
                 )}
             </CardHeader>
             <CardContent className="p-0 sm:p-4">
                 {exercises.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                        Chưa có bài tập nào.
+                    <div className="text-center py-12 space-y-3">
+                        <div className="flex justify-center">
+                            <div className="bg-muted p-4 rounded-full">
+                                <FileText className="h-8 w-8 text-muted-foreground/50" />
+                            </div>
+                        </div>
+                        <p className="text-muted-foreground">Chưa có bài tập nào.</p>
                     </div>
                 ) : (
                     <>
@@ -165,13 +180,14 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
                                 </TableHeader>
                                 <TableBody>
                                     {exercises.map((ex) => (
-                                        <TableRow key={ex.id} className="cursor-pointer hover:bg-muted/50" onClick={() => {
-                                            console.log("Exercise row clicked:", ex.id, "Title:", ex.title);
+                                        <TableRow key={ex.id} className="cursor-pointer group hover:bg-muted/50 transition-colors" onClick={() => {
                                             if (role === 'STUDENT') onSelectExercise(ex, 'PLAY');
                                             else onSelectExercise(ex, 'GRADE');
                                         }}>
                                             <TableCell className="py-2 px-4 font-medium max-w-[350px]">
-                                                <div className="whitespace-pre-wrap leading-tight text-sm">{formatExerciseTitle(ex.title)}</div>
+                                                <div className="whitespace-pre-wrap leading-tight text-sm group-hover:text-primary transition-colors">
+                                                    {formatExerciseTitle(ex.title)}
+                                                </div>
                                             </TableCell>
                                             <TableCell className="py-1 px-4">
                                                 <Badge variant={ex.status === ExerciseStatus.PUBLISHED ? 'default' : 'secondary'} className="px-2 py-0 h-5 text-[10px]">
@@ -182,27 +198,27 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
                                             <TableCell className="py-1 px-4 text-xs font-bold">{ex.totalPoints}</TableCell>
                                             <TableCell className="py-1 px-4 text-xs text-muted-foreground">{ex.createdAt ? format(new Date(ex.createdAt), 'dd/MM/yyyy') : '-'}</TableCell>
                                             <TableCell className="py-1 px-4 text-right">
-                                                <div className="flex justify-end gap-2">
+                                                <div className="flex justify-end gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                                                     {role === 'STUDENT' ? (
                                                         <div className="flex gap-2">
                                                             {ex.submissionId && (ex.submissionStatus === 'SUBMITTED' || ex.submissionStatus === 'GRADED') ? (
-                                                                <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); onSelectExercise({ ...ex, id: ex.submissionId! }, 'REVIEW'); }}>
+                                                                <Button size="sm" variant="outline" className="h-8" onClick={(e) => { e.stopPropagation(); onSelectExercise({ ...ex, id: ex.submissionId! }, 'REVIEW'); }}>
                                                                     <FileText className="mr-2 h-4 w-4" /> Xem kết quả
                                                                 </Button>
                                                             ) : null}
-                                                            <Button size="sm" onClick={(e) => { e.stopPropagation(); onSelectExercise(ex, 'PLAY'); }}>
+                                                            <Button size="sm" className="h-8 shadow-sm" onClick={(e) => { e.stopPropagation(); onSelectExercise(ex, 'PLAY'); }}>
                                                                 <Play className="mr-2 h-4 w-4" /> {ex.submissionId ? 'Làm tiếp' : 'Làm bài'}
                                                             </Button>
                                                         </div>
                                                     ) : (
                                                         <>
-                                                            <Button variant="ghost" size="icon" onClick={(e) => handleOpenAssign(ex, e)} title="Giao bài">
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => handleOpenAssign(ex, e)} title="Giao bài">
                                                                 <UserPlus className="h-4 w-4" />
                                                             </Button>
-                                                            <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); onSelectExercise(ex, 'GRADE'); }}>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); onSelectExercise(ex, 'GRADE'); }}>
                                                                 <FileText className="h-4 w-4" />
                                                             </Button>
-                                                            <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700" onClick={(e) => handleDelete(ex.id, e)}>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={(e) => handleDelete(ex.id, e)}>
                                                                 <Trash2 className="h-4 w-4" />
                                                             </Button>
                                                         </>
@@ -218,7 +234,7 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
                         {/* Mobile: Card View */}
                         <div className="md:hidden space-y-3 p-4">
                             {exercises.map((ex) => (
-                                <Card key={ex.id} className="overflow-hidden border shadow-sm" onClick={() => {
+                                <Card key={ex.id} className="overflow-hidden border shadow-sm hover:border-primary/50 transition-all active:scale-[0.98]" onClick={() => {
                                     if (role === 'STUDENT') onSelectExercise(ex, 'PLAY');
                                     else onSelectExercise(ex, 'GRADE');
                                 }}>
@@ -255,7 +271,7 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
                                                             <FileText className="mr-1.5 h-3.5 w-3.5" /> Xem kết quả
                                                         </Button>
                                                     )}
-                                                    <Button size="sm" className="w-full text-xs h-8" onClick={(e) => { e.stopPropagation(); onSelectExercise(ex, 'PLAY'); }}>
+                                                    <Button size="sm" className="w-full text-xs h-8 shadow-sm" onClick={(e) => { e.stopPropagation(); onSelectExercise(ex, 'PLAY'); }}>
                                                         <Play className="mr-1.5 h-3.5 w-3.5" /> {ex.submissionId ? 'Làm tiếp' : 'Làm bài'}
                                                     </Button>
                                                 </>
@@ -294,7 +310,7 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
                             <Label htmlFor="student">Học sinh</Label>
                             <Select onValueChange={setAssignStudentId} value={assignStudentId}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Chọn học sinh" />
+                                    <SelectValue placeholder={isStudentsLoading ? "Đang tải..." : "Chọn học sinh"} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {students.map(s => (
@@ -318,7 +334,12 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsAssignDialogOpen(false)}>Hủy</Button>
                         <Button onClick={handleAssign} disabled={!assignStudentId || isAssigning}>
-                            {isAssigning ? "Đang giao..." : "Giao bài tập"}
+                            {isAssigning ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Đang giao...
+                                </>
+                            ) : "Giao bài tập"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

@@ -42,6 +42,7 @@ interface Props {
   onNavigate: (dir: number) => void;
   onToday: () => void;
   onAddSession: () => void;
+  onAutoGenerate: () => void;
   onGenerateInvoice: () => void;
   isGenerating?: boolean;
   sessions: SessionRecord[];
@@ -84,6 +85,7 @@ export const CalendarHeader = ({
   onNavigate,
   onToday,
   onAddSession,
+  onAutoGenerate,
   onGenerateInvoice,
   isGenerating = false,
   sessions,
@@ -267,7 +269,17 @@ export const CalendarHeader = ({
             </div>
             <div>
               <p className="text-xs font-black uppercase tracking-wider text-muted-foreground">Bắt đầu ngay</p>
-              <p className="text-sm font-bold">Tháng này chưa có lịch dạy. Nhấn vào bất kỳ ngày nào trên lịch để thêm buổi học mới!</p>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                <p className="text-sm font-bold">Tháng này chưa có lịch dạy. Nhấn vào bất kỳ ngày nào trên lịch để thêm buổi học mới!</p>
+                <Button
+                  size="sm"
+                  onClick={onAutoGenerate}
+                  disabled={isGenerating}
+                  className="bg-primary/20 text-primary hover:bg-primary/30 border border-primary/20 font-bold"
+                >
+                  {isGenerating ? "Đang tạo..." : "Tạo lịch tự động"}
+                </Button>
+              </div>
             </div>
           </motion.div>
         )}

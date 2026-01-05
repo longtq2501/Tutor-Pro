@@ -105,11 +105,13 @@ public class SessionRecord {
 
     @Builder.Default
     @ManyToMany(fetch = FetchType.LAZY)
+    @org.hibernate.annotations.BatchSize(size = 50)
     @JoinTable(name = "session_lessons", joinColumns = @JoinColumn(name = "session_id"), inverseJoinColumns = @JoinColumn(name = "lesson_id"))
     private java.util.Set<com.tutor_management.backend.modules.lesson.Lesson> lessons = new java.util.HashSet<>();
 
     @Builder.Default
     @ManyToMany(fetch = FetchType.LAZY)
+    @org.hibernate.annotations.BatchSize(size = 50)
     @JoinTable(name = "session_documents", joinColumns = @JoinColumn(name = "session_id"), inverseJoinColumns = @JoinColumn(name = "document_id"))
     private java.util.Set<com.tutor_management.backend.modules.document.Document> documents = new java.util.HashSet<>();
 

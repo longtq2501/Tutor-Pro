@@ -1,25 +1,14 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { AnimatePresence, motion } from 'framer-motion';
-import {
-    ChevronLeft,
-    ChevronRight,
-    GraduationCap,
-    LayoutDashboard,
-    LogOut,
-    Menu,
-    X,
-} from 'lucide-react';
-import React, { useEffect, useState, memo } from 'react';
+import { AnimatePresence, motion, LayoutGroup } from 'framer-motion';
+import { ChevronLeft, GraduationCap, X } from 'lucide-react';
+import React, { useEffect, memo, useState } from 'react';
 import { useUI } from '@/contexts/UIContext';
 
+// Types (Giữ nguyên)
 export type View = 'dashboard' | 'students' | 'monthly' | 'documents' | 'parents' | 'unpaid' | 'calendar' | 'homework' | 'lessons' | 'exercises';
-export type NavItem = {
-    id: View;
-    label: string;
-    icon: React.ElementType;
-};
+export type NavItem = { id: View; label: string; icon: React.ElementType };
 
 interface SidebarProps {
     currentView: View;
@@ -29,147 +18,173 @@ interface SidebarProps {
     setIsCollapsed: (collapsed: boolean) => void;
 }
 
+// Cấu hình Spring Animation cho cảm giác "Premium"
+const SPRING_CONFIG = { type: "spring", stiffness: 300, damping: 30, mass: 1 } as const;
+
 export const Sidebar = memo(({ currentView, setCurrentView, navItems, isCollapsed, setIsCollapsed }: SidebarProps) => {
     const { isSidebarOpen, setSidebarOpen } = useUI();
+    const [isMobile, setIsMobile] = useState(false);
 
-    // Auto-close sidebar on mobile when window is resized to desktop
     useEffect(() => {
-        const handleResize = () => {
-            if (window.innerWidth >= 1024 && isSidebarOpen) {
-                setSidebarOpen(false);
-            }
+        const checkMobile = () => {
+            const mobile = window.innerWidth < 1024;
+            setIsMobile(mobile);
+            if (!mobile && isSidebarOpen) setSidebarOpen(false);
         };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
     }, [isSidebarOpen, setSidebarOpen]);
 
     const handleNavClick = (view: View) => {
         setCurrentView(view);
-        setSidebarOpen(false);
+        if (isMobile) setSidebarOpen(false);
     };
+
+    const effectiveCollapsed = isMobile ? false : isCollapsed;
 
     return (
         <>
-            {/* Mobile Overlay */}
+            {/* Mobile Overlay - Làm mờ nền cực mượt */}
             <AnimatePresence>
-                {isSidebarOpen && (
+                {isMobile && isSidebarOpen && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setSidebarOpen(false)}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+                        className="fixed inset-0 bg-background/80 backdrop-blur-md z-[45] lg:hidden"
                     />
                 )}
             </AnimatePresence>
 
-            {/* Sidebar Container */}
-            <motion.div
-                initial={false}
-                animate={{
-                    width: isCollapsed ? 80 : 256,
-                    x: isSidebarOpen ? 0 : (typeof window !== 'undefined' && window.innerWidth < 1024 ? -288 : 0)
-                }}
-                transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className={cn(
-                    "main-sidebar",
-                    "fixed lg:relative h-screen flex flex-col bg-card dark:bg-card border-r border-border shadow-2xl lg:shadow-none",
-                    "z-50 flex-shrink-0",
-                    isCollapsed ? "items-center" : "items-stretch"
-                )}
-            >
-                {/* Desktop collapse button - Positioned outside the sidebar edge */}
-                <button
-                    onClick={() => setIsCollapsed(!isCollapsed)}
-                    className="hidden lg:flex absolute -right-4 top-8 z-50 h-8 w-8 items-center justify-center bg-card border border-border rounded-full shadow-lg hover:bg-primary hover:text-primary-foreground transition-all group"
-                    aria-label={isCollapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"}
+            <LayoutGroup>
+                <motion.aside
+                    layout
+                    initial={false}
+                    animate={{
+                        width: effectiveCollapsed ? 80 : 280,
+                        x: isMobile && !isSidebarOpen ? -280 : 0,
+                    }}
+                    transition={SPRING_CONFIG}
+                    className={cn(
+                        "fixed top-0 left-0 bottom-0 z-50 flex flex-col bg-card border-r border-border shadow-sm",
+                        "lg:sticky lg:h-screen", // Tối ưu cho Next.js Layout
+                        effectiveCollapsed ? "items-center" : "items-stretch"
+                    )}
                 >
-                    <motion.div
-                        animate={{ rotate: isCollapsed ? 180 : 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="flex items-center justify-center"
-                    >
-                        <ChevronLeft size={18} className="transition-transform group-hover:scale-110" />
-                    </motion.div>
-                </button>
+                    {/* Nút Toggle Desktop - Thiết kế Floating độc đáo */}
+                    {!isMobile && (
+                        <motion.button
+                            layout
+                            onClick={() => setIsCollapsed(!isCollapsed)}
+                            className="absolute -right-3 top-10 h-6 w-6 flex items-center justify-center bg-primary text-primary-foreground rounded-full shadow-xl hover:scale-110 transition-transform z-50"
+                        >
+                            <motion.div animate={{ rotate: effectiveCollapsed ? 180 : 0 }} transition={SPRING_CONFIG}>
+                                <ChevronLeft size={14} strokeWidth={3} />
+                            </motion.div>
+                        </motion.button>
+                    )}
 
-                {/* Mobile close button */}
-                <button
-                    onClick={() => setSidebarOpen(false)}
-                    className="lg:hidden absolute right-4 top-4 p-2 hover:bg-muted rounded-lg transition-colors"
-                    aria-label="Đóng menu"
-                >
-                    <X size={24} className="text-foreground" />
-                </button>
+                    {/* Logo Header - Smooth Scaling */}
+                    <div className="h-20 flex items-center px-6 mb-2 overflow-hidden shrink-0">
+                        <div className="flex items-center gap-4 min-w-max">
+                            <motion.div
+                                layout
+                                className="w-10 h-10 bg-primary/10 flex items-center justify-center rounded-xl text-primary"
+                            >
+                                <GraduationCap size={24} />
+                            </motion.div>
 
-                {/* Logo Header */}
-                <div className="flex items-center border-b border-border h-20 px-4 shrink-0 overflow-hidden">
-                    <div className="flex items-center gap-3 min-w-0">
-                        <div className="p-2 bg-background rounded-lg shrink-0 shadow-sm">
-                            <GraduationCap className="text-primary" size={24} />
-                        </div>
-                        <AnimatePresence mode="wait">
-                            {!isCollapsed && (
-                                <motion.div
-                                    initial={{ opacity: 0, x: -10 }}
+                            {!effectiveCollapsed && (
+                                <motion.span
+                                    initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -10 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="overflow-hidden whitespace-nowrap"
+                                    exit={{ opacity: 0, x: -20 }}
+                                    className="font-bold text-xl tracking-tight whitespace-nowrap"
                                 >
-                                    <span className="font-extrabold text-xl tracking-tight text-foreground">Tutor Pro</span>
+                                    Tutor Pro
+                                </motion.span>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Navigation Items */}
+                    <nav className="flex-1 px-3 space-y-1 overflow-y-auto no-scrollbar">
+                        {navItems.map((item) => {
+                            const isActive = currentView === item.id;
+                            const Icon = item.icon;
+
+                            return (
+                                <motion.button
+                                    key={item.id}
+                                    layout
+                                    onClick={() => handleNavClick(item.id)}
+                                    className={cn(
+                                        "relative flex items-center w-full rounded-2xl transition-colors group h-14",
+                                        isActive ? "text-primary" : "text-muted-foreground hover:bg-muted/30 hover:text-foreground",
+                                        // Khi đóng: w-14 h-14 tạo thành hình vuông. Khi mở: px-4 và w-full
+                                        effectiveCollapsed ? "justify-center w-14 mx-auto" : "px-4 w-full"
+                                    )}
+                                >
+                                    {/* Active Indicator Background */}
+                                    <AnimatePresence>
+                                        {isActive && (
+                                            <motion.div
+                                                layoutId="active-bg"
+                                                // Sử dụng inset-1.5 để tạo khoảng cách đều 4 cạnh
+                                                className="absolute inset-1.5 bg-primary/10 rounded-xl z-0"
+                                                transition={SPRING_CONFIG}
+                                            />
+                                        )}
+                                    </AnimatePresence>
+
+                                    {/* Icon Container - Đảm bảo luôn nằm giữa và không bị méo */}
+                                    <motion.div
+                                        layout="position"
+                                        className="relative z-10 flex justify-center items-center shrink-0"
+                                        style={{ width: 24, height: 24 }} // Cố định khung icon
+                                    >
+                                        <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                                    </motion.div>
+
+                                    {/* Label */}
+                                    <AnimatePresence mode="popLayout">
+                                        {!effectiveCollapsed && (
+                                            <motion.span
+                                                layout="position"
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, x: -10 }}
+                                                className="relative z-10 ml-4 font-semibold whitespace-nowrap overflow-hidden"
+                                            >
+                                                {item.label}
+                                            </motion.span>
+                                        )}
+                                    </AnimatePresence>
+                                </motion.button>
+                            );
+                        })}
+                    </nav>
+
+                    {/* Footer / Profile - Nâng tầm sự chuyên nghiệp */}
+                    <div className={cn("p-4 border-t border-border mt-auto", effectiveCollapsed ? "flex justify-center" : "")}>
+                        <div className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-blue-400 shrink-0" />
+                            {!effectiveCollapsed && (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="flex flex-col overflow-hidden"
+                                >
+                                    <span className="text-sm font-semibold truncate">Tôn Quỳnh Long</span>
+                                    <span className="text-[10px] text-muted-foreground truncate">Admin</span>
                                 </motion.div>
                             )}
-                        </AnimatePresence>
+                        </div>
                     </div>
-                </div>
-
-                {/* Navigation */}
-                <nav className="flex-grow p-3 space-y-1.5 overflow-y-auto overflow-x-hidden custom-scrollbar">
-                    {navItems.map((item) => {
-                        const isActive = currentView === item.id;
-                        const Icon = item.icon;
-                        return (
-                            <button
-                                key={item.id}
-                                onClick={() => handleNavClick(item.id)}
-                                title={isCollapsed ? item.label : ''}
-                                className={cn(
-                                    "w-full flex items-center gap-3 p-3 rounded-xl text-sm font-semibold transition-colors duration-200 group relative",
-                                    isActive
-                                        ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                                    isCollapsed ? "justify-center px-0" : "px-3"
-                                )}
-                            >
-                                <Icon size={20} className={cn("shrink-0 transition-transform duration-200", !isActive && "group-hover:scale-110")} />
-
-                                <AnimatePresence mode="wait">
-                                    {!isCollapsed && (
-                                        <motion.span
-                                            initial={{ opacity: 0, width: 0 }}
-                                            animate={{ opacity: 1, width: 'auto' }}
-                                            exit={{ opacity: 0, width: 0 }}
-                                            transition={{ duration: 0.2 }}
-                                            className="truncate whitespace-nowrap"
-                                        >
-                                            {item.label}
-                                        </motion.span>
-                                    )}
-                                </AnimatePresence>
-
-                                {isActive && (
-                                    <motion.div
-                                        layoutId="active-pill"
-                                        className="absolute left-0 w-1 h-6 bg-primary-foreground rounded-r-full"
-                                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                                    />
-                                )}
-                            </button>
-                        );
-                    })}
-                </nav>
-            </motion.div>
+                </motion.aside>
+            </LayoutGroup>
         </>
     );
 });

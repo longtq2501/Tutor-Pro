@@ -4,14 +4,18 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Exercise entity representing a test/assignment for students
@@ -22,13 +26,16 @@ import java.util.List;
     @Index(name = "idx_exercise_created_by", columnList = "created_by"),
     @Index(name = "idx_exercise_status", columnList = "status")
 })
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Exercise {
     
     @Id
+    @EqualsAndHashCode.Include
     @Column(length = 36)
     private String id;
     
@@ -91,7 +98,7 @@ public class Exercise {
     @OrderBy("orderIndex ASC")
     @JsonManagedReference
     @Builder.Default
-    private List<Question> questions = new ArrayList<>();
+    private Set<Question> questions = new LinkedHashSet<>();
     
     /**
      * Helper method to add a question to the exercise

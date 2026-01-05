@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -59,7 +59,7 @@ public class ExerciseServiceImpl implements ExerciseService {
                 .status(request.getStatus() != null ? request.getStatus() : ExerciseStatus.DRAFT)
                 .classId(request.getClassId())
                 .createdBy(teacherId)
-                .questions(new ArrayList<>())
+                .questions(new LinkedHashSet<>())
                 .build();
 
         // Create questions
@@ -81,7 +81,8 @@ public class ExerciseServiceImpl implements ExerciseService {
         log.info("Updating exercise: {} by teacher: {}", id, teacherId);
 
         // Find existing exercise
-        Exercise exercise = exerciseRepository.findById(id)
+        // Find existing exercise - OPTIMIZATION: fetch details to properly handle collections
+        Exercise exercise = exerciseRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Exercise not found with id: " + id));
 
         // Verify ownership
@@ -121,7 +122,8 @@ public class ExerciseServiceImpl implements ExerciseService {
     public ExerciseResponse getExercise(String id) {
         log.info("Fetching exercise: {}", id);
 
-        Exercise exercise = exerciseRepository.findById(id)
+        // OPTIMIZATION: Fetch exercise with questions and options eagerly
+        Exercise exercise = exerciseRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Exercise not found with id: " + id));
 
         return mapToExerciseResponse(exercise);
@@ -204,8 +206,8 @@ public class ExerciseServiceImpl implements ExerciseService {
 
         List<Exercise> exercises = exerciseRepository.findAllById(exerciseIds);
         
-        // Fetch submissions for these exercises
-        var submissions = submissionRepository.findByStudentId(studentId);
+        // OPTIMIZATION: Fetch submissions ONLY for these exercises to avoid loading entire history
+        var submissions = submissionRepository.findByStudentIdAndExerciseIdIn(studentId, exerciseIds);
         Map<String, com.tutor_management.backend.modules.submission.domain.Submission> submissionMap = submissions.stream()
                 .collect(Collectors.toMap(com.tutor_management.backend.modules.submission.domain.Submission::getExerciseId, s -> s, (s1, s2) -> s1));
 
@@ -247,7 +249,7 @@ public class ExerciseServiceImpl implements ExerciseService {
                 .points(request.getPoints())
                 .orderIndex(request.getOrderIndex())
                 .rubric(request.getRubric())
-                .options(new ArrayList<>())
+                .options(new LinkedHashSet<>())
                 .build();
 
         // Add options for MCQ questions

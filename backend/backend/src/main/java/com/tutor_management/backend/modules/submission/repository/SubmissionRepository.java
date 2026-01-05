@@ -8,6 +8,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 /**
  * Repository for Submission entity
  */
@@ -43,4 +46,15 @@ public interface SubmissionRepository extends JpaRepository<Submission, String> 
      * Count submissions by exercise ID and status
      */
     long countByExerciseIdAndStatus(String exerciseId, SubmissionStatus status);
+
+    /**
+     * Find submission by ID with answers eagerly fetched
+     */
+    @Query("SELECT s FROM Submission s LEFT JOIN FETCH s.answers WHERE s.id = :id")
+    Optional<Submission> findByIdWithAnswers(@Param("id") String id);
+
+    /**
+     * Find submissions by student ID and a list of exercise IDs
+     */
+    List<Submission> findByStudentIdAndExerciseIdIn(String studentId, List<String> exerciseIds);
 }

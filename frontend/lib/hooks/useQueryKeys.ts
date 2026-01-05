@@ -18,4 +18,9 @@ export const queryKeys = {
         all: ['students'] as const,
         detail: (id: number) => [...queryKeys.students.all, 'detail', id] as const,
     },
+    exercises: {
+        all: ['exercises'] as const,
+        assigned: () => [...queryKeys.exercises.all, 'assigned'] as const,
+        byId: (id: string) => [...queryKeys.exercises.all, 'detail', id] as const,
+    },
 };

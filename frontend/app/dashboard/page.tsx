@@ -198,6 +198,20 @@ function AppContent() {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const { user, logout, hasAnyRole } = useAuth();
 
+    // Auto-collapse logic for tablets
+    React.useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth >= 768 && window.innerWidth < 1024) {
+                setIsCollapsed(true);
+            } else if (window.innerWidth >= 1024) {
+                setIsCollapsed(false);
+            }
+        };
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     // Sync state to URL when currentView changes
     React.useEffect(() => {
         const params = new URLSearchParams(window.location.search);

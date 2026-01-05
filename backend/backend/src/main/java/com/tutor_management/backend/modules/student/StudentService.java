@@ -127,6 +127,7 @@ public class StudentService {
         // Add account info (already loaded in batch)
         if (user != null) {
             response.setAccountEmail(user.getEmail());
+            response.setAccountId(user.getId().toString());
         }
 
         return response;
@@ -313,6 +314,7 @@ public class StudentService {
         List<User> users = userRepository.findByStudentId(student.getId());
         if (!users.isEmpty()) {
             response.setAccountEmail(users.get(0).getEmail());
+            response.setAccountId(users.get(0).getId().toString());
         }
 
         return response;

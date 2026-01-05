@@ -4,9 +4,11 @@ import {
     AlertCircle,
     BookCheck, BookOpen,
     CalendarDays,
+    ClipboardList,
     FileText,
     GraduationCap, LayoutDashboard,
     LogOut,
+    Menu,
     TrendingUp
 } from 'lucide-react';
 import React, { useCallback, useMemo, useState } from 'react';
@@ -57,9 +59,10 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
-import { UIProvider } from '@/contexts/UIContext';
+import { UIProvider, useUI } from '@/contexts/UIContext';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import ExerciseDashboard from '@/features/exercises/exercise-dashboard';
 
 // ============================================================================
 // MEMOIZED SUB-COMPONENTS FOR RENDERING ISOLATION
@@ -71,52 +74,66 @@ const AppHeader = React.memo(({ title, user, initials, roleBadge, logout }: {
     initials: string;
     roleBadge: any;
     logout: () => void;
-}) => (
-    <header className="border-b border-border bg-background/50 backdrop-blur-sm sticky top-0 z-20">
-        <div className="flex items-center justify-between h-14 lg:h-16 px-4 lg:px-6">
-            <div className="flex-1 min-w-0 pl-12 lg:pl-0">
-                <h1 className="text-base sm:text-lg lg:text-2xl font-bold text-foreground truncate">{title}</h1>
-                <p className="text-xs lg:text-sm text-muted-foreground hidden lg:block truncate">
-                    Chào mừng trở lại, {user?.fullName}.
-                </p>
+}) => {
+    const { setSidebarOpen } = useUI();
+
+    return (
+        <header className="border-b border-border bg-background/50 backdrop-blur-sm sticky top-0 z-20">
+            <div className="flex items-center justify-between h-14 lg:h-16 px-4 lg:px-6">
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="lg:hidden h-9 w-9"
+                        onClick={() => setSidebarOpen(true)}
+                    >
+                        <Menu className="h-5 w-5" />
+                    </Button>
+                    <div className="min-w-0">
+                        <h1 className="text-base sm:text-lg lg:text-2xl font-bold text-foreground truncate">{title}</h1>
+                        <p className="text-xs lg:text-sm text-muted-foreground hidden lg:block truncate">
+                            Chào mừng trở lại, {user?.fullName}.
+                        </p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
+                    <ModeToggle />
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="relative h-8 w-8 lg:h-10 lg:w-10 rounded-full">
+                                <Avatar className="h-8 w-8 lg:h-10 lg:w-10">
+                                    <AvatarFallback className="bg-primary text-primary-foreground text-xs lg:text-base">
+                                        {initials}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56" align="end" forceMount>
+                            <DropdownMenuLabel className="font-normal">
+                                <div className="flex flex-col space-y-1">
+                                    <p className="text-sm font-medium leading-none">{user?.fullName}</p>
+                                    <p className="text-xs leading-none text-muted-foreground truncate">
+                                        {user?.email}
+                                    </p>
+                                    {roleBadge && (
+                                        <span className={`inline-flex items-center px-2 py-1 mt-2 rounded-full text-xs font-medium ${roleBadge.color}`}>
+                                            {roleBadge.label}
+                                        </span>
+                                    )}
+                                </div>
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => logout()} className="text-red-600 dark:text-red-400 cursor-pointer">
+                                <LogOut className="mr-2 h-4 w-4" />
+                                <span>Đăng xuất</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
-            <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
-                <ModeToggle />
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="relative h-8 w-8 lg:h-10 lg:w-10 rounded-full">
-                            <Avatar className="h-8 w-8 lg:h-10 lg:w-10">
-                                <AvatarFallback className="bg-primary text-primary-foreground text-xs lg:text-base">
-                                    {initials}
-                                </AvatarFallback>
-                            </Avatar>
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56" align="end" forceMount>
-                        <DropdownMenuLabel className="font-normal">
-                            <div className="flex flex-col space-y-1">
-                                <p className="text-sm font-medium leading-none">{user?.fullName}</p>
-                                <p className="text-xs leading-none text-muted-foreground truncate">
-                                    {user?.email}
-                                </p>
-                                {roleBadge && (
-                                    <span className={`inline-flex items-center px-2 py-1 mt-2 rounded-full text-xs font-medium ${roleBadge.color}`}>
-                                        {roleBadge.label}
-                                    </span>
-                                )}
-                            </div>
-                        </DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => logout()} className="text-red-600 dark:text-red-400 cursor-pointer">
-                            <LogOut className="mr-2 h-4 w-4" />
-                            <span>Đăng xuất</span>
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
-        </div>
-    </header>
-));
+        </header>
+    );
+});
 AppHeader.displayName = 'AppHeader';
 
 
@@ -142,6 +159,9 @@ const MainContentSwitcher = React.memo(({ currentView, hasAnyRole }: {
                 {(currentView === 'students' || currentView === 'parents') && hasAnyRole(['ADMIN', 'TUTOR']) && <UnifiedStudentView />}
                 {currentView === 'monthly' && hasAnyRole(['ADMIN', 'TUTOR']) && <MonthlyView />}
                 {currentView === 'calendar' && hasAnyRole(['ADMIN', 'TUTOR']) && <CalendarView />}
+
+                {/* New Exercise Dashboard */}
+                {currentView === 'exercises' && <ExerciseDashboard />}
 
                 {/* Admin/Tutor Lesson Manager */}
                 {currentView === 'lessons' && hasAnyRole(['ADMIN', 'TUTOR']) && <AdminLessonManager />}
@@ -211,6 +231,7 @@ function AppContent() {
             { id: 'calendar', label: 'Lịch Dạy', icon: CalendarDays },
             { id: 'lessons', label: 'Bài Giảng', icon: BookOpen },
             { id: 'homework', label: 'Bài Tập', icon: BookCheck },
+            { id: 'exercises', label: 'Khảo thí', icon: ClipboardList },
             { id: 'unpaid', label: 'Công Nợ', icon: AlertCircle },
             { id: 'documents', label: 'Tài Liệu', icon: FileText },
         ];

@@ -6,30 +6,18 @@
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/DocumentRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/DocumentRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecord.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecord.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/dto/request/SessionRecordRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/dto/request/SessionRecordRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/dto/request/SessionRecordUpdateRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/dto/request/SessionRecordUpdateRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/dto/response/SessionRecordResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/dto/response/SessionRecordResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/LessonDetailModal.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/components/StatCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/components/StatCard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/components/WelcomeSection.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/components/WelcomeSection.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/hooks/useDashboardData.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/hooks/useDashboardData.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/types/dashboard.types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/types/dashboard.types.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-preview-modal/components/ModalHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-preview-modal/components/ModalHeader.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-preview-modal/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-preview-modal/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lesson-view-wrapper/hooks/useLessonModal.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lesson-view-wrapper/hooks/useLessonModal.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lesson-view-wrapper/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lesson-view-wrapper/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/students/unified-view/components/AddSessionModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/unified-view/components/AddSessionModal.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/services/dashboard.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/dashboard.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/types/finance.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/types/finance.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/shared/CloudinaryService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/shared/CloudinaryService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/student/StudentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/student/StudentService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/student/dto/response/StudentResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/student/dto/response/StudentResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/dashboard/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/Sidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/Sidebar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-library/constants.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-library/constants.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-library/hooks/useDocumentLibrary.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-library/hooks/useDocumentLibrary.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-detail/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-detail/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-view/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-view/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/types/student.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/types/student.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/utils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/utils.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,6 +49,10 @@
     &quot;accountId&quot;: &quot;737b3edf-d20a-46b6-9e6d-bbc4dbbba437&quot;
   }
 }</component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 0
@@ -81,14 +73,18 @@
     &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
     &quot;Notification.DisplayName-DoNotAsk-DatabaseConfigFileWatcher.found&quot;: &quot;Database connection parameters found&quot;,
     &quot;Notification.DoNotAsk-DatabaseConfigFileWatcher.found&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
     &quot;extract.method.default.visibility&quot;: &quot;private&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/tutor-management&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/long-personal-project/Tutor-Management&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -97,7 +93,8 @@
     &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
     &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;MavenSettings&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;CodeWithMe&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
     &quot;ts.external.directory.path&quot;: &quot;D:\\tutor-management\\frontend\\node_modules\\typescript\\lib&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
@@ -141,8 +138,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-fbdcb00ec9e3-intellij.indexing.shared.core-IU-251.25410.129" />
-        <option value="bundled-js-predefined-d6986cc7102b-6a121458b545-JavaScript-IU-251.25410.129" />
+        <option value="bundled-jdk-30f59d01ecdd-26cb7f24e5b0-intellij.indexing.shared.core-IU-253.29346.138" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.29346.138" />
       </set>
     </attachedChunks>
   </component>
@@ -187,6 +184,11 @@
       <workItem from="1767369652035" duration="2065000" />
       <workItem from="1767409496037" duration="1067000" />
       <workItem from="1767430936476" duration="3429000" />
+      <workItem from="1767531183747" duration="235000" />
+      <workItem from="1767531448003" duration="940000" />
+      <workItem from="1767532404299" duration="943000" />
+      <workItem from="1767540365273" duration="6197000" />
+      <workItem from="1767590387636" duration="5983000" />
     </task>
     <servers />
   </component>
@@ -203,5 +205,9 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>

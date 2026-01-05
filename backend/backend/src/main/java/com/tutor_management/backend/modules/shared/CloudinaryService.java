@@ -25,10 +25,16 @@ public class CloudinaryService {
         try {
             String publicId = UUID.randomUUID().toString();
 
+            String resourceType = "auto";
+            if ("application/pdf".equals(file.getContentType())) {
+                resourceType = "raw";
+                publicId += ".pdf";
+            }
+
             Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
                     ObjectUtils.asMap(
                             "public_id", publicId,
-                            "resource_type", "auto",
+                            "resource_type", resourceType,
                             "folder", folder,
                             "type", "upload",
                             "access_mode", "public"));

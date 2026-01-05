@@ -3,14 +3,18 @@
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-    ChevronsLeft,
+    ChevronLeft,
+    ChevronRight,
     GraduationCap,
+    LayoutDashboard,
+    LogOut,
     Menu,
-    X
+    X,
 } from 'lucide-react';
-import React, { memo } from 'react';
+import React, { useEffect, useState, memo } from 'react';
+import { useUI } from '@/contexts/UIContext';
 
-export type View = 'dashboard' | 'students' | 'monthly' | 'documents' | 'parents' | 'unpaid' | 'calendar' | 'homework' | 'lessons';
+export type View = 'dashboard' | 'students' | 'monthly' | 'documents' | 'parents' | 'unpaid' | 'calendar' | 'homework' | 'lessons' | 'exercises';
 export type NavItem = {
     id: View;
     label: string;
@@ -26,33 +30,35 @@ interface SidebarProps {
 }
 
 export const Sidebar = memo(({ currentView, setCurrentView, navItems, isCollapsed, setIsCollapsed }: SidebarProps) => {
-    const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+    const { isSidebarOpen, setSidebarOpen } = useUI();
+
+    // Auto-close sidebar on mobile when window is resized to desktop
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth >= 1024 && isSidebarOpen) {
+                setSidebarOpen(false);
+            }
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [isSidebarOpen, setSidebarOpen]);
 
     const handleNavClick = (view: View) => {
         setCurrentView(view);
-        setMobileMenuOpen(false);
+        setSidebarOpen(false);
     };
 
     return (
         <>
-            {/* Mobile Menu Button */}
-            <button
-                onClick={() => setMobileMenuOpen(true)}
-                className="sidebar-toggle lg:hidden fixed top-2 left-4 z-30 h-10 w-10 rounded-lg bg-background hover:bg-muted border border-border flex items-center justify-center transition-all duration-300 shadow-sm"
-                aria-label="Mở menu"
-            >
-                <Menu size={20} className="text-foreground" />
-            </button>
-
             {/* Mobile Overlay */}
             <AnimatePresence>
-                {mobileMenuOpen && (
+                {isSidebarOpen && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-[2px] z-30"
-                        onClick={() => setMobileMenuOpen(false)}
+                        onClick={() => setSidebarOpen(false)}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
                     />
                 )}
             </AnimatePresence>
@@ -62,14 +68,14 @@ export const Sidebar = memo(({ currentView, setCurrentView, navItems, isCollapse
                 initial={false}
                 animate={{
                     width: isCollapsed ? 80 : 256,
-                    x: mobileMenuOpen ? 0 : (typeof window !== 'undefined' && window.innerWidth < 1024 ? -288 : 0)
+                    x: isSidebarOpen ? 0 : (typeof window !== 'undefined' && window.innerWidth < 1024 ? -288 : 0)
                 }}
-                transition={{ type: 'tween', duration: 0.3, ease: 'easeInOut' }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
                 className={cn(
                     "main-sidebar",
-                    "fixed lg:relative h-screen flex flex-col bg-card dark:bg-card/90 lg:backdrop-blur-none border-r border-border shadow-lg",
-                    "z-40 flex-shrink-0", // Removed overflow-hidden here
-                    "will-change-[width,transform] contain-layout" // Layout Containment & GPU
+                    "fixed lg:relative h-screen flex flex-col bg-card dark:bg-card border-r border-border shadow-2xl lg:shadow-none",
+                    "z-50 flex-shrink-0",
+                    isCollapsed ? "items-center" : "items-stretch"
                 )}
             >
                 {/* Desktop collapse button - Positioned outside the sidebar edge */}
@@ -83,13 +89,13 @@ export const Sidebar = memo(({ currentView, setCurrentView, navItems, isCollapse
                         transition={{ duration: 0.3 }}
                         className="flex items-center justify-center"
                     >
-                        <ChevronsLeft size={18} className="transition-transform group-hover:scale-110" />
+                        <ChevronLeft size={18} className="transition-transform group-hover:scale-110" />
                     </motion.div>
                 </button>
 
                 {/* Mobile close button */}
                 <button
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={() => setSidebarOpen(false)}
                     className="lg:hidden absolute right-4 top-4 p-2 hover:bg-muted rounded-lg transition-colors"
                     aria-label="Đóng menu"
                 >

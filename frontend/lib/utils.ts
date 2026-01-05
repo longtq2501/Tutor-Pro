@@ -12,3 +12,12 @@ export function formatCurrency(amount: number): string {
     currency: 'VND',
   }).format(amount);
 }
+
+export function formatExerciseTitle(title: string): string {
+  if (!title) return '';
+  return title
+    .replace(/([^\n])\s*(Mô tả:)/g, '$1\n$2')
+    .replace(/([^\n])\s*(Thời gian:)/g, '$1\n$2')
+    .replace(/([^\n])\s*(Tổng điểm:)/g, '$1\n$2')
+    .trim();
+}

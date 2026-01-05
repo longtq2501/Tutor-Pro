@@ -6,7 +6,6 @@
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -64,9 +63,9 @@ export default function TutorHomeworkDetailDialog({
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <DialogTitle className="text-2xl">{homework.title}</DialogTitle>
-              <DialogDescription className="mt-2">
+              <div className="mt-2 text-sm text-muted-foreground">
                 {getStatusBadge(homework.status)}
-              </DialogDescription>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" onClick={() => onDelete(homework.id)}>

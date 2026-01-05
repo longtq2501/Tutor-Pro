@@ -37,6 +37,7 @@ export interface Student {
   parentEmail?: string; // EMAIL PHỤ HUYNH (DÙNG ĐỂ GỬI HÓA ĐƠN)
   parentPhone?: string; // SĐT PHỤ HUYNH (DÙNG ĐỂ LIÊN HỆ)
   accountEmail?: string; // EMAIL TÀI KHOẢN ĐĂNG NHẬP
+  accountId?: string; // ID TÀI KHOẢN (USER ID)
 }
 
 export interface StudentRequest {

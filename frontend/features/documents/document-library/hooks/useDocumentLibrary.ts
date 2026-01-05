@@ -1,9 +1,8 @@
 // ============================================================================
 // FILE: document-library/hooks/useDocumentLibrary.ts
 // ============================================================================
-import { documentsApi } from '@/lib/services';
+import { useMasterDocuments } from '@/features/documents/hooks/useMasterDocuments';
 import type { Document, DocumentCategory } from '@/lib/types';
-import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { formatFileSize } from '../utils';
 
@@ -20,16 +19,12 @@ export const useDocumentLibrary = () => {
   }, [searchQuery]);
 
   // 1. Single source of truth (Cache all docs)
+  // 1. Single source of truth (Cache all docs)
   const {
     data: allDocuments = [],
     isLoading: loading,
     refetch: loadDocuments
-  } = useQuery({
-    queryKey: ['documents'],
-    queryFn: async () => (await documentsApi.getAll()) as unknown as Document[],
-    staleTime: 30 * 60 * 1000, // 30 minutes
-    gcTime: 60 * 60 * 1000,
-  });
+  } = useMasterDocuments();
 
   // 2. Client-side filtering (Instant UI updates)
   const categoryDocs = useMemo(() => {

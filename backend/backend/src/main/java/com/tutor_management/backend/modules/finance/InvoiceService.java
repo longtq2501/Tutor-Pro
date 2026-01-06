@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.tutor_management.backend.modules.finance.dto.request.InvoiceRequest;
 import com.tutor_management.backend.modules.finance.dto.response.BankInfo;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class InvoiceService {
 
         private final SessionRecordRepository sessionRecordRepository;
@@ -49,7 +51,8 @@ public class InvoiceService {
 
         // METHOD MỚI: Tạo invoice từ danh sách session IDs (hỗ trợ nhiều tháng)
         private InvoiceResponse generateInvoiceFromSessionIds(InvoiceRequest request) {
-                List<SessionRecord> records = sessionRecordRepository.findAllById(request.getSessionRecordIds());
+                List<SessionRecord> records = sessionRecordRepository
+                                .findAllByIdWithStudent(request.getSessionRecordIds());
 
                 if (records.isEmpty()) {
                         throw new RuntimeException("No sessions found for invoice");
@@ -147,7 +150,8 @@ public class InvoiceService {
                                 : formatMonth(months.iterator().next());
 
                 // Generate invoice number
-                String baseMonth = months.stream().sorted().findFirst().orElse("2024-01");
+                String baseMonth = months.stream().sorted().findFirst()
+                                .orElse(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM")));
                 String invoiceNumber = generateInvoiceNumber(baseMonth);
                 if (isMultipleMonths) {
                         invoiceNumber += "-MULTI";
@@ -380,18 +384,27 @@ public class InvoiceService {
                         // Extract just month numbers for compact display
                         String monthNumbers = months.stream()
                                         .sorted()
-                                        .map(m -> m.split("-")[1])
+                                        .map(m -> {
+                                                if (m != null && m.contains("-")) {
+                                                        String[] parts = m.split("-");
+                                                        return parts.length > 1 ? parts[1] : m;
+                                                }
+                                                return m != null ? m : "??";
+                                        })
                                         .collect(Collectors.joining(", "));
 
-                        String year = months.stream().sorted().findFirst().get().split("-")[0];
+                        String year = months.stream().sorted().findFirst().orElse("2024-01").split("-")[0];
                         return "Tháng " + monthNumbers + "/" + year;
                 }
         }
 
         private String generateInvoiceNumber(String month) {
-                String[] parts = month.split("-");
+                String[] parts = (month != null && month.contains("-")) ? month.split("-")
+                                : new String[] { "0000", "00" };
                 long count = sessionRecordRepository.count();
-                return String.format("INV-%s-%s-%03d", parts[0], parts[1], count + 1);
+                String year = parts[0];
+                String monthNum = parts.length > 1 ? parts[1] : "00";
+                return String.format("INV-%s-%s-%03d", year, monthNum, count + 1);
         }
 
         private String formatDate(LocalDate date) {
@@ -399,7 +412,11 @@ public class InvoiceService {
         }
 
         private String formatMonth(String month) {
+                if (month == null || !month.contains("-"))
+                        return "N/A";
                 String[] parts = month.split("-");
+                if (parts.length < 2)
+                        return month;
                 return String.format("Tháng %s/%s", parts[1], parts[0]);
         }
 

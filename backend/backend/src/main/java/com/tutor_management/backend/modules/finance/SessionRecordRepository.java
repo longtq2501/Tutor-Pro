@@ -158,11 +158,16 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, Lo
                         @Param("student") Student student,
                         @Param("month") String month);
 
-        // ✅ OPTIMIZED: Find by ID with Attachments
         @Query("SELECT sr FROM SessionRecord sr " +
                         "LEFT JOIN FETCH sr.student " +
                         "LEFT JOIN FETCH sr.documents " +
                         "LEFT JOIN FETCH sr.lessons " +
                         "WHERE sr.id = :id")
         java.util.Optional<SessionRecord> findByIdWithAttachments(@Param("id") Long id);
+
+        // ✅ OPTIMIZED: Find multiple by IDs with student (for invoice batch)
+        @Query("SELECT sr FROM SessionRecord sr " +
+                        "LEFT JOIN FETCH sr.student " +
+                        "WHERE sr.id IN :ids")
+        List<SessionRecord> findAllByIdWithStudent(@Param("ids") List<Long> ids);
 }

@@ -360,7 +360,8 @@ public class PDFGeneratorService {
         document.add(new Paragraph(" ").setMarginBottom(15));
     }
 
-    private String formatCurrency(long amount) {
+    private String formatCurrency(Long amount) {
+        if (amount == null) return "0 đ";
         NumberFormat formatter = NumberFormat.getInstance(new Locale("vi", "VN"));
         return formatter.format(amount) + " đ";
     }

@@ -10,7 +10,7 @@ export const useExercises = (classId?: string, status?: ExerciseStatus) => {
     return useQuery({
         queryKey: [...queryKeys.exercises.all, { classId, status }],
         queryFn: () => exerciseService.getAll(classId, status),
-        staleTime: 5 * 60 * 1000, // 5 minutes
+        staleTime: 10 * 1000, // 10 seconds
     });
 };
 
@@ -21,6 +21,6 @@ export const useAssignedExercises = () => {
     return useQuery({
         queryKey: queryKeys.exercises.assigned(),
         queryFn: () => exerciseService.getAssigned(),
-        staleTime: 5 * 60 * 1000, // 5 minutes
+        staleTime: 10 * 1000, // 10 seconds
     });
 };

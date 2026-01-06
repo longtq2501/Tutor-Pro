@@ -57,4 +57,12 @@ public interface SubmissionRepository extends JpaRepository<Submission, String> 
      * Find submissions by student ID and a list of exercise IDs
      */
     List<Submission> findByStudentIdAndExerciseIdIn(String studentId, List<String> exerciseIds);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM StudentAnswer sa WHERE sa.submission.id IN (SELECT s.id FROM Submission s WHERE s.exerciseId = :exerciseId)")
+    void deleteAnswersByExerciseId(@Param("exerciseId") String exerciseId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM Submission s WHERE s.exerciseId = :exerciseId")
+    void deleteSubmissionsByExerciseId(@Param("exerciseId") String exerciseId);
 }

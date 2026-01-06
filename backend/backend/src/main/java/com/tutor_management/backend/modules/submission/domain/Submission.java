@@ -1,5 +1,6 @@
 package com.tutor_management.backend.modules.submission.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.domain.Persistable;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -26,11 +28,21 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Submission {
+public class Submission implements Persistable<String> {
     
     @Id
     @Column(length = 36)
     private String id;
+    
+    @Transient
+    @Builder.Default
+    @JsonIgnore
+    private boolean isNew = true;
+
+    @Override
+    public boolean isNew() {
+        return isNew;
+    }
     
     /**
      * Exercise ID this submission is for
@@ -135,5 +147,11 @@ public class Submission {
         if (id == null) {
             id = java.util.UUID.randomUUID().toString();
         }
+    }
+
+    @PostPersist
+    @PostLoad
+    protected void markNotNew() {
+        this.isNew = false;
     }
 }

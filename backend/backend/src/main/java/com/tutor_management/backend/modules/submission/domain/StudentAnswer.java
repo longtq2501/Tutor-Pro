@@ -1,11 +1,13 @@
 package com.tutor_management.backend.modules.submission.domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Persistable;
 
 /**
  * StudentAnswer entity representing a student's answer to a question
@@ -19,11 +21,21 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class StudentAnswer {
+public class StudentAnswer implements Persistable<String> {
     
     @Id
     @Column(length = 36)
     private String id;
+    
+    @Transient
+    @Builder.Default
+    @JsonIgnore
+    private boolean isNew = true;
+
+    @Override
+    public boolean isNew() {
+        return isNew;
+    }
     
     /**
      * Reference to the submission
@@ -75,5 +87,11 @@ public class StudentAnswer {
         if (id == null) {
             id = java.util.UUID.randomUUID().toString();
         }
+    }
+
+    @PostPersist
+    @PostLoad
+    protected void markNotNew() {
+        this.isNew = false;
     }
 }

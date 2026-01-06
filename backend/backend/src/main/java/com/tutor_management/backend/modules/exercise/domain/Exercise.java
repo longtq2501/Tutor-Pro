@@ -1,5 +1,6 @@
 package com.tutor_management.backend.modules.exercise.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.domain.Persistable;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -32,12 +34,22 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Exercise {
+public class Exercise implements Persistable<String> {
     
     @Id
     @EqualsAndHashCode.Include
     @Column(length = 36)
     private String id;
+    
+    @Transient
+    @Builder.Default
+    @JsonIgnore
+    private boolean isNew = true;
+
+    @Override
+    public boolean isNew() {
+        return isNew;
+    }
     
     @Column(nullable = false, length = 500)
     private String title;
@@ -121,5 +133,11 @@ public class Exercise {
         if (id == null) {
             id = java.util.UUID.randomUUID().toString();
         }
+    }
+
+    @PostPersist
+    @PostLoad
+    protected void markNotNew() {
+        this.isNew = false;
     }
 }

@@ -1,6 +1,7 @@
 package com.tutor_management.backend.modules.exercise.domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,6 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.domain.Persistable;
 
 /**
  * Option entity representing a single option in a multiple choice question
@@ -22,12 +24,22 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Option {
+public class Option implements Persistable<String> {
     
     @Id
     @EqualsAndHashCode.Include
     @Column(length = 36)
     private String id;
+    
+    @Transient
+    @Builder.Default
+    @JsonIgnore
+    private boolean isNew = true;
+
+    @Override
+    public boolean isNew() {
+        return isNew;
+    }
     
     /**
      * Reference to the parent question
@@ -61,5 +73,11 @@ public class Option {
         if (id == null) {
             id = java.util.UUID.randomUUID().toString();
         }
+    }
+
+    @PostPersist
+    @PostLoad
+    protected void markNotNew() {
+        this.isNew = false;
     }
 }

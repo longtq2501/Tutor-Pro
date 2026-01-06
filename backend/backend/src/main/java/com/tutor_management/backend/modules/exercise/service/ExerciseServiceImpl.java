@@ -9,6 +9,7 @@ import com.tutor_management.backend.modules.exercise.dto.request.QuestionRequest
 import com.tutor_management.backend.modules.exercise.dto.response.*;
 import com.tutor_management.backend.modules.exercise.repository.ExerciseAssignmentRepository;
 import com.tutor_management.backend.modules.exercise.repository.ExerciseRepository;
+import com.tutor_management.backend.modules.exercise.repository.OptionRepository;
 import com.tutor_management.backend.modules.exercise.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,7 @@ public class ExerciseServiceImpl implements ExerciseService {
 
     private final ExerciseRepository exerciseRepository;
     private final QuestionRepository questionRepository;
+    private final OptionRepository optionRepository;
     private final ExerciseParserService parserService;
     private final ExerciseAssignmentRepository assignmentRepository;
     private final com.tutor_management.backend.modules.submission.repository.SubmissionRepository submissionRepository;
@@ -134,19 +136,13 @@ public class ExerciseServiceImpl implements ExerciseService {
     public List<ExerciseListItemResponse> listExercises(String classId, ExerciseStatus status) {
         log.info("Listing exercises - classId: {}, status: {}", classId, status);
 
-        List<Exercise> exercises;
-
         if (classId != null && status != null) {
-            exercises = exerciseRepository.findByClassIdAndStatusOrderByCreatedAtDesc(classId, status);
+            return exerciseRepository.findByClassIdAndStatusOptimized(classId, status);
         } else if (classId != null) {
-            exercises = exerciseRepository.findByClassIdOrderByCreatedAtDesc(classId);
+            return exerciseRepository.findByClassIdOptimized(classId);
         } else {
-            exercises = exerciseRepository.findAll();
+            return exerciseRepository.findAllOptimized();
         }
-
-        return exercises.stream()
-                .map(this::mapToListItemResponse)
-                .collect(Collectors.toList());
     }
 
     @Override
@@ -162,6 +158,18 @@ public class ExerciseServiceImpl implements ExerciseService {
             throw new SecurityException("You don't have permission to delete this exercise");
         }
 
+        // 1. Bulk delete Submissions and Answers
+        submissionRepository.deleteAnswersByExerciseId(id);
+        submissionRepository.deleteSubmissionsByExerciseId(id);
+
+        // 2. Bulk delete Assignments
+        assignmentRepository.deleteByExerciseId(id);
+
+        // 3. Bulk delete Options and Questions
+        optionRepository.deleteByExerciseId(id);
+        questionRepository.deleteByExerciseId(id);
+
+        // 4. Finally delete the Exercise itself
         exerciseRepository.delete(exercise);
         log.info("Exercise deleted successfully: {}", id);
     }

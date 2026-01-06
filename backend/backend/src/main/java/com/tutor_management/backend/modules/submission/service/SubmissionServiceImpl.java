@@ -81,10 +81,50 @@ public class SubmissionServiceImpl implements SubmissionService {
             submission.addAnswer(answer);
         }
         
-        Submission savedSubmission = submissionRepository.save(submission);
+        Submission savedSubmission = saveDraftEntity(request, studentId);
         log.info("Draft saved successfully: {}", savedSubmission.getId());
         
         return mapToSubmissionResponse(savedSubmission);
+    }
+
+    /**
+     * Internal version of saveDraft that returns the entity instead of DTO
+     */
+    private Submission saveDraftEntity(CreateSubmissionRequest request, String studentId) {
+        log.info("Saving draft entity for exercise: {} by student: {}", request.getExerciseId(), studentId);
+        
+        // Check if submission already exists
+        Submission submission = submissionRepository
+            .findByExerciseIdAndStudentId(request.getExerciseId(), studentId)
+            .orElse(null);
+        
+        if (submission == null) {
+            // Create new submission
+            submission = Submission.builder()
+                .id(UUID.randomUUID().toString())
+                .exerciseId(request.getExerciseId())
+                .studentId(studentId)
+                .status(SubmissionStatus.DRAFT)
+                .answers(new ArrayList<>())
+                .build();
+        } else {
+            // Clear existing answers
+            submission.getAnswers().clear();
+        }
+        
+        // Add answers
+        for (AnswerRequest answerReq : request.getAnswers()) {
+            StudentAnswer answer = StudentAnswer.builder()
+                .id(UUID.randomUUID().toString())
+                .submission(submission)
+                .questionId(answerReq.getQuestionId())
+                .selectedOption(answerReq.getSelectedOption())
+                .essayText(answerReq.getEssayText())
+                .build();
+            submission.addAnswer(answer);
+        }
+        
+        return submissionRepository.save(submission);
     }
     
     @Override
@@ -92,21 +132,18 @@ public class SubmissionServiceImpl implements SubmissionService {
     public SubmissionResponse submit(CreateSubmissionRequest request, String studentId) {
         log.info("Submitting exercise: {} by student: {}", request.getExerciseId(), studentId);
         
-        // Save or update the submission first
-        SubmissionResponse draftResponse = saveDraft(request, studentId);
+        // 1. Prepare the submission entity (in-memory update)
+        Submission submission = saveDraftEntity(request, studentId);
         
-        // Fetch the submission
-        Submission submission = submissionRepository.findById(draftResponse.getId())
-            .orElseThrow(() -> new ResourceNotFoundException("Submission not found"));
-        
-        // Update status to SUBMITTED
+        // 2. Update status and timestamp
         submission.setStatus(SubmissionStatus.SUBMITTED);
         submission.setSubmittedAt(LocalDateTime.now());
         
-        // Auto-grade MCQ questions
-        int mcqScore = autoGradingService.gradeSubmission(submission.getId());
-        log.info("Auto-grading completed. MCQ Score: {}", mcqScore);
+        // 3. Auto-grade MCQ questions using the in-memory submission object
+        // AutoGradingService.gradeSubmission(submission) will update the submission fields
+        autoGradingService.gradeSubmission(submission);
         
+        // 4. Save once (this will perform batched updates for answers and 1 update for submission)
         Submission submittedSubmission = submissionRepository.save(submission);
         log.info("Submission completed: {}", submittedSubmission.getId());
         
@@ -255,14 +292,24 @@ public class SubmissionServiceImpl implements SubmissionService {
             .map(this::mapToAnswerResponse)
             .collect(Collectors.toList());
         
+        // OPTIMIZATION: Check if studentId is available and fetch name once
+        String studentName = null;
+        if (submission.getStudentId() != null) {
+            try {
+                // If this is a student making their own submission, we could potentially avoid this call 
+                // if we had the user context, but for consistency we check the repo.
+                // However, findById is usually fast/cached.
+                studentName = userRepository.findById(Long.parseLong(submission.getStudentId()))
+                    .map(User::getFullName)
+                    .orElse("Unknown Student");
+            } catch (NumberFormatException ignored) {}
+        }
+
         return SubmissionResponse.builder()
             .id(submission.getId())
             .exerciseId(submission.getExerciseId())
             .studentId(submission.getStudentId())
-            .studentName(submission.getStudentId() != null ? 
-                userRepository.findById(Long.parseLong(submission.getStudentId()))
-                    .map(User::getFullName)
-                    .orElse("Unknown Student") : null)
+            .studentName(studentName)
             .status(submission.getStatus())
             .mcqScore(submission.getMcqScore())
             .essayScore(submission.getEssayScore())

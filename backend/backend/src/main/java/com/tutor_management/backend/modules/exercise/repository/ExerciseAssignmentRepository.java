@@ -17,4 +17,8 @@ public interface ExerciseAssignmentRepository extends JpaRepository<ExerciseAssi
     Optional<ExerciseAssignment> findByExerciseIdAndStudentId(String exerciseId, String studentId);
     
     List<ExerciseAssignment> findByAssignedBy(String assignedBy);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM ExerciseAssignment ea WHERE ea.exerciseId = :exerciseId")
+    void deleteByExerciseId(@org.springframework.data.repository.query.Param("exerciseId") String exerciseId);
 }

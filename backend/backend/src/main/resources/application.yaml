@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:mysql://yamanote.proxy.rlwy.net:28075/railway
+    url: jdbc:mysql://yamanote.proxy.rlwy.net:28075/railway?rewriteBatchedStatements=true
     username: root
     password: ZxcrDghnhFCiDFGmyxcNpNeDAWwkjhMC
     driver-class-name: com.mysql.cj.jdbc.Driver

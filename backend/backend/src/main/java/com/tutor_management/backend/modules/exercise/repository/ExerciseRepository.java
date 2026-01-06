@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import com.tutor_management.backend.modules.exercise.dto.response.ExerciseListItemResponse;
 
 /**
  * Repository for Exercise entity
@@ -41,12 +42,35 @@ public interface ExerciseRepository extends JpaRepository<Exercise, String> {
      */
     List<Exercise> findByClassIdOrderByCreatedAtDesc(String classId);
 
-    /**
-     * Find exercise with questions and options eagerly fetched
-     */
     @Query("SELECT DISTINCT e FROM Exercise e " +
            "LEFT JOIN FETCH e.questions q " +
            "LEFT JOIN FETCH q.options " +
            "WHERE e.id = :id")
     Optional<Exercise> findByIdWithDetails(@Param("id") String id);
+
+    /**
+     * Optimized query to fetch exercise metadata and question count in one go
+     */
+    @Query("SELECT new com.tutor_management.backend.modules.exercise.dto.response.ExerciseListItemResponse(" +
+           "e.id, e.title, e.description, e.totalPoints, e.timeLimit, e.deadline, e.status, " +
+           "CAST(SIZE(e.questions) AS integer), CAST(0 AS integer), e.createdAt) " +
+           "FROM Exercise e " +
+           "ORDER BY e.createdAt DESC")
+    List<ExerciseListItemResponse> findAllOptimized();
+
+    @Query("SELECT new com.tutor_management.backend.modules.exercise.dto.response.ExerciseListItemResponse(" +
+           "e.id, e.title, e.description, e.totalPoints, e.timeLimit, e.deadline, e.status, " +
+           "CAST(SIZE(e.questions) AS integer), CAST(0 AS integer), e.createdAt) " +
+           "FROM Exercise e " +
+           "WHERE e.classId = :classId " +
+           "ORDER BY e.createdAt DESC")
+    List<ExerciseListItemResponse> findByClassIdOptimized(@Param("classId") String classId);
+
+    @Query("SELECT new com.tutor_management.backend.modules.exercise.dto.response.ExerciseListItemResponse(" +
+           "e.id, e.title, e.description, e.totalPoints, e.timeLimit, e.deadline, e.status, " +
+           "CAST(SIZE(e.questions) AS integer), CAST(0 AS integer), e.createdAt) " +
+           "FROM Exercise e " +
+           "WHERE e.classId = :classId AND e.status = :status " +
+           "ORDER BY e.createdAt DESC")
+    List<ExerciseListItemResponse> findByClassIdAndStatusOptimized(@Param("classId") String classId, @Param("status") ExerciseStatus status);
 }

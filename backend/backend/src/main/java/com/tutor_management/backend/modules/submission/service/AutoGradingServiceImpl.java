@@ -38,8 +38,16 @@ public class AutoGradingServiceImpl implements AutoGradingService {
         Submission submission = submissionRepository.findById(submissionId)
             .orElseThrow(() -> new ResourceNotFoundException("Submission not found with id: " + submissionId));
         
-        // Fetch all questions for this exercise
-        List<Question> questions = questionRepository.findByExerciseIdOrderByOrderIndex(submission.getExerciseId());
+        return gradeSubmission(submission);
+    }
+
+    @Transactional
+    @Override
+    public int gradeSubmission(Submission submission) {
+        log.info("Auto-grading submission object: {}", submission.getId());
+
+        // Fetch all questions for this exercise with details (JOIN FETCH) to avoid N+1
+        List<Question> questions = questionRepository.findByExerciseIdWithDetails(submission.getExerciseId());
         
         // Build a map of questionId -> correct answer for MCQ questions
         Map<String, String> correctAnswers = new HashMap<>();
@@ -48,11 +56,13 @@ public class AutoGradingServiceImpl implements AutoGradingService {
         for (Question question : questions) {
             if (question.getType() == QuestionType.MCQ) {
                 // Find the correct option
-                for (Option option : question.getOptions()) {
-                    if (option.getIsCorrect()) {
-                        correctAnswers.put(question.getId(), option.getLabel());
-                        questionPoints.put(question.getId(), question.getPoints());
-                        break;
+                if (question.getOptions() != null) {
+                    for (Option option : question.getOptions()) {
+                        if (option.getIsCorrect()) {
+                            correctAnswers.put(question.getId(), option.getLabel());
+                            questionPoints.put(question.getId(), question.getPoints());
+                            break;
+                        }
                     }
                 }
             }
@@ -87,6 +97,9 @@ public class AutoGradingServiceImpl implements AutoGradingService {
         submission.setMcqScore(mcqScore);
         submission.calculateTotalScore();
         
+        // Optimization: We don't save here if we're called from SubmissionServiceImpl's submit() 
+        // to avoid redundant updates if submit() is going to save anyway.
+        // However, for safety and backward compatibility, we save if the transaction is already active.
         submissionRepository.save(submission);
         
         log.info("Auto-grading completed. MCQ Score: {}", mcqScore);

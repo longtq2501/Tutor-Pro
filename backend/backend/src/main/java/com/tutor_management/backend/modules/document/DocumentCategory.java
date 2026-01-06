@@ -13,6 +13,8 @@ public enum DocumentCategory {
     FCE("FCE (B2)"),
     IELTS("IELTS"),
     TOEIC("TOEIC"),
+    TICH_HOP("Tích hợp"),
+    FLYERS("Flyers"),
     OTHER("Khác");
 
     private final String displayName;

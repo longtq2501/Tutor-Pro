@@ -27,6 +27,7 @@ export function ModalFooter({
                 {mode === 'view' ? (
                     <>
                         <Button
+                            type="button"
                             variant="ghost"
                             onClick={() => setConfirmDeleteOpen(true)}
                             className="h-10 w-10 p-0 rounded-xl text-red-500 hover:bg-red-500/10 shrink-0"

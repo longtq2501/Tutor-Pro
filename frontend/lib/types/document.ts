@@ -1,7 +1,7 @@
-export type DocumentCategory = 
+export type DocumentCategory =
   | 'GRAMMAR' | 'VOCABULARY' | 'READING' | 'LISTENING'
   | 'SPEAKING' | 'WRITING' | 'EXERCISES' | 'EXAM'
-  | 'PET' | 'FCE' | 'IELTS' | 'TOEIC' | 'OTHER'; // PHÂN LOẠI TÀI LIỆU HỌC TẬP
+  | 'PET' | 'FCE' | 'IELTS' | 'TOEIC' | 'TICH_HOP' | 'FLYERS' | 'OTHER'; // PHÂN LOẠI TÀI LIỆU HỌC TẬP
 
 export interface Document {
   id: number; // ID TÀI LIỆU

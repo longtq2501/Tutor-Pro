@@ -29,18 +29,24 @@ public class CourseService {
     private final LessonRepository lessonRepository;
     private final UserRepository userRepository;
 
-    // ✅ OPTIMIZED: Use Projection to reduce memory usage by 60%
+    // ✅ PERFORMANCE: Cache course list for 5 minutes
+    @org.springframework.cache.annotation.Cacheable(value = "courseList")
+    @Transactional(readOnly = true)
     public List<CourseListProjection> getAllCourses() {
         return courseRepository.findAllCoursesProjection();
     }
 
-    // ✅ OPTIMIZED: Use @EntityGraph method to prevent N+1 queries
+    // ✅ PERFORMANCE: Cache individual course details
+    @org.springframework.cache.annotation.Cacheable(value = "courseDetail", key = "#id")
+    @Transactional(readOnly = true)
     public CourseDetailResponse getCourseById(Long id) {
         Course course = courseRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found: " + id));
         return CourseDetailResponse.fromEntity(course);
     }
 
+    // ✅ PERFORMANCE: Evict course caches when creating new course
+    @org.springframework.cache.annotation.CacheEvict(value = {"courseList", "courseDetail"}, allEntries = true)
     public CourseResponse createCourse(CourseRequest request, User tutor) {
         Course course = Course.builder()
                 .title(request.getTitle())
@@ -62,6 +68,8 @@ public class CourseService {
         return CourseResponse.fromEntity(savedCourse);
     }
 
+    // ✅ PERFORMANCE: Evict caches when updating course
+    @org.springframework.cache.annotation.CacheEvict(value = {"courseList", "courseDetail"}, allEntries = true)
     public CourseResponse updateCourse(Long id, CourseRequest request) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found: " + id));
@@ -111,6 +119,8 @@ public class CourseService {
         }
     }
 
+    // ✅ PERFORMANCE: Evict caches when deleting course
+    @org.springframework.cache.annotation.CacheEvict(value = {"courseList", "courseDetail"}, allEntries = true)
     public void deleteCourse(Long id) {
         if (!courseRepository.existsById(id)) {
             throw new ResourceNotFoundException("Course not found: " + id);

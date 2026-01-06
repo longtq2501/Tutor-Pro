@@ -22,8 +22,10 @@ public class DashboardService {
     private final StudentRepository studentRepository;
     private final SessionRecordRepository sessionRecordRepository;
     private final com.tutor_management.backend.modules.document.DocumentRepository documentRepository; // Inject
-                                                                                                       // DocumentRepository
+                                                                                                        // DocumentRepository
 
+    // ✅ PERFORMANCE: Cache dashboard stats for 2 minutes
+    @org.springframework.cache.annotation.Cacheable(value = "dashboardStats", key = "#currentMonth")
     public DashboardStats getDashboardStats(String currentMonth) {
         // 1. Lấy dữ liệu thô từ Repository (Hàm này bạn đã tối ưu SQL)
         DashboardStats stats = sessionRecordRepository.getFinanceSummary(currentMonth);
@@ -130,6 +132,8 @@ public class DashboardService {
         return "Khởi đầu tốt! Hãy tiếp tục phát huy.";
     }
 
+    // ✅ PERFORMANCE: Cache monthly stats for 5 minutes
+    @org.springframework.cache.annotation.Cacheable(value = "monthlyStats")
     public List<MonthlyStats> getMonthlyStats() {
         return sessionRecordRepository.findAllMonthlyStatsAggregated();
     }

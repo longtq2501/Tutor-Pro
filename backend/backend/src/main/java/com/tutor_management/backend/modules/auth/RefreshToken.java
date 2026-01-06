@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 
 @Entity
-@Table(name = "refresh_tokens")
+@Table(name = "refresh_tokens",
+       uniqueConstraints = @UniqueConstraint(columnNames = "user_id"))  // ✅ Explicit constraint
 @Data
 @Builder
 @NoArgsConstructor
@@ -23,7 +24,8 @@ public class RefreshToken {
     @Column(nullable = false, unique = true)
     private String token;
 
-    @OneToOne
+    // ✅ CHANGE: @ManyToOne instead of @OneToOne to support future multi-device
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;
 

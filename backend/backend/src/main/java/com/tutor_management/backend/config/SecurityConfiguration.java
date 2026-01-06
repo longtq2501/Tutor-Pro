@@ -89,7 +89,9 @@ public class SecurityConfiguration {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        // ✅ TEMPORARY: Reduce from 10 → 8 for testing
+        // In production, use 10-12 with proper connection pool sizing
+        return new BCryptPasswordEncoder(8);
     }
 
     @Bean

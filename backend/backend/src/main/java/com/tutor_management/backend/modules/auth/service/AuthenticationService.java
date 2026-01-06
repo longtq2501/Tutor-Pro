@@ -52,23 +52,21 @@ public class AuthenticationService {
     @Transactional
     public AuthResponse login(LoginRequest request) {
         // 1. Authenticate user
-        authenticationManager.authenticate(
+        // authenticationManager.authenticate already calls UserDetailsService.loadUserByUsername()
+        var authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
                         request.getPassword()
                 )
         );
 
-        // 2. Get user
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // 🔥 FIX: Xóa sạch Refresh Token cũ của User này trước khi tạo cái mới
-        // Điều này giúp tránh lỗi Duplicate Key trong Database
-        refreshTokenService.deleteByUserId(user.getId());
+        // 2. Get user from authentication principal (instead of another DB lookup)
+        User user = (User) authentication.getPrincipal();
 
         // 3. Generate tokens
         String accessToken = jwtService.generateToken(user);
+        
+        // ✅ UPSERT handles everything atomically
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
 
         return buildAuthResponse(user, accessToken, refreshToken.getToken());

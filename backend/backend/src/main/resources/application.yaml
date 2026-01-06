@@ -5,17 +5,20 @@ spring:
     password: ZxcrDghnhFCiDFGmyxcNpNeDAWwkjhMC
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
+      maximum-pool-size: 25   # Railway limit
+      minimum-idle: 10        # ✅ PERF: Increased from 5 for faster connection availability
+      connection-timeout: 30000  # ✅ PERF: 30s timeout for busy periods
+      idle-timeout: 300000
+      max-lifetime: 1200000
       connection-test-query: SELECT 1
+      leak-detection-threshold: 60000
+      keepalive-time: 30000   # ✅ PERF: Keep connections warm
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: false
+    open-in-view: false  # ✅ PERF: Release connections immediately after transaction
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
@@ -83,13 +86,18 @@ server:
   error:
     include-message: always
     include-binding-errors: always
+  # ✅ PERFORMANCE: Enable GZIP compression for responses
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+    min-response-size: 1024
   tomcat:
     connection-timeout: 120000
     threads:
       max: 200
-      min-spare: 10
+      min-spare: 20
     max-connections: 10000
-    accept-count: 100
+    accept-count: 200
 
 cors:
   allowed-origins: "https://tutor-management-e7zh.vercel.app,http://localhost:3000,http://localhost:5173"

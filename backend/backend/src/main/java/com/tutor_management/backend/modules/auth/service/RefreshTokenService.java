@@ -28,21 +28,17 @@ public class RefreshTokenService {
         return refreshTokenRepository.findByToken(token);
     }
 
+    @Transactional
     public RefreshToken createRefreshToken(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        String token = UUID.randomUUID().toString();
+        Instant expiryDate = Instant.now().plusMillis(refreshTokenDurationMs);
 
-        // Delete old refresh token if exists
-        refreshTokenRepository.findByUser(user)
-                .ifPresent(refreshTokenRepository::delete);
+        // ✅ ATOMIC: Single database operation, no race condition possible
+        refreshTokenRepository.upsert(userId, token, expiryDate);
 
-        RefreshToken refreshToken = RefreshToken.builder()
-                .user(user)
-                .token(UUID.randomUUID().toString())
-                .expiryDate(Instant.now().plusMillis(refreshTokenDurationMs))
-                .build();
-
-        return refreshTokenRepository.save(refreshToken);
+        // ✅ Return the created/updated token
+        return refreshTokenRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Failed to create refresh token"));
     }
 
     public RefreshToken verifyExpiration(RefreshToken token) {

@@ -131,7 +131,7 @@ public class ExerciseController {
      * GET /api/exercises/assigned
      */
     @GetMapping("/assigned")
-    @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN', 'TUTOR')")
     public ResponseEntity<ApiResponse<List<ExerciseListItemResponse>>> listAssignedExercises(
             @AuthenticationPrincipal User user) {
         log.info("Listing assigned exercises for student: {}", user.getEmail());

@@ -36,8 +36,8 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     @Query("SELECT c.id as id, c.title as title, c.description as description, " +
             "c.thumbnailUrl as thumbnailUrl, c.difficultyLevel as difficultyLevel, " +
             "c.estimatedHours as estimatedHours, c.isPublished as isPublished, " +
-            "c.tutor as tutor " +
+            "t.id as tutorId, t.fullName as tutorFullName " +
             "FROM Course c " +
-            "LEFT JOIN c.tutor")
+            "LEFT JOIN c.tutor t")
     List<CourseListProjection> findAllCoursesProjection();
 }

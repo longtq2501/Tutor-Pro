@@ -212,7 +212,12 @@ public class ExerciseServiceImpl implements ExerciseService {
                 .map(ExerciseAssignment::getExerciseId)
                 .collect(Collectors.toList());
 
-        List<Exercise> exercises = exerciseRepository.findAllById(exerciseIds);
+        if (exerciseIds.isEmpty()) {
+            return List.of();
+        }
+
+        // OPTIMIZATION: Use optimized DTO query to avoid N+1 lazy loading
+        List<ExerciseListItemResponse> exercises = exerciseRepository.findAllByIdOptimized(exerciseIds);
         
         // OPTIMIZATION: Fetch submissions ONLY for these exercises to avoid loading entire history
         var submissions = submissionRepository.findByStudentIdAndExerciseIdIn(studentId, exerciseIds);
@@ -225,16 +230,15 @@ public class ExerciseServiceImpl implements ExerciseService {
                         a -> a.getDeadline() != null ? a.getDeadline() : LocalDateTime.now()));
 
         return exercises.stream()
-                .map(ex -> {
-                    ExerciseListItemResponse resp = mapToListItemResponse(ex);
+                .map(resp -> {
                     // Override exercise deadline with assignment deadline if available
-                    if (deadlineMap.containsKey(ex.getId())) {
-                        resp.setDeadline(deadlineMap.get(ex.getId()));
+                    if (deadlineMap.containsKey(resp.getId())) {
+                        resp.setDeadline(deadlineMap.get(resp.getId()));
                     }
                     
                     // Attach submission info
-                    if (submissionMap.containsKey(ex.getId())) {
-                        var sub = submissionMap.get(ex.getId());
+                    if (submissionMap.containsKey(resp.getId())) {
+                        var sub = submissionMap.get(resp.getId());
                         resp.setSubmissionId(sub.getId());
                         resp.setSubmissionStatus(sub.getStatus().name());
                         resp.setStudentTotalScore(sub.getTotalScore());

@@ -109,6 +109,7 @@ public class Exercise implements Persistable<String> {
     @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
     @JsonManagedReference
+    @org.hibernate.annotations.BatchSize(size = 20)
     @Builder.Default
     private Set<Question> questions = new LinkedHashSet<>();
     

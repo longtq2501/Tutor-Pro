@@ -73,4 +73,16 @@ public interface ExerciseRepository extends JpaRepository<Exercise, String> {
            "WHERE e.classId = :classId AND e.status = :status " +
            "ORDER BY e.createdAt DESC")
     List<ExerciseListItemResponse> findByClassIdAndStatusOptimized(@Param("classId") String classId, @Param("status") ExerciseStatus status);
+
+    /**
+     * Optimized query to fetch exercises by IDs with question counts
+     * This avoids N+1 queries when fetching multiple exercises
+     */
+    @Query("SELECT new com.tutor_management.backend.modules.exercise.dto.response.ExerciseListItemResponse(" +
+           "e.id, e.title, e.description, e.totalPoints, e.timeLimit, e.deadline, e.status, " +
+           "CAST(SIZE(e.questions) AS integer), CAST(0 AS integer), e.createdAt) " +
+           "FROM Exercise e " +
+           "WHERE e.id IN :ids " +
+           "ORDER BY e.createdAt DESC")
+    List<ExerciseListItemResponse> findAllByIdOptimized(@Param("ids") List<String> ids);
 }

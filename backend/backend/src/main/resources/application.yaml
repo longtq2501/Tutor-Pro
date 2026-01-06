@@ -32,6 +32,7 @@ spring:
         default_batch_fetch_size: 20
         query:
           in_clause_parameter_padding: true
+          timeout: 10000  # ✅ PERF: 10s query timeout for safety
 
   servlet:
     multipart:
@@ -183,6 +184,8 @@ logging:
   level:
     com.tutor_management: INFO
     org.springframework: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
 
 feedback:
   force-reimport: false

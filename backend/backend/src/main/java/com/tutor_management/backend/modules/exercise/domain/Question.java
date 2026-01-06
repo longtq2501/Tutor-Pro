@@ -93,6 +93,7 @@ public class Question implements Persistable<String> {
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("label ASC")
     @JsonManagedReference
+    @org.hibernate.annotations.BatchSize(size = 20)
     @Builder.Default
     private Set<Option> options = new LinkedHashSet<>();
     

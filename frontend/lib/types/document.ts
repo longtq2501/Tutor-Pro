@@ -10,8 +10,10 @@ export interface Document {
   filePath: string; // ĐƯỜNG DẪN LƯU TRỮ (URL CLOUDINARY)
   fileSize: number; // DUNG LƯỢNG FILE TÍNH BẰNG BYTE
   fileType: string; // ĐỊNH DẠNG FILE (VÍ DỤ: APPLICATION/PDF)
-  category: DocumentCategory; // MÃ DANH MỤC TÀI LIỆU
+  category: DocumentCategory; // MÃ DANH MỤC (ENUM)
   categoryDisplayName: string; // TÊN DANH MỤC HIỂN THỊ TIẾNG VIỆT
+  categoryId?: number; // ID DANH MỤC (DYNAMIC)
+  categoryName?: string; // TÊN DANH MỤC DYNAMIC
   description?: string; // MÔ TẢ CHI TIẾT NỘI DUNG TÀI LIỆU
   studentId?: number; // ID HỌC SINH (NẾU TÀI LIỆU CHỈ DÀNH RIÊNG CHO 1 BẠN)
   studentName?: string; // TÊN HỌC SINH TƯƠNG ỨNG
@@ -19,6 +21,15 @@ export interface Document {
   createdAt: string; // NGÀY TẢI LÊN HỆ THỐNG
   updatedAt: string; // NGÀY CẬP NHẬT GẦN NHẤT
   formattedFileSize: string; // DUNG LƯỢNG ĐÃ ĐỊNH DẠNG (VÍ DỤ: 2.5 MB)
+}
+
+export interface Category {
+  id: number;
+  code: string;
+  name: string;
+  description?: string;
+  displayOrder?: number;
+  active?: boolean;
 }
 
 export interface DocumentUploadRequest {

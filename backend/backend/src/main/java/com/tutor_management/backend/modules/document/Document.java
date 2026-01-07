@@ -33,7 +33,11 @@ public class Document {
     private String fileType; // MIME type
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "category", nullable = false, insertable = false, updatable = false)
+    private DocumentCategoryType categoryType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
     private DocumentCategory category;
 
     @Column(length = 1000)

@@ -14,7 +14,7 @@ interface DocumentInfoProps {
 export function DocumentInfo({ document: doc, downloading, onDownload }: DocumentInfoProps) {
   return (
     <div className="absolute inset-0 flex items-center justify-center p-4 bg-gradient-to-b from-transparent to-muted/20">
-      <div className="text-center max-w-md w-full p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-border/50 dark:border-gray-700/50 backdrop-blur-sm">
+      <div className="text-center max-w-md w-full p-5 sm:p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-border/50 dark:border-gray-700/50 backdrop-blur-sm mx-4">
         <div className="mx-auto w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-6 text-blue-500 dark:text-blue-400">
           <FileText size={48} strokeWidth={1.5} />
         </div>

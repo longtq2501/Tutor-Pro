@@ -1,10 +1,8 @@
-// ============================================================================
-// FILE: document-library/components/CategoryView.tsx
-// ============================================================================
-import { Upload } from 'lucide-react';
+import { Upload, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CATEGORIES } from '../constants';
 import { SearchBar } from './SearchBar';
 import { DocumentList } from './DocumentList';
+import { DocumentListSkeleton } from './DocumentListSkeleton';
 import type { Document, DocumentCategory } from '@/lib/types';
 
 interface Props {
@@ -17,9 +15,16 @@ interface Props {
   onPreview: (doc: Document) => void;
   onDownload: (doc: Document) => void;
   onDelete: (id: number) => void;
+  page: number;
+  setPage: (page: number) => void;
+  totalPages: number;
+  isLoading?: boolean;
 }
 
-export const CategoryView = ({ category, documents, searchQuery, onSearchChange, onBack, onUpload, onPreview, onDownload, onDelete }: Props) => {
+export const CategoryView = ({
+  category, documents, searchQuery, onSearchChange, onBack, onUpload, onPreview, onDownload, onDelete,
+  page, setPage, totalPages, isLoading
+}: Props) => {
   const categoryInfo = CATEGORIES.find(c => c.key === category);
 
   return (
@@ -33,7 +38,7 @@ export const CategoryView = ({ category, documents, searchQuery, onSearchChange,
             <span className="text-2xl lg:text-3xl">{categoryInfo?.icon}</span>
             <div>
               <h2 className="text-xl lg:text-2xl font-bold text-card-foreground">{categoryInfo?.name}</h2>
-              <p className="text-muted-foreground text-xs lg:text-sm">{documents.length} tài liệu</p>
+              <p className="text-muted-foreground text-xs lg:text-sm">{documents.length} kết quả trang này</p>
             </div>
           </div>
         </div>
@@ -44,7 +49,41 @@ export const CategoryView = ({ category, documents, searchQuery, onSearchChange,
       </div>
 
       <SearchBar value={searchQuery} onChange={onSearchChange} />
-      <DocumentList documents={documents} searchQuery={searchQuery} onPreview={onPreview} onDownload={onDownload} onDelete={onDelete} onAddNew={onUpload} />
+
+      <div className="mt-4">
+        {isLoading ? (
+          <DocumentListSkeleton />
+        ) : (
+          <DocumentList
+            documents={documents}
+            searchQuery={searchQuery}
+            onPreview={onPreview}
+            onDownload={onDownload}
+            onDelete={onDelete}
+            onAddNew={onUpload}
+          />
+        )}
+      </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4 mt-8">
+          <button
+            disabled={page === 0}
+            onClick={() => setPage(page - 1)}
+            className="p-2 border rounded-full hover:bg-muted disabled:opacity-50"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <span className="text-sm font-medium">Trang {page + 1} / {totalPages}</span>
+          <button
+            disabled={page >= totalPages - 1}
+            onClick={() => setPage(page + 1)}
+            className="p-2 border rounded-full hover:bg-muted disabled:opacity-50"
+          >
+            <ChevronRight size={20} />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

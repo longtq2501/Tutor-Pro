@@ -16,11 +16,11 @@ export const useDashboardData = (studentId: number | undefined) => {
     enabled: !!studentId,
     placeholderData: keepPreviousData,
     initialData: () => {
-        if (typeof window !== 'undefined' && studentId) {
-            const saved = localStorage.getItem(`student-stats-${studentId}-${currentMonth}`);
-            return saved ? JSON.parse(saved) : undefined;
-        }
-        return undefined;
+      if (typeof window !== 'undefined' && studentId) {
+        const saved = localStorage.getItem(`student-stats-${studentId}-${currentMonth}`);
+        return saved ? JSON.parse(saved) : undefined;
+      }
+      return undefined;
     },
     staleTime: 0, // Always check for updates
     refetchOnWindowFocus: true,
@@ -38,8 +38,10 @@ export const useDashboardData = (studentId: number | undefined) => {
   const { data: documents, isLoading: loadingDocs } = useQuery({
     queryKey: ['student-documents', studentId],
     queryFn: async () => {
-        const allDocs = await documentsApi.getAll();
-        return allDocs.filter((doc: any) => !doc.studentId || doc.studentId === studentId);
+      const docPage = await documentsApi.getAll(0, 100);
+      const docs = docPage.content || [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return docs.filter((doc: any) => !doc.studentId || doc.studentId === studentId);
     },
     enabled: !!studentId,
   });
@@ -55,19 +57,19 @@ export const useDashboardData = (studentId: number | undefined) => {
   // Persist Stats to LocalStorage
   useEffect(() => {
     if (stats && studentId) {
-        localStorage.setItem(`student-stats-${studentId}-${currentMonth}`, JSON.stringify(stats));
+      localStorage.setItem(`student-stats-${studentId}-${currentMonth}`, JSON.stringify(stats));
     }
   }, [stats, studentId, currentMonth]);
 
   const loading = loadingStats || loadingSessions || loadingDocs;
 
-  return { 
-      loading, 
-      stats, 
-      sessions: sessions || [], 
-      documents: documents || [], 
-      schedule, 
-      currentMonth,
-      setCurrentMonth // Exposed setter
+  return {
+    loading,
+    stats,
+    sessions: sessions || [],
+    documents: documents || [],
+    schedule,
+    currentMonth,
+    setCurrentMonth // Exposed setter
   };
 };

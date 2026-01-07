@@ -24,16 +24,19 @@ public class DocumentController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     @GetMapping
-    public ResponseEntity<List<DocumentResponse>> getAllDocuments() {
-        return ResponseEntity.ok(documentService.getAllDocuments());
+    public ResponseEntity<org.springframework.data.domain.Page<DocumentResponse>> getAllDocuments(
+            org.springframework.data.domain.Pageable pageable
+    ) {
+        return ResponseEntity.ok(documentService.getAllDocuments(pageable));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     @GetMapping("/category/{category}")
-    public ResponseEntity<List<DocumentResponse>> getDocumentsByCategory(
-            @PathVariable DocumentCategory category
+    public ResponseEntity<org.springframework.data.domain.Page<DocumentResponse>> getDocumentsByCategory(
+            @PathVariable DocumentCategoryType category,
+            org.springframework.data.domain.Pageable pageable
     ) {
-        return ResponseEntity.ok(documentService.getDocumentsByCategory(category));
+        return ResponseEntity.ok(documentService.getDocumentsByCategory(category, pageable));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
@@ -133,7 +136,7 @@ public class DocumentController {
 
     @PreAuthorize("permitAll()")
     @GetMapping("/categories")
-    public ResponseEntity<DocumentCategory[]> getCategories() {
-        return ResponseEntity.ok(DocumentCategory.values());
+    public ResponseEntity<DocumentCategoryType[]> getCategories() {
+        return ResponseEntity.ok(DocumentCategoryType.values());
     }
 }

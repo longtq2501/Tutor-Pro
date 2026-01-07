@@ -1,40 +1,58 @@
 package com.tutor_management.backend.modules.document;
 
 import com.tutor_management.backend.modules.document.dto.request.DocumentRequest;
-import com.tutor_management.backend.modules.document.dto.response.DocumentCategoryStats;
+
 import com.tutor_management.backend.modules.document.dto.response.DocumentResponse;
 import com.tutor_management.backend.modules.document.dto.response.DocumentStats;
 import com.tutor_management.backend.modules.document.dto.response.DocumentUploadResponse;
 import com.tutor_management.backend.modules.shared.CloudinaryService;
 import com.tutor_management.backend.modules.student.Student;
 import com.tutor_management.backend.modules.student.StudentRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
+// ... imports
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class DocumentService {
 
+
+
     private final DocumentRepository documentRepository;
     private final StudentRepository studentRepository;
     private final CloudinaryService cloudinaryService;
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
 
+    public Page<DocumentResponse> getAllDocuments(Pageable pageable) {
+        Page<Document> documents = documentRepository.findAllWithStudent(pageable);
+        return documents.map(this::convertToResponse);
+    }
+
     public List<DocumentResponse> getAllDocuments() {
-        List<Document> documents = documentRepository.findAllByOrderByCreatedAtDesc();
+        List<Document> documents = documentRepository.findAllWithStudent();
         return documents.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
 
-    public List<DocumentResponse> getDocumentsByCategory(DocumentCategory category) {
-        List<Document> documents = documentRepository.findByCategoryOrderByCreatedAtDesc(category);
+    public Page<DocumentResponse> getDocumentsByCategory(DocumentCategoryType category, Pageable pageable) {
+        Page<Document> documents = documentRepository.findByCategoryType(category, pageable);
+        return documents.map(this::convertToResponse);
+    }
+
+    public List<DocumentResponse> getDocumentsByCategory(DocumentCategoryType category) {
+        List<Document> documents = documentRepository.findByCategoryTypeOrderByCreatedAtDesc(category);
         return documents.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
@@ -47,6 +65,7 @@ public class DocumentService {
                 .collect(Collectors.toList());
     }
 
+    @CacheEvict(value = "documentStats", allEntries = true)
     public DocumentUploadResponse uploadDocument(
             MultipartFile file,
             DocumentRequest request
@@ -134,6 +153,7 @@ public class DocumentService {
         return document.getFilePath();
     }
 
+    @CacheEvict(value = "documentStats", allEntries = true)
     public void deleteDocument(Long id) {
         Document document = documentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Document not found with id: " + id));
@@ -151,33 +171,40 @@ public class DocumentService {
         }
     }
 
+    @Cacheable("documentStats")
     public DocumentStats getStatistics() {
-        Long totalDocuments = documentRepository.count();
-        Long totalSize = documentRepository.sumTotalFileSize();
-        Long totalDownloads = documentRepository.sumTotalDownloads();
+        // 1. Get Aggregated Stats (Count, Size, Downloads) in ONE query
+        Object aggregatedStatsObj = documentRepository.getAggregatedStats();
+        Object[] aggregatedStats = (Object[]) aggregatedStatsObj;
+        
+        Long totalDocuments = (Long) aggregatedStats[0];
+        Long totalSize = (Long) aggregatedStats[1];
+        Long totalDownloads = (Long) aggregatedStats[2];
 
-        DocumentCategoryStats categoryStats = DocumentCategoryStats.builder()
-                .grammar(documentRepository.countByCategory(DocumentCategory.GRAMMAR))
-                .vocabulary(documentRepository.countByCategory(DocumentCategory.VOCABULARY))
-                .reading(documentRepository.countByCategory(DocumentCategory.READING))
-                .listening(documentRepository.countByCategory(DocumentCategory.LISTENING))
-                .speaking(documentRepository.countByCategory(DocumentCategory.SPEAKING))
-                .writing(documentRepository.countByCategory(DocumentCategory.WRITING))
-                .exercises(documentRepository.countByCategory(DocumentCategory.EXERCISES))
-                .exam(documentRepository.countByCategory(DocumentCategory.EXAM))
-                .pet(documentRepository.countByCategory(DocumentCategory.PET))
-                .fce(documentRepository.countByCategory(DocumentCategory.FCE))
-                .ielts(documentRepository.countByCategory(DocumentCategory.IELTS))
-                .toeic(documentRepository.countByCategory(DocumentCategory.TOEIC))
-                .other(documentRepository.countByCategory(DocumentCategory.OTHER))
-                .build();
+        // 2. Get Category Stats in ONE query using GROUP BY
+        List<Object[]> categoryStatsList = documentRepository.countDocumentsByCategoryType();
+        java.util.Map<String, Long> statsMap = new java.util.HashMap<>();
+        
+        // Initialize map with 0 for all enum values (to ensure all categories are present even if count is 0)
+        for (DocumentCategoryType type : DocumentCategoryType.values()) {
+             statsMap.put(type.name(), 0L);
+        }
+
+        // Fill in actual counts
+        for (Object[] row : categoryStatsList) {
+             DocumentCategoryType type = (DocumentCategoryType) row[0];
+             Long count = (Long) row[1];
+             if (type != null) {
+                statsMap.put(type.name(), count);
+             }
+        }
 
         return DocumentStats.builder()
                 .totalDocuments(totalDocuments)
                 .totalSize(totalSize)
                 .formattedTotalSize(formatFileSize(totalSize != null ? totalSize : 0))
                 .totalDownloads(totalDownloads)
-                .categoryStats(categoryStats)
+                .categoryStats(statsMap)
                 .build();
     }
 
@@ -200,9 +227,10 @@ public class DocumentService {
                 .filePath(document.getFilePath())
                 .fileSize(document.getFileSize())
                 .fileType(document.getFileType())
-                .category(document.getCategory())
-                .categoryDisplayName(document.getCategory().getDisplayName())
-                .description(document.getDescription())
+                .category(document.getCategoryType())
+                .categoryDisplayName(document.getCategoryType().getDisplayName())
+                .categoryId(document.getCategory() != null ? document.getCategory().getId() : null)
+                .categoryName(document.getCategory() != null ? document.getCategory().getName() : null)
                 .studentId(document.getStudent() != null ? document.getStudent().getId() : null)
                 .studentName(document.getStudent() != null ? document.getStudent().getName() : null)
                 .downloadCount(document.getDownloadCount())

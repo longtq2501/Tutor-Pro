@@ -106,7 +106,7 @@ export default function DocumentPreviewModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: "spring", duration: 0.5 }}
-          className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md w-full h-full md:w-[90vw] md:h-[90vh] md:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative z-10 border border-white/20"
+          className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md w-full h-full md:w-full md:max-w-5xl md:h-[85vh] md:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative z-10 border border-white/20"
           onClick={(e) => e.stopPropagation()}
         >
           <ModalHeader

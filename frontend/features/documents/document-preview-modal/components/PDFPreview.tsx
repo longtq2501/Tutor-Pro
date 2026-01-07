@@ -22,7 +22,7 @@ export function PDFPreview({ url, title }: PDFPreviewProps) {
         </div>
       )}
       <iframe
-        src={`${url}#toolbar=0&navpanes=0&scrollbar=1`}
+        src={`${url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
         className={`w-full h-full border-0 transition-opacity duration-500 ${loading ? 'opacity-0' : 'opacity-100'}`}
         title={title}
         onLoad={() => setLoading(false)}

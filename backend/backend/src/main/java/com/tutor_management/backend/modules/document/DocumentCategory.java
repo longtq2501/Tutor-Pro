@@ -1,29 +1,53 @@
 package com.tutor_management.backend.modules.document;
 
-public enum DocumentCategory {
-    GRAMMAR("Ngữ pháp"),
-    VOCABULARY("Từ vựng"),
-    READING("Đọc hiểu"),
-    LISTENING("Nghe hiểu"),
-    SPEAKING("Nói"),
-    WRITING("Viết"),
-    EXERCISES("Bài tập"),
-    EXAM("Đề thi"),
-    PET("PET (B1)"),
-    FCE("FCE (B2)"),
-    IELTS("IELTS"),
-    TOEIC("TOEIC"),
-    TICH_HOP("Tích hợp"),
-    FLYERS("Flyers"),
-    OTHER("Khác");
+import jakarta.persistence.*;
+import lombok.*;
 
-    private final String displayName;
+import java.time.LocalDateTime;
 
-    DocumentCategory(String displayName) {
-        this.displayName = displayName;
+@Entity
+@Table(name = "document_categories")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class DocumentCategory {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String code;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column(length = 500)
+    private String description;
+
+    @Column(nullable = false)
+    private Integer displayOrder;
+
+    @Column(nullable = false)
+    private Boolean active;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+        if (active == null) active = true;
+        if (displayOrder == null) displayOrder = 0;
     }
 
-    public String getDisplayName() {
-        return displayName;
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }

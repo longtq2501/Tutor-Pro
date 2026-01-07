@@ -61,17 +61,20 @@ export function useLessonDetailModal({ session, onClose, onUpdate, onDelete, ini
         }
     });
 
-    const { data: libraryDocuments = [] } = useQuery({
+    const { data: documentPage } = useQuery({
         queryKey: ['admin-document-library'],
         queryFn: async () => {
             try {
-                return await documentsApi.getAll();
+                // Fetch larger size for picker
+                return await documentsApi.getAll(0, 100);
             } catch (err) {
                 console.error("Failed to fetch document library", err);
-                return [];
+                return null;
             }
         }
     });
+
+    const libraryDocuments = documentPage?.content || [];
 
     // Initialize selection from session
     useEffect(() => {
@@ -97,13 +100,13 @@ export function useLessonDetailModal({ session, onClose, onUpdate, onDelete, ini
     const isSelectionDirty = () => {
         const initialLessonIds = new Set(session.lessons?.map(l => l.id) || []);
         const initialDocIds = new Set(session.documents?.map(d => d.id) || []);
-        
+
         if (selectedLessonIds.size !== initialLessonIds.size) return true;
         if (selectedDocumentIds.size !== initialDocIds.size) return true;
-        
+
         for (const id of selectedLessonIds) if (!initialLessonIds.has(id)) return true;
         for (const id of selectedDocumentIds) if (!initialDocIds.has(id)) return true;
-        
+
         return false;
     };
 
@@ -170,9 +173,10 @@ export function useLessonDetailModal({ session, onClose, onUpdate, onDelete, ini
             });
     }, [activeTab, libraryLessons, libraryDocuments, debouncedSearch, selectedCategory, sortBy]);
 
-    const categories = useMemo(() => {
+    const categories: string[] = useMemo(() => {
         const items = activeTab === 'lessons' ? libraryLessons : libraryDocuments;
-        const cats = items.map(item => getCategoryName(item));
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const cats = items.map((item: any) => getCategoryName(item));
         const uniqueCats = Array.from(new Set(cats)).filter(Boolean);
         return ['all', ...uniqueCats];
     }, [activeTab, libraryLessons, libraryDocuments]);
@@ -223,14 +227,14 @@ export function useLessonDetailModal({ session, onClose, onUpdate, onDelete, ini
             };
             const updated = await sessionsApi.update(localSession.id, updatePayload);
             toast.success('Đã cập nhật buổi học thành công!');
-            
+
             // Critical: Update both internal states immediately
             setLocalSession(updated);
-            
+
             // Also ensure selection sets are in sync with the updated response
             if (updated.lessons) setSelectedLessonIds(new Set(updated.lessons.map(l => l.id)));
             if (updated.documents) setSelectedDocumentIds(new Set(updated.documents.map(d => d.id)));
-            
+
             onUpdate?.(updated);
             setMode('view');
         } catch (error) {
@@ -282,7 +286,7 @@ export function useLessonDetailModal({ session, onClose, onUpdate, onDelete, ini
         setSortBy,
         selectedLessonIds,
         selectedDocumentIds,
-        
+
         // Data
         libraryLessons,
         libraryDocuments,
@@ -291,7 +295,7 @@ export function useLessonDetailModal({ session, onClose, onUpdate, onDelete, ini
         globalSelectedCount,
         currentTabSelectedCount,
         currentHours,
-        
+
         // Handlers
         toggleSelection,
         handleSubmit,

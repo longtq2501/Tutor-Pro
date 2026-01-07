@@ -45,14 +45,20 @@ export const DocumentList = memo(({ documents, searchQuery, onPreview, onDownloa
   }
 
   return (
-    <div className="space-y-3">
-      <AnimatePresence>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={documents.length > 0 ? documents[0].id : 'empty'} // Changes when first doc changes (page change)
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+        className="space-y-3"
+      >
         {documents.map((doc, index) => (
           <motion.div
             key={doc.id}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
             transition={{ delay: index * 0.05 }}
             className="group border border-border/50 bg-white dark:bg-gray-800 rounded-xl p-4 hover:shadow-lg hover:border-primary/20 dark:hover:border-primary/20 transition-all duration-300 relative overflow-hidden"
           >
@@ -111,7 +117,7 @@ export const DocumentList = memo(({ documents, searchQuery, onPreview, onDownloa
             </div>
           </motion.div>
         ))}
-      </AnimatePresence>
-    </div>
+      </motion.div>
+    </AnimatePresence>
   );
 });

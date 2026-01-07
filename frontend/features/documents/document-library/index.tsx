@@ -19,6 +19,7 @@ import DocumentPreviewModal from '@/features/documents/document-preview-modal';
 export default function DocumentLibrary() {
   const {
     documents,
+    categories,
     selectedCategory,
     setSelectedCategory,
     categoryDocs,
@@ -28,6 +29,9 @@ export default function DocumentLibrary() {
     stats,
     loadDocuments,
     loadCategoryDocuments,
+    page,
+    setPage,
+    totalPages,
   } = useDocumentLibrary();
 
   const { handleDownload, handleDelete } = useDocumentActions(loadDocuments, loadCategoryDocuments, selectedCategory);
@@ -35,12 +39,15 @@ export default function DocumentLibrary() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [previewDocument, setPreviewDocument] = useState<Document | null>(null);
 
-  if (loading) return <LoadingState />;
+  // if (loading) return <LoadingState />; // Removed to support Skeleton
 
   if (!selectedCategory) {
     return (
       <>
         <div className="bg-card rounded-2xl shadow-lg p-4 lg:p-6 transition-colors border border-border">
+          {/* ... Dashboard content ... */}
+          {/* We could potentially show skeleton here if needed, but dashboard data (stats/categories) usually loads fast or can have its own skeletons later. For now, we focus on CategoryView */}
+
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div>
               <h2 className="text-xl lg:text-2xl font-bold text-card-foreground">Kho Tài Liệu Tiếng Anh</h2>
@@ -53,8 +60,12 @@ export default function DocumentLibrary() {
           </div>
 
           <StatsCards stats={stats} />
-          <SearchBar value="" onChange={() => {}} disabled />
-          <CategoryGrid documents={documents} onCategoryClick={setSelectedCategory} />
+          <SearchBar value="" onChange={() => { }} disabled />
+          <CategoryGrid
+            categories={categories}
+            counts={stats.categoryCounts}
+            onCategoryClick={setSelectedCategory}
+          />
         </div>
 
         {showUploadModal && (
@@ -79,7 +90,12 @@ export default function DocumentLibrary() {
         onPreview={setPreviewDocument}
         onDownload={handleDownload}
         onDelete={handleDelete}
+        page={page}
+        setPage={setPage}
+        totalPages={totalPages}
+        isLoading={loading}
       />
+// ...
 
       {showUploadModal && (
         <DocumentUploadModal

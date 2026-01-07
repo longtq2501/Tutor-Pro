@@ -50,14 +50,15 @@ export function AddSessionModal({ open, onClose, student, onSuccess }: AddSessio
     };
 
     // 🆕 Fetch Attachments
-    const { data: documents } = useQuery({
+    const { data: documentPage } = useQuery({
         queryKey: ['documents'],
-        queryFn: documentsApi.getAll
+        queryFn: () => documentsApi.getAll(0, 1000) // Lấy danh sách đủ lớn để chọn
     });
+    const documents = documentPage?.content || [];
 
     const { data: lessons } = useQuery({
         queryKey: ['lesson-library'],
-        queryFn: lessonLibraryApi.getAll
+        queryFn: () => lessonLibraryApi.getAll()
     });
 
     const [selectedDocIds, setSelectedDocIds] = useState<number[]>([]);

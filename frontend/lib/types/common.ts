@@ -11,3 +11,14 @@ export interface BankInfo {
   accountName: string; // TÊN CHỦ TÀI KHOẢN (THƯỜNG VIẾT HOA KHÔNG DẤU)
   swiftCode: string; // MÃ ĐỊNH DANH NGÂN HÀNG (DÙNG CHO CHUYỂN KHOẢN QUỐC TẾ)
 }
+
+export interface PageResponse<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number; // Current page index (0-based)
+  last: boolean;
+  first: boolean;
+  empty: boolean;
+}

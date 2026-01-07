@@ -11,6 +11,7 @@ import { FileUploadZone } from './components/FileUploadZone';
 import { UploadProgress } from './components/UploadProgress';
 import { useFileUpload } from './hooks/useFileUpload';
 import { validateFile } from './utils';
+import { useCategories } from '@/features/documents/hooks/useMasterDocuments';
 
 interface DocumentUploadModalProps {
   onClose: () => void;
@@ -30,6 +31,7 @@ export default function DocumentUploadModal({
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { upload, loading, progress } = useFileUpload();
+  const { data: categories = [] } = useCategories();
 
   const handleFileSelect = (file: File) => {
     const error = validateFile(file);
@@ -114,6 +116,7 @@ export default function DocumentUploadModal({
               <CategorySelect
                 value={formData.category}
                 onChange={(category) => setFormData({ ...formData, category })}
+                categories={categories}
               />
 
               <div>

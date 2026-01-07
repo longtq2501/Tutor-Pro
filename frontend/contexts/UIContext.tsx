@@ -13,7 +13,7 @@ interface UIContextType {
 const UIContext = createContext<UIContextType | undefined>(undefined);
 
 export function UIProvider({ children }: { children: ReactNode }) {
-    const [isSidebarOpen, setSidebarOpen] = useState(true);
+    const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [activeDialogs, setActiveDialogs] = useState(0);
 
     const openDialog = () => setActiveDialogs(prev => prev + 1);

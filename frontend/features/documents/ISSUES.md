@@ -91,6 +91,15 @@
   - [x] Backend: Fixed N+1 Query in `DocumentRepository` (Added `JOIN FETCH category`).
   - [x] Backend: Optimized `getStatistics` API (Reduced N+3 queries to 2 aggregated queries).
   - [x] Backend: Implemented Caching for `getStatistics` (Instant response < 100ms).
+- [x] [P0-Critical] **Mobile PDF Zoom/Scaling Issue:** 
+  - Solution: Replaced mobile detection with a universal `view=FitH&zoom=page-width` approach. This ensures PDFs auto-fit the viewport on both mobile and desktop without requiring manual zoom controls or complex CSS hacks. Added `bg-background/80` backdrop for smoother loading.
+  - Tested: ✅ Verified on Desktop and Mobile Simulators - no horizontal overflow.
+
+## UX Improvements
+- [x] [P1-High] **Sidebar Auto-Open on Mobile:** Sidebar was open by default on mobile/tablet after login, blocking the view.
+  - Solution: Changed initial state of `isSidebarOpen` to `false` in `UIContext.tsx`. Native responsive CSS handles desktop visibility correctly regardless of this state.
+  - Tested: ✅ Verified sidebar is hidden by default on small screens.
+
 
 ## Validated State
 - **Backend:** Dynamic Categories (Entity), Pagination (Page<T>)

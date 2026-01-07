@@ -43,11 +43,11 @@ export function ModalHeader({
       <div className="flex items-center gap-1 sm:gap-2 justify-end shrink-0">
         <button
           onClick={onOpenInNewTab}
-          className="p-2 hover:bg-accent dark:hover:bg-gray-700 rounded-lg transition-colors hidden sm:block"
+          className="p-2 hover:bg-accent dark:hover:bg-gray-700 rounded-lg transition-colors"
           title="Mở tab mới"
           type="button"
         >
-          <ExternalLink size={18} className="text-foreground dark:text-gray-300" />
+          <ExternalLink size={18} className="text-foreground dark:text-gray-300 sm:w-[22px] sm:h-[22px]" />
         </button>
 
         <button

@@ -74,6 +74,7 @@ public class SessionFeedbackService {
         return sessionFeedbackRepository.save(feedback).getId();
     }
 
+    @Transactional(readOnly = true)
     public SessionFeedbackResponse getFeedbackBySession(Long sessionId, Long studentId) {
         return sessionFeedbackRepository
                 .findFirstBySessionRecordIdAndStudentIdOrderByUpdatedAtDesc(sessionId, studentId)
@@ -81,12 +82,14 @@ public class SessionFeedbackService {
                 .orElse(null);
     }
 
+    @Transactional(readOnly = true)
     public SessionFeedbackResponse getFeedbackById(Long id) {
         return sessionFeedbackRepository.findById(id)
                 .map(this::convertToResponse)
                 .orElseThrow(() -> new EntityNotFoundException("Feedback not found"));
     }
 
+    @Transactional(readOnly = true)
     public Page<SessionFeedbackResponse> getFeedbackHistory(Long studentId, Pageable pageable) {
         return sessionFeedbackRepository.findByStudentId(studentId, pageable)
                 .map(this::convertToResponse);
@@ -239,6 +242,7 @@ public class SessionFeedbackService {
         return feedbackScenarioRepository.findKeywordsByCategoryAndRating(category, ratingLevel);
     }
 
+    @Transactional(readOnly = true)
     public String getClipboardContent(Long id) {
         SessionFeedback feedback = sessionFeedbackRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Feedback not found"));
@@ -262,6 +266,7 @@ public class SessionFeedbackService {
         return sb.toString();
     }
 
+    @Transactional(readOnly = true)
     public void exportFeedbacksToExcel(Long studentId, jakarta.servlet.http.HttpServletResponse response)
             throws java.io.IOException {
         List<SessionFeedback> allFeedbacks = sessionFeedbackRepository.findLatestByStudent(studentId,

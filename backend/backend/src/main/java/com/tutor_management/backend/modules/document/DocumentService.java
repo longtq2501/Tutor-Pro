@@ -5,6 +5,7 @@ import com.tutor_management.backend.modules.document.dto.request.DocumentRequest
 import com.tutor_management.backend.modules.document.dto.response.DocumentResponse;
 import com.tutor_management.backend.modules.document.dto.response.DocumentStats;
 import com.tutor_management.backend.modules.document.dto.response.DocumentUploadResponse;
+import com.tutor_management.backend.modules.finance.SessionRecordRepository;
 import com.tutor_management.backend.modules.shared.CloudinaryService;
 import com.tutor_management.backend.modules.student.Student;
 import com.tutor_management.backend.modules.student.StudentRepository;
@@ -30,7 +31,9 @@ public class DocumentService {
 
 
     private final DocumentRepository documentRepository;
+    private final DocumentCategoryRepository documentCategoryRepository;
     private final StudentRepository studentRepository;
+    private final SessionRecordRepository sessionRecordRepository;
     private final CloudinaryService cloudinaryService;
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
 
@@ -47,12 +50,12 @@ public class DocumentService {
     }
 
     public Page<DocumentResponse> getDocumentsByCategory(DocumentCategoryType category, Pageable pageable) {
-        Page<Document> documents = documentRepository.findByCategoryType(category, pageable);
+        Page<Document> documents = documentRepository.findByCategoryCode(category.name(), pageable);
         return documents.map(this::convertToResponse);
     }
 
     public List<DocumentResponse> getDocumentsByCategory(DocumentCategoryType category) {
-        List<Document> documents = documentRepository.findByCategoryTypeOrderByCreatedAtDesc(category);
+        List<Document> documents = documentRepository.findByCategoryCodeOrderByCreatedAtDesc(category.name());
         return documents.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
@@ -92,6 +95,10 @@ public class DocumentService {
                         .orElse(null);
             }
 
+            // Get category by code
+            DocumentCategory category = documentCategoryRepository.findByCode(request.getCategory())
+                    .orElseThrow(() -> new RuntimeException("Category not found: " + request.getCategory()));
+
             // Create document entity
             Document document = Document.builder()
                     .title(request.getTitle())
@@ -99,7 +106,7 @@ public class DocumentService {
                     .filePath(cloudinaryUrl) // Store Cloudinary URL
                     .fileSize(file.getSize())
                     .fileType(contentType)
-                    .category(request.getCategory())
+                    .category(category)
                     .description(request.getDescription())
                     .student(student)
                     .downloadCount(0L)
@@ -159,10 +166,13 @@ public class DocumentService {
                 .orElseThrow(() -> new RuntimeException("Document not found with id: " + id));
 
         try {
-            // Delete from Cloudinary
+            // 1. Delete from Cloudinary
             cloudinaryService.deleteFile(document.getFilePath());
 
-            // Delete from database
+            // 2. Clear references in session_documents (Join Table)
+            sessionRecordRepository.deleteDocumentReferences(id);
+
+            // 3. Delete from database
             documentRepository.delete(document);
         } catch (Exception e) {
             System.err.println("❌ Error deleting document: " + e.getMessage());
@@ -182,7 +192,7 @@ public class DocumentService {
         Long totalDownloads = (Long) aggregatedStats[2];
 
         // 2. Get Category Stats in ONE query using GROUP BY
-        List<Object[]> categoryStatsList = documentRepository.countDocumentsByCategoryType();
+        List<Object[]> categoryStatsList = documentRepository.countDocumentsByCategoryCode();
         java.util.Map<String, Long> statsMap = new java.util.HashMap<>();
         
         // Initialize map with 0 for all enum values (to ensure all categories are present even if count is 0)
@@ -192,10 +202,10 @@ public class DocumentService {
 
         // Fill in actual counts
         for (Object[] row : categoryStatsList) {
-             DocumentCategoryType type = (DocumentCategoryType) row[0];
+             String code = (String) row[0];
              Long count = (Long) row[1];
-             if (type != null) {
-                statsMap.put(type.name(), count);
+             if (code != null) {
+                statsMap.put(code, count);
              }
         }
 
@@ -227,10 +237,13 @@ public class DocumentService {
                 .filePath(document.getFilePath())
                 .fileSize(document.getFileSize())
                 .fileType(document.getFileType())
-                .category(document.getCategoryType())
-                .categoryDisplayName(document.getCategoryType().getDisplayName())
+                .category(document.getCategoryType() != null ? document.getCategoryType() : 
+                         (document.getCategory() != null ? parseCategoryType(document.getCategory().getCode()) : DocumentCategoryType.OTHER))
+                .categoryDisplayName(document.getCategory() != null ? document.getCategory().getName() : 
+                                    (document.getCategoryType() != null ? document.getCategoryType().getDisplayName() : "N/A"))
                 .categoryId(document.getCategory() != null ? document.getCategory().getId() : null)
-                .categoryName(document.getCategory() != null ? document.getCategory().getName() : null)
+                .categoryName(document.getCategory() != null ? document.getCategory().getName() : 
+                             (document.getCategoryType() != null ? document.getCategoryType().name() : null))
                 .studentId(document.getStudent() != null ? document.getStudent().getId() : null)
                 .studentName(document.getStudent() != null ? document.getStudent().getName() : null)
                 .downloadCount(document.getDownloadCount())
@@ -238,6 +251,15 @@ public class DocumentService {
                 .updatedAt(document.getUpdatedAt().format(formatter))
                 .formattedFileSize(formatFileSize(document.getFileSize()))
                 .build();
+    }
+
+    private DocumentCategoryType parseCategoryType(String code) {
+        if (code == null) return DocumentCategoryType.OTHER;
+        try {
+            return DocumentCategoryType.valueOf(code);
+        } catch (IllegalArgumentException e) {
+            return DocumentCategoryType.OTHER;
+        }
     }
 
     private String formatFileSize(long size) {

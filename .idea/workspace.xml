@@ -6,30 +6,27 @@
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/BackendApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/BackendApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/config/CacheConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/config/CacheConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CONTINUITY.md" beforeDir="false" afterPath="$PROJECT_DIR$/CONTINUITY.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/Document.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/Document.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/DocumentCategory.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/DocumentCategory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/DocumentController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/DocumentController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/DocumentCategoryDataInitializer.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/DocumentCategoryDataInitializer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/DocumentCategoryService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/DocumentCategoryService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/DocumentRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/DocumentRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/DocumentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/DocumentService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/dto/response/DocumentResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/dto/response/DocumentResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/dto/response/DocumentStats.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/dto/response/DocumentStats.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/dto/request/DocumentRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/document/dto/request/DocumentRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/AdminLessonService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/lesson/AdminLessonService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/documents/ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/ISSUES.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-library/components/CategoryFormModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-library/components/CategoryFormModal.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-library/components/CategoryGrid.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-library/components/CategoryGrid.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-library/components/CategoryView.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-library/components/CategoryView.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-library/components/DocumentList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-library/components/DocumentList.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-library/components/StatsCards.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-library/components/StatsCards.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-library/constants.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-library/constants.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-library/hooks/useDocumentActions.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-library/hooks/useDocumentActions.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-library/hooks/useDocumentLibrary.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-library/hooks/useDocumentLibrary.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-library/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-library/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-preview-modal/components/DocumentInfo.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-preview-modal/components/DocumentInfo.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-preview-modal/components/ModalHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-preview-modal/components/ModalHeader.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-preview-modal/components/PDFPreview.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-preview-modal/components/PDFPreview.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-preview-modal/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-preview-modal/index.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-upload-modal/components/CategorySelect.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-upload-modal/components/CategorySelect.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-upload-modal/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-upload-modal/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/documents/hooks/useMasterDocuments.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/hooks/useMasterDocuments.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/services/document.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/document.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/types/common.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/types/common.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/lib/types/document.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/types/document.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -210,7 +207,8 @@
       <workItem from="1767705493606" duration="2817000" />
       <workItem from="1767716003560" duration="926000" />
       <workItem from="1767797067939" duration="596000" />
-      <workItem from="1767800515695" duration="3438000" />
+      <workItem from="1767800515695" duration="5473000" />
+      <workItem from="1767838293219" duration="3065000" />
     </task>
     <servers />
   </component>

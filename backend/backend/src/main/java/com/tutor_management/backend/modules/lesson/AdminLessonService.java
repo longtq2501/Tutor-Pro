@@ -3,6 +3,7 @@ package com.tutor_management.backend.modules.lesson;
 import com.tutor_management.backend.modules.lesson.dto.request.CreateLessonRequest;
 import com.tutor_management.backend.modules.lesson.dto.response.AdminLessonResponse;
 import com.tutor_management.backend.exception.ResourceNotFoundException;
+import com.tutor_management.backend.modules.finance.SessionRecordRepository;
 import com.tutor_management.backend.modules.student.Student;
 import com.tutor_management.backend.modules.student.StudentRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class AdminLessonService {
     private final LessonAssignmentRepository assignmentRepository;
     private final StudentRepository studentRepository;
     private final LessonCategoryRepository categoryRepository;
+    private final SessionRecordRepository sessionRecordRepository;
 
     /**
      * Create a lesson in library and optionally assign to students
@@ -268,8 +270,11 @@ public class AdminLessonService {
                 .orElseThrow(() -> new ResourceNotFoundException("Lesson not found: " + id));
 
         int assignmentCount = lesson.getAssignedStudentCount();
+        
+        // 1. Clear references in session_lessons (Join Table)
+        sessionRecordRepository.deleteLessonReferences(id);
 
-        // Delete lesson (cascade will handle assignments)
+        // 2. Delete lesson (cascade will handle assignments)
         lessonRepository.delete(lesson);
 
         log.info("✅ Deleted lesson {} and {} assignments", id, assignmentCount);

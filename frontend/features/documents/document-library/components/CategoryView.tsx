@@ -26,6 +26,8 @@ export const CategoryView = ({
   page, setPage, totalPages, isLoading
 }: Props) => {
   const categoryInfo = CATEGORIES.find(c => c.key === category);
+  const icon = (categoryInfo?.icon as string) || (typeof category === 'object' ? (category as any).icon : '📁');
+  const name = categoryInfo?.name || (typeof category === 'object' ? (category as any).name : category);
 
   return (
     <div className="bg-card rounded-2xl shadow-lg p-4 lg:p-6 transition-colors border border-border">
@@ -35,9 +37,9 @@ export const CategoryView = ({
         </button>
         <div className="flex-1">
           <div className="flex items-center gap-2 lg:gap-3">
-            <span className="text-2xl lg:text-3xl">{categoryInfo?.icon}</span>
+            <span className="text-2xl lg:text-3xl">{icon}</span>
             <div>
-              <h2 className="text-xl lg:text-2xl font-bold text-card-foreground">{categoryInfo?.name}</h2>
+              <h2 className="text-xl lg:text-2xl font-bold text-card-foreground">{name}</h2>
               <p className="text-muted-foreground text-xs lg:text-sm">{documents.length} kết quả trang này</p>
             </div>
           </div>

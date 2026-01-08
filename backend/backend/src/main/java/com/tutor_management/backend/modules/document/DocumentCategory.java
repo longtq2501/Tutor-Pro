@@ -32,6 +32,12 @@ public class DocumentCategory {
     @Column(nullable = false)
     private Boolean active;
 
+    @Column(length = 7)
+    private String color; // Hex color code (e.g., #FF5733)
+
+    @Column(length = 50)
+    private String icon; // Lucide icon name or emoji
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

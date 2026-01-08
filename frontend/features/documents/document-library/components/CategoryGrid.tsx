@@ -15,9 +15,18 @@ interface Props {
   counts: Record<string, number>;
   onCategoryClick: (category: DocumentCategory) => void;
   onDeleteCategory?: (id: number) => void;
+  isLoading?: boolean;
 }
 
-export const CategoryGrid = memo(({ categories, counts, onCategoryClick, onDeleteCategory }: Props) => {
+const CategoryGridSkeleton = () => (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4 w-full">
+    {[1, 2, 3, 4, 5, 6].map((i) => (
+      <div key={i} className="bg-muted animate-pulse rounded-xl h-[92px] lg:h-[116px] w-full" />
+    ))}
+  </div>
+);
+
+export const CategoryGrid = memo(({ categories, counts, onCategoryClick, onDeleteCategory, isLoading }: Props) => {
   const queryClient = useQueryClient();
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleteName, setDeleteName] = useState<string>('');
@@ -27,8 +36,8 @@ export const CategoryGrid = memo(({ categories, counts, onCategoryClick, onDelet
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  // Merge dynamic categories with visual constants
-  const displayCategories = categories.length > 0 ? categories : CATEGORIES.map(c => ({ code: c.key, name: c.name }));
+  // Use dynamic categories from server
+  const displayCategories = categories;
 
   const confirmDelete = async () => {
     if (!deleteId) return;
@@ -46,14 +55,16 @@ export const CategoryGrid = memo(({ categories, counts, onCategoryClick, onDelet
       }
     };
 
-    toast.promise(deletePromise(), {
+    const promise = deletePromise();
+
+    toast.promise(promise, {
       loading: 'Đang xóa danh mục...',
       success: `Đã xóa danh mục "${deleteName}"`,
       error: 'Không thể xóa danh mục này (có thể đang chứa tài liệu)'
     });
 
     try {
-      await deletePromise(); // Wait for completion to update local state
+      await promise; // Wait for completion to update local state
     } catch (e) {
       // Handled by toast
     } finally {
@@ -79,6 +90,10 @@ export const CategoryGrid = memo(({ categories, counts, onCategoryClick, onDelet
     setIsFormOpen(true);
   };
 
+  if (isLoading && categories.length === 0) {
+    return <CategoryGridSkeleton />;
+  }
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
@@ -87,12 +102,16 @@ export const CategoryGrid = memo(({ categories, counts, onCategoryClick, onDelet
             const code = cat.code || cat;
             const name = cat.name || cat;
             const visual = CATEGORIES.find(c => c.key === code) || {
-              color: 'from-gray-500 to-gray-600',
-              icon: '📁',
+              icon: cat.icon || '📁',
               key: code
             };
+            const icon = cat.icon || visual.icon || '📁';
+            const color = cat.color || '';
             const count = counts?.[code] || 0;
             const isDynamic = !!cat.id;
+
+            // Fallback gradient if no color set
+            const bgClass = color ? '' : 'bg-gradient-to-r from-blue-500 to-blue-600';
 
             return (
               <motion.div
@@ -106,11 +125,12 @@ export const CategoryGrid = memo(({ categories, counts, onCategoryClick, onDelet
               >
                 <button
                   onClick={() => onCategoryClick(code as DocumentCategory)}
-                  className={`w-full bg-gradient-to-r ${visual.color} text-white rounded-xl p-4 lg:p-6 text-left hover:shadow-lg transition-all transform hover:scale-[1.02] will-change-transform contain-layout`}
+                  className={`w-full ${bgClass} text-white rounded-xl p-4 lg:p-6 text-left hover:shadow-lg transition-all transform hover:scale-[1.02] will-change-transform contain-layout`}
+                  style={color ? { backgroundColor: color } : {}}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2 lg:gap-3">
-                      <span className="text-2xl lg:text-3xl">{visual.icon}</span>
+                      <span className="text-2xl lg:text-3xl">{icon}</span>
                       <div>
                         <h3 className="font-bold text-sm lg:text-lg truncate">{name}</h3>
                         <p className="text-white/80 text-[10px] lg:text-sm">{count} tài liệu</p>

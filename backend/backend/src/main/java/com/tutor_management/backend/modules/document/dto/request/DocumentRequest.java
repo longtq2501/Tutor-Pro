@@ -1,6 +1,5 @@
 package com.tutor_management.backend.modules.document.dto.request;
 
-import com.tutor_management.backend.modules.document.DocumentCategory;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -13,7 +12,7 @@ public class DocumentRequest {
     private String title;
 
     @NotNull(message = "Category is required")
-    private DocumentCategory category;
+    private String category;
 
     private String description;
 

@@ -27,13 +27,13 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
         @Query("SELECT d FROM Document d " +
                         "LEFT JOIN FETCH d.student " +
                         "LEFT JOIN FETCH d.category " +
-                        "WHERE d.categoryType = :categoryType " +
+                        "WHERE d.category.code = :categoryCode " +
                         "ORDER BY d.createdAt DESC")
-        List<Document> findByCategoryTypeOrderByCreatedAtDesc(@Param("categoryType") DocumentCategoryType categoryType);
+        List<Document> findByCategoryCodeOrderByCreatedAtDesc(@Param("categoryCode") String categoryCode);
 
-        @Query(value = "SELECT d FROM Document d LEFT JOIN FETCH d.student LEFT JOIN FETCH d.category WHERE d.categoryType = :categoryType",
-               countQuery = "SELECT COUNT(d) FROM Document d WHERE d.categoryType = :categoryType")
-        org.springframework.data.domain.Page<Document> findByCategoryType(@Param("categoryType") DocumentCategoryType categoryType, org.springframework.data.domain.Pageable pageable);
+        @Query(value = "SELECT d FROM Document d LEFT JOIN FETCH d.student LEFT JOIN FETCH d.category WHERE d.category.code = :categoryCode",
+               countQuery = "SELECT COUNT(d) FROM Document d JOIN d.category c WHERE c.code = :categoryCode")
+        org.springframework.data.domain.Page<Document> findByCategoryCode(@Param("categoryCode") String categoryCode, org.springframework.data.domain.Pageable pageable);
 
         @Query("SELECT d FROM Document d " +
                         "LEFT JOIN FETCH d.student " +
@@ -43,8 +43,8 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
         List<Document> findByTitleContainingIgnoreCaseOrderByCreatedAtDesc(@Param("keyword") String keyword);
 
         // Stats queries - không cần join
-        @Query("SELECT COUNT(d) FROM Document d WHERE d.categoryType = :categoryType")
-        Long countByCategoryType(@Param("categoryType") DocumentCategoryType categoryType);
+        @Query("SELECT COUNT(d) FROM Document d WHERE d.category.code = :categoryCode")
+        Long countByCategoryCode(@Param("categoryCode") String categoryCode);
 
         @Query("SELECT COALESCE(SUM(d.fileSize), 0) FROM Document d")
         Long sumTotalFileSize();
@@ -57,8 +57,12 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
         Long countByStudentIdOrStudentIsNull(@Param("studentId") Long studentId);
 
         // ✅ OPTIMIZED: Aggregated stats queries (GROUP BY included)
-        @Query("SELECT d.categoryType, COUNT(d) FROM Document d GROUP BY d.categoryType")
-        List<Object[]> countDocumentsByCategoryType();
+        @Query("SELECT c.code, COUNT(d) FROM Document d JOIN d.category c GROUP BY c.code")
+        List<Object[]> countDocumentsByCategoryCode();
+
+        @org.springframework.data.jpa.repository.Modifying
+        @org.springframework.data.jpa.repository.Query("UPDATE Document d SET d.category = null WHERE d.category.id = :categoryId")
+        void clearCategoryReferences(@Param("categoryId") Long categoryId);
 
         @Query("SELECT COUNT(d), COALESCE(SUM(d.fileSize), 0), COALESCE(SUM(d.downloadCount), 0) FROM Document d")
         Object getAggregatedStats();

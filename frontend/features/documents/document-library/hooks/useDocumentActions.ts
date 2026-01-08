@@ -3,6 +3,7 @@
 // ============================================================================
 import { documentsApi } from '@/lib/services';
 import type { Document } from '@/lib/types';
+import { toast } from 'sonner';
 
 export const useDocumentActions = (loadDocuments: () => void, loadCategoryDocuments: () => void, selectedCategory: any) => {
   const handleDownload = async (doc: Document) => {
@@ -16,25 +17,30 @@ export const useDocumentActions = (loadDocuments: () => void, loadCategoryDocume
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      
+
       if (selectedCategory) loadCategoryDocuments();
       loadDocuments();
     } catch (error) {
       console.error('Error downloading document:', error);
-      alert('Không thể tải xuống tài liệu!');
+      toast.error('Không thể tải xuống tài liệu!');
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Xóa tài liệu này?')) return;
-    try {
+    const promise = async () => {
       await documentsApi.delete(id);
       if (selectedCategory) loadCategoryDocuments();
       loadDocuments();
-    } catch (error) {
-      console.error('Error deleting document:', error);
-      alert('Không thể xóa tài liệu!');
-    }
+    };
+
+    toast.promise(promise(), {
+      loading: 'Đang xóa tài liệu...',
+      success: 'Đã xóa tài liệu thành công',
+      error: (err: any) => {
+        console.error('Error deleting document:', err);
+        return 'Không thể xóa tài liệu!';
+      }
+    });
   };
 
   return { handleDownload, handleDelete };

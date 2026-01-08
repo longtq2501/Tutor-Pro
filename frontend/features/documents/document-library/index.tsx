@@ -15,6 +15,7 @@ import { CategoryGrid } from './components/CategoryGrid';
 import { CategoryView } from './components/CategoryView';
 import DocumentUploadModal from '@/features/documents/document-upload-modal';
 import DocumentPreviewModal from '@/features/documents/document-preview-modal';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
 export default function DocumentLibrary() {
   const {
@@ -32,12 +33,29 @@ export default function DocumentLibrary() {
     page,
     setPage,
     totalPages,
+    isCategoriesLoading
   } = useDocumentLibrary();
 
-  const { handleDownload, handleDelete } = useDocumentActions(loadDocuments, loadCategoryDocuments, selectedCategory);
+  const { handleDownload, handleDelete: executeDelete } = useDocumentActions(loadDocuments, loadCategoryDocuments, selectedCategory);
 
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [previewDocument, setPreviewDocument] = useState<Document | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+
+  const handleDeleteTrigger = (id: number) => {
+    setDeleteConfirmId(id);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteConfirmId) {
+      executeDelete(deleteConfirmId);
+      setDeleteConfirmId(null);
+      // If we are in preview, close it too
+      if (previewDocument && previewDocument.id === deleteConfirmId) {
+        setPreviewDocument(null);
+      }
+    }
+  };
 
   // if (loading) return <LoadingState />; // Removed to support Skeleton
 
@@ -65,6 +83,7 @@ export default function DocumentLibrary() {
             categories={categories}
             counts={stats.categoryCounts}
             onCategoryClick={setSelectedCategory}
+            isLoading={isCategoriesLoading}
           />
         </div>
 
@@ -78,10 +97,12 @@ export default function DocumentLibrary() {
     );
   }
 
+  const fullSelectedCategory = categories.find(c => c.code === selectedCategory) || selectedCategory;
+
   return (
     <>
       <CategoryView
-        category={selectedCategory}
+        category={fullSelectedCategory as any}
         documents={categoryDocs}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -89,13 +110,12 @@ export default function DocumentLibrary() {
         onUpload={() => setShowUploadModal(true)}
         onPreview={setPreviewDocument}
         onDownload={handleDownload}
-        onDelete={handleDelete}
+        onDelete={handleDeleteTrigger}
         page={page}
         setPage={setPage}
         totalPages={totalPages}
         isLoading={loading}
       />
-// ...
 
       {showUploadModal && (
         <DocumentUploadModal
@@ -110,9 +130,19 @@ export default function DocumentLibrary() {
           document={previewDocument}
           onClose={() => setPreviewDocument(null)}
           onDownload={handleDownload}
-          onDelete={handleDelete}
+          onDelete={handleDeleteTrigger}
         />
       )}
+
+      <ConfirmDialog
+        open={deleteConfirmId !== null}
+        onOpenChange={(open) => !open && setDeleteConfirmId(null)}
+        onConfirm={handleConfirmDelete}
+        title="Xác nhận xóa"
+        description="Bạn có chắc chắn muốn xóa tài liệu này? Hành động này không thể hoàn tác."
+        variant="destructive"
+        confirmText="Xóa tài liệu"
+      />
     </>
   );
 }

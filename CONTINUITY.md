@@ -21,8 +21,10 @@ Optimize existing TMS from "functional" to "production-ready":
 
 ## State
 
+### Done:
+
 ### Now:
-- 🔄 Optimizing Document module (categories, pagination, preview responsive)
+ - ⏭️ Document module (categories, pagination, preview responsive)
 
 ### Next:
 - ⏭️ Optimize remaining modules (exercise, schedule, dashboard,...)

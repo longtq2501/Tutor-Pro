@@ -19,6 +19,8 @@ interface DocumentUploadModalProps {
   defaultCategory?: DocumentCategory;
 }
 
+import { toast } from 'sonner';
+
 export default function DocumentUploadModal({
   onClose,
   onSuccess,
@@ -36,7 +38,7 @@ export default function DocumentUploadModal({
   const handleFileSelect = (file: File) => {
     const error = validateFile(file);
     if (error) {
-      alert(error);
+      toast.error(error);
       return;
     }
     setSelectedFile(file);
@@ -48,20 +50,21 @@ export default function DocumentUploadModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFile) {
-      alert('Vui lòng chọn file!');
+      toast.warning('Vui lòng chọn file!');
       return;
     }
     if (!formData.title) {
-      alert('Vui lòng nhập tiêu đề!');
+      toast.warning('Vui lòng nhập tiêu đề!');
       return;
     }
 
     try {
       await upload(selectedFile, formData);
+      toast.success('Tải lên tài liệu thành công!');
       setTimeout(onSuccess, 500);
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Không thể tải lên tài liệu!');
+      toast.error('Không thể tải lên tài liệu!');
     }
   };
 

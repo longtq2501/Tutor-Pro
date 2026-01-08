@@ -30,6 +30,8 @@ export interface Category {
   description?: string;
   displayOrder?: number;
   active?: boolean;
+  color?: string;
+  icon?: string;
 }
 
 export interface DocumentUploadRequest {

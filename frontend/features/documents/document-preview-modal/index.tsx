@@ -49,11 +49,8 @@ export default function DocumentPreviewModal({
       e.stopPropagation();
     }
 
-    if (confirm('Xóa tài liệu này?')) {
-      onDelete(doc.id);
-      onClose();
-    }
-  }, [doc.id, onDelete, onClose]);
+    onDelete(doc.id);
+  }, [doc.id, onDelete]);
 
   const handleOpenInNewTab = useCallback((e?: React.MouseEvent) => {
     if (e) {

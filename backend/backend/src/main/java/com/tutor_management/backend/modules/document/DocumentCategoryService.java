@@ -12,6 +12,7 @@ import java.util.List;
 public class DocumentCategoryService {
 
     private final DocumentCategoryRepository categoryRepository;
+    private final DocumentRepository documentRepository;
 
     public List<DocumentCategory> getAllActiveCategories() {
         return categoryRepository.findAllByActiveTrueOrderByDisplayOrderAsc();
@@ -34,6 +35,8 @@ public class DocumentCategoryService {
         category.setDescription(categoryDetails.getDescription());
         category.setDisplayOrder(categoryDetails.getDisplayOrder());
         category.setActive(categoryDetails.getActive());
+        category.setColor(categoryDetails.getColor());
+        category.setIcon(categoryDetails.getIcon());
         
         // Validate code uniqueness if changed
         if (!category.getCode().equals(categoryDetails.getCode()) && 
@@ -48,10 +51,10 @@ public class DocumentCategoryService {
         DocumentCategory category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
         
-        try {
-            categoryRepository.delete(category);
-        } catch (Exception e) {
-             throw new RuntimeException("Cannot delete category. It may contain documents.");
-        }
+        // 1. Clear references in Document table (nullify category_id)
+        documentRepository.clearCategoryReferences(id);
+
+        // 2. Delete the category
+        categoryRepository.delete(category);
     }
 }

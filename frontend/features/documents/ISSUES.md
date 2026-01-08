@@ -1,12 +1,3 @@
-## Performance Issues
-- [ ] [P0-Critical] No pagination - backend returns ALL documents in category (will slow down as data grows)
-- [ ] Missing search functionality - users must scroll through all documents
-
-## UX Issues  
-- [ ] [P1-High] Categories are hardcoded - cannot add/edit categories from UI
-- [ ] No visual feedback when loading documents
-- [ ] Search/filter capability needed for better document discovery
-
 ## Phase 1: Quick Wins (UI & Responsive) - ✅ DONE
 
 ### UI Issues
@@ -101,8 +92,32 @@
   - Tested: ✅ Verified sidebar is hidden by default on small screens.
 
 
+- [x] [P2-Low] **Category Customization:** Added support for custom colors and icons (emojis) for document categories.
+  - **Solution:** Added `color` and `icon` fields to backend `DocumentCategory` entity.
+  - **Solution:** Updated `CategoryFormModal` with color picker and icon input.
+  - **Solution:** Enhanced `CategoryGrid` and `CategoryView` to render dynamic styles.
+  - **Fix:** Eliminated UI flicker on reload by removing outdated static color constants.
+  - **Improvement:** Added Skeleton loading states to the Category Grid to provide immediate visual feedback during data fetching (reloads).
+
+- [x] [P2-Low] **UX Improvements:** Replace native browser alerts/confirms with custom UI components.
+  - **Solution:** Integrated `ConfirmDialog` for deletion confirmation.
+  - **Solution:** Replaced `window.alert` with `sonner` toasts for validation and errors.
+  - **Solution:** Added `toast.promise` to provide visual loading feedback during file deletion.
+  - **Fix:** Resolved a race condition where `deletePromise` was called twice in `CategoryGrid`, causing "actual row count 0" errors.
+
+- [x] [P1-Medium] **Deletion Constraint Error:** Cannot delete documents or categories due to foreign key constraints.
+  - **Solution (Document):** Added manual cleanup of `session_documents` join table references in `DocumentService.deleteDocument`.
+  - **Solution (Category):** Added `clearCategoryReferences` to nullify `category_id` in documents before deleting a category in `DocumentCategoryService`.
+  - **Solution (Lesson):** Proactively added logic to clear `session_lessons` references when deleting lessons.
+
+## Current Issues
+- [x] [P0-Critical] **Upload File Error (400 & 500):** Cannot upload file due to JSON parse and Data Truncation errors.
+  - **Solution (Fix 400):** Updated `DocumentRequest` DTO to accept `category` as a `String` code. Jackson was failing to hibernate-deserialize string into an entity object.
+  - **Solution (Fix 500):** Decommissioned legacy `category` column by setting `insertable = false, updatable = false` in `Document` entity. MySQL was truncating data due to strict Enum/length constraints.
+  - **Solution (Architecture):** Refactored `DocumentRepository` and `DocumentService` to use dynamic JOIN queries on the `category_id` relationship instead of the legacy string column.
+  - **Solution (Migration):** Added auto-migration logic in `DataInitializer` to link existing files to the new category system.
+
 ## Validated State
 - **Backend:** Dynamic Categories (Entity), Pagination (Page<T>)
 - **Frontend:** Pagination UI, Dynamic Tabs, Responsive Preview
 - **Architecture:** Scalable for large datasets
-```

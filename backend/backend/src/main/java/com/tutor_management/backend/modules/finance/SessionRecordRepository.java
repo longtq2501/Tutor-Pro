@@ -170,4 +170,11 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, Lo
                         "LEFT JOIN FETCH sr.student " +
                         "WHERE sr.id IN :ids")
         List<SessionRecord> findAllByIdWithStudent(@Param("ids") List<Long> ids);
+        @org.springframework.data.jpa.repository.Modifying
+        @org.springframework.data.jpa.repository.Query(value = "DELETE FROM session_documents WHERE document_id = :documentId", nativeQuery = true)
+        void deleteDocumentReferences(@Param("documentId") Long documentId);
+
+        @org.springframework.data.jpa.repository.Modifying
+        @org.springframework.data.jpa.repository.Query(value = "DELETE FROM session_lessons WHERE lesson_id = :lessonId", nativeQuery = true)
+        void deleteLessonReferences(@Param("lessonId") Long lessonId);
 }

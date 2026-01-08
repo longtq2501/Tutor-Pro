@@ -27,7 +27,7 @@ export const useDocumentLibrary = () => {
   }, [selectedCategory]);
 
   // 1. Fetch Categories
-  const { data: categories = [] } = useCategories();
+  const { data: categories = [], isLoading: isCategoriesLoading } = useCategories();
 
   // 2. Decide what to fetch: Search Mode vs Browse Mode
   const isSearchMode = !!debouncedSearchQuery;
@@ -88,6 +88,7 @@ export const useDocumentLibrary = () => {
     totalElements,
     loadDocuments,
     loadCategoryDocuments,
-    isSearchMode
+    isSearchMode,
+    isCategoriesLoading
   };
 };

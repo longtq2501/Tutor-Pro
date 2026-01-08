@@ -34,9 +34,10 @@ export function CategorySelect({ value, onChange, categories }: CategorySelectPr
           {categories.length > 0 ? (
             categories.map((cat) => {
               const visual = getVisual(cat.code);
+              const icon = cat.icon || visual?.icon || '📁';
               return (
                 <option key={cat.id} value={cat.code}>
-                  {visual ? visual.icon : '📁'} {cat.name}
+                  {icon} {cat.name}
                 </option>
               );
             })

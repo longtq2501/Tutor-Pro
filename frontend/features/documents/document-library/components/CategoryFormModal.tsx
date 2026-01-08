@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { documentsApi } from '@/lib/services';
 import type { Category } from '@/lib/types';
 import { useQueryClient } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Palette } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { queryKeys } from '@/lib/hooks/useQueryKeys';
@@ -32,7 +32,9 @@ export function CategoryFormModal({ open, onOpenChange, initialData, onSuccess }
         code: '',
         description: '',
         active: true,
-        displayOrder: 0
+        displayOrder: 0,
+        color: '#3b82f6',
+        icon: '📁'
     });
 
     useEffect(() => {
@@ -42,7 +44,9 @@ export function CategoryFormModal({ open, onOpenChange, initialData, onSuccess }
                 code: initialData.code,
                 description: initialData.description || '',
                 active: initialData.active ?? true,
-                displayOrder: initialData.displayOrder || 0
+                displayOrder: initialData.displayOrder || 0,
+                color: initialData.color || '#3b82f6',
+                icon: initialData.icon || '📁'
             });
         } else {
             // Reset for create mode
@@ -51,7 +55,9 @@ export function CategoryFormModal({ open, onOpenChange, initialData, onSuccess }
                 code: '',
                 description: '',
                 active: true,
-                displayOrder: 0
+                displayOrder: 0,
+                color: '#3b82f6',
+                icon: '📁'
             });
         }
     }, [initialData, open]);
@@ -115,6 +121,39 @@ export function CategoryFormModal({ open, onOpenChange, initialData, onSuccess }
                             value={formData.name}
                             onChange={handleNameChange}
                         />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="icon">Biểu tượng / Emoji</Label>
+                            <Input
+                                id="icon"
+                                placeholder="📁, 📚..."
+                                value={formData.icon}
+                                onChange={e => setFormData(prev => ({ ...prev, icon: e.target.value }))}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="color" className="flex items-center gap-2">
+                                <Palette size={14} /> Màu sắc
+                            </Label>
+                            <div className="flex gap-2">
+                                <Input
+                                    id="color"
+                                    type="color"
+                                    value={formData.color}
+                                    onChange={e => setFormData(prev => ({ ...prev, color: e.target.value }))}
+                                    className="w-12 p-1 h-9 cursor-pointer"
+                                />
+                                <Input
+                                    type="text"
+                                    value={formData.color}
+                                    onChange={e => setFormData(prev => ({ ...prev, color: e.target.value }))}
+                                    className="flex-1 h-9 text-xs font-mono"
+                                    placeholder="#3b82f6"
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     <div className="space-y-2">

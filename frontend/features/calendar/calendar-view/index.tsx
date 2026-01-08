@@ -137,7 +137,7 @@ export default function CalendarView() {
   ]);
 
   return (
-    <div className="min-h-screen bg-transparent">
+    <div className="bg-transparent">
       {/* Header điều hướng và Stats */}
       <CalendarHeader
         currentDate={currentDate}

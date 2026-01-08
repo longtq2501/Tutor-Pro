@@ -14,7 +14,7 @@ function DashboardInner() {
     const { showEmailResult, emailResult, closeEmailResult, ...actions } = useFinanceActions();
 
     return (
-        <div className="min-h-screen pb-24">
+        <div className="">
             <FinanceHeader />
 
             <div className="container mx-auto p-4 md:p-8 space-y-8">

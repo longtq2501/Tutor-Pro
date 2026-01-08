@@ -301,7 +301,7 @@ function AppContent() {
                 setIsCollapsed={setIsCollapsed}
             />
 
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10 bg-background" style={{ scrollbarGutter: 'stable' }}>
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10 bg-background">
                 <AppHeader
                     title={currentTitle}
                     user={user}

@@ -24,7 +24,9 @@ Merging `monthly-view` and `unpaid-sessions` into a unified, high-performance **
 
 ## 📋 Active Items
 
-*No active items at this time. All planned features have been implemented.*
+- [x] [P1] **Unwanted Space/Bar below Footer**
+    - **Issue:** Persistent bar and extra space appearing at bottom.
+    - **Action:** Fixed by removing non-standard `zoom` scaling in `globals.css` and optimizing component layout (`min-h-screen`, `pb-24`).
 
 ---
 

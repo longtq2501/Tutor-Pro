@@ -1,7 +1,6 @@
 'use client';
 
 import {
-    AlertCircle,
     BookCheck, BookOpen,
     CalendarDays,
     ClipboardList,
@@ -18,7 +17,6 @@ import React, { useCallback, useMemo, useState } from 'react';
 // ============================================================================
 import AdminDashboard from '@/features/dashboard/admin-dashboard';
 import { LoadingState } from '@/features/dashboard/admin-dashboard/components/LoadingState';
-import { MonthlyViewSkeleton } from '@/features/finance/monthly-view/components/MonthlyViewSkeleton';
 import { AnimatePresence, motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
 
@@ -29,10 +27,13 @@ const UnifiedStudentView = dynamic(() => import('@/features/students/unified-vie
     loading: () => <LoadingState />
 });
 
-const MonthlyView = dynamic(() => import('@/features/finance/monthly-view'), {
-    loading: () => <MonthlyViewSkeleton />
+const FinanceDashboard = dynamic(() => import('@/features/finance/management/components/FinanceDashboard'), {
+    loading: () => <LoadingState />
 });
-const UnpaidSessionsView = dynamic(() => import('@/features/finance/unpaid-sessions'));
+// const MonthlyView = dynamic(() => import('@/features/finance/monthly-view'), {
+//    loading: () => <MonthlyViewSkeleton />
+// });
+// const UnpaidSessionsView = dynamic(() => import('@/features/finance/unpaid-sessions'));
 const StudentHomeworkView = dynamic(() => import('@/features/learning/homework/student-homework'));
 const TutorHomeworkView = dynamic(() => import('@/features/learning/homework/tutor-homework-view'));
 const DocumentLibrary = dynamic(() => import('@/features/documents/document-library'));
@@ -61,8 +62,8 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { UIProvider, useUI } from '@/contexts/UIContext';
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import ExerciseDashboard from '@/features/exercises/exercise-dashboard';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 // ============================================================================
 // MEMOIZED SUB-COMPONENTS FOR RENDERING ISOLATION
@@ -157,7 +158,8 @@ const MainContentSwitcher = React.memo(({ currentView, hasAnyRole }: {
 
                 {/* All feature-based views */}
                 {(currentView === 'students' || currentView === 'parents') && hasAnyRole(['ADMIN', 'TUTOR']) && <UnifiedStudentView />}
-                {currentView === 'monthly' && hasAnyRole(['ADMIN', 'TUTOR']) && <MonthlyView />}
+                {(currentView === 'finance' || currentView === 'monthly') && hasAnyRole(['ADMIN', 'TUTOR']) && <FinanceDashboard />}
+                {/* {currentView === 'monthly' && hasAnyRole(['ADMIN', 'TUTOR']) && <MonthlyView />} */}
                 {currentView === 'calendar' && hasAnyRole(['ADMIN', 'TUTOR']) && <CalendarView />}
 
                 {/* New Exercise Dashboard */}
@@ -173,7 +175,7 @@ const MainContentSwitcher = React.memo(({ currentView, hasAnyRole }: {
                 {currentView === 'homework' && hasAnyRole(['ADMIN', 'TUTOR']) && <TutorHomeworkView />}
 
                 {/* Other views */}
-                {currentView === 'unpaid' && hasAnyRole(['ADMIN', 'TUTOR']) && <UnpaidSessionsView />}
+                {/* {currentView === 'unpaid' && hasAnyRole(['ADMIN', 'TUTOR']) && <UnpaidSessionsView />} */}
                 {currentView === 'documents' && <DocumentLibrary />}
 
                 {/* Fallback */}
@@ -241,12 +243,12 @@ function AppContent() {
         const allItems: NavItem[] = [
             { id: 'dashboard', label: 'Tổng Quan', icon: LayoutDashboard },
             { id: 'students', label: 'Học Sinh & PH', icon: GraduationCap },
-            { id: 'monthly', label: 'Thống Kê', icon: TrendingUp },
+            { id: 'finance', label: 'Tài Chính', icon: TrendingUp }, // Unified View
             { id: 'calendar', label: 'Lịch Dạy', icon: CalendarDays },
             { id: 'lessons', label: 'Bài Giảng', icon: BookOpen },
             { id: 'homework', label: 'Bài Tập', icon: BookCheck },
             { id: 'exercises', label: 'Khảo thí', icon: ClipboardList },
-            { id: 'unpaid', label: 'Công Nợ', icon: AlertCircle },
+            // { id: 'unpaid', label: 'Công Nợ', icon: AlertCircle },
             { id: 'documents', label: 'Tài Liệu', icon: FileText },
         ];
 

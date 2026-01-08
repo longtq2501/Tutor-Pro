@@ -1,13 +1,13 @@
 'use client';
 
-import { cn } from '@/lib/utils';
-import { AnimatePresence, motion, LayoutGroup } from 'framer-motion';
-import { ChevronLeft, GraduationCap, X } from 'lucide-react';
-import React, { useEffect, memo, useState } from 'react';
 import { useUI } from '@/contexts/UIContext';
+import { cn } from '@/lib/utils';
+import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
+import { ChevronLeft, GraduationCap } from 'lucide-react';
+import React, { memo, useEffect, useState } from 'react';
 
 // Types (Giữ nguyên)
-export type View = 'dashboard' | 'students' | 'monthly' | 'documents' | 'parents' | 'unpaid' | 'calendar' | 'homework' | 'lessons' | 'exercises';
+export type View = 'dashboard' | 'students' | 'monthly' | 'documents' | 'parents' | 'unpaid' | 'calendar' | 'homework' | 'lessons' | 'exercises' | 'finance';
 export type NavItem = { id: View; label: string; icon: React.ElementType };
 
 interface SidebarProps {
@@ -24,11 +24,14 @@ const SPRING_CONFIG = { type: "spring", stiffness: 300, damping: 30, mass: 1 } a
 export const Sidebar = memo(({ currentView, setCurrentView, navItems, isCollapsed, setIsCollapsed }: SidebarProps) => {
     const { isSidebarOpen, setSidebarOpen } = useUI();
     const [isMobile, setIsMobile] = useState(false);
+    const [isLargeDesktop, setIsLargeDesktop] = useState(false);
 
     useEffect(() => {
         const checkMobile = () => {
             const mobile = window.innerWidth < 1024;
+            const largeDesktop = window.innerWidth >= 1920;
             setIsMobile(mobile);
+            setIsLargeDesktop(largeDesktop);
             if (!mobile && isSidebarOpen) setSidebarOpen(false);
         };
         checkMobile();
@@ -42,6 +45,10 @@ export const Sidebar = memo(({ currentView, setCurrentView, navItems, isCollapse
     };
 
     const effectiveCollapsed = isMobile ? false : isCollapsed;
+
+    // Responsive widths: Smaller for laptop/tablet, larger for big desktop
+    const expandedWidth = isLargeDesktop ? 280 : 220; // 220px for laptop, 280px for 29" desktop
+    const collapsedWidth = isLargeDesktop ? 80 : 64;  // 64px for laptop, 80px for 29" desktop
 
     return (
         <>
@@ -63,8 +70,8 @@ export const Sidebar = memo(({ currentView, setCurrentView, navItems, isCollapse
                     layout
                     initial={false}
                     animate={{
-                        width: effectiveCollapsed ? 80 : 280,
-                        x: isMobile && !isSidebarOpen ? -280 : 0,
+                        width: effectiveCollapsed ? collapsedWidth : expandedWidth,
+                        x: isMobile && !isSidebarOpen ? -expandedWidth : 0,
                     }}
                     transition={SPRING_CONFIG}
                     className={cn(

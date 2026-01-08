@@ -244,6 +244,33 @@ body {
     @apply bg-slate-500 dark:bg-slate-500;
   }
 
+  /* Responsive Zoom Scaling for Different Screen Sizes */
+  /* Mobile: 100% (default, no scaling) */
+  html {
+    font-size: 100%;
+  }
+
+  /* Tablet: 95% scaling (768px - 1023px) */
+  @media (min-width: 768px) and (max-width: 1023px) {
+    html {
+      zoom: 0.95;
+    }
+  }
+
+  /* Laptop: 90% scaling (1024px - 1919px) */
+  @media (min-width: 1024px) and (max-width: 1919px) {
+    html {
+      zoom: 0.9;
+    }
+  }
+
+  /* Large Desktop (29 inch+): 100% (1920px+) */
+  @media (min-width: 1920px) {
+    html {
+      zoom: 1;
+    }
+  }
+
   /* Synchronized Background Control (Problem 2) */
 
 }

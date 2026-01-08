@@ -51,6 +51,7 @@ export default function CalendarView() {
     isScrolled,
     loading,
     isInitialLoad,
+    isFetching,
     statusFilter,
 
     // Actions & Handlers
@@ -74,11 +75,17 @@ export default function CalendarView() {
     closeAddSessionModal,
     handleConfirmDeleteAll,
     exportToExcel,
+    handleContextMenu,
   } = useCalendarView();
+
+  // Optimized Handlers
+  const handleHeaderAddSession = useCallback(() => {
+    openAddSessionModal(selectedDateStr || new Date().toISOString().split('T')[0]);
+  }, [openAddSessionModal, selectedDateStr]);
 
   // Render các loại View khác nhau dựa trên currentView
   const renderView = useCallback(() => {
-    if (loading || isInitialLoad) return (
+    if (isInitialLoad) return (
       <div className="px-6">
         <CalendarSkeleton />
       </div>
@@ -121,19 +128,19 @@ export default function CalendarView() {
           <div className="px-4 sm:px-6">
             <CalendarGrid
               days={filteredCalendarDays}
-              onDayClick={(day) => setSelectedDay(day)}
+              onDayClick={setSelectedDay}
               onAddSession={openAddSessionModal}
               onSessionClick={handleSessionClick}
               onSessionEdit={handleSessionEdit}
               onUpdate={handleUpdateSession}
-              onContextMenu={(e, session) => setContextMenu({ x: e.clientX, y: e.clientY, session })}
+              onContextMenu={handleContextMenu}
             />
           </div>
         );
     }
   }, [
     loading, isInitialLoad, currentView, filteredCalendarDays, setSelectedDay, openAddSessionModal,
-    handleSessionClick, handleSessionEdit, handleUpdateSession, currentDayInfo, filteredSessions, setContextMenu
+    handleSessionClick, handleSessionEdit, handleUpdateSession, currentDayInfo, filteredSessions, handleContextMenu
   ]);
 
   return (
@@ -145,7 +152,7 @@ export default function CalendarView() {
         onNavigate={navigateMonth}
         onToday={goToToday}
         onViewChange={setCurrentView}
-        onAddSession={() => openAddSessionModal(selectedDateStr || new Date().toISOString().split('T')[0])}
+        onAddSession={handleHeaderAddSession}
         onGenerateInvoice={exportToExcel}
         onAutoGenerate={handleAutoGenerate}
         isGenerating={isGenerating}
@@ -154,6 +161,7 @@ export default function CalendarView() {
         isScrolled={isScrolled}
         onFilterChange={setStatusFilter}
         currentFilter={statusFilter}
+        isFetching={isFetching}
       />
 
       <main className="transition-all duration-300">

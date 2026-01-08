@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { Check, Search } from 'lucide-react';
+import { Check, Search, X } from 'lucide-react';
 import { useRef } from 'react';
 
 interface LibrarySelectionProps {
@@ -46,105 +46,125 @@ export function LibrarySelection({
         overscan: 5,
     });
 
+    const isNewItem = (createdAt?: string) => {
+        if (!createdAt) return false;
+        const date = new Date(createdAt);
+        const now = new Date();
+        const diffTime = Math.abs(now.getTime() - date.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays <= 7;
+    };
+
     return (
-        <div className="space-y-4 pt-4 border-t border-border/60">
-            <div className="grid grid-cols-3 gap-3 p-3 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl">
-                <div className="text-center">
-                    <div className="text-xl font-black text-primary">
-                        {categories.length}
-                    </div>
-                    <div className="text-[9px] text-muted-foreground font-bold">Tổng mục</div>
+        <div className="space-y-3 pt-3 border-t border-border/60 flex flex-col h-full overflow-hidden">
+            {/* Stats Bar */}
+            <div className="grid grid-cols-3 gap-2 px-1">
+                <div className="flex flex-col items-center p-2 bg-primary/5 rounded-lg border border-primary/10">
+                    <span className="text-lg font-black text-primary leading-none">{categories.length}</span>
+                    <span className="text-[9px] text-muted-foreground font-bold uppercase mt-1">Danh mục</span>
                 </div>
-                <div className="text-center">
-                    <div className="text-xl font-black text-primary">
-                        {filteredItems.length}
-                    </div>
-                    <div className="text-[9px] text-muted-foreground font-bold">Tìm thấy</div>
+                <div className="flex flex-col items-center p-2 bg-primary/5 rounded-lg border border-primary/10">
+                    <span className="text-lg font-black text-primary leading-none">{filteredItems.length}</span>
+                    <span className="text-[9px] text-muted-foreground font-bold uppercase mt-1">Tìm thấy</span>
                 </div>
-                <div className="text-center">
-                    <div className="text-xl font-black text-primary">
-                        {currentTabSelectedCount}
-                    </div>
-                    <div className="text-[9px] text-muted-foreground font-bold">Đã chọn</div>
+                <div className="flex flex-col items-center p-2 bg-primary/5 rounded-lg border border-primary/10">
+                    <span className="text-lg font-black text-primary leading-none">{currentTabSelectedCount}</span>
+                    <span className="text-[9px] text-muted-foreground font-bold uppercase mt-1">Đã chọn</span>
                 </div>
             </div>
 
-            <div className="flex gap-1 p-1 bg-muted/30 rounded-xl">
+            {/* Tabs */}
+            <div className="flex p-1 bg-muted/40 rounded-xl border border-border/40">
                 <button
                     type="button"
                     onClick={() => setActiveTab('lessons')}
                     className={cn(
-                        "flex-1 px-4 py-2.5 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-2",
+                        "flex-1 py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-2",
                         activeTab === 'lessons'
-                            ? "bg-foreground text-background shadow-sm"
-                            : "text-muted-foreground hover:text-foreground"
+                            ? "bg-background text-foreground shadow-sm ring-1 ring-border/50"
+                            : "text-muted-foreground hover:text-foreground hover:bg-background/50"
                     )}
                 >
-                    📖 Kho bài giảng
+                    <span className="text-base">📖</span> Kho bài giảng
                 </button>
                 <button
                     type="button"
                     onClick={() => setActiveTab('documents')}
                     className={cn(
-                        "flex-1 px-4 py-2.5 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-2",
+                        "flex-1 py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-2",
                         activeTab === 'documents'
-                            ? "bg-foreground text-background shadow-sm"
-                            : "text-muted-foreground hover:text-foreground"
+                            ? "bg-background text-foreground shadow-sm ring-1 ring-border/50"
+                            : "text-muted-foreground hover:text-foreground hover:bg-background/50"
                     )}
                 >
-                    📄 Kho tài liệu
+                    <span className="text-base">📄</span> Kho tài liệu
                 </button>
             </div>
 
+            {/* Search & Sort */}
             <div className="flex gap-2">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
+                <div className="relative flex-1 group">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={14} />
                     <input
                         type="text"
-                        placeholder={`Tìm kiếm...`}
+                        placeholder={`Tìm kiếm ${activeTab === 'lessons' ? 'bài giảng' : 'tài liệu'}...`}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2 border border-border/60 rounded-lg focus:border-primary focus:outline-none bg-background text-xs font-medium transition-all"
+                        className="w-full pl-9 pr-8 py-2.5 border border-border/60 rounded-xl focus:border-primary/50 focus:ring-4 focus:ring-primary/10 bg-background text-xs font-semibold transition-all outline-none"
                     />
+                    {searchTerm && (
+                        <button
+                            type="button"
+                            onClick={() => setSearchTerm('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 rounded-full hover:bg-muted/80 transition-colors"
+                        >
+                            <X size={12} />
+                        </button>
+                    )}
                 </div>
                 <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="px-3 py-2 border border-border/60 rounded-lg focus:border-primary bg-background text-[10px] font-bold outline-none cursor-pointer"
+                    className="px-3 py-2 border border-border/60 rounded-xl focus:border-primary/50 focus:ring-4 focus:ring-primary/10 bg-background text-[10px] font-bold outline-none cursor-pointer hover:bg-muted/30 transition-colors"
                 >
                     <option value="recent">Mới nhất</option>
                     <option value="name">Tên A-Z</option>
                 </select>
             </div>
 
+            {/* Categories */}
             {categories.length > 1 && (
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex gap-1.5 overflow-x-auto pb-2 no-scrollbar mask-gradient-right">
                     {categories.map(cat => (
                         <button
                             key={cat}
                             type="button"
                             onClick={() => setSelectedCategory(cat)}
                             className={cn(
-                                "px-3 py-1.5 rounded-full text-[10px] font-bold transition-all",
+                                "px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-all border",
                                 selectedCategory === cat
-                                    ? "bg-primary text-primary-foreground shadow-sm"
-                                    : "bg-muted hover:bg-muted/80"
+                                    ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
+                                    : "bg-background border-border hover:border-primary/50 hover:bg-primary/5 text-muted-foreground"
                             )}
                         >
-                            {cat === 'all' ? 'Tất cả' : cat}
+                            {cat === 'all' ? '✨ Tất cả' : cat}
                         </button>
                     ))}
                 </div>
             )}
 
+            {/* Virtualized List - Dynamic Height */}
             <div
                 ref={parentRef}
-                className="h-[320px] overflow-auto border border-border/60 rounded-xl bg-muted/20 no-scrollbar"
+                className="flex-1 overflow-auto border border-border/60 rounded-xl bg-muted/20 min-h-[300px] max-h-[50vh] no-scrollbar relative"
             >
                 {filteredItems.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8">
-                        <Search size={40} className="mb-3 opacity-30" />
-                        <p className="text-sm font-medium">Không tìm thấy kết quả</p>
+                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 animate-in fade-in zoom-in-95 duration-300">
+                        <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+                            <Search size={24} className="opacity-30" />
+                        </div>
+                        <p className="text-sm font-bold">Không tìm thấy kết quả</p>
+                        <p className="text-xs opacity-60 mt-1">Thử tìm với từ khóa khác</p>
                     </div>
                 ) : (
                     <div style={{ height: `${virtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
@@ -153,6 +173,8 @@ export function LibrarySelection({
                             const isSelected = activeTab === 'lessons'
                                 ? selectedLessonIds.has(Number(item.id))
                                 : selectedDocumentIds.has(Number(item.id));
+
+                            const isNew = isNewItem(item.createdAt);
 
                             return (
                                 <div
@@ -169,26 +191,57 @@ export function LibrarySelection({
                                     <div
                                         onClick={() => toggleSelection(Number(item.id))}
                                         className={cn(
-                                            "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all group",
+                                            "relative flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 group overflow-hidden",
                                             isSelected
-                                                ? "bg-primary/10 border-primary shadow-sm"
-                                                : "bg-card border-transparent hover:border-primary/30 hover:shadow-sm"
+                                                ? "bg-primary/5 border-primary shadow-sm"
+                                                : "bg-card border-transparent hover:border-primary/20 hover:shadow-sm hover:bg-card/80"
                                         )}
                                     >
+                                        {/* Selection Checkbox */}
                                         <div className={cn(
-                                            "w-5 h-5 rounded border-2 flex items-center justify-center transition-all shrink-0",
+                                            "w-5 h-5 rounded-[6px] border-2 flex items-center justify-center transition-all shrink-0",
                                             isSelected
-                                                ? "bg-primary border-primary text-primary-foreground"
-                                                : "border-border group-hover:border-primary"
+                                                ? "bg-primary border-primary text-primary-foreground scale-110"
+                                                : "border-border/60 bg-muted/10 group-hover:border-primary/60"
                                         )}>
-                                            {isSelected && <Check size={14} strokeWidth={3} />}
+                                            {isSelected && <Check size={12} strokeWidth={4} />}
                                         </div>
-                                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-lg shrink-0 shadow-sm">
+
+                                        {/* Icon */}
+                                        <div className={cn(
+                                            "w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0 shadow-sm transition-transform group-hover:scale-105",
+                                            activeTab === 'lessons'
+                                                ? "bg-gradient-to-br from-indigo-500 to-purple-600 text-white"
+                                                : "bg-gradient-to-br from-emerald-400 to-teal-600 text-white"
+                                        )}>
                                             {activeTab === 'lessons' ? '📖' : '📄'}
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h5 className="font-bold text-xs truncate mb-0.5">{item.title}</h5>
-                                            <div className="text-[10px] text-muted-foreground">📁 {getCategoryName(item)}</div>
+
+                                        {/* Content */}
+                                        <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                            <div className="flex items-center gap-2">
+                                                <h5 className={cn(
+                                                    "font-bold text-xs truncate transition-colors",
+                                                    isSelected ? "text-primary" : "text-foreground"
+                                                )}>
+                                                    {item.title}
+                                                </h5>
+                                                {isNew && (
+                                                    <span className="px-1.5 py-0.5 rounded-[4px] bg-red-500 text-[8px] font-black text-white leading-none animate-pulse">
+                                                        NEW
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="text-[10px] text-muted-foreground/80 flex items-center gap-1.5 mt-0.5">
+                                                <span className="inline-block px-1.5 py-0.5 rounded-md bg-muted font-semibold text-[9px]">
+                                                    {getCategoryName(item)}
+                                                </span>
+                                                {item.createdAt && (
+                                                    <span className="opacity-50">
+                                                        • {new Date(item.createdAt).toLocaleDateString('vi-VN')}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

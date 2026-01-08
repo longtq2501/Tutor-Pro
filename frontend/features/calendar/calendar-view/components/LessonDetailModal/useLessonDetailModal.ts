@@ -58,20 +58,24 @@ export function useLessonDetailModal({ session, onClose, onUpdate, onDelete, ini
                 console.error("Failed to fetch lesson library", err);
                 return [];
             }
-        }
+        },
+        staleTime: 5 * 60 * 1000, // 5 minutes
     });
 
     const { data: documentPage } = useQuery({
         queryKey: ['admin-document-library'],
         queryFn: async () => {
             try {
-                // Fetch larger size for picker
-                return await documentsApi.getAll(0, 100);
+                // FETCH ALL DOCUMENTS to ensure correct count and filtering
+                // Increased limit from 100 to 2000 to cover all existing documents
+                // TODO: Implement server-side filtering if document count exceeds 2000
+                return await documentsApi.getAll(0, 2000);
             } catch (err) {
                 console.error("Failed to fetch document library", err);
                 return null;
             }
-        }
+        },
+        staleTime: 5 * 60 * 1000, // 5 minutes
     });
 
     const libraryDocuments = documentPage?.content || [];
@@ -145,10 +149,17 @@ export function useLessonDetailModal({ session, onClose, onUpdate, onDelete, ini
     }, []);
 
     const getCategoryName = (item: any): string => {
-        if (typeof item.category === 'string') return item.category;
+        // For Documents: Prefer display name or dynamic name
+        if (item.categoryDisplayName) return item.categoryDisplayName;
+        if (item.categoryName) return item.categoryName;
+
+        // For Lessons: Category is an object with name
         if (item.category && typeof item.category === 'object' && 'name' in item.category) {
             return item.category.name;
         }
+
+        // Fallback: Return string (Enum key) or default
+        if (typeof item.category === 'string') return item.category;
         return 'Chưa phân loại';
     };
 

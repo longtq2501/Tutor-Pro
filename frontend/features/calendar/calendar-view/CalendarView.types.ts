@@ -22,6 +22,7 @@ export interface UseCalendarViewReturn {
     isScrolled: boolean;
     loading: boolean;
     isInitialLoad: boolean;
+    isFetching: boolean;
     
     // === Data Filtered (Logic moved from UI) ===
     statusFilter: string | 'ALL';
@@ -54,4 +55,5 @@ export interface UseCalendarViewReturn {
     closeAddSessionModal: () => void;
     handleConfirmDeleteAll: () => Promise<void>;
     exportToExcel: () => Promise<void>;
+    handleContextMenu: (e: React.MouseEvent, session: SessionRecord) => void;
 }

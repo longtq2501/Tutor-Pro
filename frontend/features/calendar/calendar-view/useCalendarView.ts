@@ -55,7 +55,7 @@ export const useCalendarView = (): UseCalendarViewReturn => {
     }, []);
 
     // === 4. Data Fetching ===
-    const { sessions, setSessions, students, loading, loadData, updateSession } = useCalendarData(currentDate);
+    const { sessions, setSessions, students, loading, isFetching, loadData, updateSession } = useCalendarData(currentDate);
 
     useEffect(() => {
         if (!loading) {
@@ -237,21 +237,26 @@ export const useCalendarView = (): UseCalendarViewReturn => {
         });
     };
 
-    const navigateMonth = (dir: number) => {
+    const navigateMonth = useCallback((dir: number) => {
         setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + dir));
-    };
+    }, []);
 
-    const goToToday = () => setCurrentDate(new Date());
+    const goToToday = useCallback(() => setCurrentDate(new Date()), []);
 
-    const openAddSessionModal = (dateStr: string) => {
+    const openAddSessionModal = useCallback((dateStr: string) => {
         setSelectedDateStr(dateStr);
         setShowAddSessionModal(true);
-    };
+    }, []);
 
-    const closeAddSessionModal = () => {
+    const closeAddSessionModal = useCallback(() => {
         setShowAddSessionModal(false);
         setSelectedDateStr('');
-    };
+    }, []);
+
+    const handleContextMenu = useCallback((e: React.MouseEvent, session: SessionRecord) => {
+        e.preventDefault();
+        setContextMenu({ x: e.clientX, y: e.clientY, session });
+    }, []);
 
     const handleConfirmDeleteAll = async () => {
         const monthStr = getMonthStr(currentDate);
@@ -280,11 +285,11 @@ export const useCalendarView = (): UseCalendarViewReturn => {
     return {
         currentDate, currentView, isGenerating, selectedDay, selectedSession, showAddSessionModal,
         selectedDateStr, modalMode, contextMenu, deleteConfirmationOpen, loadingSessions, isScrolled,
-        loading, isInitialLoad, statusFilter, filteredSessions, filteredCalendarDays, stats,
+        loading, isInitialLoad, isFetching, statusFilter, filteredSessions, filteredCalendarDays, stats,
         currentDayInfo, students, setCurrentView, setSelectedDay, setSelectedSession, setContextMenu,
         setStatusFilter, setDeleteConfirmationOpen, navigateMonth, goToToday, handleAutoGenerate,
         handleUpdateSession, handleDeleteSession, handleSessionClick, handleSessionEdit,
         handleTogglePayment, handleToggleComplete, handleAddSessionSubmit, openAddSessionModal,
-        closeAddSessionModal, handleConfirmDeleteAll, exportToExcel
+        closeAddSessionModal, handleConfirmDeleteAll, exportToExcel, handleContextMenu
     };
 };

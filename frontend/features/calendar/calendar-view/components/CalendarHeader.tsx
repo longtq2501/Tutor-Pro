@@ -26,7 +26,7 @@ import {
   Columns,
   DollarSign,
   Filter, Info,
-  List,
+  List, Loader2,
   Plus, Sparkles
 } from 'lucide-react';
 import { memo } from 'react';
@@ -50,6 +50,7 @@ interface Props {
   isScrolled: boolean;
   onFilterChange?: (status: string | 'ALL') => void;
   currentFilter?: string;
+  isFetching?: boolean;
 }
 
 const StatsChip = memo(({ icon, label, value, variant }: {
@@ -92,7 +93,8 @@ export const CalendarHeader = ({
   stats,
   isScrolled,
   onFilterChange,
-  currentFilter = 'ALL'
+  currentFilter = 'ALL',
+  isFetching = false
 }: Props) => {
 
 
@@ -115,6 +117,15 @@ export const CalendarHeader = ({
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tighter text-foreground flex items-center gap-2 sm:gap-3">
                 <CalendarIcon className="w-5 h-5 sm:w-7 sm:h-7 text-primary" strokeWidth={2.5} />
                 <span className="truncate">{MONTHS[currentDate.getMonth()]}</span>
+                {isFetching && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                  >
+                    <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                  </motion.div>
+                )}
                 <span className="text-muted-foreground/30 font-thin italic hidden sm:inline">{currentDate.getFullYear()}</span>
               </h1>
               <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-7 sm:ml-10">Lịch trình dạy học</p>

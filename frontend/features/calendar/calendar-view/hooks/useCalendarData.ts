@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { sessionsApi, studentsApi } from '@/lib/services';
 import type { SessionRecord, Student } from '@/lib/types';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import { getMonthStr } from '../utils';
 
 export const useCalendarData = (currentDate: Date) => {
@@ -12,12 +12,14 @@ export const useCalendarData = (currentDate: Date) => {
   const {
     data: sessionsData,
     isLoading: loadingSessions,
+    isFetching: isFetchingSessions,
     isRefetching: isRefetchingSessions
   } = useQuery({
     queryKey: ['sessions', monthStr],
     queryFn: () => sessionsApi.getByMonth(monthStr),
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
     gcTime: 10 * 60 * 1000,   // Keep unused data for 10 minutes
+    placeholderData: keepPreviousData,
   });
 
   // 2. Fetch Students with Cache (longer stale time)
@@ -87,6 +89,7 @@ export const useCalendarData = (currentDate: Date) => {
     updateSession: handleUpdateSession,
     students,
     loading: loadingSessions || loadingStudents,
+    isFetching: isFetchingSessions,
     isRefetching: isRefetchingSessions,
     loadData
   };

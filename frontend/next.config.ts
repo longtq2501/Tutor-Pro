@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone', // Dòng này cực kỳ quan trọng
   images: {
     remotePatterns: [
       {

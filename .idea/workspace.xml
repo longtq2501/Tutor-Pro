@@ -4,12 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/feedback/SessionFeedbackRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/feedback/SessionFeedbackRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/feedback/SessionFeedbackService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/src/main/java/com/tutor_management/backend/modules/feedback/SessionFeedbackService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/ISSUES.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/feedback/components/SmartFeedbackForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/feedback/components/SmartFeedbackForm.tsx" afterDir="false" />
-    </list>
+    <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -190,7 +185,7 @@
       <workItem from="1767797067939" duration="596000" />
       <workItem from="1767800515695" duration="5473000" />
       <workItem from="1767838293219" duration="3065000" />
-      <workItem from="1767882646712" duration="370000" />
+      <workItem from="1767882646712" duration="1020000" />
     </task>
     <servers />
   </component>

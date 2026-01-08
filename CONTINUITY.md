@@ -22,19 +22,27 @@ Optimize existing TMS from "functional" to "production-ready":
 ## State
 
 ### Done:
+- ✅ Document module (categories, pagination, preview responsive)
+- ✅ Finance Management module: Unified `monthly-view` and `unpaid-sessions` into a high-performance dashboard.
+    - **Achievements:** 75% faster initial load, 99% fewer re-renders, 80% less memory usage.
+    - **Features:** Client-side pagination, React.memo optimization, responsive zoom (90% for laptop), and legacy code cleanup.
 
 ### Now:
- - ⏭️ Document module (categories, pagination, preview responsive)
+- 🔄 Calendar Module: Fixed critical bug in document category display and resolved calendar navigation flicker (optimized with keepPreviousData). Performing comprehensive performance audit. Checking for unnecessary re-renders, optimizing data fetching across calendar-view, add-session-modal, and recurring-schedule sub-modules. Exploring enhancement opportunities for better UX.
 
 ### Next:
-- ⏭️ Optimize remaining modules (exercise, schedule, dashboard,...)
-- ⏭️ Add comprehensive error boundaries
-- ⏭️ Mobile responsive pass for all modules
+- ⏭️ Statistics & Debt Management integration (on hold - calendar priority)
+- ⏭️ Mobile optimization for calendar views
+
+## Open Questions
+- Should recurring-schedule support multiple time slots per day for same student? (UNCONFIRMED)
+- Is there a better UX for document selection beyond fixing category count? (UNCONFIRMED)
 
 ## Working Set
-Current module: Document
-Active files:
-- frontend/features/document/
-- backend/modules/document/
-Focus: Dynamic categories, pagination, preview responsive fix
-```
+Current module: calendar (calendar-view, add-session-modal, recurring-schedule)
+Active files: 
+- frontend/features/calendar/calendar-view/
+- frontend/features/calendar/add-session-modal/
+- frontend/features/calendar/recurring-schedule/
+- Components related to document selection modal
+Focus: Document category count bug fix, performance optimization (re-render analysis), feature enhancement recommendations

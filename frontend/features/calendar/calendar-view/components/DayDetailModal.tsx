@@ -72,13 +72,16 @@ export const DayDetailModal = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        transition={{ duration: 0.15 }}
         onClick={onClose}
         className="absolute inset-0 bg-background/80 backdrop-blur-md"
       />
 
       <motion.div
-        initial={{ scale: 0.9, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
+        initial={{ y: "100%", opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: "20%", opacity: 0 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
         className="relative bg-card rounded-[2.5rem] shadow-2xl w-full max-w-lg overflow-hidden border border-border/60"
       >
         {/* Header with Gradient */}

@@ -1,5 +1,6 @@
 import { recurringSchedulesApi, sessionsApi } from '@/lib/services';
-import type { SessionRecord } from '@/lib/types/finance';
+import type { SessionRecord, SessionRecordUpdateRequest } from '@/lib/types/finance';
+import type { DragEndEvent } from '@dnd-kit/core';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { UseCalendarViewReturn } from './CalendarView.types';
@@ -37,6 +38,7 @@ export const useCalendarView = (): UseCalendarViewReturn => {
 
     // === 2. State Lọc (Logic chuyển từ UI index.tsx sang) ===
     const [statusFilter, setStatusFilter] = useState<string | 'ALL'>('ALL');
+    const [searchQuery, setSearchQuery] = useState('');
 
     // === 3. Xử lý Hiệu năng (Scroll listener) ===
     useEffect(() => {
@@ -64,21 +66,40 @@ export const useCalendarView = (): UseCalendarViewReturn => {
     }, [loading]);
 
     // === 5. Logic xử lý dữ liệu & Filtering (Performance optimized) ===
-    const rawCalendarDays = useMemo(() => useCalendarDays(currentDate, sessions), [currentDate, sessions]);
-    const stats = useCalendarStats(sessions);
+    const sortedSessions = useMemo(() => {
+        return [...sessions].sort((a, b) => {
+            const dateA = new Date(a.sessionDate).getTime();
+            const dateB = new Date(b.sessionDate).getTime();
+            if (dateA !== dateB) return dateA - dateB;
 
-    // Lọc sessions dựa trên statusFilter
-    const filteredSessions = useMemo(() => sessions.filter(s =>
-        statusFilter === 'ALL' || s.status === statusFilter
-    ), [sessions, statusFilter]);
+            // Secondary sort by startTime for same-day sessions
+            const timeA = a.startTime || '';
+            const timeB = b.startTime || '';
+            return timeA.localeCompare(timeB);
+        });
+    }, [sessions]);
 
-    // Lọc calendarDays dựa trên statusFilter
+    const rawCalendarDays = useMemo(() => useCalendarDays(currentDate, sortedSessions), [currentDate, sortedSessions]);
+    const stats = useCalendarStats(sortedSessions);
+
+    // Grouping status filter logic for reuse
+    const applyFilters = useCallback((s: SessionRecord) => {
+        const matchesStatus = statusFilter === 'ALL' || s.status === statusFilter;
+        const matchesSearch = !searchQuery ||
+            s.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (s.subject && s.subject.toLowerCase().includes(searchQuery.toLowerCase()));
+
+        return matchesStatus && matchesSearch;
+    }, [statusFilter, searchQuery]);
+
+    // Lọc sessions dựa trên statusFilter và searchQuery
+    const filteredSessions = useMemo(() => sortedSessions.filter(applyFilters), [sortedSessions, applyFilters]);
+
+    // Lọc calendarDays dựa trên statusFilter và searchQuery
     const filteredCalendarDays = useMemo(() => rawCalendarDays.map(day => ({
         ...day,
-        sessions: day.sessions.filter(s =>
-            statusFilter === 'ALL' || s.status === statusFilter
-        )
-    })), [rawCalendarDays, statusFilter]);
+        sessions: day.sessions.filter(applyFilters)
+    })), [rawCalendarDays, applyFilters]);
 
     // Lấy thông tin ngày hiện tại (cho Day View)
     const currentDayInfo = useMemo(() => {
@@ -282,14 +303,46 @@ export const useCalendarView = (): UseCalendarViewReturn => {
         });
     };
 
+    const handleDragEnd = useCallback(async (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (!over) return;
+
+        const session = active.data.current as SessionRecord;
+        const newDate = over.id as string; // YYYY-MM-DD format
+
+        if (session.sessionDate === newDate) return;
+
+        // Ensure we update the month string if dragged to a different month
+        const newMonth = newDate.substring(0, 7); // "YYYY-MM"
+
+        const updateData: SessionRecordUpdateRequest = {
+            sessionDate: newDate,
+            month: newMonth,
+            version: session.version
+        };
+
+        const promise = async () => {
+            const result = await sessionsApi.update(session.id, updateData);
+            handleUpdateSession(result);
+            return `Đã dời lịch sang ngày ${newDate}`;
+        };
+
+        toast.promise(promise(), {
+            loading: 'Đang dời lịch học...',
+            success: (msg) => msg,
+            error: 'Lỗi khi dời lịch học'
+        });
+    }, [handleUpdateSession]);
+
     return {
         currentDate, currentView, isGenerating, selectedDay, selectedSession, showAddSessionModal,
         selectedDateStr, modalMode, contextMenu, deleteConfirmationOpen, loadingSessions, isScrolled,
-        loading, isInitialLoad, isFetching, statusFilter, filteredSessions, filteredCalendarDays, stats,
+        loading, isInitialLoad, isFetching, statusFilter, searchQuery, filteredSessions, filteredCalendarDays, stats,
         currentDayInfo, students, setCurrentView, setSelectedDay, setSelectedSession, setContextMenu,
-        setStatusFilter, setDeleteConfirmationOpen, navigateMonth, goToToday, handleAutoGenerate,
+        setStatusFilter, setSearchQuery, setDeleteConfirmationOpen, navigateMonth, goToToday, handleAutoGenerate,
         handleUpdateSession, handleDeleteSession, handleSessionClick, handleSessionEdit,
         handleTogglePayment, handleToggleComplete, handleAddSessionSubmit, openAddSessionModal,
-        closeAddSessionModal, handleConfirmDeleteAll, exportToExcel, handleContextMenu
+        closeAddSessionModal, handleConfirmDeleteAll, exportToExcel, handleContextMenu, handleDragEnd
     };
 };

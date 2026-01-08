@@ -23,20 +23,21 @@ export function ModalHeader({ session, onClose }: ModalHeaderProps) {
 
             <div className="relative flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-sm">
-                        <BookOpen size={24} />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-sm shrink-0">
+                        <BookOpen size={20} className="sm:hidden" />
+                        <BookOpen size={24} className="hidden sm:block" />
                     </div>
                     <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-white font-black uppercase tracking-[0.2em] text-[10px] opacity-90">Chi tiết buổi học</h3>
-                            <Badge className="bg-white/20 hover:bg-white/30 text-white border-0 py-0 h-4 text-[9px] font-bold">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
+                            <h3 className="text-white font-black uppercase tracking-[0.2em] text-[9px] sm:text-[10px] opacity-90 whitespace-nowrap">Chi tiết buổi học</h3>
+                            <Badge className="bg-white/20 hover:bg-white/30 text-white border-0 py-0 h-4 text-[8px] sm:text-[9px] font-bold">
                                 #{session.id}
                             </Badge>
-                            <Badge className="bg-white/20 hover:bg-white/30 text-white border-0 py-0 h-4 text-[9px] font-bold">
+                            <Badge className="bg-white/20 hover:bg-white/30 text-white border-0 py-0 h-4 text-[8px] sm:text-[9px] font-bold">
                                 {session.sessionDate}
                             </Badge>
                         </div>
-                        <h1 className="text-2xl font-black text-white tracking-tight leading-none">Thông tin lớp học</h1>
+                        <h1 className="text-lg sm:text-2xl font-black text-white tracking-tight leading-none">Thông tin lớp học</h1>
                     </div>
                 </div>
 
@@ -44,9 +45,10 @@ export function ModalHeader({ session, onClose }: ModalHeaderProps) {
                     variant="ghost"
                     size="icon"
                     onClick={onClose}
-                    className="rounded-full text-white hover:bg-white/20 h-10 w-10 shrink-0"
+                    className="rounded-full text-white hover:bg-white/20 h-8 w-8 sm:h-10 sm:w-10 shrink-0"
                 >
-                    <X size={20} />
+                    <X size={18} className="sm:hidden" />
+                    <X size={20} className="hidden sm:block" />
                 </Button>
             </div>
         </div>

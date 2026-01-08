@@ -8,8 +8,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  DndContext,
+  DragOverlay,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
 import AddSessionModal from '@/features/calendar/add-session-modal';
-import { useCallback } from 'react';
+import { AnimatePresence } from 'framer-motion';
+import { useCallback, useState } from 'react';
+import type { SessionRecord } from '@/lib/types/finance';
+import { getStatusColors } from './utils/statusColors';
 import { CalendarGrid } from './components/CalendarGrid';
 import { CalendarHeader } from './components/CalendarHeader';
 import { CalendarSkeleton } from './components/CalendarSkeleton';
@@ -53,6 +65,7 @@ export default function CalendarView() {
     isInitialLoad,
     isFetching,
     statusFilter,
+    searchQuery,
 
     // Actions & Handlers
     setDeleteConfirmationOpen,
@@ -61,6 +74,7 @@ export default function CalendarView() {
     setSelectedSession,
     setContextMenu,
     setStatusFilter,
+    setSearchQuery,
     navigateMonth,
     goToToday,
     handleAutoGenerate,
@@ -76,7 +90,28 @@ export default function CalendarView() {
     handleConfirmDeleteAll,
     exportToExcel,
     handleContextMenu,
+    handleDragEnd,
   } = useCalendarView();
+
+  const [activeSession, setActiveSession] = useState<SessionRecord | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor)
+  );
+
+  const handleDragStart = (event: any) => {
+    setActiveSession(event.active.data.current as SessionRecord);
+  };
+
+  const handleDragEndInternal = (event: DragEndEvent) => {
+    setActiveSession(null);
+    handleDragEnd(event);
+  };
 
   // Optimized Handlers
   const handleHeaderAddSession = useCallback(() => {
@@ -86,7 +121,7 @@ export default function CalendarView() {
   // Render các loại View khác nhau dựa trên currentView
   const renderView = useCallback(() => {
     if (isInitialLoad) return (
-      <div className="px-6">
+      <div className="px-4 sm:px-6">
         <CalendarSkeleton />
       </div>
     );
@@ -140,7 +175,7 @@ export default function CalendarView() {
     }
   }, [
     loading, isInitialLoad, currentView, filteredCalendarDays, setSelectedDay, openAddSessionModal,
-    handleSessionClick, handleSessionEdit, handleUpdateSession, currentDayInfo, filteredSessions, handleContextMenu
+    handleSessionClick, handleSessionEdit, handleUpdateSession, currentDayInfo, filteredSessions, handleContextMenu, handleDragEnd
   ]);
 
   return (
@@ -161,12 +196,35 @@ export default function CalendarView() {
         isScrolled={isScrolled}
         onFilterChange={setStatusFilter}
         currentFilter={statusFilter}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
         isFetching={isFetching}
       />
 
-      <main className="transition-all duration-300">
-        {renderView()}
-      </main>
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEndInternal}
+      >
+        <main className="transition-all duration-300">
+          {renderView()}
+        </main>
+
+        <DragOverlay dropAnimation={null}>
+          {activeSession ? (
+            <div className={`
+              px-3 py-1.5 rounded-xl text-[11px] font-bold shadow-2xl cursor-grabbing scale-105 transition-transform border-l-[3px] z-[9999]
+              flex items-center gap-2
+              ${getStatusColors(activeSession.status || 'SCHEDULED').bg}
+              ${getStatusColors(activeSession.status || 'SCHEDULED').text}
+              border-slate-200/50 dark:border-white/10
+            `}>
+              <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 shadow-sm ${getStatusColors(activeSession.status || 'SCHEDULED').dot}`} />
+              {activeSession.studentName}
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
 
       {/* Modal xác nhận xóa tất cả */}
       <AlertDialog open={deleteConfirmationOpen} onOpenChange={setDeleteConfirmationOpen}>
@@ -190,30 +248,34 @@ export default function CalendarView() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Modal chi tiết ngày */}
-      {selectedDay && (
-        <DayDetailModal
-          day={selectedDay}
-          onClose={() => setSelectedDay(null)}
-          onAddSession={openAddSessionModal}
-          onDelete={handleDeleteSession}
-          onTogglePayment={handleTogglePayment}
-          onToggleComplete={handleToggleComplete}
-          onSessionClick={setSelectedSession}
-          loadingSessions={loadingSessions}
-        />
-      )}
+      <AnimatePresence>
+        {/* Modal chi tiết ngày */}
+        {selectedDay && (
+          <DayDetailModal
+            day={selectedDay}
+            onClose={() => setSelectedDay(null)}
+            onAddSession={openAddSessionModal}
+            onDelete={handleDeleteSession}
+            onTogglePayment={handleTogglePayment}
+            onToggleComplete={handleToggleComplete}
+            onSessionClick={setSelectedSession}
+            loadingSessions={loadingSessions}
+          />
+        )}
+      </AnimatePresence>
 
-      {/* Modal chi tiết buổi học (Lesson) */}
-      {selectedSession && (
-        <LessonDetailModal
-          session={selectedSession}
-          onClose={() => setSelectedSession(null)}
-          onUpdate={handleUpdateSession}
-          onDelete={handleDeleteSession}
-          initialMode={modalMode}
-        />
-      )}
+      <AnimatePresence>
+        {/* Modal chi tiết buổi học (Lesson) */}
+        {selectedSession && (
+          <LessonDetailModal
+            session={selectedSession}
+            onClose={() => setSelectedSession(null)}
+            onUpdate={handleUpdateSession}
+            onDelete={handleDeleteSession}
+            initialMode={modalMode}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Menu chuột phải (Context Menu) */}
       {contextMenu && (
@@ -226,16 +288,18 @@ export default function CalendarView() {
         />
       )}
 
-      {/* Modal thêm buổi học mới */}
-      {showAddSessionModal && (
-        <AddSessionModal
-          onClose={closeAddSessionModal}
-          students={students}
-          initialStudentId={null}
-          onSubmit={handleAddSessionSubmit}
-          initialDate={selectedDateStr}
-        />
-      )}
+      <AnimatePresence>
+        {/* Modal thêm buổi học mới */}
+        {showAddSessionModal && (
+          <AddSessionModal
+            onClose={closeAddSessionModal}
+            students={students}
+            initialStudentId={null}
+            onSubmit={handleAddSessionSubmit}
+            initialDate={selectedDateStr}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

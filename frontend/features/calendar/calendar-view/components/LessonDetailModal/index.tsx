@@ -58,41 +58,39 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
                 onClick={onClose}
                 className="absolute inset-0 bg-background/80 backdrop-blur-md"
             />
 
             <motion.div
-                initial={{ scale: 0.95, opacity: 0, y: 10 }}
-                animate={{
-                    scale: 1,
-                    opacity: 1,
-                    y: 0,
-                    transition: { duration: 0.2 }
-                }}
+                initial={{ y: "100%", opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: "20%", opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
                 className={cn(
-                    "relative bg-card rounded-[2rem] shadow-2xl w-full border border-border/60 flex flex-col transition-all duration-300",
+                    "relative bg-card rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl w-full border border-border/60 flex flex-col overflow-hidden",
                     isTaughtOrPaid
-                        ? "max-w-6xl h-[90vh] overflow-hidden"
+                        ? "max-w-6xl h-[95vh] sm:h-[90vh]"
                         : mode === 'edit'
-                            ? "max-w-4xl h-[90vh] overflow-hidden"
-                            : "max-w-lg overflow-hidden"
+                            ? "max-w-4xl h-[95vh] sm:h-[90vh]"
+                            : "max-w-lg max-h-[90vh]"
                 )}
             >
                 <ModalHeader session={localSession} onClose={onClose} />
 
                 {/* Main Content */}
                 <div className={cn(
-                    "flex-1 w-full",
-                    isTaughtOrPaid ? "flex flex-col lg:grid lg:grid-cols-12 lg:overflow-hidden" : "overflow-hidden"
+                    "flex-1 w-full overflow-y-auto lg:overflow-hidden",
+                    isTaughtOrPaid ? "flex flex-col lg:grid lg:grid-cols-12" : ""
                 )}>
 
                     {/* LEFT COLUMN */}
                     <div className={cn(
-                        "flex flex-col bg-background",
-                        isTaughtOrPaid ? "lg:h-full lg:col-span-4 border-r border-border/60 lg:overflow-hidden" : "w-full overflow-hidden h-full"
+                        "flex flex-col bg-background shrink-0",
+                        isTaughtOrPaid ? "lg:h-full lg:col-span-4 border-b lg:border-b-0 lg:border-r border-border/60" : "w-full h-full"
                     )}>
-                        <div className="p-6 flex-1 lg:overflow-y-auto no-scrollbar space-y-6">
+                        <div className="p-4 sm:p-6 flex-1 overflow-y-auto no-scrollbar space-y-6">
                             <StudentCard session={localSession} />
 
                             {mode === 'view' ? (
@@ -134,8 +132,8 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
 
                     {/* RIGHT COLUMN */}
                     {isTaughtOrPaid && (
-                        <div className="lg:col-span-8 bg-muted/5 lg:h-full lg:overflow-hidden flex flex-col">
-                            <div className="flex-1 lg:overflow-hidden flex flex-col">
+                        <div className="lg:col-span-8 bg-muted/5 flex flex-col min-h-[500px] lg:h-full lg:overflow-hidden">
+                            <div className="flex-1 flex flex-col lg:overflow-hidden">
                                 <SmartFeedbackForm
                                     sessionRecordId={localSession.id}
                                     studentId={localSession.studentId}

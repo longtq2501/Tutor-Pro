@@ -38,17 +38,17 @@ export function ModalFooter({
                             variant="outline"
                             onClick={handleDuplicate}
                             disabled={loading}
-                            className="h-10 flex-1 rounded-xl font-black text-[10px]"
+                            className="h-10 flex-1 rounded-xl font-black text-[11px] sm:text-[10px] px-2"
                         >
-                            <Copy className="w-3.5 h-3.5 mr-1.5" />
-                            Nhân bản
+                            <Copy className="w-3.5 h-3.5 mr-1.5 shrink-0" />
+                            <span className="truncate">Nhân bản</span>
                         </Button>
                         <Button
                             onClick={() => setMode('edit')}
-                            className="h-10 flex-1 rounded-xl bg-primary shadow-lg shadow-primary/20 font-black text-[10px]"
+                            className="h-10 flex-1 rounded-xl bg-primary shadow-lg shadow-primary/20 font-black text-[11px] sm:text-[10px] px-2"
                         >
-                            <Pencil className="w-3.5 h-3.5 mr-1.5" />
-                            Sửa
+                            <Pencil className="w-3.5 h-3.5 mr-1.5 shrink-0" />
+                            <span className="truncate">Sửa</span>
                         </Button>
                     </>
                 ) : (
@@ -57,7 +57,7 @@ export function ModalFooter({
                             type="button"
                             variant="ghost"
                             onClick={() => setMode('view')}
-                            className="h-10 flex-1 rounded-xl font-black text-[10px]"
+                            className="h-10 flex-1 rounded-xl font-black text-[11px] sm:text-[10px]"
                         >
                             Hủy
                         </Button>
@@ -65,10 +65,10 @@ export function ModalFooter({
                             form="premium-edit-form"
                             type="submit"
                             disabled={loading || !isDirty}
-                            className="h-10 flex-[2] rounded-xl bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 font-black text-[10px]"
+                            className="h-10 flex-[2] rounded-xl bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 font-black text-[11px] sm:text-[10px]"
                         >
                             {loading ? <Loader2 className="w-3.5 h-3.5 mr-1.5" /> : <Save className="w-3.5 h-3.5 mr-1.5" />}
-                            LƯU ({globalSelectedCount} mục)
+                            LƯU {globalSelectedCount > 0 && `(${globalSelectedCount})`}
                         </Button>
                     </>
                 )}

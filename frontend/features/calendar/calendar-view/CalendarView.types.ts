@@ -1,4 +1,5 @@
 import type { SessionRecord } from '@/lib/types/finance';
+import type { DragEndEvent } from '@dnd-kit/core';
 import type { CalendarViewType } from './components/ViewSwitcher';
 import type { CalendarDay } from './types';
 
@@ -23,9 +24,10 @@ export interface UseCalendarViewReturn {
     loading: boolean;
     isInitialLoad: boolean;
     isFetching: boolean;
-    
+
     // === Data Filtered (Logic moved from UI) ===
     statusFilter: string | 'ALL';
+    searchQuery: string;
     filteredSessions: SessionRecord[];
     filteredCalendarDays: CalendarDay[];
     stats: any; // Ideally this would be typed specifically
@@ -38,8 +40,9 @@ export interface UseCalendarViewReturn {
     setSelectedSession: (session: SessionRecord | null) => void;
     setContextMenu: (menu: { x: number; y: number; session: SessionRecord } | null) => void;
     setStatusFilter: (filter: string | 'ALL') => void;
+    setSearchQuery: (query: string) => void;
     setDeleteConfirmationOpen: (open: boolean) => void;
-    
+
     // === Handlers ===
     navigateMonth: (dir: number) => void;
     goToToday: () => void;
@@ -56,4 +59,5 @@ export interface UseCalendarViewReturn {
     handleConfirmDeleteAll: () => Promise<void>;
     exportToExcel: () => Promise<void>;
     handleContextMenu: (e: React.MouseEvent, session: SessionRecord) => void;
+    handleDragEnd: (event: DragEndEvent) => void;
 }

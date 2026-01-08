@@ -27,9 +27,9 @@ import {
   DollarSign,
   Filter, Info,
   List, Loader2,
-  Plus, Sparkles
+  Plus, Search, Sparkles
 } from 'lucide-react';
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { MONTHS } from '../constants';
 import type { CalendarStats } from '../types';
 import { getStatusColors } from '../utils/statusColors';
@@ -48,8 +48,10 @@ interface Props {
   sessions: SessionRecord[];
   stats: CalendarStats;
   isScrolled: boolean;
-  onFilterChange?: (status: string | 'ALL') => void;
   currentFilter?: string;
+  searchQuery?: string;
+  onFilterChange?: (status: string | 'ALL') => void;
+  onSearchChange?: (query: string) => void;
   isFetching?: boolean;
 }
 
@@ -94,11 +96,19 @@ export const CalendarHeader = ({
   isScrolled,
   onFilterChange,
   currentFilter = 'ALL',
+  searchQuery = '',
+  onSearchChange,
   isFetching = false
 }: Props) => {
 
 
-  const activeFilterLabel = currentFilter === 'ALL' ? 'Tất cả' : LESSON_STATUS_LABELS[currentFilter as keyof typeof LESSON_STATUS_LABELS];
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const handleStatusSelect = (status: string | 'ALL') => {
+    onFilterChange?.(status);
+    // Slight delay for feedback before closing
+    setTimeout(() => setIsFilterOpen(false), 200);
+  };
 
   return (
     <header className={cn(
@@ -190,42 +200,108 @@ export const CalendarHeader = ({
                 </TabsList>
               </Tabs>
 
-              {/* Status Filter */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-10 rounded-2xl px-3 sm:px-4 gap-2 border-border/40 hover:bg-muted/50 bg-card/50">
-                    <Filter size={14} className={cn("sm:w-4 sm:h-4", currentFilter !== 'ALL' ? "text-primary fill-primary" : "")} />
+              {/* Optimized Filter Button */}
+              <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-10 rounded-2xl px-3 sm:px-4 gap-2 border-border/40 hover:bg-muted/50 bg-card/50 transition-all active:scale-95 shadow-sm">
+                    <Filter size={14} className={cn("sm:w-4 sm:h-4", (currentFilter !== 'ALL' || searchQuery) ? "text-primary fill-primary" : "")} />
                     <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest hidden sm:inline">
-                      {activeFilterLabel}
+                      Bộ lọc {(currentFilter !== 'ALL' || searchQuery) && "•"}
                     </span>
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 rounded-3xl border-border/60 shadow-2xl p-2" align="end">
-                  <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-3 py-2">
-                    Lọc theo trạng thái
-                  </DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => onFilterChange?.('ALL')} className="rounded-xl py-2 px-3 focus:bg-primary/5 cursor-pointer">
-                    Tất cả buổi dạy
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  {Object.entries(LESSON_STATUS_LABELS).map(([status, label]) => {
-                    const colors = getStatusColors(status as any);
-                    return (
-                      <DropdownMenuItem
-                        key={status}
-                        onClick={() => onFilterChange?.(status)}
-                        className="rounded-xl py-2 px-3 focus:bg-primary/5 cursor-pointer flex items-center justify-between"
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-[calc(100vw-24px)] xs:w-72 sm:w-80 p-5 rounded-[2rem] border-border/60 shadow-2xl space-y-5 bg-background/95 backdrop-blur-xl animate-in fade-in zoom-in-95 data-[side=bottom]:slide-in-from-top-2 duration-300"
+                  align="end"
+                  sideOffset={8}
+                >
+                  {/* Search Section */}
+                  <div className="space-y-3">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Tìm kiếm</p>
+                    <div className="relative group">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={16} />
+                      <input
+                        type="text"
+                        placeholder="Tên học sinh, môn học..."
+                        value={searchQuery}
+                        onChange={(e) => onSearchChange?.(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 bg-muted/50 border border-border/60 rounded-2xl text-sm font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Status Section */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between ml-1">
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Trạng thái</p>
+                      {currentFilter !== 'ALL' && (
+                        <button
+                          onClick={() => handleStatusSelect('ALL')}
+                          className="text-[9px] font-black uppercase text-primary hover:underline hover:opacity-80 transition-all"
+                        >
+                          Xóa lọc
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 gap-1.5 mt-2 max-h-[40vh] overflow-y-auto no-scrollbar pr-1">
+                      <Button
+                        variant={currentFilter === 'ALL' ? 'secondary' : 'ghost'}
+                        onClick={() => handleStatusSelect('ALL')}
+                        className={cn(
+                          "justify-start h-10 rounded-xl px-3 font-bold text-xs transition-all",
+                          currentFilter === 'ALL' ? "bg-primary/10 text-primary hover:bg-primary/20" : "hover:bg-muted"
+                        )}
                       >
-                        <div className="flex items-center gap-2">
-                          <div className={cn("w-2 h-2 rounded-full", colors.dot)} />
-                          <span>{label}</span>
-                        </div>
-                        {currentFilter === status && <CheckCircle2 size={14} className="text-primary" />}
-                      </DropdownMenuItem>
-                    );
-                  })}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                        Tất cả trạng thái
+                      </Button>
+                      {Object.entries(LESSON_STATUS_LABELS).map(([status, label]) => {
+                        const colors = getStatusColors(status as any);
+                        const isActive = currentFilter === status;
+                        return (
+                          <Button
+                            key={status}
+                            variant={isActive ? 'secondary' : 'ghost'}
+                            onClick={() => handleStatusSelect(status)}
+                            className={cn(
+                              "justify-start h-10 rounded-xl px-3 font-bold text-xs transition-all",
+                              isActive ? "bg-primary/10 text-primary hover:bg-primary/20" : "hover:bg-muted"
+                            )}
+                          >
+                            <div className="flex items-center justify-between w-full">
+                              <div className="flex items-center gap-2">
+                                <div className={cn("w-2 h-2 rounded-full", colors.dot)} />
+                                <span className={cn(isActive && "text-primary")}>{label}</span>
+                              </div>
+                              {isActive && (
+                                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 500, damping: 30 }}>
+                                  <CheckCircle2 size={14} className="text-primary" />
+                                </motion.div>
+                              )}
+                            </div>
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {(searchQuery || currentFilter !== 'ALL') && (
+                    <div className="pt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full rounded-xl h-11 font-black uppercase tracking-widest text-[9px] border-dashed text-muted-foreground hover:text-primary hover:border-primary/50 transition-all"
+                        onClick={() => {
+                          onSearchChange?.('');
+                          onFilterChange?.('ALL');
+                          setTimeout(() => setIsFilterOpen(false), 300);
+                        }}
+                      >
+                        Đặt lại tất cả filters
+                      </Button>
+                    </div>
+                  )}
+                </PopoverContent>
+              </Popover>
             </div>
 
             {/* Quick Actions */}

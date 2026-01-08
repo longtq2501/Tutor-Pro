@@ -1,15 +1,8 @@
 import type { SessionRecord } from '@/lib/types/finance';
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { LessonCard } from './LessonCard';
-import { Search, Filter, TrendingUp } from 'lucide-react';
+import { Filter, TrendingUp } from 'lucide-react';
 import { formatCurrency } from '../utils/statusColors';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 
 interface ListViewProps {
     sessions: SessionRecord[];
@@ -22,89 +15,44 @@ interface ListViewProps {
  * ListView Component
  * 
  * Displays a searchable, filterable list of sessions.
+ * Note: Filtering logic is handled in useCalendarView and passed via props.
  */
 export function ListView({ sessions, onSessionClick, onSessionEdit, onUpdate }: ListViewProps) {
-    const [search, setSearch] = useState('');
-    const [statusFilter, setStatusFilter] = useState<string>('all');
+    // Already pre-filtered by useCalendarView
+    const displaySessions = useMemo(() => {
+        return [...sessions].sort((a, b) => {
+            const dateA = new Date(a.sessionDate).getTime();
+            const dateB = new Date(b.sessionDate).getTime();
+            if (dateA !== dateB) return dateA - dateB;
 
-    // Filter and sort sessions
-    const filteredSessions = useMemo(() => {
-        return sessions
-            .filter(s => {
-                // EXCLUDE CANCELLED SESSIONS (UX Requirement 4)
-                if (s.status === 'CANCELLED_BY_STUDENT' || s.status === 'CANCELLED_BY_TUTOR') {
-                    return false;
-                }
-
-                const matchesSearch = s.studentName.toLowerCase().includes(search.toLowerCase()) ||
-                    (s.subject && s.subject.toLowerCase().includes(search.toLowerCase()));
-                let matchesStatus = true;
-                if (statusFilter !== 'all') {
-                    if (statusFilter === 'DONE') {
-                        matchesStatus = s.status === 'PAID' || s.status === 'COMPLETED';
-                    } else if (statusFilter === 'PAID') {
-                        matchesStatus = s.status === 'PAID' || s.paid === true;
-                    } else if (statusFilter === 'UNPAID') {
-                        matchesStatus = s.status !== 'PAID' && s.paid === false;
-                    } else {
-                        matchesStatus = s.status === statusFilter;
-                    }
-                }
-                return matchesSearch && matchesStatus;
-            })
-            .sort((a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime());
-    }, [sessions, search, statusFilter]);
+            // Secondary sort by startTime for same-day sessions
+            const timeA = a.startTime || '';
+            const timeB = b.startTime || '';
+            return timeA.localeCompare(timeB);
+        });
+    }, [sessions]);
 
     // Group by date
     const groupedSessions = useMemo(() => {
         const groups: Record<string, SessionRecord[]> = {};
-        filteredSessions.forEach(s => {
+        displaySessions.forEach(s => {
             if (!groups[s.sessionDate]) groups[s.sessionDate] = [];
             groups[s.sessionDate].push(s);
         });
         return groups;
-    }, [filteredSessions]);
+    }, [displaySessions]);
 
     // Stats for the current filter
     const listStats = useMemo(() => {
-        const activeSessions = filteredSessions.filter(s => s.status !== 'CANCELLED_BY_STUDENT' && s.status !== 'CANCELLED_BY_TUTOR');
         return {
-            total: activeSessions.length,
-            revenue: activeSessions.reduce((sum, s) => sum + s.totalAmount, 0),
-            hours: activeSessions.reduce((sum, s) => sum + s.hours, 0),
+            total: displaySessions.length,
+            revenue: displaySessions.reduce((sum, s) => sum + s.totalAmount, 0),
+            hours: displaySessions.reduce((sum, s) => sum + s.hours, 0),
         };
-    }, [filteredSessions]);
+    }, [displaySessions]);
 
     return (
-        <div className="space-y-4">
-            {/* Filters & Search */}
-            <div className="flex flex-col md:flex-row gap-2 bg-card p-3 rounded-xl border border-border shadow-sm">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-                    <input
-                        type="text"
-                        placeholder="Tìm theo tên học sinh, môn học..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-muted/30 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    />
-                </div>
-                <div className="flex gap-2">
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="w-full md:w-[180px] bg-muted/30 border-border focus:ring-0">
-                            <SelectValue placeholder="Trạng thái" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                            <SelectItem value="DONE">Đã hoàn thành</SelectItem>
-                            <SelectItem value="PAID">Đã thanh toán</SelectItem>
-                            <SelectItem value="UNPAID">Chưa thanh toán</SelectItem>
-                            <SelectItem value="SCHEDULED">Đã hẹn</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-            </div>
-
+        <div className="space-y-4 px-4 sm:px-0">
             {/* List Summary */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3">
                 <div className="bg-card p-3 rounded-xl border border-border shadow-sm flex items-center gap-3">
@@ -138,9 +86,9 @@ export function ListView({ sessions, onSessionClick, onSessionEdit, onUpdate }: 
 
             {/* Actual List */}
             <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-                {filteredSessions.length === 0 ? (
-                    <div className="p-12 text-center text-muted-foreground">
-                        Không tìm thấy buổi học nào.
+                {displaySessions.length === 0 ? (
+                    <div className="p-12 text-center text-muted-foreground font-medium">
+                        Không tìm thấy buổi học nào với bộ lọc hiện tại.
                     </div>
                 ) : (
                     <div className="divide-y divide-border">

@@ -24,6 +24,11 @@ Merging `monthly-view` and `unpaid-sessions` into a unified, high-performance **
 
 ## 📋 Active Items
 
+- [x] [P1] **Collapsible Stutter**
+    - **Issue:** Khi thu gọn phần chi tiết (collapse), component bị khựng lại một nhịp rồi mới đóng lại hẳn.
+    - **Action:** Fixed by removing conflicting CSS `transition-all` on the parent `Card` and switching `height` easing from `backOut` (which caused a tiny expansion before shrink) to a standard cubic-bezier.
+    - **Status:** ✅ Fixed
+
 - [x] [P1] **Unwanted Space/Bar below Footer**
     - **Issue:** Persistent bar and extra space appearing at bottom.
     - **Action:** Fixed by removing non-standard `zoom` scaling in `globals.css` and optimizing component layout (`min-h-screen`, `pb-24`).

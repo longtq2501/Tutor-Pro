@@ -48,7 +48,7 @@ function StudentFinanceCardComponent({ group, onDeleteSession, onTogglePayment }
             transition={{ duration: 0.2 }}
         >
             <Card className={cn(
-                "transition-all duration-300 border overflow-hidden group/card relative",
+                "border overflow-hidden group/card relative transition-shadow duration-300",
                 isSelected
                     ? "border-primary ring-2 ring-primary/20 bg-primary/[0.02]"
                     : "hover:border-primary/50 hover:shadow-md"
@@ -152,7 +152,10 @@ function StudentFinanceCardComponent({ group, onDeleteSession, onTogglePayment }
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            transition={{ height: { duration: 0.3, ease: 'backOut' }, opacity: { duration: 0.2 } }}
+                            transition={{
+                                height: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
+                                opacity: { duration: 0.2 }
+                            }}
                             className="bg-muted/30 border-t border-border overflow-hidden relative z-20"
                         >
                             <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">

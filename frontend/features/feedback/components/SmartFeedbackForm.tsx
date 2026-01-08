@@ -19,6 +19,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner"; // Used sonner as requested
 
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
 import { feedbackService } from "../services/feedbackService";
 import { FeedbackStatus } from "../types";
 import { CommentGenerator } from "./CommentGenerator";
@@ -49,7 +51,8 @@ export function SmartFeedbackForm({
     studentName,
     onSuccess,
 }: SmartFeedbackFormProps) {
-    const [isLoading, setIsLoading] = useState(false);
+    const queryClient = useQueryClient();
+    const [isSaving, setIsSaving] = useState(false);
     const [existingFeedbackId, setExistingFeedbackId] = useState<number | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [hasData, setHasData] = useState(false);
@@ -67,39 +70,47 @@ export function SmartFeedbackForm({
         },
     });
 
-    // Load existing feedback
-    useEffect(() => {
-        const loadData = async () => {
-            setIsLoading(true);
-            try {
-                const existing = await feedbackService.getFeedbackBySession(sessionRecordId, studentId);
-                if (existing) {
-                    setExistingFeedbackId(existing.id);
-                    setHasData(true);
-                    form.reset({
-                        lessonContent: existing.lessonContent,
-                        attitudeRating: existing.attitudeRating,
-                        attitudeComment: existing.attitudeComment,
-                        absorptionRating: existing.absorptionRating,
-                        absorptionComment: existing.absorptionComment,
-                        knowledgeGaps: existing.knowledgeGaps || "",
-                        solutions: existing.solutions || "",
-                    });
-                } else {
-                    setHasData(false);
-                }
-            } catch (error) {
-                console.error("Failed to load feedback", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
+    // Watch all fields for reactive view mode
+    const watchedValues = form.watch();
 
-        loadData();
-    }, [sessionRecordId, studentId, form]);
+    // Load existing feedback with React Query
+    const { data: existing, isLoading } = useQuery({
+        queryKey: ['session-feedback', sessionRecordId, studentId],
+        queryFn: () => feedbackService.getFeedbackBySession(sessionRecordId, studentId),
+        staleTime: 5 * 60 * 1000, // 5 minutes cache
+    });
+
+    // Sync form with query data
+    useEffect(() => {
+        if (existing) {
+            setExistingFeedbackId(existing.id);
+            setHasData(true);
+            form.reset({
+                lessonContent: existing.lessonContent,
+                attitudeRating: existing.attitudeRating,
+                attitudeComment: existing.attitudeComment,
+                absorptionRating: existing.absorptionRating,
+                absorptionComment: existing.absorptionComment,
+                knowledgeGaps: existing.knowledgeGaps || "",
+                solutions: existing.solutions || "",
+            });
+        } else {
+            setExistingFeedbackId(null);
+            setHasData(false);
+            form.reset({
+                lessonContent: "4 kĩ năng tiếng anh và Ngữ Pháp và Ôn Tập",
+                attitudeRating: "",
+                attitudeComment: "",
+                absorptionRating: "",
+                absorptionComment: "",
+                knowledgeGaps: "",
+                solutions: "",
+            });
+        }
+    }, [existing, form]);
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        setIsLoading(true);
+        setIsSaving(true);
         try {
             const payload = {
                 sessionRecordId,
@@ -119,12 +130,16 @@ export function SmartFeedbackForm({
                 setHasData(true);
                 toast.success("Đã lưu đánh giá mới.");
             }
+
+            // Invalidate cache
+            queryClient.invalidateQueries({ queryKey: ['session-feedback', sessionRecordId, studentId] });
+
             setIsEditing(false); // Exit edit mode on save
             onSuccess?.();
         } catch (error) {
             toast.error("Không thể lưu đánh giá.");
         } finally {
-            setIsLoading(false);
+            setIsSaving(false);
         }
     };
 
@@ -173,29 +188,31 @@ export function SmartFeedbackForm({
     return (
         <div className="flex flex-col h-full relative">
             {/* Header / Toolbar - Fixed at Top */}
-            <div className="flex items-center justify-between py-3 px-4 sm:px-6 border-b border-border/40 shrink-0 bg-background/95 backdrop-blur z-20">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between py-3 px-4 sm:px-6 gap-3 border-b border-border/40 shrink-0 bg-background/95 backdrop-blur z-20">
                 <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-black uppercase tracking-wide bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                    <h3 className="text-xs sm:text-sm font-black uppercase tracking-widest bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent whitespace-nowrap">
                         {isEditing ? "Đang chỉnh sửa" : "Phiếu đánh giá"}
                     </h3>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                     {!isEditing ? (
                         <>
                             {hasData && (
-                                <>
-                                    <Button variant="outline" size="sm" onClick={exportExcel} className="h-8 text-[10px] uppercase font-bold tracking-wider">
-                                        <FileSpreadsheet className="w-3.5 h-3.5 mr-1.5" /> XLS
+                                <div className="flex items-center gap-1.5 sm:gap-2">
+                                    <Button variant="outline" size="sm" onClick={exportExcel} className="h-8 px-2.5 sm:px-3 text-[10px] uppercase font-bold tracking-wider">
+                                        <FileSpreadsheet className="w-3.5 h-3.5 sm:mr-1.5" />
+                                        <span className="hidden sm:inline">XLS</span>
                                     </Button>
-                                    <Button variant="secondary" size="sm" onClick={copyToClipboard} className="h-8 text-[10px] uppercase font-bold tracking-wider">
-                                        <Copy className="w-3.5 h-3.5 mr-1.5" /> Copy
+                                    <Button variant="secondary" size="sm" onClick={copyToClipboard} className="h-8 px-2.5 sm:px-3 text-[10px] uppercase font-bold tracking-wider">
+                                        <Copy className="w-3.5 h-3.5 sm:mr-1.5" />
+                                        <span className="hidden sm:inline">Copy</span>
                                     </Button>
-                                </>
+                                </div>
                             )}
                             <Button
                                 onClick={() => setIsEditing(true)}
                                 size="sm"
-                                className="h-8 bg-primary/10 hover:bg-primary/20 text-primary text-[10px] uppercase font-black tracking-wider shadow-none border-0"
+                                className="h-8 px-3 sm:px-4 bg-primary/10 hover:bg-primary/20 text-primary text-[10px] uppercase font-black tracking-wider shadow-none border-0 flex-1 sm:flex-none"
                             >
                                 <Pencil className="w-3.5 h-3.5 mr-1.5" />
                                 {hasData ? "Chỉnh sửa" : "Viết đánh giá"}
@@ -206,7 +223,7 @@ export function SmartFeedbackForm({
                             variant="ghost"
                             size="sm"
                             onClick={() => setIsEditing(false)}
-                            className="h-8 text-[10px] uppercase font-bold tracking-wider text-muted-foreground"
+                            className="h-8 px-3 text-[10px] uppercase font-bold tracking-wider text-muted-foreground ml-auto"
                         >
                             <X className="w-3.5 h-3.5 mr-1.5" /> Hủy
                         </Button>
@@ -284,30 +301,30 @@ export function SmartFeedbackForm({
                         {/* View Mode */}
                         <ReadOnlyField
                             label="1. Nội dung bài học"
-                            content={form.getValues("lessonContent")}
+                            content={watchedValues.lessonContent}
                         />
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <ReadOnlyField
                                 label="2. Thái độ học tập"
-                                rating={form.getValues("attitudeRating")}
-                                content={form.getValues("attitudeComment")}
+                                rating={watchedValues.attitudeRating}
+                                content={watchedValues.attitudeComment}
                             />
                             <ReadOnlyField
                                 label="3. Khả năng tiếp thu"
-                                rating={form.getValues("absorptionRating")}
-                                content={form.getValues("absorptionComment")}
+                                rating={watchedValues.absorptionRating}
+                                content={watchedValues.absorptionComment}
                             />
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <ReadOnlyField
                                 label="4. Kiến thức chưa nắm vững"
-                                content={form.getValues("knowledgeGaps")}
+                                content={watchedValues.knowledgeGaps}
                             />
                             <ReadOnlyField
                                 label="5. Lý do / Giải pháp"
-                                content={form.getValues("solutions")}
+                                content={watchedValues.solutions}
                             />
                         </div>
                     </div>
@@ -319,12 +336,22 @@ export function SmartFeedbackForm({
                 <div className="p-4 border-t border-border/40 bg-background/95 backdrop-blur shrink-0 flex justify-end">
                     <Button
                         onClick={form.handleSubmit(onSubmit)}
-                        disabled={isLoading}
+                        disabled={isSaving}
                         className="h-9 px-6 text-xs font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl"
                     >
-                        {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : <Save className="w-3.5 h-3.5 mr-2" />}
+                        {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : <Save className="w-3.5 h-3.5 mr-2" />}
                         Lưu Đánh Giá
                     </Button>
+                </div>
+            )}
+
+            {/* Initial Loading Overlay */}
+            {isLoading && (
+                <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-[100] flex items-center justify-center rounded-[2rem]">
+                    <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Đang tải dữ liệu...</p>
+                    </div>
                 </div>
             )}
         </div>

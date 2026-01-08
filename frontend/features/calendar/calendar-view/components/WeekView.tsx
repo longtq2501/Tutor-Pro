@@ -1,8 +1,10 @@
-import type { CalendarDay } from '../types';
-import type { SessionRecord } from '@/lib/types/finance';
-import { LessonCard } from './LessonCard';
-import { useMemo } from 'react';
+import { useDroppable } from '@dnd-kit/core';
 import { Plus } from 'lucide-react';
+import { useMemo } from 'react';
+import type { SessionRecord } from '@/lib/types/finance';
+import type { CalendarDay } from '../types';
+import { DraggableSession } from './DraggableSession';
+import { LessonCard } from './LessonCard';
 
 interface WeekViewProps {
     days: CalendarDay[];
@@ -57,40 +59,104 @@ export function WeekView({ days, onDayClick, onAddSession, onSessionClick, onSes
 
             <div className="grid grid-cols-7 divide-x divide-border bg-background/30 min-h-[400px]">
                 {weekDays.map((day, i) => (
-                    <div
-                        key={i}
-                        className={`p-2 space-y-2 relative group ${day.isToday ? 'bg-primary/5' : ''}`}
-                    >
-                        {/* Add Session Button on Hover */}
-                        <button
-                            onClick={() => onAddSession(day.dateStr)}
-                            className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 hover:bg-primary/10 rounded-full text-primary transition-all z-10"
-                        >
-                            <Plus size={14} />
-                        </button>
-
-                        {/* Sessions List */}
-                        <div className="space-y-1.5 h-full">
-                            {day.sessions.length === 0 ? (
-                                <div className="text-[10px] text-muted-foreground/30 italic text-center pt-10">
-                                    Trống
-                                </div>
-                            ) : (
-                                day.sessions.map(session => (
-                                    <LessonCard
-                                        key={session.id}
-                                        session={session}
-                                        compact
-                                        onClick={() => onSessionClick?.(session)}
-                                        onUpdate={onUpdate}
-                                        onEdit={onSessionEdit}
-                                    />
-                                ))
-                            )}
-                        </div>
-                    </div>
+                    <WeekDroppableCell
+                        key={day.dateStr}
+                        day={day}
+                        onAddSession={onAddSession}
+                        onSessionClick={onSessionClick}
+                        onSessionEdit={onSessionEdit}
+                        onUpdate={onUpdate}
+                    />
                 ))}
             </div>
+        </div>
+    );
+}
+
+function WeekDroppableCell({
+    day,
+    onAddSession,
+    onSessionClick,
+    onSessionEdit,
+    onUpdate
+}: {
+    day: CalendarDay;
+    onAddSession: (dateStr: string) => void;
+    onSessionClick?: (session: SessionRecord) => void;
+    onSessionEdit?: (session: SessionRecord) => void;
+    onUpdate?: (updated: SessionRecord) => void;
+}) {
+    const { setNodeRef, isOver } = useDroppable({
+        id: day.dateStr,
+    });
+
+    return (
+        <div
+            ref={setNodeRef}
+            className={`
+                p-2 space-y-2 relative group transition-colors duration-200
+                ${day.isToday ? 'bg-primary/5' : ''}
+                ${isOver ? 'bg-primary/20 ring-2 ring-primary inset-0 z-10' : ''}
+            `}
+        >
+            {/* Add Session Button on Hover */}
+            <button
+                onClick={() => onAddSession(day.dateStr)}
+                className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 hover:bg-primary/10 rounded-full text-primary transition-all z-10"
+            >
+                <Plus size={14} />
+            </button>
+
+            {/* Sessions List */}
+            <div className="space-y-1.5 h-full min-h-[100px]">
+                {day.sessions.length === 0 ? (
+                    <div className="text-[10px] text-muted-foreground/30 italic text-center pt-10">
+                        Trống
+                    </div>
+                ) : (
+                    day.sessions.map((session, index) => (
+                        <div key={session.id}>
+                            {/* We can use DraggableSession wrapper around LessonCard if we want DnD in WeekView too */}
+                            {/* For simplicity, let's use DraggableSession here but it might look different */}
+                            {/* Actually, I should make LessonCard draggable as well */}
+                            <DraggableLessonWrapper session={session}>
+                                <LessonCard
+                                    session={session}
+                                    compact
+                                    onClick={() => onSessionClick?.(session)}
+                                    onUpdate={onUpdate}
+                                    onEdit={onSessionEdit}
+                                />
+                            </DraggableLessonWrapper>
+                        </div>
+                    ))
+                )}
+            </div>
+        </div>
+    );
+}
+
+import { useDraggable } from '@dnd-kit/core';
+
+function DraggableLessonWrapper({ session, children }: { session: SessionRecord; children: React.ReactNode }) {
+    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+        id: `session-week-${session.id}`,
+        data: session,
+    });
+
+    const style = transform ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    } : undefined;
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            {...listeners}
+            {...attributes}
+            className={`${isDragging ? 'opacity-50 cursor-grabbing' : 'cursor-grab'}`}
+        >
+            {children}
         </div>
     );
 }

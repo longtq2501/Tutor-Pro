@@ -1,10 +1,12 @@
 import type { SessionRecord } from '@/lib/types/finance';
 import { cn } from '@/lib/utils';
+import { useDroppable } from '@dnd-kit/core';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2, Clock, Plus } from 'lucide-react';
 import { memo, useState } from 'react';
 import type { CalendarDay } from '../types';
 import { getStatusColors } from '../utils/statusColors';
+import { DraggableSession } from './DraggableSession';
 
 interface CalendarCellProps {
     day: CalendarDay;
@@ -28,11 +30,15 @@ export const CalendarCell = memo(({
     onContextMenu
 }: CalendarCellProps) => {
     const [isHovered, setIsHovered] = useState(false);
+    const { setNodeRef, isOver } = useDroppable({
+        id: day.dateStr,
+    });
     const visibleSessions = sessions.slice(0, 3);
     const hiddenCount = sessions.length - 3;
 
     return (
         <motion.div
+            ref={setNodeRef}
             onHoverStart={() => setIsHovered(true)}
             onHoverEnd={() => setIsHovered(false)}
             onClick={() => onDayClick(day)}
@@ -42,7 +48,8 @@ export const CalendarCell = memo(({
                 "cursor-pointer transition-colors duration-300",
                 !isCurrentMonth && "bg-muted/10 dark:bg-zinc-900/10 opacity-60",
                 isToday && "bg-blue-50/50 dark:bg-blue-950/20",
-                "hover:bg-accent/30 dark:hover:bg-zinc-800/30"
+                isOver && "bg-primary/20 ring-2 ring-primary inset-0 z-10 scale-[0.98]",
+                !isOver && "hover:bg-accent/30 dark:hover:bg-zinc-800/30"
             )}
         >
             {/* Date Number Header */}
@@ -95,53 +102,15 @@ export const CalendarCell = memo(({
                 {/* Desktop/Tablet: Full Badges */}
                 <div className="hidden sm:block space-y-1">
                     <AnimatePresence>
-                        {visibleSessions.map((session, index) => {
-                            const colors = getStatusColors(session.status);
-                            return (
-                                <motion.div
-                                    key={session.id}
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: index * 0.05 }}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onSessionClick?.(session);
-                                    }}
-                                    onContextMenu={(e) => {
-                                        if (onContextMenu) {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            onContextMenu(e, session);
-                                        }
-                                    }}
-                                    className={cn(
-                                        "group/session relative px-2 py-1.5",
-                                        "rounded-xl text-[10px] sm:text-[11px]",
-                                        "font-bold truncate",
-                                        "transition-all duration-300",
-                                        "hover:scale-[1.03] hover:shadow-lg hover:z-20",
-                                        "cursor-pointer border-l-[3px] shadow-sm",
-                                        "bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 dark:to-transparent",
-                                        colors.bg,
-                                        colors.text,
-                                        "border-slate-200/50 dark:border-white/10"
-                                    )}
-                                >
-                                    {/* Left highlight strip for dimension */}
-                                    <div className={cn("absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl opacity-80", colors.dot)} />
-
-                                    <div className="flex items-center gap-1.5 relative z-10">
-                                        <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0 shadow-sm", colors.dot)} />
-                                        <span className="truncate">{session.studentName}</span>
-                                        {session.paid ? (
-                                            <CheckCircle2 className="w-3 h-3 ml-auto flex-shrink-0 text-emerald-600 dark:text-emerald-400 drop-shadow-sm" />
-                                        ) : (
-                                            <Clock className="w-3 h-3 ml-auto flex-shrink-0 opacity-40" />
-                                        )}
-                                    </div>
-                                </motion.div>
-                            );
-                        })}
+                        {visibleSessions.map((session, index) => (
+                            <DraggableSession
+                                key={session.id}
+                                session={session}
+                                index={index}
+                                onSessionClick={onSessionClick}
+                                onContextMenu={onContextMenu}
+                            />
+                        ))}
                     </AnimatePresence>
                 </div>
 

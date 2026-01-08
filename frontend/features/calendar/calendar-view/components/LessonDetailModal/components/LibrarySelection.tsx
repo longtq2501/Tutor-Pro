@@ -59,17 +59,17 @@ export function LibrarySelection({
         <div className="space-y-3 pt-3 border-t border-border/60 flex flex-col h-full overflow-hidden">
             {/* Stats Bar */}
             <div className="grid grid-cols-3 gap-2 px-1">
-                <div className="flex flex-col items-center p-2 bg-primary/5 rounded-lg border border-primary/10">
-                    <span className="text-lg font-black text-primary leading-none">{categories.length}</span>
-                    <span className="text-[9px] text-muted-foreground font-bold uppercase mt-1">Danh mục</span>
+                <div className="flex flex-col items-center p-1.5 sm:p-2 bg-primary/5 rounded-lg border border-primary/10">
+                    <span className="text-base sm:text-lg font-black text-primary leading-none">{categories.length}</span>
+                    <span className="text-[8px] sm:text-[9px] text-muted-foreground font-bold uppercase mt-1">Danh mục</span>
                 </div>
-                <div className="flex flex-col items-center p-2 bg-primary/5 rounded-lg border border-primary/10">
-                    <span className="text-lg font-black text-primary leading-none">{filteredItems.length}</span>
-                    <span className="text-[9px] text-muted-foreground font-bold uppercase mt-1">Tìm thấy</span>
+                <div className="flex flex-col items-center p-1.5 sm:p-2 bg-primary/5 rounded-lg border border-primary/10">
+                    <span className="text-base sm:text-lg font-black text-primary leading-none">{filteredItems.length}</span>
+                    <span className="text-[8px] sm:text-[9px] text-muted-foreground font-bold uppercase mt-1">Tìm thấy</span>
                 </div>
-                <div className="flex flex-col items-center p-2 bg-primary/5 rounded-lg border border-primary/10">
-                    <span className="text-lg font-black text-primary leading-none">{currentTabSelectedCount}</span>
-                    <span className="text-[9px] text-muted-foreground font-bold uppercase mt-1">Đã chọn</span>
+                <div className="flex flex-col items-center p-1.5 sm:p-2 bg-primary/5 rounded-lg border border-primary/10">
+                    <span className="text-base sm:text-lg font-black text-primary leading-none">{currentTabSelectedCount}</span>
+                    <span className="text-[8px] sm:text-[9px] text-muted-foreground font-bold uppercase mt-1">Đã chọn</span>
                 </div>
             </div>
 
@@ -79,25 +79,25 @@ export function LibrarySelection({
                     type="button"
                     onClick={() => setActiveTab('lessons')}
                     className={cn(
-                        "flex-1 py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-2",
+                        "flex-1 py-1.5 sm:py-2 rounded-lg font-bold text-[10px] sm:text-xs transition-all flex items-center justify-center gap-1 sm:gap-2",
                         activeTab === 'lessons'
                             ? "bg-background text-foreground shadow-sm ring-1 ring-border/50"
                             : "text-muted-foreground hover:text-foreground hover:bg-background/50"
                     )}
                 >
-                    <span className="text-base">📖</span> Kho bài giảng
+                    <span className="text-sm sm:text-base">📖</span> Kho bài giảng
                 </button>
                 <button
                     type="button"
                     onClick={() => setActiveTab('documents')}
                     className={cn(
-                        "flex-1 py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-2",
+                        "flex-1 py-1.5 sm:py-2 rounded-lg font-bold text-[10px] sm:text-xs transition-all flex items-center justify-center gap-1 sm:gap-2",
                         activeTab === 'documents'
                             ? "bg-background text-foreground shadow-sm ring-1 ring-border/50"
                             : "text-muted-foreground hover:text-foreground hover:bg-background/50"
                     )}
                 >
-                    <span className="text-base">📄</span> Kho tài liệu
+                    <span className="text-sm sm:text-base">📄</span> Kho tài liệu
                 </button>
             </div>
 
@@ -107,7 +107,7 @@ export function LibrarySelection({
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={14} />
                     <input
                         type="text"
-                        placeholder={`Tìm kiếm ${activeTab === 'lessons' ? 'bài giảng' : 'tài liệu'}...`}
+                        placeholder={`Tìm kiếm...`}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-9 pr-8 py-2.5 border border-border/60 rounded-xl focus:border-primary/50 focus:ring-4 focus:ring-primary/10 bg-background text-xs font-semibold transition-all outline-none"
@@ -125,23 +125,23 @@ export function LibrarySelection({
                 <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="px-3 py-2 border border-border/60 rounded-xl focus:border-primary/50 focus:ring-4 focus:ring-primary/10 bg-background text-[10px] font-bold outline-none cursor-pointer hover:bg-muted/30 transition-colors"
+                    className="px-2 sm:px-3 py-2 border border-border/60 rounded-xl focus:border-primary/50 focus:ring-4 focus:ring-primary/10 bg-background text-[10px] font-bold outline-none cursor-pointer hover:bg-muted/30 transition-colors max-w-[80px] sm:max-w-none"
                 >
-                    <option value="recent">Mới nhất</option>
-                    <option value="name">Tên A-Z</option>
+                    <option value="recent">Mới</option>
+                    <option value="name">Tên</option>
                 </select>
             </div>
 
             {/* Categories */}
             {categories.length > 1 && (
-                <div className="flex gap-1.5 overflow-x-auto pb-2 no-scrollbar mask-gradient-right">
+                <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar mask-gradient-right">
                     {categories.map(cat => (
                         <button
                             key={cat}
                             type="button"
                             onClick={() => setSelectedCategory(cat)}
                             className={cn(
-                                "px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-all border",
+                                "px-2.5 py-1 rounded-full text-[9px] sm:text-[10px] font-bold whitespace-nowrap transition-all border",
                                 selectedCategory === cat
                                     ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
                                     : "bg-background border-border hover:border-primary/50 hover:bg-primary/5 text-muted-foreground"
@@ -156,7 +156,7 @@ export function LibrarySelection({
             {/* Virtualized List - Dynamic Height */}
             <div
                 ref={parentRef}
-                className="flex-1 overflow-auto border border-border/60 rounded-xl bg-muted/20 min-h-[300px] max-h-[50vh] no-scrollbar relative"
+                className="flex-1 overflow-auto border border-border/60 rounded-xl bg-muted/20 min-h-[200px] sm:min-h-[300px] max-h-[40vh] sm:max-h-[50vh] no-scrollbar relative"
             >
                 {filteredItems.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 animate-in fade-in zoom-in-95 duration-300">

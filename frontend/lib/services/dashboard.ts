@@ -28,5 +28,13 @@ export const dashboardApi = {
       params: { studentId, currentMonth }
     });
     return response.data;
+  },
+
+  exportPdf: async (currentMonth?: string): Promise<Blob> => {
+    const response = await api.get('/dashboard/export-pdf', {
+      params: { currentMonth },
+      responseType: 'blob'
+    });
+    return response.data;
   }
 };

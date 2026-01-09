@@ -1,13 +1,29 @@
 'use client';
 
-import { createContext, ReactNode, useCallback, useContext, useState } from 'react';
+import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { FinanceContextType, FinanceViewMode } from '../types';
 
 const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
 
 export function FinanceProvider({ children }: { children: ReactNode }) {
+    const searchParams = useSearchParams();
+
+    // P0 FIX: Get initial date from URL param 'month'
+    const initialDate = useMemo(() => {
+        const monthParam = searchParams.get('month');
+        if (monthParam) {
+            const [year, month] = monthParam.split('-').map(Number);
+            if (year && month) {
+                const date = new Date(year, month - 1, 1);
+                if (!isNaN(date.getTime())) return date;
+            }
+        }
+        return new Date();
+    }, [searchParams]);
+
     const [viewMode, setViewMode] = useState<FinanceViewMode>('MONTHLY');
-    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+    const [selectedDate, setSelectedDate] = useState<Date>(initialDate);
     const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [displayLimit, setDisplayLimit] = useState(20); // Pagination: initial limit

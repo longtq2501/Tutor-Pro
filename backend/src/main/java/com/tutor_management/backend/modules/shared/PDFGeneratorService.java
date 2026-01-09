@@ -13,19 +13,145 @@ import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.tutor_management.backend.modules.finance.dto.response.InvoiceItem;
 import com.tutor_management.backend.modules.finance.dto.response.InvoiceResponse;
+import com.tutor_management.backend.modules.finance.dto.response.MonthlyStats;
+import com.tutor_management.backend.modules.dashboard.dto.response.DashboardStats;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.net.URL;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 @Service
+@lombok.extern.slf4j.Slf4j
 public class PDFGeneratorService {
 
     private PdfFont vietnameseFont;
     private PdfFont vietnameseFontBold;
+
+    public byte[] generateDashboardReportPDF(DashboardStats stats, List<MonthlyStats> monthlyStats) throws Exception {
+        log.info("Starting dashboard report PDF generation");
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PdfWriter writer = new PdfWriter(baos);
+        PdfDocument pdf = new PdfDocument(writer);
+        Document document = new Document(pdf);
+
+        loadVietnameseFonts();
+        document.setMargins(30, 40, 30, 40);
+        document.setFont(vietnameseFont);
+
+        // Header
+        addDashboardHeader(document);
+
+        // Summary Cards Section
+        addDashboardSummary(document, stats);
+
+        // Spacing
+        document.add(new Paragraph(" ").setFontSize(5));
+
+        // Monthly Data Table
+        addMonthlyStatsTable(document, monthlyStats);
+
+        // Footer
+        addDashboardFooter(document);
+
+        document.close();
+        return baos.toByteArray();
+    }
+
+    private void addDashboardHeader(Document document) {
+        Paragraph title = new Paragraph("BÁO CÁO TỔNG QUAN HỆ THỐNG")
+                .setFont(vietnameseFontBold)
+                .setFontSize(24)
+                .setTextAlignment(TextAlignment.CENTER)
+                .setMarginBottom(5);
+        document.add(title);
+
+        Paragraph date = new Paragraph("Ngày xuất báo cáo: " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")))
+                .setFont(vietnameseFont)
+                .setFontSize(9)
+                .setTextAlignment(TextAlignment.CENTER)
+                .setMarginBottom(15)
+                .setFontColor(new DeviceRgb(100, 100, 100));
+        document.add(date);
+
+        addHorizontalLine(document);
+    }
+
+    private void addDashboardSummary(Document document, DashboardStats stats) {
+        Table table = new Table(4).useAllAvailableWidth();
+        table.setMarginTop(10);
+
+        table.addCell(createSummaryCell("HỌC SINH", String.valueOf(stats.getTotalStudents()), new DeviceRgb(59, 130, 246)));
+        table.addCell(createSummaryCell("DOANH THU", stats.getCurrentMonthTotal(), new DeviceRgb(16, 185, 129)));
+        table.addCell(createSummaryCell("ĐÃ THU", stats.getTotalPaidAllTime(), new DeviceRgb(34, 197, 94)));
+        table.addCell(createSummaryCell("CHƯA THU", stats.getTotalUnpaidAllTime(), new DeviceRgb(239, 68, 68)));
+
+        document.add(table);
+    }
+
+    private Cell createSummaryCell(String label, String value, Color color) {
+        Cell cell = new Cell()
+                .setBorder(new com.itextpdf.layout.borders.SolidBorder(new DeviceRgb(229, 231, 235), 1))
+                .setPadding(8)
+                .setMargin(2);
+
+        Paragraph pLabel = new Paragraph(label)
+                .setFont(vietnameseFontBold)
+                .setFontSize(10)
+                .setFontColor(new DeviceRgb(107, 114, 128))
+                .setMarginBottom(5);
+        
+        Paragraph pValue = new Paragraph(value)
+                .setFont(vietnameseFontBold)
+                .setFontSize(14)
+                .setFontColor(color);
+
+        cell.add(pLabel).add(pValue);
+        return cell;
+    }
+
+    private void addMonthlyStatsTable(Document document, List<MonthlyStats> monthlyStats) {
+        Paragraph title = new Paragraph("CHI TIẾT DOANH THU THEO THÁNG")
+                .setFont(vietnameseFontBold)
+                .setFontSize(14)
+                .setMarginBottom(10);
+        document.add(title);
+
+        Table table = new Table(new float[]{3, 3, 3, 2});
+        table.useAllAvailableWidth();
+
+        String[] headers = {"Tháng", "Đã Thu", "Chưa Thu", "Số Buổi"};
+        for (String header : headers) {
+            table.addHeaderCell(new Cell()
+                    .add(new Paragraph(header).setFont(vietnameseFontBold).setFontSize(10).setFontColor(ColorConstants.WHITE))
+                    .setBackgroundColor(new DeviceRgb(75, 85, 99))
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setPadding(8));
+        }
+
+        for (MonthlyStats ms : monthlyStats) {
+            table.addCell(createTableCell(formatMonth(ms.getMonth())));
+            table.addCell(createTableCellRight(formatCurrency(ms.getTotalPaid())));
+            table.addCell(createTableCellRight(formatCurrency(ms.getTotalUnpaid())));
+            table.addCell(createTableCellCenter(String.valueOf(ms.getTotalSessions())));
+        }
+
+        document.add(table);
+    }
+
+    private void addDashboardFooter(Document document) {
+        Paragraph footer = new Paragraph("\nTutor Pro Management System - Báo cáo tự động")
+                .setFont(vietnameseFont)
+                .setFontSize(8)
+                .setFontColor(new DeviceRgb(156, 163, 175))
+                .setTextAlignment(TextAlignment.CENTER)
+                .setMarginTop(15);
+        document.add(footer);
+    }
 
     public byte[] generateInvoicePDF(InvoiceResponse invoice) throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -33,36 +159,16 @@ public class PDFGeneratorService {
         PdfDocument pdf = new PdfDocument(writer);
         Document document = new Document(pdf);
 
-        // Load Vietnamese fonts - QUAN TRỌNG!
         loadVietnameseFonts();
+        document.setMargins(30, 40, 30, 40);
+        document.setFont(vietnameseFont);
 
-        // Set margins và page size
-        document.setMargins(50, 50, 40, 50); // top, right, bottom, left
-        document.setFont(vietnameseFont); // Set font mặc định
-
-        // Header
         addHeader(document, invoice);
-
-        // Invoice Info
         addInvoiceInfo(document, invoice);
-
-        // Divider
         addDivider(document);
-
-        // Table
         addItemsTable(document, invoice);
-
-        // Divider
-        addDivider(document);
-
-        // Bank Info & QR
         addBankInfo(document, invoice);
-
-        // Divider
-        addDivider(document);
-
-        // Footer
-        // addFooter(document);
+        addFooter(document);
 
         document.close();
         return baos.toByteArray();
@@ -70,8 +176,6 @@ public class PDFGeneratorService {
 
     private void loadVietnameseFonts() throws Exception {
         try {
-            System.out.println("Loading Vietnamese fonts from resources...");
-
             // Load font DejaVu Sans (hỗ trợ Unicode đầy đủ)
             ClassPathResource regularFont = new ClassPathResource("fonts/DejaVuSans.ttf");
             ClassPathResource boldFont = new ClassPathResource("fonts/DejaVuSans-Bold.ttf");
@@ -85,23 +189,19 @@ public class PDFGeneratorService {
                 vietnameseFontBold = PdfFontFactory.createFont(
                         boldFont.getInputStream().readAllBytes(),
                         PdfEncodings.IDENTITY_H);
-
-                System.out.println("Successfully loaded DejaVu Sans fonts");
             } else {
                 // Nếu không có font file, dùng StandardFonts
-                System.out.println("Font files not found, using standard fonts");
-                vietnameseFont = PdfFontFactory.createFont("Times-Roman", PdfEncodings.IDENTITY_H);
-                vietnameseFontBold = PdfFontFactory.createFont("Times-Bold", PdfEncodings.IDENTITY_H);
+                vietnameseFont = PdfFontFactory.createFont(com.itextpdf.io.font.constants.StandardFonts.TIMES_ROMAN, com.itextpdf.io.font.PdfEncodings.WINANSI);
+                vietnameseFontBold = PdfFontFactory.createFont(com.itextpdf.io.font.constants.StandardFonts.TIMES_BOLD, com.itextpdf.io.font.PdfEncodings.WINANSI);
             }
 
         } catch (Exception e) {
-            System.err.println("Error loading fonts: " + e.getMessage());
+            log.error("Error loading fonts: {}", e.getMessage());
 
             // Fallback an toàn
             try {
                 vietnameseFont = PdfFontFactory.createFont();
                 vietnameseFontBold = PdfFontFactory.createFont();
-                System.out.println("Using default factory font");
             } catch (Exception ex) {
                 throw new RuntimeException("Cannot create any font", ex);
             }
@@ -270,7 +370,7 @@ public class PDFGeneratorService {
         }
 
         bankTable.setMarginBottom(0);
-        bankTable.setKeepTogether(true);
+        bankTable.setKeepTogether(false); // Cho phép ngắt dòng nếu quá dài
 
         // Bank info
         Paragraph bankTitle = new Paragraph("THÔNG TIN CHUYỂN KHOẢN")
@@ -364,5 +464,14 @@ public class PDFGeneratorService {
         if (amount == null) return "0 đ";
         NumberFormat formatter = NumberFormat.getInstance(new Locale("vi", "VN"));
         return formatter.format(amount) + " đ";
+    }
+
+    private String formatMonth(String month) {
+        if (month == null || !month.contains("-"))
+            return "N/A";
+        String[] parts = month.split("-");
+        if (parts.length < 2)
+            return month;
+        return String.format("Tháng %s/%s", parts[1], parts[0]);
     }
 }

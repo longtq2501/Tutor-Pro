@@ -29,6 +29,9 @@ public class DashboardService {
     public DashboardStats getDashboardStats(String currentMonth) {
         // 1. Lấy dữ liệu thô từ Repository (Hàm này bạn đã tối ưu SQL)
         DashboardStats stats = sessionRecordRepository.getFinanceSummary(currentMonth);
+        if (stats == null) {
+            stats = new DashboardStats(0, 0L, 0L, 0L, 0L);
+        }
 
         // 2. Format tiền tệ bằng Utility class vừa tạo
         stats.setTotalPaidAllTime(FormatterUtils.formatCurrency(stats.getTotalPaidRaw()));
@@ -46,6 +49,17 @@ public class DashboardService {
                 stats.setRevenueTrendDirection(change >= 0 ? "up" : "down");
             }
         }
+
+        // 4. Calculate new students this month
+        try {
+            java.time.YearMonth ym = java.time.YearMonth.parse(currentMonth);
+            java.time.LocalDateTime start = ym.atDay(1).atStartOfDay();
+            java.time.LocalDateTime end = ym.atEndOfMonth().atTime(23, 59, 59);
+            stats.setNewStudentsCurrentMonth((int) studentRepository.countByCreatedAtBetween(start, end));
+        } catch (Exception e) {
+            stats.setNewStudentsCurrentMonth(0);
+        }
+
         return stats;
     }
 

@@ -28,19 +28,23 @@ Optimize existing TMS from "functional" to "production-ready":
 - ✅ **Calendar Module:** Optimized for performance and production-ready UX.
     - **Achievements:** 0.2s ultra-fast animations, zero-lag re-renders (`useCallback` + `memo`), fixed critical feedback & document category bugs.
     - **Features:** Drag-and-drop rescheduling, chronological session sorting, perfectly aligned skeletons, and mobile-responsive modal layouts.
+- ✅ **Dashboard Module:** Refactored for visual analysis and professional reporting.
+    - **Achievements:** 
+        - Replaced slow frontend PDF generation with high-performance backend iText service.
+        - Optimized PDF layout: 4-column compact summary, professional Vietnamese typography, and automatic payment QR integration.
+        - Implemented `EnhancedRevenueChart` with seamless List/Chart view toggling.
+    - **Metrics:** PDF generation under 500ms, Backend caching (Caffeine) for frequent stats queries, Zero-clutter UI on mobile.
 
 ### Now:
-- 🔄 Statistics & Debt Management integration: Beginning audit of data consistency and charting performance.
+- ⏭️ Recurring schedule bulk-edit improvements.
 
 ### Next:
-- ⏭️ Recurring schedule bulk-edit improvements.
+- 🚀 Student & Parent communication portal optimization.
 
 ## Open Questions
 - Should recurring-schedule support multiple time slots per day for same student? (UNCONFIRMED)
-- Is there a better UX for document selection beyond fixing category count? (UNCONFIRMED)
 
 ## Working Set
-Current module: Statistics
-Active files: 
-- frontend/features/statistics/
-Focus: Data consistency audit, refactoring chart components for performance.
+Current module: -
+Active files: -
+Focus: Ready for next module selection.

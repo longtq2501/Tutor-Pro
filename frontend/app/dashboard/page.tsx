@@ -295,7 +295,7 @@ function AppContent() {
 
             <Sidebar
                 navItems={navItems}
-                currentView={currentView}
+                currentView={currentView === 'monthly' ? 'finance' : currentView}
                 setCurrentView={handleSetCurrentView}
                 isCollapsed={isCollapsed}
                 setIsCollapsed={setIsCollapsed}

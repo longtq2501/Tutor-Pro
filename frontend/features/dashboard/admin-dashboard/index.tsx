@@ -6,8 +6,10 @@ import { useMemo } from 'react';
 import { BarChart3, CheckCircle, TrendingUp, Users, XCircle } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { StatCard } from './components/StatCard';
+import { DashboardExportButton } from './components/DashboardExportButton';
 import { useDashboardData } from './hooks/useDashboardData';
 import { useMonthlyChartData } from './hooks/useMonthlyChartData';
+
 // Đã loại bỏ import formatCurrency vì không còn dùng tới
 
 // 2. Thành phần nặng (Biểu đồ) thì import động
@@ -32,7 +34,8 @@ export default function AdminDashboard() {
     totalPaidAllTime: "0 đ",
     totalUnpaidAllTime: "0 đ",
     revenueTrendValue: 0,
-    revenueTrendDirection: 'up'
+    revenueTrendDirection: 'up',
+    newStudentsCurrentMonth: 0
   }, [stats]);
 
   // 2. TẬN DỤNG TREND TỪ BACKEND - Giữ nguyên logic gán giá trị
@@ -57,7 +60,16 @@ export default function AdminDashboard() {
   }, [stats]);
 
   return (
-    <div className="space-y-6 lg:space-y-8">
+    <div className="space-y-6 lg:space-y-8 pb-10">
+      {/* Header Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Tổng Quan Hệ Thống</h2>
+          <p className="text-muted-foreground">Theo dõi chỉ số kinh doanh và học tập</p>
+        </div>
+        <DashboardExportButton filename="bao-cao-doanh-thu.pdf" />
+      </div>
+
       {/* Stats Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
 
@@ -68,6 +80,7 @@ export default function AdminDashboard() {
           icon={<Users />}
           variant="blue"
           isLoading={isGlobalLoading}
+          subtitle={safeStats.newStudentsCurrentMonth !== undefined ? `${safeStats.newStudentsCurrentMonth} học sinh mới tháng này` : undefined}
           badge={
             <div className="flex items-center text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/20 w-fit px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800/30">
               <TrendingUp size={12} className="mr-1 flex-shrink-0" />

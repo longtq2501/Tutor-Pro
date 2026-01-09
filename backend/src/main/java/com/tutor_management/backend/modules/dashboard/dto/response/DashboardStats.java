@@ -23,6 +23,7 @@ public class DashboardStats {
     private Long totalPaidRaw;
     private Long totalUnpaidRaw;
     private Long currentMonthTotalRaw;
+    private Integer newStudentsCurrentMonth;
 
     // Constructor 5 tham số ĐÚNG CHUẨN cho JPQL
     public DashboardStats(Integer totalStudents, Long totalPaidRaw, Long totalUnpaidRaw, Long currentMonthTotalRaw, Long currentMonthUnpaid) {

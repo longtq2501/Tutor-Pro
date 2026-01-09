@@ -27,9 +27,11 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     @Query("SELECT s FROM Student s LEFT JOIN FETCH s.parent WHERE s.active = true")
     List<Student> findByActiveTrueWithParent();
 
-    // ✅ OPTIMIZED: Load all students with parent in one query
     @Query("SELECT DISTINCT s FROM Student s " +
             "LEFT JOIN FETCH s.parent " +
             "ORDER BY s.createdAt DESC")
     List<Student> findAllWithParentOrderByCreatedAtDesc();
+
+    @Query("SELECT COUNT(s) FROM Student s WHERE s.createdAt >= :start AND s.createdAt <= :end")
+    long countByCreatedAtBetween(@Param("start") java.time.LocalDateTime start, @Param("end") java.time.LocalDateTime end);
 }

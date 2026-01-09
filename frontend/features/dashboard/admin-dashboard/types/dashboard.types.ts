@@ -15,11 +15,12 @@ export interface DashboardStats {
   totalPaidAllTime: string;   // Dùng để hiển thị
   totalUnpaidAllTime: string; // Dùng để hiển thị
   currentMonthTotal: string;  // Dùng để hiển thị
-  
+
   // THÊM 2 DÒNG NÀY ĐỂ TÍNH TOÁN PROGRESS BAR
-  totalPaidRaw: number;    
+  totalPaidRaw: number;
   totalUnpaidRaw: number;
 
   revenueTrendValue: number;
   revenueTrendDirection: 'up' | 'down';
+  newStudentsCurrentMonth?: number;
 }

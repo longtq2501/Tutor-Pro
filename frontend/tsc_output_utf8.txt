@@ -1,4 +1,0 @@
-﻿features/calendar/calendar-view/index.tsx(150,11): error TS2322: Type '(studentId: number, sessionsCount: number, hoursPerSession: number, sessionDate: string, month: string, subject: string, startTime: string, endTime: string) => Promise<void>' is not assignable to type '(studentId: number, sessions: number, hoursPerSession: number, sessionDate: string, month: string, subject?: string | undefined, startTime?: string | undefined, endTime?: string | undefined) => void'.
-  Types of parameters 'subject' and 'subject' are incompatible.
-    Type 'string | undefined' is not assignable to type 'string'.
-      Type 'undefined' is not assignable to type 'string'.

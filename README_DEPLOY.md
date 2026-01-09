@@ -88,8 +88,8 @@ Cấu hình: Các thông số nhạy cảm (Password, Cloudinary Key) được q
 Network: Các container liên lạc với nhau bằng tên dịch vụ (ví dụ backend gọi db qua jdbc:mysql://db:3306/...).
 
 2. Các tình huống sử dụng thực tế (Workflows)
-Code Backend: docker compose up -d db
-Code Frontend: docker compose up -d db backend
+Code Backend: docker compose up -d db backend
+Code Frontend: docker compose up -d db frontend
 Chỉ xem dữ liệu: docker compose up -d db
 Test toàn bộ: docker compose up -d --build
 Cách tắt một cái duy nhất: docker container stop <container_name>

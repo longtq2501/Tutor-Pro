@@ -21,7 +21,9 @@ public class CacheConfig {
                 "users",
                 "lessons",
                 "courseList",
-                "courseDetail");
+                "courseDetail",
+                "dashboardStats",
+                "monthlyStats");
         cacheManager.setCaffeine(caffeineCacheBuilder());
         return cacheManager;
     }

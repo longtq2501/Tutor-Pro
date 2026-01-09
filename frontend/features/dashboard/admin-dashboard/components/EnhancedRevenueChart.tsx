@@ -6,6 +6,8 @@ import { DollarSign, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
 import type { MonthlyChartData } from '../types/dashboard.types';
 import { PremiumMonthlyRevenueBar } from './PremiumMonthlyRevenueBar';
+import { RevenueGrowthChart } from './RevenueGrowthChart';
+import { List, LineChart as LineChartIcon } from 'lucide-react';
 
 interface EnhancedRevenueChartProps {
     data: MonthlyChartData[];
@@ -75,39 +77,52 @@ export function EnhancedRevenueChart({ data, isLoading = false }: EnhancedRevenu
                     </div>
                 </div>
 
-                {/* Time Range Selector */}
-                <ToggleGroup
-                    type="single"
-                    value={timeRange}
-                    onValueChange={(v) => v && setTimeRange(v as '6m' | '1y' | 'all')}
-                    className="border rounded-lg p-1 bg-muted/30"
-                >
-                    <ToggleGroupItem value="6m" size="sm" className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-                        6 tháng
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="1y" size="sm" className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-                        1 năm
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="all" size="sm" className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-                        Tất cả
-                    </ToggleGroupItem>
-                </ToggleGroup>
+                <div className="flex flex-wrap items-center gap-2">
+                    {/* Time Range Selector */}
+                    <ToggleGroup
+                        type="single"
+                        value={timeRange}
+                        onValueChange={(v) => v && setTimeRange(v as '6m' | '1y' | 'all')}
+                        className="border rounded-lg p-1 bg-muted/30"
+                    >
+                        <ToggleGroupItem value="6m" size="sm" className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                            6th
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="1y" size="sm" className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                            1n
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="all" size="sm" className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                            Tất cả
+                        </ToggleGroupItem>
+                    </ToggleGroup>
+                </div>
             </div>
 
-            {/* Monthly Revenue Bars with Loading State */}
+            {/* Content Area */}
             {isLoading ? (
                 <ChartSkeleton />
             ) : filteredData.length === 0 ? (
                 <EmptyState />
             ) : (
-                <div className="space-y-3 sm:space-y-4">
-                    {filteredData.map((month, index) => (
-                        <PremiumMonthlyRevenueBar
-                            key={month.month}
-                            month={month}
-                            index={index}
-                        />
-                    ))}
+                <div className="space-y-6">
+                    {/* Always show chart */}
+                    <div className="p-6 rounded-2xl border bg-card/50">
+                        <RevenueGrowthChart data={filteredData} />
+                    </div>
+
+                    {/* Always show detailed list */}
+                    <div className="space-y-3 sm:space-y-4">
+                        <h3 className="text-sm font-semibold text-muted-foreground px-1 uppercase tracking-wider">
+                            Chi tiết từng tháng
+                        </h3>
+                        {filteredData.map((month, index) => (
+                            <PremiumMonthlyRevenueBar
+                                key={month.month}
+                                month={month}
+                                index={index}
+                            />
+                        ))}
+                    </div>
                 </div>
             )}
         </div>

@@ -9,14 +9,25 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Service for exporting system data to Microsoft Excel format.
+ * Utilizes Apache POI for spreadsheet generation.
+ */
 @Service
 public class ExportService {
 
+    /**
+     * Exports a list of session records to an Excel workbook.
+     *
+     * @param sessions The list of session responses to export.
+     * @return A byte array representing the generated Excel file.
+     * @throws IOException If there is an error during workbook generation or writing.
+     */
     public byte[] exportSessionsToExcel(List<SessionRecordResponse> sessions) throws IOException {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Sessions");
 
-            // Header Style
+            // Header Style: Professional dark blue background with white bold text
             CellStyle headerStyle = workbook.createCellStyle();
             headerStyle.setFillForegroundColor(IndexedColors.BLUE_GREY.getIndex());
             headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
@@ -27,23 +38,18 @@ public class ExportService {
             headerStyle.setAlignment(HorizontalAlignment.CENTER);
             headerStyle.setBorderBottom(BorderStyle.THIN);
 
-            // Row for Header
+            // Column Headers
             Row headerRow = sheet.createRow(0);
-            String[] columns = { "ID", "Ngày", "Học sinh", "Môn học", "Số giờ", "Đơn giá", "Thành tiền", "Trạng thái",
-                    "Ghi chú" };
+            String[] columns = { "ID", "Ngày", "Học sinh", "Môn học", "Số giờ", "Đơn giá", "Thành tiền", "Trạng thái", "Ghi chú" };
             for (int i = 0; i < columns.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(columns[i]);
                 cell.setCellStyle(headerStyle);
             }
 
-            // Data Cells Style
-            CellStyle dateStyle = workbook.createCellStyle();
-            CreationHelper createHelper = workbook.getCreationHelper();
-            dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("yyyy-mm-dd"));
-
-            CellStyle currencyStyle = workbook.createCellStyle();
-            currencyStyle.setDataFormat(createHelper.createDataFormat().getFormat("#,##0 \"₫\""));
+            // Cell Styles for data types
+            CellStyle dateStyle = createDateStyle(workbook);
+            CellStyle currencyStyle = createCurrencyStyle(workbook);
 
             // Data Rows
             int rowIdx = 1;
@@ -74,7 +80,7 @@ public class ExportService {
                 row.createCell(8).setCellValue(session.getNotes() != null ? session.getNotes() : "");
             }
 
-            // Auto-size columns
+            // Auto-size columns for better readability
             for (int i = 0; i < columns.length; i++) {
                 sheet.autoSizeColumn(i);
             }
@@ -82,5 +88,19 @@ public class ExportService {
             workbook.write(out);
             return out.toByteArray();
         }
+    }
+
+    private CellStyle createDateStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        CreationHelper createHelper = workbook.getCreationHelper();
+        style.setDataFormat(createHelper.createDataFormat().getFormat("yyyy-mm-dd"));
+        return style;
+    }
+
+    private CellStyle createCurrencyStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        CreationHelper createHelper = workbook.getCreationHelper();
+        style.setDataFormat(createHelper.createDataFormat().getFormat("#,##0 \"₫\""));
+        return style;
     }
 }

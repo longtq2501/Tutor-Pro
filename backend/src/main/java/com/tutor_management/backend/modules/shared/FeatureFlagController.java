@@ -1,5 +1,6 @@
 package com.tutor_management.backend.modules.shared;
 
+import com.tutor_management.backend.modules.shared.dto.response.ApiResponse;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import lombok.extern.slf4j.Slf4j;
@@ -8,13 +9,9 @@ import java.util.Map;
 import java.util.HashMap;
 
 /**
- * Controller for managing feature flags.
+ * Controller for managing runtime feature toggles.
+ * Allows gradual rollout and quick recovery by enabling/disabling features without deployments.
  * 
- * Feature flags allow gradual rollout of new features and quick rollback if
- * issues occur.
- * Frontend can query this endpoint to check which features are enabled.
- * 
- * @author AI Agent
  * @since 2025-12-26
  */
 @Slf4j
@@ -24,119 +21,100 @@ import java.util.HashMap;
 public class FeatureFlagController {
 
     /**
-     * Feature flags configuration.
-     * In production, this should be moved to database or external config service
-     * (e.g., LaunchDarkly, Firebase Remote Config, or Redis).
+     * Internal feature flag store.
+     * FIXME: Move to a persistent storage (Database or Redis) for multi-instance support.
      */
-    private final Map<String, Boolean> featureFlags = new HashMap<>() {
-        {
-            // Phase 1: Core Improvements
-            put("enhanced_lesson_card", true); // Week 1: 10% rollout
-            put("status_legend", true); // Week 1: 10% rollout
-            put("compact_lesson_list", true); // Week 1: 10% rollout
+    private final Map<String, Boolean> featureFlags = new HashMap<>() {{
+        // Phase 1: UI Improvements
+        put("enhanced_lesson_card", true);
+        put("status_legend", true);
+        put("compact_lesson_list", true);
 
-            // Phase 2: Interactions
-            put("quick_actions", false); // Week 2: Not yet enabled
-            put("lesson_detail_modal", false); // Week 2: Not yet enabled
-            put("context_menu", false); // Week 3: Not yet enabled
-
-            // Phase 3: Multiple Views
-            put("multiple_views", false); // Week 2: Not yet enabled
-            put("week_view", false); // Week 2: Not yet enabled
-            put("day_view", false); // Week 2: Not yet enabled
-            put("list_view", false); // Week 2: Not yet enabled
-            put("weekly_stats", false); // Week 3: Not yet enabled
-
-            // Phase 4: Export
-            put("export_functionality", false); // Week 4: Not yet enabled
-            put("export_pdf", false); // Week 4: Not yet enabled
-            put("export_excel", false); // Week 4: Not yet enabled
-            put("print_calendar", false); // Week 4: Not yet enabled
-        }
-    };
+        // Future Phases
+        put("quick_actions", false);
+        put("lesson_detail_modal", false);
+        put("context_menu", false);
+        put("multiple_views", false);
+        put("week_view", false);
+        put("day_view", false);
+        put("list_view", false);
+        put("weekly_stats", false);
+        put("export_functionality", false);
+        put("export_pdf", false);
+        put("export_excel", false);
+        put("print_calendar", false);
+    }};
 
     /**
-     * Get all feature flags.
+     * Retrieves all active feature flags.
      * 
-     * @return Map of feature names to enabled status
+     * @return A map of feature names and their Boolean statuses.
      */
     @GetMapping
-    public ResponseEntity<Map<String, Boolean>> getAllFlags() {
+    public ResponseEntity<ApiResponse<Map<String, Boolean>>> getAllFlags() {
         log.debug("Fetching all feature flags");
-        return ResponseEntity.ok(featureFlags);
+        return ResponseEntity.ok(ApiResponse.success(featureFlags));
     }
 
     /**
-     * Get a specific feature flag.
+     * Checks the status of a specific feature flag.
      * 
-     * @param featureName Name of the feature
-     * @return Feature enabled status
+     * @param featureName Unique identifier of the feature.
+     * @return Current status of the requested feature.
      */
     @GetMapping("/{featureName}")
-    public ResponseEntity<Map<String, Object>> getFlag(@PathVariable String featureName) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getFlag(@PathVariable String featureName) {
         boolean enabled = featureFlags.getOrDefault(featureName, false);
-
-        log.debug("Feature flag '{}' is {}", featureName, enabled ? "enabled" : "disabled");
-
-        return ResponseEntity.ok(Map.of(
+        log.debug("Feature flag '{}' status: {}", featureName, enabled);
+        
+        return ResponseEntity.ok(ApiResponse.success(Map.of(
                 "feature", featureName,
-                "enabled", enabled));
+                "enabled", enabled)));
     }
 
     /**
-     * Update a feature flag (Admin only).
+     * Updates the status of a feature flag.
      * 
-     * In production, this should require admin authentication.
-     * 
-     * @param featureName Name of the feature
-     * @param enabled     Whether to enable or disable
-     * @return Updated feature status
+     * @param featureName Unique identifier of the feature.
+     * @param enabled     New status to apply.
+     * @return Confirmation of the change and previous value.
      */
     @PutMapping("/{featureName}")
-    // @PreAuthorize("hasRole('ADMIN')") // Uncomment in production
-    public ResponseEntity<Map<String, Object>> updateFlag(
+    public ResponseEntity<ApiResponse<Map<String, Object>>> updateFlag(
             @PathVariable String featureName,
             @RequestParam boolean enabled) {
+        
         boolean oldValue = featureFlags.getOrDefault(featureName, false);
         featureFlags.put(featureName, enabled);
+        log.info("Transitioned feature flag '{}': {} -> {}", featureName, oldValue, enabled);
 
-        log.info("Feature flag '{}' changed: {} -> {}", featureName, oldValue, enabled);
-
-        return ResponseEntity.ok(Map.of(
+        return ResponseEntity.ok(ApiResponse.success("Đã cập nhật tính năng " + featureName, Map.of(
                 "feature", featureName,
                 "enabled", enabled,
-                "previousValue", oldValue,
-                "message", String.format("Feature '%s' is now %s",
-                        featureName,
-                        enabled ? "enabled" : "disabled")));
+                "previousValue", oldValue)));
     }
 
     /**
-     * Bulk update feature flags (Admin only).
+     * Performs a bulk update of multiple feature flags.
      * 
-     * @param flags Map of feature names to enabled status
-     * @return Updated flags
+     * @param flags Map of features to update.
+     * @return Summary of updated features.
      */
     @PutMapping
-    // @PreAuthorize("hasRole('ADMIN')") // Uncomment in production
-    public ResponseEntity<Map<String, Object>> bulkUpdateFlags(
+    public ResponseEntity<ApiResponse<Map<String, Object>>> bulkUpdateFlags(
             @RequestBody Map<String, Boolean> flags) {
-        int updated = 0;
-
+        
+        int updatedCount = 0;
         for (Map.Entry<String, Boolean> entry : flags.entrySet()) {
-            String feature = entry.getKey();
-            Boolean enabled = entry.getValue();
-
-            if (featureFlags.containsKey(feature)) {
-                featureFlags.put(feature, enabled);
-                updated++;
-                log.info("Feature flag '{}' set to {}", feature, enabled);
+            if (featureFlags.containsKey(entry.getKey())) {
+                featureFlags.put(entry.getKey(), entry.getValue());
+                updatedCount++;
             }
         }
-
-        return ResponseEntity.ok(Map.of(
-                "updated", updated,
-                "total", flags.size(),
-                "message", String.format("Updated %d feature flags", updated)));
+        
+        log.info("Bulk updated {} feature flags", updatedCount);
+        return ResponseEntity.ok(ApiResponse.success(String.format("Đã cập nhật xong %d tính năng", updatedCount), Map.of(
+                "updatedCount", updatedCount,
+                "totalRequested", flags.size())));
     }
 }

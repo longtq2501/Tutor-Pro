@@ -4,8 +4,11 @@ import com.tutor_management.backend.modules.document.dto.request.DocumentRequest
 import com.tutor_management.backend.modules.document.dto.response.DocumentResponse;
 import com.tutor_management.backend.modules.document.dto.response.DocumentStats;
 import com.tutor_management.backend.modules.document.dto.response.DocumentUploadResponse;
+import com.tutor_management.backend.modules.shared.dto.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,128 +18,127 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Controller for managing the document library.
+ * Provides endpoints for uploading, searching, downloading, and statistics.
+ */
 @RestController
 @RequestMapping("/api/documents")
 @RequiredArgsConstructor
+@Slf4j
 public class DocumentController {
 
     private final DocumentService documentService;
 
+    /**
+     * Retrieves all documents with paged results.
+     */
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     @GetMapping
-    public ResponseEntity<org.springframework.data.domain.Page<DocumentResponse>> getAllDocuments(
-            org.springframework.data.domain.Pageable pageable
-    ) {
-        return ResponseEntity.ok(documentService.getAllDocuments(pageable));
-    }
-
-    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
-    @GetMapping("/category/{category}")
-    public ResponseEntity<org.springframework.data.domain.Page<DocumentResponse>> getDocumentsByCategory(
-            @PathVariable DocumentCategoryType category,
-            org.springframework.data.domain.Pageable pageable
-    ) {
-        return ResponseEntity.ok(documentService.getDocumentsByCategory(category, pageable));
-    }
-
-    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
-    @GetMapping("/search")
-    public ResponseEntity<List<DocumentResponse>> searchDocuments(
-            @RequestParam String keyword
-    ) {
-        return ResponseEntity.ok(documentService.searchDocuments(keyword));
-    }
-
-    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
-    @GetMapping("/{id}")
-    public ResponseEntity<DocumentResponse> getDocument(@PathVariable Long id) {
-        return ResponseEntity.ok(documentService.getDocumentById(id));
-    }
-
-    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<DocumentUploadResponse> uploadDocument(
-            @RequestPart("file") MultipartFile file,
-            @RequestPart("data") DocumentRequest request
-    ) {
-        return ResponseEntity.ok(documentService.uploadDocument(file, request));
+    public ResponseEntity<ApiResponse<Page<DocumentResponse>>> getAllDocuments(Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(documentService.getAllDocuments(pageable)));
     }
 
     /**
-     * Download endpoint - Returns Cloudinary URL and increments download count
+     * Filters documents by their category classification.
+     */
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
+    @GetMapping("/category/{category}")
+    public ResponseEntity<ApiResponse<Page<DocumentResponse>>> getDocumentsByCategory(
+            @PathVariable DocumentCategoryType category,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(documentService.getDocumentsByCategory(category, pageable)));
+    }
+
+    /**
+     * Searches for documents matching a keyword in the title.
+     */
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<DocumentResponse>>> searchDocuments(@RequestParam String keyword) {
+        return ResponseEntity.ok(ApiResponse.success(documentService.searchDocuments(keyword)));
+    }
+
+    /**
+     * Fetches detailed metadata for a specific document.
+     */
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<DocumentResponse>> getDocument(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(documentService.getDocumentById(id)));
+    }
+
+    /**
+     * Handles file uploads with metadata.
+     * Consumes multipart form data with 'file' and 'data' (JSON) parts.
+     */
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<DocumentUploadResponse>> uploadDocument(
+            @RequestPart("file") MultipartFile file,
+            @RequestPart("data") DocumentRequest request) {
+        DocumentUploadResponse response = documentService.uploadDocument(file, request);
+        return ResponseEntity.ok(ApiResponse.success("Tải tài liệu lên thành công", response));
+    }
+
+    /**
+     * Generates a temporary access URL for downloading and increments the usage count.
      */
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     @GetMapping("/{id}/download")
-    public ResponseEntity<?> downloadDocument(@PathVariable Long id) {
-        try {
-            System.out.println("📥 Download request for document ID: " + id);
+    public ResponseEntity<ApiResponse<Map<String, Object>>> downloadDocument(@PathVariable Long id) {
+        DocumentResponse document = documentService.getDocumentById(id);
+        String fileUrl = documentService.getDocumentUrl(id);
 
-            DocumentResponse document = documentService.getDocumentById(id);
-            String fileUrl = documentService.getDocumentUrl(id);
-
-            return ResponseEntity.ok()
-                    .body(Map.of(
-                            "url", fileUrl,
-                            "fileName", document.getFileName(),
-                            "fileType", document.getFileType()
-                    ));
-
-        } catch (Exception e) {
-            System.err.println("❌ Download error: " + e.getMessage());
-            e.printStackTrace();
-
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", e.getMessage()));
-        }
+        return ResponseEntity.ok(ApiResponse.success(Map.of(
+                "url", fileUrl,
+                "fileName", document.getFileName(),
+                "fileType", document.getFileType()
+        )));
     }
 
     /**
-     * Preview endpoint - Returns Cloudinary URL without incrementing download count
+     * Generates a preview URL without affecting download statistics.
      */
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     @GetMapping("/{id}/preview")
-    public ResponseEntity<?> previewDocument(@PathVariable Long id) {
-        try {
-            System.out.println("👁️ Preview request for document ID: " + id);
+    public ResponseEntity<ApiResponse<Map<String, Object>>> previewDocument(@PathVariable Long id) {
+        DocumentResponse document = documentService.getDocumentById(id);
+        String fileUrl = documentService.getPreviewUrl(id);
 
-            DocumentResponse document = documentService.getDocumentById(id);
-            String fileUrl = documentService.getPreviewUrl(id);
-
-            return ResponseEntity.ok()
-                    .body(Map.of(
-                            "url", fileUrl,
-                            "fileName", document.getFileName(),
-                            "fileType", document.getFileType(),
-                            "fileSize", document.getFileSize()
-                    ));
-
-        } catch (Exception e) {
-            System.err.println("❌ Preview error: " + e.getMessage());
-            e.printStackTrace();
-
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", e.getMessage()));
-        }
+        return ResponseEntity.ok(ApiResponse.success(Map.of(
+                "url", fileUrl,
+                "fileName", document.getFileName(),
+                "fileType", document.getFileType(),
+                "fileSize", document.getFileSize()
+        )));
     }
 
+    /**
+     * Permanently deletes a document from the system.
+     */
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteDocument(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteDocument(@PathVariable Long id) {
         documentService.deleteDocument(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.success("Xóa tài liệu thành công", null));
     }
 
+    /**
+     * Retrieves library-wide metrics and storage summaries.
+     */
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @GetMapping("/stats")
-    public ResponseEntity<DocumentStats> getStatistics() {
-        return ResponseEntity.ok(documentService.getStatistics());
+    public ResponseEntity<ApiResponse<DocumentStats>> getStatistics() {
+        return ResponseEntity.ok(ApiResponse.success(documentService.getStatistics()));
     }
 
+    /**
+     * Returns a list of all predefined legacy category types.
+     */
     @PreAuthorize("permitAll()")
     @GetMapping("/categories")
-    public ResponseEntity<DocumentCategoryType[]> getCategories() {
-        return ResponseEntity.ok(DocumentCategoryType.values());
+    public ResponseEntity<ApiResponse<DocumentCategoryType[]>> getCategories() {
+        return ResponseEntity.ok(ApiResponse.success(DocumentCategoryType.values()));
     }
 }

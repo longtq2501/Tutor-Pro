@@ -1,7 +1,7 @@
 package com.tutor_management.backend.modules.document;
 
+import com.tutor_management.backend.exception.ResourceNotFoundException;
 import com.tutor_management.backend.modules.document.dto.request.DocumentRequest;
-
 import com.tutor_management.backend.modules.document.dto.response.DocumentResponse;
 import com.tutor_management.backend.modules.document.dto.response.DocumentStats;
 import com.tutor_management.backend.modules.document.dto.response.DocumentUploadResponse;
@@ -9,26 +9,30 @@ import com.tutor_management.backend.modules.finance.SessionRecordRepository;
 import com.tutor_management.backend.modules.shared.CloudinaryService;
 import com.tutor_management.backend.modules.student.Student;
 import com.tutor_management.backend.modules.student.StudentRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-// ... imports
 
+/**
+ * Service for managing file uploads, document library navigation, and storage statistics.
+ */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @Transactional
 public class DocumentService {
-
-
 
     private final DocumentRepository documentRepository;
     private final DocumentCategoryRepository documentCategoryRepository;
@@ -37,75 +41,77 @@ public class DocumentService {
     private final CloudinaryService cloudinaryService;
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
 
+    /**
+     * Lists all documents with paged results for the admin library.
+     */
+    @Transactional(readOnly = true)
     public Page<DocumentResponse> getAllDocuments(Pageable pageable) {
-        Page<Document> documents = documentRepository.findAllWithStudent(pageable);
-        return documents.map(this::convertToResponse);
+        return documentRepository.findAllWithStudent(pageable).map(this::convertToResponse);
     }
 
+    /**
+     * Lists all documents as a flat list.
+     */
+    @Transactional(readOnly = true)
     public List<DocumentResponse> getAllDocuments() {
-        List<Document> documents = documentRepository.findAllWithStudent();
-        return documents.stream()
+        return documentRepository.findAllWithStudent().stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Filters documents by category with paged results.
+     */
+    @Transactional(readOnly = true)
     public Page<DocumentResponse> getDocumentsByCategory(DocumentCategoryType category, Pageable pageable) {
-        Page<Document> documents = documentRepository.findByCategoryCode(category.name(), pageable);
-        return documents.map(this::convertToResponse);
+        return documentRepository.findByCategoryCode(category.name(), pageable).map(this::convertToResponse);
     }
 
+    /**
+     * Filters documents by category as a flat list.
+     */
+    @Transactional(readOnly = true)
     public List<DocumentResponse> getDocumentsByCategory(DocumentCategoryType category) {
-        List<Document> documents = documentRepository.findByCategoryCodeOrderByCreatedAtDesc(category.name());
-        return documents.stream()
+        return documentRepository.findByCategoryCodeOrderByCreatedAtDesc(category.name()).stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Searches for documents by title (case-insensitive).
+     */
+    @Transactional(readOnly = true)
     public List<DocumentResponse> searchDocuments(String keyword) {
-        List<Document> documents = documentRepository.findByTitleContainingIgnoreCaseOrderByCreatedAtDesc(keyword);
-        return documents.stream()
+        return documentRepository.findByTitleContainingIgnoreCaseOrderByCreatedAtDesc(keyword).stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Validates and uploads a document to Cloudinary, then stores metadata in the database.
+     * Clears statistical caches upon success.
+     */
     @CacheEvict(value = "documentStats", allEntries = true)
-    public DocumentUploadResponse uploadDocument(
-            MultipartFile file,
-            DocumentRequest request
-    ) {
-        // Validate file
-        if (file.isEmpty()) {
-            throw new RuntimeException("File is empty");
-        }
-
-        // Validate file type
-        String contentType = file.getContentType();
-        if (!isValidFileType(contentType)) {
-            throw new RuntimeException("Invalid file type. Only PDF, DOC, DOCX, PPT, PPTX, TXT allowed");
-        }
+    public DocumentUploadResponse uploadDocument(MultipartFile file, DocumentRequest request) {
+        validateFileUpload(file);
 
         try {
-            // Upload to Cloudinary
             String cloudinaryUrl = cloudinaryService.uploadFile(file, "tutor-documents");
-
-            // Get student if provided
+            
             Student student = null;
             if (request.getStudentId() != null) {
-                student = studentRepository.findById(request.getStudentId())
-                        .orElse(null);
+                student = studentRepository.findById(request.getStudentId()).orElse(null);
             }
 
-            // Get category by code
             DocumentCategory category = documentCategoryRepository.findByCode(request.getCategory())
-                    .orElseThrow(() -> new RuntimeException("Category not found: " + request.getCategory()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Document category not found: " + request.getCategory()));
 
-            // Create document entity
             Document document = Document.builder()
                     .title(request.getTitle())
                     .fileName(file.getOriginalFilename())
-                    .filePath(cloudinaryUrl) // Store Cloudinary URL
+                    .filePath(cloudinaryUrl)
                     .fileSize(file.getSize())
-                    .fileType(contentType)
+                    .fileType(file.getContentType())
                     .category(category)
                     .description(request.getDescription())
                     .student(student)
@@ -113,8 +119,7 @@ public class DocumentService {
                     .build();
 
             Document saved = documentRepository.save(document);
-
-            System.out.println("✅ Document saved to database with ID: " + saved.getId());
+            log.info("Document '{}' uploaded successfully with ID: {}", saved.getTitle(), saved.getId());
 
             return DocumentUploadResponse.builder()
                     .id(saved.getId())
@@ -124,26 +129,39 @@ public class DocumentService {
                     .build();
 
         } catch (Exception e) {
-            System.err.println("❌ Failed to upload document: " + e.getMessage());
-            e.printStackTrace();
-            throw new RuntimeException("Failed to upload document: " + e.getMessage(), e);
+            log.error("Failed to upload document: {}", e.getMessage(), e);
+            throw new RuntimeException("Could not complete document upload: " + e.getMessage());
         }
     }
 
-    public DocumentResponse getDocumentById(Long id) {
-        Document document = documentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Document not found with id: " + id));
-        return convertToResponse(document);
+    private void validateFileUpload(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Cannot upload an empty file");
+        }
+
+        String contentType = file.getContentType();
+        if (!isValidFileType(contentType)) {
+            throw new IllegalArgumentException("Unsupported file type. Allowed: PDF, DOC, DOCX, PPT, PPTX, TXT");
+        }
     }
 
     /**
-     * Get document URL for download (increments download count)
+     * Retrieves a single document by ID.
+     */
+    @Transactional(readOnly = true)
+    public DocumentResponse getDocumentById(Long id) {
+        return documentRepository.findById(id)
+                .map(this::convertToResponse)
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found: " + id));
+    }
+
+    /**
+     * Increments download count and returns the file access URL.
      */
     public String getDocumentUrl(Long id) {
         Document document = documentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Document not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found: " + id));
 
-        // Increment download count
         document.setDownloadCount(document.getDownloadCount() + 1);
         documentRepository.save(document);
 
@@ -151,63 +169,58 @@ public class DocumentService {
     }
 
     /**
-     * Get document URL for preview (does NOT increment download count)
+     * Returns the file access URL without incrementing statistics.
      */
+    @Transactional(readOnly = true)
     public String getPreviewUrl(Long id) {
-        Document document = documentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Document not found with id: " + id));
-
-        return document.getFilePath();
+        return documentRepository.findById(id)
+                .map(Document::getFilePath)
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found: " + id));
     }
 
+    /**
+     * Removes a document from the remote cloud storage and the local database.
+     * Also detaches the document from any associated session records.
+     */
     @CacheEvict(value = "documentStats", allEntries = true)
     public void deleteDocument(Long id) {
         Document document = documentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Document not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found: " + id));
 
         try {
-            // 1. Delete from Cloudinary
             cloudinaryService.deleteFile(document.getFilePath());
-
-            // 2. Clear references in session_documents (Join Table)
             sessionRecordRepository.deleteDocumentReferences(id);
-
-            // 3. Delete from database
             documentRepository.delete(document);
+            log.info("Deleted document with ID: {}", id);
         } catch (Exception e) {
-            System.err.println("❌ Error deleting document: " + e.getMessage());
-            e.printStackTrace();
-            throw new RuntimeException("Failed to delete document: " + e.getMessage(), e);
+            log.error("Error deleting document {}: {}", id, e.getMessage());
+            throw new RuntimeException("Failed to delete document: " + e.getMessage());
         }
     }
 
+    /**
+     * Generates a snapshot of document library usage stats.
+     * Uses a single optimized database query for aggregated totals.
+     */
     @Cacheable("documentStats")
+    @Transactional(readOnly = true)
     public DocumentStats getStatistics() {
-        // 1. Get Aggregated Stats (Count, Size, Downloads) in ONE query
-        Object aggregatedStatsObj = documentRepository.getAggregatedStats();
-        Object[] aggregatedStats = (Object[]) aggregatedStatsObj;
+        Object[] aggregatedStats = (Object[]) documentRepository.getAggregatedStats();
         
         Long totalDocuments = (Long) aggregatedStats[0];
         Long totalSize = (Long) aggregatedStats[1];
         Long totalDownloads = (Long) aggregatedStats[2];
 
-        // 2. Get Category Stats in ONE query using GROUP BY
-        List<Object[]> categoryStatsList = documentRepository.countDocumentsByCategoryCode();
-        java.util.Map<String, Long> statsMap = new java.util.HashMap<>();
-        
-        // Initialize map with 0 for all enum values (to ensure all categories are present even if count is 0)
+        Map<String, Long> statsMap = new HashMap<>();
         for (DocumentCategoryType type : DocumentCategoryType.values()) {
              statsMap.put(type.name(), 0L);
         }
 
-        // Fill in actual counts
-        for (Object[] row : categoryStatsList) {
+        documentRepository.countDocumentsByCategoryCode().forEach(row -> {
              String code = (String) row[0];
              Long count = (Long) row[1];
-             if (code != null) {
-                statsMap.put(code, count);
-             }
-        }
+             if (code != null) statsMap.put(code, count);
+        });
 
         return DocumentStats.builder()
                 .totalDocuments(totalDocuments)
@@ -219,14 +232,15 @@ public class DocumentService {
     }
 
     private boolean isValidFileType(String contentType) {
-        return contentType != null && (
-                contentType.equals("application/pdf") ||
-                        contentType.equals("application/msword") ||
-                        contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document") ||
-                        contentType.equals("application/vnd.ms-powerpoint") ||
-                        contentType.equals("application/vnd.openxmlformats-officedocument.presentationml.presentation") ||
-                        contentType.equals("text/plain")
-        );
+        if (contentType == null) return false;
+        return List.of(
+                "application/pdf",
+                "application/msword",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "application/vnd.ms-powerpoint",
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                "text/plain"
+        ).contains(contentType);
     }
 
     private DocumentResponse convertToResponse(Document document) {
@@ -237,13 +251,10 @@ public class DocumentService {
                 .filePath(document.getFilePath())
                 .fileSize(document.getFileSize())
                 .fileType(document.getFileType())
-                .category(document.getCategoryType() != null ? document.getCategoryType() : 
-                         (document.getCategory() != null ? parseCategoryType(document.getCategory().getCode()) : DocumentCategoryType.OTHER))
-                .categoryDisplayName(document.getCategory() != null ? document.getCategory().getName() : 
-                                    (document.getCategoryType() != null ? document.getCategoryType().getDisplayName() : "N/A"))
+                .category(determineCategoryType(document))
+                .categoryDisplayName(document.getCategory() != null ? document.getCategory().getName() : "N/A")
                 .categoryId(document.getCategory() != null ? document.getCategory().getId() : null)
-                .categoryName(document.getCategory() != null ? document.getCategory().getName() : 
-                             (document.getCategoryType() != null ? document.getCategoryType().name() : null))
+                .categoryName(document.getCategory() != null ? document.getCategory().getName() : null)
                 .studentId(document.getStudent() != null ? document.getStudent().getId() : null)
                 .studentName(document.getStudent() != null ? document.getStudent().getName() : null)
                 .downloadCount(document.getDownloadCount())
@@ -253,25 +264,21 @@ public class DocumentService {
                 .build();
     }
 
-    private DocumentCategoryType parseCategoryType(String code) {
-        if (code == null) return DocumentCategoryType.OTHER;
+    private DocumentCategoryType determineCategoryType(Document document) {
+        if (document.getCategoryType() != null) return document.getCategoryType();
+        if (document.getCategory() == null) return DocumentCategoryType.OTHER;
+        
         try {
-            return DocumentCategoryType.valueOf(code);
+            return DocumentCategoryType.valueOf(document.getCategory().getCode());
         } catch (IllegalArgumentException e) {
             return DocumentCategoryType.OTHER;
         }
     }
 
     private String formatFileSize(long size) {
-        return getString(size);
-    }
-
-    public static String getString(long size) {
         if (size <= 0) return "0 B";
-        final String[] units = new String[] { "B", "KB", "MB", "GB" };
+        final String[] units = {"B", "KB", "MB", "GB"};
         int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
-        return String.format("%.2f %s",
-                size / Math.pow(1024, digitGroups),
-                units[digitGroups]);
+        return String.format("%.2f %s", size / Math.pow(1024, digitGroups), units[digitGroups]);
     }
 }

@@ -1,16 +1,17 @@
 package com.tutor_management.backend.modules.exercise.domain;
 
 /**
- * Type of question in an exercise
+ * Classification of question formats supported by the exercise engine.
  */
 public enum QuestionType {
     /**
-     * Multiple choice question with 4 options (A, B, C, D)
+     * Multiple choice question with structured options (e.g., A, B, C, D).
+     * Typically auto-gradable.
      */
     MCQ,
     
     /**
-     * Essay question requiring written response
+     * Open-ended written response. Requires manual evaluation or AI feedback.
      */
     ESSAY
 }

@@ -11,47 +11,72 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Service interface for exercise management
+ * Primary business orchestration layer for the Exercise module.
+ * Manages resource lifecycles, student assignments, and integration with the parsing engine.
  */
 public interface ExerciseService {
     
     /**
-     * Preview import from text content
+     * Provides a non-persistent preview of how a raw text block will be structured.
+     * 
+     * @param request Contains the raw content and optional target class mapping.
+     * @return Structured preview data for tutor verification.
      */
     ImportPreviewResponse previewImport(ImportExerciseRequest request);
     
     /**
-     * Create a new exercise
+     * Persists a new exercise resource in the system.
+     * 
+     * @param request Full exercise definition (metadata + questions).
+     * @param teacherId UUID of the authoring staff member.
+     * @return The saved and ID-assigned exercise resource.
      */
     ExerciseResponse createExercise(CreateExerciseRequest request, String teacherId);
     
     /**
-     * Update an existing exercise
+     * Updates an existing exercise. Replaces the sub-resource graph (questions/options).
+     * 
+     * @param id Target exercise UUID.
+     * @param request Updated definition.
+     * @param teacherId UUID of the performing staff member (for ownership check).
+     * @return The updated exercise resource.
      */
     ExerciseResponse updateExercise(String id, CreateExerciseRequest request, String teacherId);
     
     /**
-     * Get exercise by ID
+     * Fetches details for a specific exercise, including full question content.
      */
     ExerciseResponse getExercise(String id);
     
     /**
-     * List exercises with optional filters
+     * Retrieves a filtered list of exercises for the management library.
+     * 
+     * @param classId Optional class filter.
+     * @param status Optional draft/published status filter.
+     * @return Summary projections of matching resources.
      */
     List<ExerciseListItemResponse> listExercises(String classId, ExerciseStatus status);
     
     /**
-     * Delete an exercise
+     * Permanently removes an exercise and all its associated data (submissions, assignments).
+     * 
+     * @param id Target exercise UUID.
+     * @param teacherId UUID of the performing staff member (for ownership check).
      */
     void deleteExercise(String id, String teacherId);
 
     /**
-     * Assign exercise to a specific student
+     * Links a published exercise to a specific student for completion.
+     * 
+     * @param exerciseId Source resource UUID.
+     * @param studentId Target student recipient.
+     * @param tutorId Authorizing staff member.
+     * @param deadline Optional specific cutoff time.
      */
     void assignToStudent(String exerciseId, String studentId, String tutorId, LocalDateTime deadline);
 
     /**
-     * List exercises assigned to a specific student
+     * Retrieves all assigned materials for a student, including their current progress/score.
      */
     List<ExerciseListItemResponse> listAssignedExercises(String studentId);
 }

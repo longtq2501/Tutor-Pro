@@ -8,11 +8,14 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * Payload for assigning a library lesson to one or more students.
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class AssignLessonRequest {
-    @NotEmpty(message = "Must select at least one student")
+    @NotEmpty(message = "Vui lòng chọn ít nhất một học sinh")
     private List<Long> studentIds;
 }

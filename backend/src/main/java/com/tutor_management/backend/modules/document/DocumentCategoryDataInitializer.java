@@ -1,12 +1,20 @@
 package com.tutor_management.backend.modules.document;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
+/**
+ * Startup component to ensure the document library has its core categories initialized.
+ * Also handles data migrations for legacy documents and category metadata.
+ */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class DocumentCategoryDataInitializer implements CommandLineRunner {
 
     private final DocumentCategoryRepository categoryRepository;
@@ -14,89 +22,85 @@ public class DocumentCategoryDataInitializer implements CommandLineRunner {
 
     @Override
     @Transactional
-    public void run(String... args) throws Exception {
-        if (categoryRepository.count() == 0) {
-            System.out.println("🚀 Initializing Document Categories...");
-            int order = 1;
-            for (DocumentCategoryType type : DocumentCategoryType.values()) {
-                String color = "#3b82f6"; // Default blue
-                String icon = "📁";
-                
-                // Assign specific colors/icons based on type if needed
-                switch (type) {
-                    case GRAMMAR: color = "#60a5fa"; icon = "📚"; break;
-                    case VOCABULARY: color = "#4ade80"; icon = "📖"; break;
-                    case EXERCISES: color = "#22d3ee"; icon = "📝"; break;
-                    case TICH_HOP: color = "#c084fc"; icon = "📋"; break;
-                    case IELTS: color = "#6366f1"; icon = "🌐"; break;
-                    case FLYERS: color = "#fb7185"; icon = "📄"; break;
-                    case READING: color = "#fbbf24"; icon = "📖"; break;
-                    case LISTENING: color = "#f472b6"; icon = "🎧"; break;
-                    case SPEAKING: color = "#fb923c"; icon = "🗣️"; break;
-                    case WRITING: color = "#94a3b8"; icon = "✍️"; break;
-                }
-
-                DocumentCategory category = DocumentCategory.builder()
-                        .code(type.name())
-                        .name(type.getDisplayName())
-                        .description(type.getDisplayName())
-                        .active(true)
-                        .displayOrder(order++)
-                        .color(color)
-                        .icon(icon)
-                        .build();
-                categoryRepository.save(category);
-            }
-            System.out.println("✅ Document Categories initialized.");
-        }
-
-        // 🚀 Migration: Link existing documents to dynamic categories
+    public void run(String... args) {
+        initializeCategories();
         migrateDocuments();
-        
-        // 🚀 Migration: Add colors and icons to existing categories
         migrateCategories();
     }
 
-    private void migrateCategories() {
-        System.out.println("🔄 Migrating legacy categories (color/icon)...");
-        java.util.List<DocumentCategory> categories = categoryRepository.findAll();
-        for (DocumentCategory cat : categories) {
-            boolean updated = false;
-            if (cat.getColor() == null) {
-                cat.setColor("#3b82f6");
-                updated = true;
-            }
-            if (cat.getIcon() == null) {
-                cat.setIcon("📁");
-                updated = true;
-            }
-            if (updated) {
-                categoryRepository.save(cat);
-            }
+    private void initializeCategories() {
+        if (categoryRepository.count() > 0) return;
+
+        log.info("Initializing baseline document categories...");
+        int order = 1;
+        for (DocumentCategoryType type : DocumentCategoryType.values()) {
+            DocumentCategory category = createCategoryFromType(type, order++);
+            categoryRepository.save(category);
         }
-        System.out.println("✅ Category migration finished.");
     }
 
-    private void migrateDocuments() {
-        System.out.println("🔄 Migrating legacy documents to dynamic categories...");
-        java.util.List<Document> documents = documentRepository.findAll();
-        long migratedCount = 0;
-
-        for (Document doc : documents) {
-            // If new category relationship is missing but legacy enum is present
-            if (doc.getCategory() == null && doc.getCategoryType() != null) {
-                categoryRepository.findByCode(doc.getCategoryType().name()).ifPresent(category -> {
-                    doc.setCategory(category);
-                    documentRepository.save(doc);
-                });
-                migratedCount++;
-            }
+    private DocumentCategory createCategoryFromType(DocumentCategoryType type, int order) {
+        String color = "#3b82f6";
+        String icon = "📁";
+        
+        switch (type) {
+            case GRAMMAR: color = "#60a5fa"; icon = "📚"; break;
+            case VOCABULARY: color = "#4ade80"; icon = "📖"; break;
+            case EXERCISES: color = "#22d3ee"; icon = "📝"; break;
+            case TICH_HOP: color = "#c084fc"; icon = "📋"; break;
+            case IELTS: color = "#6366f1"; icon = "🌐"; break;
+            case FLYERS: color = "#fb7185"; icon = "📄"; break;
+            case READING: color = "#fbbf24"; icon = "📖"; break;
+            case LISTENING: color = "#f472b6"; icon = "🎧"; break;
+            case SPEAKING: color = "#fb923c"; icon = "🗣️"; break;
+            case WRITING: color = "#94a3b8"; icon = "✍️"; break;
         }
 
+        return DocumentCategory.builder()
+                .code(type.name())
+                .name(type.getDisplayName())
+                .description(type.getDisplayName())
+                .active(true)
+                .displayOrder(order)
+                .color(color)
+                .icon(icon)
+                .build();
+    }
+
+    /**
+     * Attaches colors and icons to categories that were created before these fields were added.
+     */
+    private void migrateCategories() {
+        List<DocumentCategory> categories = categoryRepository.findAll();
+        long updatedCount = categories.stream()
+                .filter(cat -> cat.getColor() == null || cat.getIcon() == null)
+                .peek(cat -> {
+                    if (cat.getColor() == null) cat.setColor("#3b82f6");
+                    if (cat.getIcon() == null) cat.setIcon("📁");
+                    categoryRepository.save(cat);
+                })
+                .count();
+
+        if (updatedCount > 0) {
+            log.info("Migrated {} categories with missing UI metadata.", updatedCount);
+        }
+    }
+
+    /**
+     * Bridges legacy documents (using Enum category) to the dynamic category system.
+     */
+    private void migrateDocuments() {
+        List<Document> documents = documentRepository.findAll();
+        long migratedCount = documents.stream()
+                .filter(doc -> doc.getCategory() == null && doc.getCategoryType() != null)
+                .peek(doc -> categoryRepository.findByCode(doc.getCategoryType().name()).ifPresent(category -> {
+                    doc.setCategory(category);
+                    documentRepository.save(doc);
+                }))
+                .count();
+
         if (migratedCount > 0) {
-            System.out.println("✅ Migrated " + migratedCount + " documents to dynamic categories.");
-        } else {
-            System.out.println("ℹ️ No documents needed migration.");
+            log.info("Migrated {} documents to dynamic categories.", migratedCount);
         }
     }
 }

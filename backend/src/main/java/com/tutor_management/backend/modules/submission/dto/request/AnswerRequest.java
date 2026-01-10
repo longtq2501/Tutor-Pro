@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Request DTO for a single answer
+ * Payload for a single question response within a submission.
  */
 @Data
 @Builder
@@ -15,16 +15,16 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AnswerRequest {
     
-    @NotBlank(message = "Question ID is required")
+    @NotBlank(message = "ID câu hỏi không được để trống")
     private String questionId;
     
     /**
-     * Selected option for MCQ (A, B, C, D)
+     * Selected option (e.g., 'A', 'B') for MCQ items.
      */
     private String selectedOption;
     
     /**
-     * Essay text for essay questions
+     * Raw text response for essay/open-ended items.
      */
     private String essayText;
 }

@@ -1,69 +1,102 @@
-// =========================================================================
-// FILE 4: DocumentRepository.java
-// Location: src/main/java/com/tutor_management/backend/repository/
-// =========================================================================
-
 package com.tutor_management.backend.modules.document;
 
 import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Repository interface for {@link Document} management.
+ * Provides optimized queries with JOIN FETCH to eliminate N+1 issues when loading student and category metadata.
+ */
 @Repository
 public interface DocumentRepository extends JpaRepository<Document, Long> {
 
-        // ✅ OPTIMIZED: Fetch với student nếu có
-        // ✅ OPTIMIZED: Fetch với student và category để tránh N+1
-        @Query("SELECT d FROM Document d LEFT JOIN FETCH d.student LEFT JOIN FETCH d.category")
-        List<Document> findAllWithStudent();
+    /**
+     * Retrieves all documents with their associated student and category pre-fetched.
+     * Prevents lazy loading issues when rendering document lists with owner names and category tags.
+     */
+    @Query("SELECT d FROM Document d LEFT JOIN FETCH d.student LEFT JOIN FETCH d.category")
+    List<Document> findAllWithStudent();
 
-        @Query(value = "SELECT d FROM Document d LEFT JOIN FETCH d.student LEFT JOIN FETCH d.category",
-               countQuery = "SELECT COUNT(d) FROM Document d")
-        org.springframework.data.domain.Page<Document> findAllWithStudent(org.springframework.data.domain.Pageable pageable);
+    /**
+     * Paged version of {@link #findAllWithStudent()}.
+     * Includes a custom count query to maintain performance on large datasets.
+     */
+    @Query(value = "SELECT d FROM Document d LEFT JOIN FETCH d.student LEFT JOIN FETCH d.category",
+           countQuery = "SELECT COUNT(d) FROM Document d")
+    Page<Document> findAllWithStudent(Pageable pageable);
 
-        @Query("SELECT d FROM Document d " +
-                        "LEFT JOIN FETCH d.student " +
-                        "LEFT JOIN FETCH d.category " +
-                        "WHERE d.category.code = :categoryCode " +
-                        "ORDER BY d.createdAt DESC")
-        List<Document> findByCategoryCodeOrderByCreatedAtDesc(@Param("categoryCode") String categoryCode);
+    /**
+     * Finds documents belonging to a specific category code, sorted by creation date.
+     * Pre-fetches student and category details for UI rendering.
+     */
+    @Query("SELECT d FROM Document d " +
+            "LEFT JOIN FETCH d.student " +
+            "LEFT JOIN FETCH d.category " +
+            "WHERE d.category.code = :categoryCode " +
+            "ORDER BY d.createdAt DESC")
+    List<Document> findByCategoryCodeOrderByCreatedAtDesc(@Param("categoryCode") String categoryCode);
 
-        @Query(value = "SELECT d FROM Document d LEFT JOIN FETCH d.student LEFT JOIN FETCH d.category WHERE d.category.code = :categoryCode",
-               countQuery = "SELECT COUNT(d) FROM Document d JOIN d.category c WHERE c.code = :categoryCode")
-        org.springframework.data.domain.Page<Document> findByCategoryCode(@Param("categoryCode") String categoryCode, org.springframework.data.domain.Pageable pageable);
+    /**
+     * Paged version of document retrieval by category code.
+     */
+    @Query(value = "SELECT d FROM Document d LEFT JOIN FETCH d.student LEFT JOIN FETCH d.category WHERE d.category.code = :categoryCode",
+           countQuery = "SELECT COUNT(d) FROM Document d JOIN d.category c WHERE c.code = :categoryCode")
+    Page<Document> findByCategoryCode(@Param("categoryCode") String categoryCode, Pageable pageable);
 
-        @Query("SELECT d FROM Document d " +
-                        "LEFT JOIN FETCH d.student " +
-                        "LEFT JOIN FETCH d.category " +
-                        "WHERE LOWER(d.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-                        "ORDER BY d.createdAt DESC")
-        List<Document> findByTitleContainingIgnoreCaseOrderByCreatedAtDesc(@Param("keyword") String keyword);
+    /**
+     * Performs a case-insensitive search on document titles.
+     * Includes metadata pre-fetching for the search result list.
+     */
+    @Query("SELECT d FROM Document d " +
+            "LEFT JOIN FETCH d.student " +
+            "LEFT JOIN FETCH d.category " +
+            "WHERE LOWER(d.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "ORDER BY d.createdAt DESC")
+    List<Document> findByTitleContainingIgnoreCaseOrderByCreatedAtDesc(@Param("keyword") String keyword);
 
-        // Stats queries - không cần join
-        @Query("SELECT COUNT(d) FROM Document d WHERE d.category.code = :categoryCode")
-        Long countByCategoryCode(@Param("categoryCode") String categoryCode);
+    @Query("SELECT COUNT(d) FROM Document d WHERE d.category.code = :categoryCode")
+    Long countByCategoryCode(@Param("categoryCode") String categoryCode);
 
-        @Query("SELECT COALESCE(SUM(d.fileSize), 0) FROM Document d")
-        Long sumTotalFileSize();
+    /**
+     * Calculates the total storage footprint of all documents in the system.
+     */
+    @Query("SELECT COALESCE(SUM(d.fileSize), 0) FROM Document d")
+    Long sumTotalFileSize();
 
-        @Query("SELECT COALESCE(SUM(d.downloadCount), 0) FROM Document d")
-        Long sumTotalDownloads();
+    /**
+     * Aggregates the total number of downloads across all resources.
+     */
+    @Query("SELECT COALESCE(SUM(d.downloadCount), 0) FROM Document d")
+    Long sumTotalDownloads();
 
-        // ✅ OPTIMIZED: Count docs for specific student OR public docs (student is null)
-        @Query("SELECT COUNT(d) FROM Document d WHERE d.student.id = :studentId OR d.student IS NULL")
-        Long countByStudentIdOrStudentIsNull(@Param("studentId") Long studentId);
+    /**
+     * Counts documents accessible to a specific student (private docs + public docs).
+     */
+    @Query("SELECT COUNT(d) FROM Document d WHERE d.student.id = :studentId OR d.student IS NULL")
+    Long countByStudentIdOrStudentIsNull(@Param("studentId") Long studentId);
 
-        // ✅ OPTIMIZED: Aggregated stats queries (GROUP BY included)
-        @Query("SELECT c.code, COUNT(d) FROM Document d JOIN d.category c GROUP BY c.code")
-        List<Object[]> countDocumentsByCategoryCode();
+    /**
+     * Groups document counts by category code for analytical dashboards.
+     */
+    @Query("SELECT c.code, COUNT(d) FROM Document d JOIN d.category c GROUP BY c.code")
+    List<Object[]> countDocumentsByCategoryCode();
 
-        @org.springframework.data.jpa.repository.Modifying
-        @org.springframework.data.jpa.repository.Query("UPDATE Document d SET d.category = null WHERE d.category.id = :categoryId")
-        void clearCategoryReferences(@Param("categoryId") Long categoryId);
+    /**
+     * Detaches all documents from a category before the category is deleted or deactivated.
+     */
+    @Modifying
+    @Query("UPDATE Document d SET d.category = null WHERE d.category.id = :categoryId")
+    void clearCategoryReferences(@Param("categoryId") Long categoryId);
 
-        @Query("SELECT COUNT(d), COALESCE(SUM(d.fileSize), 0), COALESCE(SUM(d.downloadCount), 0) FROM Document d")
-        Object getAggregatedStats();
+    /**
+     * Retrieves high-level totals (count, size, downloads) in a single optimized aggregate query.
+     */
+    @Query("SELECT COUNT(d), COALESCE(SUM(d.fileSize), 0), COALESCE(SUM(d.downloadCount), 0) FROM Document d")
+    Object getAggregatedStats();
 }

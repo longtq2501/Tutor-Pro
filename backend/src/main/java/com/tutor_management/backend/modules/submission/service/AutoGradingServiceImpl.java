@@ -16,93 +16,84 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
- * Implementation of AutoGradingService
- * Automatically grades MCQ questions by comparing student answers with correct answers
+ * Standard implementation of {@link AutoGradingService}.
+ * Compares student selections against predefined correct options.
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class AutoGradingServiceImpl implements AutoGradingService {
     
     private final SubmissionRepository submissionRepository;
     private final QuestionRepository questionRepository;
     
     @Override
-    @Transactional
     public int gradeSubmission(String submissionId) {
-        log.info("Auto-grading submission: {}", submissionId);
-        
-        // Fetch submission
+        log.info("🤖 Auto-grading submission: {}", submissionId);
         Submission submission = submissionRepository.findById(submissionId)
-            .orElseThrow(() -> new ResourceNotFoundException("Submission not found with id: " + submissionId));
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài nộp với ID: " + submissionId));
         
         return gradeSubmission(submission);
     }
 
-    @Transactional
     @Override
     public int gradeSubmission(Submission submission) {
-        log.info("Auto-grading submission object: {}", submission.getId());
+        log.debug("Auto-grading entity attempt for ID: {}", submission.getId());
 
-        // Fetch all questions for this exercise with details (JOIN FETCH) to avoid N+1
         List<Question> questions = questionRepository.findByExerciseIdWithDetails(submission.getExerciseId());
         
-        // Build a map of questionId -> correct answer for MCQ questions
-        Map<String, String> correctAnswers = new HashMap<>();
-        Map<String, Integer> questionPoints = new HashMap<>();
+        Map<String, String> correctMap = new HashMap<>();
+        Map<String, Integer> pointMap = new HashMap<>();
         
-        for (Question question : questions) {
-            if (question.getType() == QuestionType.MCQ) {
-                // Find the correct option
-                if (question.getOptions() != null) {
-                    for (Option option : question.getOptions()) {
-                        if (option.getIsCorrect()) {
-                            correctAnswers.put(question.getId(), option.getLabel());
-                            questionPoints.put(question.getId(), question.getPoints());
-                            break;
-                        }
+        for (Question q : questions) {
+            if (q.getType() == QuestionType.MCQ && q.getOptions() != null) {
+                for (Option opt : q.getOptions()) {
+                    if (opt.getIsCorrect()) {
+                        correctMap.put(q.getId(), opt.getLabel());
+                        pointMap.put(q.getId(), q.getPoints());
+                        break;
                     }
                 }
             }
         }
         
-        // Grade each MCQ answer
-        int mcqScore = 0;
-        
-        for (StudentAnswer answer : submission.getAnswers()) {
-            String questionId = answer.getQuestionId();
-            
-            // Only grade MCQ answers
-            if (correctAnswers.containsKey(questionId)) {
-                String correctAnswer = correctAnswers.get(questionId);
-                String studentAnswer = answer.getSelectedOption();
+        int mcqTotal = 0;
+        for (StudentAnswer ans : submission.getAnswers()) {
+            if (correctMap.containsKey(ans.getQuestionId())) {
+                String correct = correctMap.get(ans.getQuestionId());
+                String student = ans.getSelectedOption();
                 
-                if (correctAnswer != null && correctAnswer.trim().equalsIgnoreCase(studentAnswer != null ? studentAnswer.trim() : "")) {
-                    // Correct answer
-                    answer.setIsCorrect(true);
-                    int points = questionPoints.get(questionId);
-                    answer.setPoints(points);
-                    mcqScore += points;
+                boolean isMatch = Objects.equals(
+                        safeTrim(correct), 
+                        safeTrim(student)
+                );
+
+                if (isMatch) {
+                    ans.setIsCorrect(true);
+                    int pts = pointMap.getOrDefault(ans.getQuestionId(), 0);
+                    ans.setPoints(pts);
+                    mcqTotal += pts;
                 } else {
-                    // Incorrect answer
-                    answer.setIsCorrect(false);
-                    answer.setPoints(0);
+                    ans.setIsCorrect(false);
+                    ans.setPoints(0);
                 }
             }
         }
         
-        // Update submission MCQ score
-        submission.setMcqScore(mcqScore);
+        submission.setMcqScore(mcqTotal);
         submission.calculateTotalScore();
         
-        // Optimization: We don't save here if we're called from SubmissionServiceImpl's submit() 
-        // to avoid redundant updates if submit() is going to save anyway.
-        // However, for safety and backward compatibility, we save if the transaction is already active.
+        // Finalize state
         submissionRepository.save(submission);
-        
-        log.info("Auto-grading completed. MCQ Score: {}", mcqScore);
-        return mcqScore;
+        log.info("✅ Auto-grading complete for {}. Score: {}", submission.getId(), mcqTotal);
+        return mcqTotal;
+    }
+
+    private String safeTrim(String s) {
+        return s == null ? "" : s.trim().toUpperCase();
     }
 }

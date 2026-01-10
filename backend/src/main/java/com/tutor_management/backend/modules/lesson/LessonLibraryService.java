@@ -15,9 +15,14 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Service for managing the lesson library and student assignments.
+ * Handles bulk assigning and listing of re-usable content.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class LessonLibraryService {
 
     private final LessonRepository lessonRepository;
@@ -26,161 +31,107 @@ public class LessonLibraryService {
     private final LessonCategoryRepository categoryRepository;
 
     /**
-     * Get all library lessons (not assigned yet OR assigned)
+     * Retrieves all lessons in the library, including assignment metrics.
      */
     @Transactional(readOnly = true)
     public List<LibraryLessonResponse> getAllLibraryLessons() {
-        try {
-
-            List<Lesson> lessons = lessonRepository.findAll();
-
-            // Force initialize collections inside transaction
-            for (Lesson lesson : lessons) {
-                try {
-                    if (lesson.getAssignments() != null) {
-                        int size = lesson.getAssignments().size();
-                        log.debug("Lesson {} has {} assignments", lesson.getId(), size);
-                    }
-                } catch (Exception e) {
-                    log.warn("Could not load assignments for lesson {}", lesson.getId());
-                }
-            }
-
-            return lessons.stream()
-                    .map(LibraryLessonResponse::fromEntity)
-                    .collect(Collectors.toList());
-
-        } catch (Exception e) {
-            log.error("Error in getAllLibraryLessons: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to get library lessons", e);
-        }
-    }
-
-    /**
-     * Get unassigned library lessons only
-     */
-    @Transactional(readOnly = true)
-    public List<LibraryLessonResponse> getUnassignedLessons() {
-        List<Lesson> lessons = lessonRepository.findByIsLibraryTrueOrderByCreatedAtDesc();
-
-        return lessons.stream()
+        return lessonRepository.findAll().stream()
                 .map(LibraryLessonResponse::fromEntity)
                 .collect(Collectors.toList());
     }
 
     /**
-     * Create a lesson in library (without assignment)
+     * Retrieves only lessons that have not been assigned to any students (pure library items).
      */
-    @Transactional
-    @CacheEvict(value = "lessons", allEntries = true)
-    public Lesson createLibraryLesson(CreateLessonRequest request) {
-
-        Lesson lesson = Lesson.builder()
-                .tutorName(request.getTutorName())
-                .title(request.getTitle())
-                .summary(request.getSummary())
-                .content(request.getContent())
-                .lessonDate(request.getLessonDate())
-                .videoUrl(request.getVideoUrl())
-                .thumbnailUrl(request.getThumbnailUrl())
-                .isLibrary(true) // ✅ Mark as library lesson
-                .isPublished(request.getIsPublished())
-                .category(request.getCategoryId() != null
-                        ? categoryRepository.findById(request.getCategoryId()).orElse(null)
-                        : null)
-                .build();
-
-        lesson = lessonRepository.save(lesson);
-
-        return lesson;
+    @Transactional(readOnly = true)
+    public List<LibraryLessonResponse> getUnassignedLessons() {
+        return lessonRepository.findByIsLibraryTrueOrderByCreatedAtDesc().stream()
+                .map(LibraryLessonResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 
     /**
-     * Assign lesson to multiple students
+     * Creates a new lesson record directly into the library.
      */
-    @Transactional
     @CacheEvict(value = "lessons", allEntries = true)
-    public void assignLessonToStudents(
-            Long lessonId,
-            List<Long> studentIds,
-            String assignedBy) {
+    public LibraryLessonResponse createLibraryLesson(CreateLessonRequest request) {
+        Lesson lesson = Lesson.builder()
+                .tutorName(request.getTutorName()).title(request.getTitle())
+                .summary(request.getSummary()).content(request.getContent())
+                .lessonDate(request.getLessonDate()).videoUrl(request.getVideoUrl())
+                .thumbnailUrl(request.getThumbnailUrl()).isLibrary(true)
+                .isPublished(request.getIsPublished())
+                .category(request.getCategoryId() != null ? categoryRepository.findById(request.getCategoryId()).orElse(null) : null)
+                .build();
 
+        return LibraryLessonResponse.fromEntity(lessonRepository.save(lesson));
+    }
+
+    /**
+     * Assigns an existing library lesson to a list of students.
+     * Prevents duplicate assignments.
+     */
+    @CacheEvict(value = "lessons", allEntries = true)
+    public void assignLessonToStudents(Long lessonId, List<Long> studentIds, String assignedBy) {
         Lesson lesson = lessonRepository.findById(lessonId)
-                .orElseThrow(() -> new ResourceNotFoundException("Lesson not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài giảng."));
 
         List<Student> students = studentRepository.findAllById(studentIds);
         if (students.size() != studentIds.size()) {
-            throw new ResourceNotFoundException("Some students not found");
+            throw new ResourceNotFoundException("Một số học sinh được chọn không tồn tại.");
         }
 
         List<LessonAssignment> assignments = students.stream()
-                .filter(student -> !assignmentRepository.existsByLessonIdAndStudentId(lessonId, student.getId()))
-                .map(student -> LessonAssignment.builder()
-                        .lesson(lesson)
-                        .student(student)
-                        .assignedDate(LocalDate.now())
-                        .assignedBy(assignedBy)
-                        .build())
+                .filter(s -> !assignmentRepository.existsByLessonIdAndStudentId(lessonId, s.getId()))
+                .map(s -> LessonAssignment.builder().lesson(lesson).student(s)
+                        .assignedDate(LocalDate.now()).assignedBy(assignedBy).build())
                 .collect(Collectors.toList());
 
-        assignments = assignmentRepository.saveAll(assignments);
-
-        // Mark lesson as assigned
-        if (lesson.getIsLibrary() && !assignments.isEmpty()) {
-            lesson.markAsAssigned();
-            lessonRepository.save(lesson);
+        if (!assignments.isEmpty()) {
+            assignmentRepository.saveAll(assignments);
+            if (lesson.getIsLibrary()) {
+                lesson.markAsAssigned();
+                lessonRepository.save(lesson);
+            }
         }
     }
 
     /**
-     * Unassign lesson from students
+     * Revokes lesson access from specific students.
+     * Reverts lesson to 'Library' status if no students remain assigned.
      */
-    @Transactional
     @CacheEvict(value = "lessons", allEntries = true)
     public void unassignLessonFromStudents(Long lessonId, List<Long> studentIds) {
-
-        for (Long studentId : studentIds) {
-            assignmentRepository.deleteByLessonIdAndStudentId(lessonId, studentId);
+        for (Long id : studentIds) {
+            assignmentRepository.deleteByLessonIdAndStudentId(lessonId, id);
         }
 
-        // Check if lesson still has assignments
-        long remainingAssignments = assignmentRepository.countByLessonId(lessonId);
-        if (remainingAssignments == 0) {
-            Lesson lesson = lessonRepository.findById(lessonId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Lesson not found"));
-            lesson.markAsLibrary();
-            lessonRepository.save(lesson);
+        if (assignmentRepository.countByLessonId(lessonId) == 0) {
+            Lesson lesson = lessonRepository.findById(lessonId).orElse(null);
+            if (lesson != null) {
+                lesson.markAsLibrary();
+                lessonRepository.save(lesson);
+            }
         }
     }
 
     /**
-     * Get students assigned to a lesson
+     * Fetches students officially assigned to a specific lesson.
      */
     @Transactional(readOnly = true)
     public List<Student> getAssignedStudents(Long lessonId) {
-        List<LessonAssignment> assignments = assignmentRepository.findByLessonIdOrderByAssignedDateDesc(lessonId);
-        return assignments.stream()
+        return assignmentRepository.findByLessonIdWithDetails(lessonId).stream()
                 .map(LessonAssignment::getStudent)
                 .collect(Collectors.toList());
     }
 
-    @Transactional
+    /**
+     * Deletes a lesson from the library and all its historical assignments.
+     */
     @CacheEvict(value = "lessons", allEntries = true)
     public void deleteLibraryLesson(Long lessonId) {
-
         Lesson lesson = lessonRepository.findById(lessonId)
-                .orElseThrow(() -> new ResourceNotFoundException("Lesson not found"));
-
-        if (lesson.getAssignments() != null) {
-            lesson.getAssignments().clear();
-        }
-        if (lesson.getImages() != null) {
-            lesson.getImages().clear();
-        }
-        if (lesson.getResources() != null) {
-            lesson.getResources().clear();
-        }
-
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài giảng."));
         lessonRepository.delete(lesson);
     }
 }

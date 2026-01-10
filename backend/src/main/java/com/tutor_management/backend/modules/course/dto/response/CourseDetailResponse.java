@@ -11,6 +11,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Detailed view of a course including its full curriculum.
+ */
 @Data
 @Builder
 @NoArgsConstructor
@@ -28,6 +31,9 @@ public class CourseDetailResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    /**
+     * Maps a Course entity and its associated lessons to a detailed response.
+     */
     public static CourseDetailResponse fromEntity(Course course) {
         return CourseDetailResponse.builder()
                 .id(course.getId())

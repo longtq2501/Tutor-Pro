@@ -4,21 +4,16 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.data.domain.Persistable;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
- * Question entity representing a single question in an exercise
+ * Individual assessment task within an exercise.
+ * Supports multiple formats including multiple choice and essays.
  */
 @Entity
 @Table(name = "questions", indexes = {
@@ -49,7 +44,7 @@ public class Question implements Persistable<String> {
     }
     
     /**
-     * Reference to the parent exercise
+     * The parent assessment containing this question.
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "exercise_id", nullable = false)
@@ -57,48 +52,48 @@ public class Question implements Persistable<String> {
     private Exercise exercise;
     
     /**
-     * Type of question (MCQ or ESSAY)
+     * Interaction format (MCQ or ESSAY).
      */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private QuestionType type;
     
     /**
-     * The question text
+     * The actual query or instruction presented to the student.
      */
     @Column(name = "question_text", nullable = false, columnDefinition = "TEXT")
     private String questionText;
     
     /**
-     * Points awarded for correct answer
+     * Scoring weight for this question.
      */
     @Column(nullable = false)
     private Integer points;
     
     /**
-     * Order index for sorting questions
+     * Sequence number defining the flow of the exercise.
      */
     @Column(name = "order_index", nullable = false)
     private Integer orderIndex;
     
     /**
-     * Rubric for essay questions (optional)
+     * Grading criteria or reference answer guidelines (primarily for essays).
      */
     @Column(columnDefinition = "TEXT")
     private String rubric;
     
     /**
-     * Options for MCQ questions
+     * Available selections for multiple choice formatted questions.
      */
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("label ASC")
     @JsonManagedReference
-    @org.hibernate.annotations.BatchSize(size = 20)
+    @BatchSize(size = 20)
     @Builder.Default
     private Set<Option> options = new LinkedHashSet<>();
     
     /**
-     * Helper method to add an option to the question
+     * Bi-directional association helper.
      */
     public void addOption(Option option) {
         options.add(option);
@@ -106,7 +101,7 @@ public class Question implements Persistable<String> {
     }
     
     /**
-     * Helper method to remove an option from the question
+     * Bi-directional association helper.
      */
     public void removeOption(Option option) {
         options.remove(option);

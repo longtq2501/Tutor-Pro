@@ -1,11 +1,9 @@
 package com.tutor_management.backend.modules.feedback;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import com.tutor_management.backend.exception.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,11 +18,16 @@ import com.tutor_management.backend.modules.finance.SessionRecordRepository;
 import com.tutor_management.backend.modules.student.Student;
 import com.tutor_management.backend.modules.student.StudentRepository;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Standard implementation of the Feedback Management service.
+ * Features a Smart Comment Generator that assembles narrative reports from thematic fragments.
+ */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SessionFeedbackService {
 
     private final SessionFeedbackRepository sessionFeedbackRepository;
@@ -34,10 +37,12 @@ public class SessionFeedbackService {
 
     @Transactional
     public Long createFeedback(SessionFeedbackRequest request) {
+        log.info("Creating new feedback for session {} and student {}", request.getSessionRecordId(), request.getStudentId());
+        
         SessionRecord sessionRecord = sessionRecordRepository.findById(request.getSessionRecordId())
-                .orElseThrow(() -> new EntityNotFoundException("SessionRecord not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin buổi học"));
         Student student = studentRepository.findById(request.getStudentId())
-                .orElseThrow(() -> new EntityNotFoundException("Student not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin học sinh"));
 
         SessionFeedback feedback = SessionFeedback.builder()
                 .sessionRecord(sessionRecord)
@@ -57,11 +62,11 @@ public class SessionFeedbackService {
 
     @Transactional
     public Long updateFeedback(Long id, SessionFeedbackRequest request) {
+        log.info("Updating feedback ID: {}", id);
+        
         SessionFeedback feedback = sessionFeedbackRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Feedback not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phản hồi buổi học"));
 
-        // Only update fields if they are provided (or overwrite them)
-        // Here we overwrite all for simplicity as the form sends full state
         feedback.setLessonContent(request.getLessonContent());
         feedback.setAttitudeRating(request.getAttitudeRating());
         feedback.setAttitudeComment(request.getAttitudeComment());
@@ -86,7 +91,7 @@ public class SessionFeedbackService {
     public SessionFeedbackResponse getFeedbackById(Long id) {
         return sessionFeedbackRepository.findById(id)
                 .map(this::convertToResponse)
-                .orElseThrow(() -> new EntityNotFoundException("Feedback not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phản hồi"));
     }
 
     @Transactional(readOnly = true)
@@ -97,173 +102,166 @@ public class SessionFeedbackService {
 
     // --- SMART GENERATOR LOGIC ---
 
+    /**
+     * Assembles a natural-sounding Vietnamese comment based on ratings and selected keywords.
+     */
     public GenerateCommentResponse generateComment(GenerateCommentRequest request) {
-        String category = request.getCategory();
-        String ratingLevel = request.getRatingLevel();
-        List<String> keywords = request.getKeywords();
-        String studentName = (request.getStudentName() != null && !request.getStudentName().isEmpty())
-                ? request.getStudentName()
-                : "Con";
+        log.debug("Generating smart comment for student {} [Category: {}]", request.getStudentName(), request.getCategory());
+        
+        String studentName = (request.getStudentName() != null && !request.getStudentName().isEmpty()) 
+                ? request.getStudentName() : "Con";
 
+        List<FeedbackScenario> candidates = selectScenarioCandidates(request);
+        
+        if (candidates.isEmpty()) {
+            return generateEmptyResponse();
+        }
+
+        return assembleCommentFromScenarios(candidates, studentName);
+    }
+
+    /**
+     * Strategy for selecting the best fragments based on keywords or general fallback.
+     */
+    private List<FeedbackScenario> selectScenarioCandidates(GenerateCommentRequest request) {
         List<FeedbackScenario> candidates = new ArrayList<>();
-        List<Long> usedScenarioIds = new ArrayList<>();
+        List<String> keywords = request.getKeywords();
 
         if (keywords != null && !keywords.isEmpty()) {
-            for (String keyword : keywords) {
-                List<FeedbackScenario> matched = feedbackScenarioRepository.findScenarios(category, ratingLevel,
-                        keyword);
-                if (!matched.isEmpty()) {
-                    candidates.add(matched.get(new Random().nextInt(matched.size())));
-                } else {
-                    // Specific keyword fallback: try to find any scenario with this keyword
-                    // regardless of rating
-                    List<FeedbackScenario> anyRatingWithKeyword = feedbackScenarioRepository.findScenarios(category,
-                            "ANY", keyword);
-                    if (!anyRatingWithKeyword.isEmpty()) {
-                        candidates.add(anyRatingWithKeyword.get(new Random().nextInt(anyRatingWithKeyword.size())));
-                    }
-                }
+            // Priority: Keyword-specific matching
+            for (String kw : keywords) {
+                findBestScenarioForKeyword(request.getCategory(), request.getRatingLevel(), kw)
+                    .ifPresent(candidates::add);
             }
-
-            // If few keywords provided, add a general one if not already enough
+            // Ensure variety with general templates if needed
             if (candidates.size() < 2) {
-                List<FeedbackScenario> general = feedbackScenarioRepository.findScenarios(category, ratingLevel,
-                        "GENERAL");
-                if (!general.isEmpty()) {
-                    candidates.add(general.get(new Random().nextInt(general.size())));
-                }
+                findBestScenarioForKeyword(request.getCategory(), request.getRatingLevel(), "GENERAL")
+                    .ifPresent(candidates::add);
             }
         } else {
-            // No keywords: Pick 1-2 GENERAL scenarios
-            List<FeedbackScenario> general = feedbackScenarioRepository.findScenarios(category, ratingLevel, "GENERAL");
+            // Fallback: Pick random general templates
+            List<FeedbackScenario> general = feedbackScenarioRepository.findScenarios(request.getCategory(), request.getRatingLevel(), "GENERAL");
             if (!general.isEmpty()) {
                 Collections.shuffle(general);
                 candidates.add(general.get(0));
-                if (general.size() >= 2) {
-                    candidates.add(general.get(1));
-                }
+                if (general.size() >= 2) candidates.add(general.get(1));
             }
         }
 
-        // Deduplicate and filter nulls
-        candidates = candidates.stream()
-                .filter(java.util.Objects::nonNull)
+        return deduplicateCandidates(candidates, keywords);
+    }
+
+    private Optional<FeedbackScenario> findBestScenarioForKeyword(String category, String rating, String keyword) {
+        List<FeedbackScenario> matched = feedbackScenarioRepository.findScenarios(category, rating, keyword);
+        if (matched.isEmpty()) {
+            // Fallback to ANY rating for this keyword
+            matched = feedbackScenarioRepository.findScenarios(category, "ANY", keyword);
+        }
+        
+        if (matched.isEmpty()) return Optional.empty();
+        return Optional.of(matched.get(new Random().nextInt(matched.size())));
+    }
+
+    private List<FeedbackScenario> deduplicateCandidates(List<FeedbackScenario> candidates, List<String> originalKeywords) {
+        List<FeedbackScenario> filtered = candidates.stream()
+                .filter(Objects::nonNull)
                 .distinct()
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(ArrayList::new));
 
-        // If specific keywords matched specialized scenarios, and we have enough,
-        // consider removing a generic GENERAL one if it makes the result redundant.
-        if (keywords != null && !keywords.isEmpty() && candidates.size() > 1) {
-            boolean hasSpecialized = candidates.stream().anyMatch(s -> !s.getKeyword().equals("GENERAL"));
+        // Logic to remove redundant GENERAL fragments if specialized ones exist
+        if (originalKeywords != null && !originalKeywords.isEmpty() && filtered.size() > 1) {
+            boolean hasSpecialized = filtered.stream().anyMatch(s -> !"GENERAL".equals(s.getKeyword()));
             if (hasSpecialized) {
-                // Remove one GENERAL if we have more than 2 specialized or if 1 spec + 1 gen is
-                // redundant
-                List<FeedbackScenario> finalCandidates = candidates;
-                candidates.removeIf(s -> s.getKeyword().equals("GENERAL") && finalCandidates.size() > 1);
+                filtered.removeIf(s -> "GENERAL".equals(s.getKeyword()) && filtered.size() > 1);
             }
         }
+        return filtered;
+    }
 
-        if (candidates.isEmpty()) {
-            FeedbackScenario randomCandidate = feedbackScenarioRepository.findRandomByCriteria(category, ratingLevel,
-                    null);
-            if (randomCandidate != null) {
-                candidates.add(randomCandidate);
-            } else {
-                return GenerateCommentResponse.builder()
-                        .generatedComment("")
-                        .usedScenarioIds(Collections.emptyList())
-                        .build();
-            }
-        }
+    /**
+     * Logic for joining fragments into a cohesive paragraph.
+     */
+    private GenerateCommentResponse assembleCommentFromScenarios(List<FeedbackScenario> scenarios, String studentName) {
+        StringBuilder sb = new StringBuilder();
+        List<Long> usedIds = new ArrayList<>();
+        
+        GenerationContext ctx = new GenerationContext(studentName);
 
-        StringBuilder commentBuilder = new StringBuilder();
-        boolean nameUsed = false;
-        boolean todayUsed = false;
+        for (FeedbackScenario scenario : scenarios) {
+            String text = processFragment(scenario.getTemplateText(), ctx);
+            if (text.isEmpty()) continue;
 
-        for (FeedbackScenario scenario : candidates) {
-            String text = scenario.getTemplateText();
-
-            // 1. Deduplicate "Hôm nay" / "Hôm nay " prefixes
-            String lowerText = text.toLowerCase();
-            if (todayUsed && (lowerText.startsWith("hôm nay ") || lowerText.startsWith("hôm nay,"))) {
-                // Strip "Hôm nay " (7 chars) or "Hôm nay," (8 chars)
-                int skip = lowerText.startsWith("hôm nay ") ? 8 : 9;
-                text = text.substring(skip);
-                // Ensure the new start is capitalized later
-            } else if (lowerText.contains("hôm nay")) {
-                todayUsed = true;
-            }
-
-            // 2. Handle Student Name vs Pronoun
-            if (nameUsed) {
-                // Replace subsequent {Student} with "con" (lowercase)
-                // but handle if it starts the sentence
-                text = text.replace("{Student}", "con");
-            } else if (text.contains("{Student}")) {
-                text = text.replace("{Student}", studentName);
-                nameUsed = true;
-            }
-
-            // 3. Sentence capitalization after join
-            text = text.trim();
-            if (text.isEmpty())
-                continue;
-
-            if (commentBuilder.length() > 0) {
-                String current = commentBuilder.toString().trim();
-                if (current.endsWith(".") || current.endsWith("!") || current.endsWith("?")) {
-                    // Capitalize first letter of next sentence
-                    text = text.substring(0, 1).toUpperCase() + text.substring(1);
-                } else {
-                    // Try to join with a comma or space
-                    commentBuilder.append(", ");
-                    text = text.substring(0, 1).toLowerCase() + text.substring(1);
-                }
-            } else {
-                // First sentence
-                text = text.substring(0, 1).toUpperCase() + text.substring(1);
-            }
-
-            commentBuilder.append(text);
-            if (!text.endsWith(".") && !text.endsWith("!") && !text.endsWith("?")) {
-                commentBuilder.append(".");
-            }
-            commentBuilder.append(" ");
-            usedScenarioIds.add(scenario.getId());
+            appendFragment(sb, text);
+            usedIds.add(scenario.getId());
         }
 
         return GenerateCommentResponse.builder()
-                .generatedComment(commentBuilder.toString().trim())
-                .usedScenarioIds(usedScenarioIds)
+                .generatedComment(sb.toString().trim())
+                .usedScenarioIds(usedIds)
                 .build();
     }
 
-    public List<String> getAvailableKeywords(String category, String ratingLevel) {
-        return feedbackScenarioRepository.findKeywordsByCategoryAndRating(category, ratingLevel);
+    private String processFragment(String template, GenerationContext ctx) {
+        String processed = template.trim();
+        String lower = processed.toLowerCase();
+
+        // 1. Deduplicate "Hôm nay" prefixes
+        if (ctx.isTodayAlreadyUsed() && (lower.startsWith("hôm nay ") || lower.startsWith("hôm nay,"))) {
+            int skip = lower.startsWith("hôm nay ") ? 8 : 9;
+            processed = processed.substring(skip);
+        } else if (lower.contains("hôm nay")) {
+            ctx.setTodayAlreadyUsed(true);
+        }
+
+        // 2. Pronoun handling
+        if (ctx.isNameAlreadyUsed()) {
+            processed = processed.replace("{Student}", "con");
+        } else if (processed.contains("{Student}")) {
+            processed = processed.replace("{Student}", ctx.getStudentName());
+            ctx.setNameAlreadyUsed(true);
+        }
+
+        return processed;
     }
+
+    private void appendFragment(StringBuilder sb, String fragment) {
+        String text = fragment;
+        if (sb.length() > 0) {
+            String current = sb.toString().trim();
+            if (current.endsWith(".") || current.endsWith("!") || current.endsWith("?")) {
+                text = text.substring(0, 1).toUpperCase() + text.substring(1);
+                sb.append(" ");
+            } else {
+                sb.append(", ");
+                text = text.substring(0, 1).toLowerCase() + text.substring(1);
+            }
+        } else {
+            text = text.substring(0, 1).toUpperCase() + text.substring(1);
+        }
+        
+        sb.append(text);
+        if (!text.endsWith(".") && !text.endsWith("!") && !text.endsWith("?")) {
+            sb.append(".");
+        }
+    }
+
+    // --- Utility Methods ---
 
     @Transactional(readOnly = true)
     public String getClipboardContent(Long id) {
         SessionFeedback feedback = sessionFeedbackRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Feedback not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phản hồi"));
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("Học sinh: ").append(feedback.getStudent().getName()).append("\n");
-        sb.append("Ngày: ").append(feedback.getSessionRecord().getSessionDate()).append("\n\n");
-
-        sb.append("NỘI DUNG BÀI HỌC:\n").append(feedback.getLessonContent()).append("\n\n");
-
-        sb.append("THÁI ĐỘ HỌC (").append(feedback.getAttitudeRating()).append("):\n")
-                .append(feedback.getAttitudeComment()).append("\n\n");
-
-        sb.append("KHẢ NĂNG TẬP TRUNG/TIẾP THU (").append(feedback.getAbsorptionRating()).append("):\n")
-                .append(feedback.getAbsorptionComment()).append("\n\n");
-
-        sb.append("KIẾN THỨC CHƯA NẮM VỮNG:\n").append(feedback.getKnowledgeGaps()).append("\n\n");
-
-        sb.append("LÝ DO/GIẢI PHÁP:\n").append(feedback.getSolutions()).append("\n");
-
-        return sb.toString();
+        return String.format(
+            "Học sinh: %s\nNgày: %s\n\nNỘI DUNG: %s\n\nTHÁI ĐỘ (%s):\n%s\n\nTIẾP THU (%s):\n%s\n\nKIẾN THỨC HỔNG:\n%s\n\nGIẢI PHÁP:\n%s",
+            feedback.getStudent().getName(),
+            feedback.getSessionRecord().getSessionDate(),
+            feedback.getLessonContent(),
+            feedback.getAttitudeRating(), feedback.getAttitudeComment(),
+            feedback.getAbsorptionRating(), feedback.getAbsorptionComment(),
+            feedback.getKnowledgeGaps(),
+            feedback.getSolutions()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -338,23 +336,50 @@ public class SessionFeedbackService {
         }
     }
 
-    private SessionFeedbackResponse convertToResponse(SessionFeedback feedback) {
+    public List<String> getAvailableKeywords(String category, String ratingLevel) {
+        return feedbackScenarioRepository.findKeywordsByCategoryAndRating(category, ratingLevel);
+    }
+
+    private SessionFeedbackResponse convertToResponse(SessionFeedback fb) {
         return SessionFeedbackResponse.builder()
-                .id(feedback.getId())
-                .sessionRecordId(feedback.getSessionRecord().getId())
-                .studentId(feedback.getStudent().getId())
-                .studentName(feedback.getStudent().getName())
-                .sessionDate(feedback.getSessionRecord().getSessionDate())
-                .lessonContent(feedback.getLessonContent())
-                .attitudeRating(feedback.getAttitudeRating())
-                .attitudeComment(feedback.getAttitudeComment())
-                .absorptionRating(feedback.getAbsorptionRating())
-                .absorptionComment(feedback.getAbsorptionComment())
-                .knowledgeGaps(feedback.getKnowledgeGaps())
-                .solutions(feedback.getSolutions())
-                .status(feedback.getStatus())
-                .createdAt(feedback.getCreatedAt())
-                .updatedAt(feedback.getUpdatedAt())
+                .id(fb.getId())
+                .sessionRecordId(fb.getSessionRecord().getId())
+                .studentId(fb.getStudent().getId())
+                .studentName(fb.getStudent().getName())
+                .sessionDate(fb.getSessionRecord().getSessionDate())
+                .lessonContent(fb.getLessonContent())
+                .attitudeRating(fb.getAttitudeRating())
+                .attitudeComment(fb.getAttitudeComment())
+                .absorptionRating(fb.getAbsorptionRating())
+                .absorptionComment(fb.getAbsorptionComment())
+                .knowledgeGaps(fb.getKnowledgeGaps())
+                .solutions(fb.getSolutions())
+                .status(fb.getStatus())
+                .createdAt(fb.getCreatedAt())
+                .updatedAt(fb.getUpdatedAt())
                 .build();
+    }
+
+    private GenerateCommentResponse generateEmptyResponse() {
+        return GenerateCommentResponse.builder()
+                .generatedComment("")
+                .usedScenarioIds(Collections.emptyList())
+                .build();
+    }
+
+    /**
+     * Inner state container for tracking grammatical choices during comment generation.
+     */
+    private static class GenerationContext {
+        private final String studentName;
+        private boolean nameAlreadyUsed = false;
+        private boolean todayAlreadyUsed = false;
+
+        public GenerationContext(String studentName) { this.studentName = studentName; }
+        public String getStudentName() { return studentName; }
+        public boolean isNameAlreadyUsed() { return nameAlreadyUsed; }
+        public void setNameAlreadyUsed(boolean val) { nameAlreadyUsed = val; }
+        public boolean isTodayAlreadyUsed() { return todayAlreadyUsed; }
+        public void setTodayAlreadyUsed(boolean val) { todayAlreadyUsed = val; }
     }
 }

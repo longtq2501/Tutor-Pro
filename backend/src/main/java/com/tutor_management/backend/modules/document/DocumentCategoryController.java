@@ -1,15 +1,16 @@
 package com.tutor_management.backend.modules.document;
 
+import com.tutor_management.backend.modules.shared.dto.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Controller for managing dynamic document categories.
+ */
 @RestController
 @RequestMapping("/api/document-categories")
 @RequiredArgsConstructor
@@ -17,30 +18,44 @@ public class DocumentCategoryController {
 
     private final DocumentCategoryService categoryService;
 
+    /**
+     * Lists all active categories for the document library.
+     */
     @PreAuthorize("permitAll()")
     @GetMapping
-    public ResponseEntity<List<DocumentCategory>> getAllCategories() {
-        return ResponseEntity.ok(categoryService.getAllActiveCategories());
+    public ResponseEntity<ApiResponse<List<DocumentCategory>>> getAllCategories() {
+        return ResponseEntity.ok(ApiResponse.success(categoryService.getAllActiveCategories()));
     }
 
+    /**
+     * Creates a new classification category.
+     */
     @PreAuthorize("hasAnyRole('ADMIN')")
-    @org.springframework.web.bind.annotation.PostMapping
-    public ResponseEntity<DocumentCategory> createCategory(@org.springframework.web.bind.annotation.RequestBody DocumentCategory category) {
-        return ResponseEntity.ok(categoryService.createCategory(category));
+    @PostMapping
+    public ResponseEntity<ApiResponse<DocumentCategory>> createCategory(@RequestBody DocumentCategory category) {
+        DocumentCategory saved = categoryService.createCategory(category);
+        return ResponseEntity.ok(ApiResponse.success("Tạo danh mục thành công", saved));
     }
 
+    /**
+     * Updates an existing category's metadata (name, code, style).
+     */
     @PreAuthorize("hasAnyRole('ADMIN')")
-    @org.springframework.web.bind.annotation.PutMapping("/{id}")
-    public ResponseEntity<DocumentCategory> updateCategory(
-            @org.springframework.web.bind.annotation.PathVariable Long id,
-            @org.springframework.web.bind.annotation.RequestBody DocumentCategory category) {
-        return ResponseEntity.ok(categoryService.updateCategory(id, category));
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<DocumentCategory>> updateCategory(
+            @PathVariable Long id,
+            @RequestBody DocumentCategory category) {
+        DocumentCategory updated = categoryService.updateCategory(id, category);
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật danh mục thành công", updated));
     }
 
+    /**
+     * Deletes a category and detaches its documents.
+     */
     @PreAuthorize("hasAnyRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategory(@org.springframework.web.bind.annotation.PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.success("Xóa danh mục thành công", null));
     }
 }

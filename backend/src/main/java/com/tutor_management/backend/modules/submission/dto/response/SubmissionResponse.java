@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Response DTO for a submission
+ * Data response for full submission details.
  */
 @Data
 @Builder
@@ -33,5 +33,9 @@ public class SubmissionResponse {
     private String teacherComment;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    /**
+     * Detailed breakdown of individual student answers.
+     */
     private List<StudentAnswerResponse> answers;
 }

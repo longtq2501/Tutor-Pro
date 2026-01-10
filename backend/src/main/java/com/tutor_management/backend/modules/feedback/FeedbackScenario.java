@@ -11,6 +11,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Represents a pre-defined feedback fragment used by the Smart Generator.
+ * Scenarios allow tutors to build natural-sounding reports by selecting thematic keywords.
+ */
 @Entity
 @Table(name = "feedback_scenarios")
 @Data
@@ -18,24 +22,41 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FeedbackScenario {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "category")
-    private String category; // "ATTITUDE", "ABSORPTION", "GAPS", "SOLUTIONS"
+    /**
+     * The diagnostic category (e.g., "ATTITUDE", "ABSORPTION", "GAPS", "SOLUTIONS").
+     */
+    @Column(name = "category", nullable = false)
+    private String category;
 
-    @Column(name = "rating_level")
-    private String ratingLevel; // "GOOD", "BAD", "AVERAGE"
+    /**
+     * Performance level associated with this template (e.g., "GOOD", "BAD", "AVERAGE").
+     */
+    @Column(name = "rating_level", nullable = false)
+    private String ratingLevel;
 
-    @Column(name = "keyword")
-    private String keyword; // e.g., "sleepy", "homework", "grammar"
+    /**
+     * The trigger keyword (e.g., "sleepy", "homework", "grammar").
+     * Tutors select these to find appropriate fragments.
+     */
+    @Column(name = "keyword", nullable = false)
+    private String keyword;
 
-    // Template with placeholders
-    // e.g., "{Student} có vẻ {state} hôm nay. Con cần {action} để cải thiện."
-    @Column(name = "template_text", columnDefinition = "TEXT")
+    /**
+     * The Vietnamese text fragment. 
+     * Supports placeholders like {Student} which are replaced during generation.
+     */
+    @Column(name = "template_text", columnDefinition = "TEXT", nullable = false)
     private String templateText;
 
+    /**
+     * Optional grouping for templates with identical meaning but different wording.
+     * Prevents the generator from picking redundant phrases.
+     */
     @Column(name = "variation_group")
-    private Integer variationGroup; // To group different wordings of same meaning
+    private Integer variationGroup;
 }

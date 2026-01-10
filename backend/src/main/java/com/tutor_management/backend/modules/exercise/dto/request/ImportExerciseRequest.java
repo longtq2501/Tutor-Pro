@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Request DTO for importing exercise from text format
+ * Payload for importing an exercise template from a raw text block (AI-powered ingestion).
  */
 @Data
 @Builder
@@ -16,13 +16,13 @@ import lombok.NoArgsConstructor;
 public class ImportExerciseRequest {
     
     /**
-     * The text content to parse
+     * The raw text content to be parsed by the NLP engine.
      */
-    @NotBlank(message = "Content cannot be blank")
+    @NotBlank(message = "Nội dung nhập không được để trống")
     private String content;
     
     /**
-     * Class ID to associate with the exercise
+     * UUID of the class category for the imported resource.
      */
     private String classId;
 }

@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Response DTO for a single option
+ * Read-only representation of an MCQ choice.
  */
 @Data
 @Builder
@@ -19,5 +19,9 @@ public class OptionResponse {
     private String id;
     private String label;
     private String optionText;
+    
+    /**
+     * Truth status. Note: Hidden from students until after submission in some modes.
+     */
     private Boolean isCorrect;
 }

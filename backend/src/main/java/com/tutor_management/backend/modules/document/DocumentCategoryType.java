@@ -1,5 +1,9 @@
 package com.tutor_management.backend.modules.document;
 
+/**
+ * Enum defining the predefined types of document categories.
+ * Maps back to legacy classification or localized display names.
+ */
 public enum DocumentCategoryType {
     GRAMMAR("Ngữ pháp"),
     VOCABULARY("Từ vựng"),
@@ -23,6 +27,9 @@ public enum DocumentCategoryType {
         this.displayName = displayName;
     }
 
+    /**
+     * Retrieves the Vietnamese display name for the category type.
+     */
     public String getDisplayName() {
         return displayName;
     }

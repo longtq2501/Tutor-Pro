@@ -16,6 +16,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Controller for managing the Lesson Library.
+ * Handles re-usable content and bulk student assignments.
+ */
 @RestController
 @RequestMapping("/api/admin/lesson-library")
 @RequiredArgsConstructor
@@ -26,89 +30,71 @@ public class LessonLibraryController {
     private final LessonLibraryService libraryService;
 
     /**
-     * Get all lessons in library
+     * Lists all library lessons.
      */
     @GetMapping
     public ResponseEntity<ApiResponse<List<LibraryLessonResponse>>> getAllLessons() {
-        List<LibraryLessonResponse> lessons = libraryService.getAllLibraryLessons();
-        return ResponseEntity.ok(ApiResponse.success(lessons));
+        return ResponseEntity.ok(ApiResponse.success(libraryService.getAllLibraryLessons()));
     }
 
     /**
-     * Get unassigned lessons only
+     * Lists lessons that have not been assigned to any students.
      */
     @GetMapping("/unassigned")
     public ResponseEntity<ApiResponse<List<LibraryLessonResponse>>> getUnassignedLessons() {
-        List<LibraryLessonResponse> lessons = libraryService.getUnassignedLessons();
-        return ResponseEntity.ok(ApiResponse.success(lessons));
+        return ResponseEntity.ok(ApiResponse.success(libraryService.getUnassignedLessons()));
     }
 
     /**
-     * Create new lesson in library
+     * Creates a new standalone lesson in the library.
      */
     @PostMapping
     public ResponseEntity<ApiResponse<LibraryLessonResponse>> createLesson(
-            @Valid @RequestBody CreateLessonRequest request
-    ) {
-        var lesson = libraryService.createLibraryLesson(request);
-        return ResponseEntity.ok(ApiResponse.success(
-                "Lesson created in library",
-                LibraryLessonResponse.fromEntity(lesson)
-        ));
+            @Valid @RequestBody CreateLessonRequest request) {
+        log.info("Adding lesson to library: {}", request.getTitle());
+        return ResponseEntity.ok(ApiResponse.success("Đã thêm bài giảng vào thư viện", libraryService.createLibraryLesson(request)));
     }
 
     /**
-     * Assign lesson to students
+     * Assigns a library lesson to one or more students.
      */
     @PostMapping("/{lessonId}/assign")
     public ResponseEntity<ApiResponse<String>> assignLesson(
             @PathVariable Long lessonId,
             @Valid @RequestBody AssignLessonRequest request,
-            @AuthenticationPrincipal User user
-    ) {
-        libraryService.assignLessonToStudents(
-                lessonId,
-                request.getStudentIds(),
-                user.getEmail()
-        );
-
-        return ResponseEntity.ok(ApiResponse.success(
-                String.format("Lesson assigned to %d students", request.getStudentIds().size())
-        ));
+            @AuthenticationPrincipal User user) {
+        log.info("Assigning lesson {} to {} students", lessonId, request.getStudentIds().size());
+        libraryService.assignLessonToStudents(lessonId, request.getStudentIds(), user.getEmail());
+        return ResponseEntity.ok(ApiResponse.success(String.format("Đã giao bài giảng cho %d học sinh", request.getStudentIds().size())));
     }
 
     /**
-     * Unassign lesson from students
+     * Revokes lesson access from a list of students.
      */
     @PostMapping("/{lessonId}/unassign")
     public ResponseEntity<ApiResponse<String>> unassignLesson(
             @PathVariable Long lessonId,
-            @Valid @RequestBody AssignLessonRequest request
-    ) {
+            @Valid @RequestBody AssignLessonRequest request) {
+        log.info("Unassigning lesson {} from {} students", lessonId, request.getStudentIds().size());
         libraryService.unassignLessonFromStudents(lessonId, request.getStudentIds());
-
-        return ResponseEntity.ok(ApiResponse.success(
-                String.format("Lesson unassigned from %d students", request.getStudentIds().size())
-        ));
+        return ResponseEntity.ok(ApiResponse.success(String.format("Đã hủy giao bài giảng cho %d học sinh", request.getStudentIds().size())));
     }
 
     /**
-     * Get students assigned to a lesson
+     * Retrieves students currently assigned to a lesson.
      */
     @GetMapping("/{lessonId}/students")
-    public ResponseEntity<ApiResponse<List<Student>>> getAssignedStudents(
-            @PathVariable Long lessonId
-    ) {
-        List<Student> students = libraryService.getAssignedStudents(lessonId);
-        return ResponseEntity.ok(ApiResponse.success(students));
+    public ResponseEntity<ApiResponse<List<Student>>> getAssignedStudents(@PathVariable Long lessonId) {
+        return ResponseEntity.ok(ApiResponse.success(libraryService.getAssignedStudents(lessonId)));
     }
 
     /**
-     * Delete lesson from library
+     * Permanently deletes a lesson from the library.
      */
     @DeleteMapping("/{lessonId}")
     public ResponseEntity<ApiResponse<Void>> deleteLesson(@PathVariable Long lessonId) {
+        log.warn("Deleting library lesson ID: {}", lessonId);
         libraryService.deleteLibraryLesson(lessonId);
-        return ResponseEntity.ok(ApiResponse.success("Lesson deleted from library", null));
+        return ResponseEntity.ok(ApiResponse.success("Đã xóa bài giảng khỏi thư viện", null));
     }
 }

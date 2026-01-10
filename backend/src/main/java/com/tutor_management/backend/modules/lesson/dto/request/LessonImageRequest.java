@@ -5,6 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Payload for attaching an image to a lesson.
+ */
 @Data
 @Builder
 @NoArgsConstructor

@@ -14,10 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Controller for Student Lesson operations
- * Accessible by: STUDENT, ADMIN
- *
- * ✅ UPDATED: All methods now pass studentId to service layer
+ * Controller for Student-facing lesson operations.
+ * Allows students to view assigned lessons, track progress, and view learning stats.
+ * Authorized for: STUDENT, ADMIN.
  */
 @RestController
 @RequestMapping("/api/student/lessons")
@@ -29,126 +28,80 @@ public class StudentLessonController {
     private final LessonService lessonService;
 
     /**
-     * Get all lessons for current student
-     *
-     * ✅ UPDATED: Fetches via assignments
+     * Retrieves all lessons assigned to the authenticated student.
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<LessonResponse>>> getAllLessons(
-            @AuthenticationPrincipal User user) {
-
+    public ResponseEntity<ApiResponse<List<LessonResponse>>> getAllLessons(@AuthenticationPrincipal User user) {
         if (user.getStudentId() == null) {
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("Student ID not found for this user"));
+            return ResponseEntity.badRequest().body(ApiResponse.error("Không tìm thấy thông tin học sinh cho tài khoản này."));
         }
-
-        List<LessonResponse> lessons = lessonService.getStudentLessons(user.getStudentId());
-        return ResponseEntity.ok(ApiResponse.success(lessons));
+        return ResponseEntity.ok(ApiResponse.success(lessonService.getStudentLessons(user.getStudentId())));
     }
 
     /**
-     * Get lesson by ID
-     *
-     * UPDATED: Passes studentId to verify access via assignment
+     * Retrieves details for a specific lesson and records a view event.
      */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<LessonResponse>> getLessonById(
             @PathVariable Long id,
             @AuthenticationPrincipal User user) {
-
         if (user.getStudentId() == null) {
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("Student ID not found for this user"));
+            return ResponseEntity.badRequest().body(ApiResponse.error("Không tìm thấy thông tin học sinh."));
         }
 
-        try {
-            // Pass studentId to verify assignment
-            LessonResponse lesson = lessonService.getLessonById(id, user.getStudentId());
-
-            // Increment view count
-            lessonService.incrementViewCount(id, user.getStudentId());
-
-            return ResponseEntity.ok(ApiResponse.success(lesson));
-        } catch (Exception e) {
-            log.error("Error getting lesson {}: {}", id, e.getMessage());
-            return ResponseEntity.status(403)
-                    .body(ApiResponse.error("You don't have permission to access this lesson"));
-        }
+        LessonResponse lesson = lessonService.getLessonById(id, user.getStudentId());
+        lessonService.incrementViewCount(id, user.getStudentId());
+        return ResponseEntity.ok(ApiResponse.success(lesson));
     }
 
     /**
-     * Get lessons by month/year
-     *
-     * UPDATED: Filters assignments by lesson date
+     * Filters student lessons by month and year.
      */
     @GetMapping("/filter")
     public ResponseEntity<ApiResponse<List<LessonResponse>>> getLessonsByMonthYear(
             @RequestParam int year,
             @RequestParam int month,
             @AuthenticationPrincipal User user) {
-
         if (user.getStudentId() == null) {
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("Student ID not found for this user"));
+            return ResponseEntity.badRequest().body(ApiResponse.error("Không tìm thấy thông tin học sinh."));
         }
-
-        List<LessonResponse> lessons = lessonService.getLessonsByMonthYear(user.getStudentId(), year, month);
-        return ResponseEntity.ok(ApiResponse.success(lessons));
+        return ResponseEntity.ok(ApiResponse.success(lessonService.getLessonsByMonthYear(user.getStudentId(), year, month)));
     }
 
     /**
-     * Mark lesson as completed
-     *
-     * UPDATED: Updates assignment record
+     * Marks a lesson as completed for the authenticated student.
      */
     @PostMapping("/{id}/complete")
     public ResponseEntity<ApiResponse<LessonResponse>> markAsCompleted(
             @PathVariable Long id,
             @AuthenticationPrincipal User user) {
-
         if (user.getStudentId() == null) {
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("Student ID not found"));
+            return ResponseEntity.badRequest().body(ApiResponse.error("Không tìm thấy thông tin học sinh."));
         }
-
-        LessonResponse lesson = lessonService.markAsCompleted(id, user.getStudentId());
-        return ResponseEntity.ok(ApiResponse.success("Lesson marked as completed", lesson));
+        return ResponseEntity.ok(ApiResponse.success("Đã đánh dấu hoàn thành bài học", lessonService.markAsCompleted(id, user.getStudentId())));
     }
 
     /**
-     * Mark lesson as incomplete
-     *
-     * UPDATED: Updates assignment record
+     * Reverts a lesson to 'Incomplete' status for the authenticated student.
      */
     @PostMapping("/{id}/incomplete")
     public ResponseEntity<ApiResponse<LessonResponse>> markAsIncomplete(
             @PathVariable Long id,
             @AuthenticationPrincipal User user) {
-
         if (user.getStudentId() == null) {
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("Student ID not found"));
+            return ResponseEntity.badRequest().body(ApiResponse.error("Không tìm thấy thông tin học sinh."));
         }
-
-        LessonResponse lesson = lessonService.markAsIncomplete(id, user.getStudentId());
-        return ResponseEntity.ok(ApiResponse.success("Lesson marked as incomplete", lesson));
+        return ResponseEntity.ok(ApiResponse.success("Đã hủy đánh dấu hoàn thành bài học", lessonService.markAsIncomplete(id, user.getStudentId())));
     }
 
     /**
-     * Get lesson statistics
-     *
-     * UPDATED: Calculates from assignments
+     * Retrieves learning statistics for the authenticated student.
      */
     @GetMapping("/stats")
-    public ResponseEntity<ApiResponse<LessonStatsResponse>> getStats(
-            @AuthenticationPrincipal User user) {
-
+    public ResponseEntity<ApiResponse<LessonStatsResponse>> getStats(@AuthenticationPrincipal User user) {
         if (user.getStudentId() == null) {
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("Student ID not found"));
+            return ResponseEntity.badRequest().body(ApiResponse.error("Không tìm thấy thông tin học sinh."));
         }
-
-        LessonStatsResponse stats = lessonService.getStudentStats(user.getStudentId());
-        return ResponseEntity.ok(ApiResponse.success(stats));
+        return ResponseEntity.ok(ApiResponse.success(lessonService.getStudentStats(user.getStudentId())));
     }
 }

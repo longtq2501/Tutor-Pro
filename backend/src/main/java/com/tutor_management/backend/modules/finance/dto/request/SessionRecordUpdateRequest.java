@@ -4,11 +4,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
+/**
+ * Request payload for updating an existing session record.
+ * All fields are optional to support partial updates.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class SessionRecordUpdateRequest {
-    // Tất cả đều optional - không có @NotNull, @NotBlank
+    
     private String month;
     private Integer sessions;
     private Double hoursPerSession;
@@ -21,7 +27,6 @@ public class SessionRecordUpdateRequest {
     private String status;
     private Integer version;
 
-    // 🆕 Attachments
-    private java.util.List<Long> documentIds;
-    private java.util.List<Long> lessonIds;
+    private List<Long> documentIds;
+    private List<Long> lessonIds;
 }

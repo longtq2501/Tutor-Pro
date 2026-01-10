@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Response DTO for a student answer
+ * Data response for an individual student answer.
  */
 @Data
 @Builder

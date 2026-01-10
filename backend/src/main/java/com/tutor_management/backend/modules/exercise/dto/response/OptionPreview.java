@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Preview DTO for an option during import
+ * Preview choice extracted during NLP parsing.
  */
 @Data
 @Builder

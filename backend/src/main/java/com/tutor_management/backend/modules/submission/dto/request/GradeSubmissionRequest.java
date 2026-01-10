@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * Request DTO for grading essay questions
+ * Payload for grading a student's submission, specifically focusing on essay items.
  */
 @Data
 @Builder
@@ -18,9 +18,12 @@ import java.util.List;
 @AllArgsConstructor
 public class GradeSubmissionRequest {
     
-    @NotNull(message = "Essay grades are required")
+    @NotNull(message = "Danh sách điểm tự luận không được để trống")
     @Valid
     private List<EssayGradeRequest> essayGrades;
     
+    /**
+     * Global feedback for the entire submission.
+     */
     private String teacherComment;
 }

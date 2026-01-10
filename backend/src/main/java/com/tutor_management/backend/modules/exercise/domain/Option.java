@@ -3,16 +3,12 @@ package com.tutor_management.backend.modules.exercise.domain;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.domain.Persistable;
 
 /**
- * Option entity representing a single option in a multiple choice question
+ * Specifically typed selection for multiple-choice questions.
+ * Maps a label (e.g., 'A') to meaningful text and correct/incorrect status.
  */
 @Entity
 @Table(name = "options", indexes = {
@@ -42,7 +38,7 @@ public class Option implements Persistable<String> {
     }
     
     /**
-     * Reference to the parent question
+     * The MCQ question this option belongs to.
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "question_id", nullable = false)
@@ -50,19 +46,19 @@ public class Option implements Persistable<String> {
     private Question question;
     
     /**
-     * Option label (A, B, C, D)
+     * Identifier for the option (e.g., "A", "B", "C", "D").
      */
     @Column(nullable = false, length = 1)
     private String label;
     
     /**
-     * The option text
+     * The content displayed for this choice.
      */
     @Column(name = "option_text", nullable = false, columnDefinition = "TEXT")
     private String optionText;
     
     /**
-     * Whether this option is the correct answer
+     * Flags this option as the required selection for scoring points.
      */
     @Column(name = "is_correct", nullable = false)
     @Builder.Default

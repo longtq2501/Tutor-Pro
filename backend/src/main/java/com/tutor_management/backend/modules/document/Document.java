@@ -5,9 +5,14 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing a study document or resource in the system.
+ * Documents can be global (for all students) or private (linked to a specific student).
+ */
 @Entity
 @Table(name = "documents")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -17,38 +22,70 @@ public class Document {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * Display title of the document.
+     */
     @Column(nullable = false)
     private String title;
 
+    /**
+     * Original filename of the uploaded file.
+     */
     @Column(nullable = false)
     private String fileName;
 
+    /**
+     * Remote URL or local storage path for the file (Cloudinary URL).
+     */
     @Column(nullable = false)
     private String filePath;
 
+    /**
+     * File size in bytes.
+     */
     @Column(nullable = false)
-    private Long fileSize; // in bytes
+    private Long fileSize;
 
+    /**
+     * Content type (e.g., application/pdf, image/png).
+     */
     @Column(nullable = false)
-    private String fileType; // MIME type
+    private String fileType;
 
+    /**
+     * Legacy category field for backwards compatibility or quick filtering.
+     */
     @Enumerated(EnumType.STRING)
     @Column(name = "category", insertable = false, updatable = false, nullable = true)
     private DocumentCategoryType categoryType;
 
+    /**
+     * Structured category classification.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private DocumentCategory category;
 
+    /**
+     * Short summary or descriptive text about the document's content.
+     */
     @Column(length = 1000)
     private String description;
 
+    /**
+     * Owner student if the document is private. 
+     * If null, the document is available to all students (shared resource).
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id")
-    private Student student; // Optional: link to specific student
+    private Student student;
 
+    /**
+     * Statistics tracking for how many times the file has been opened/downloaded.
+     */
     @Column(nullable = false)
-    private Long downloadCount;
+    @Builder.Default
+    private Long downloadCount = 0L;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

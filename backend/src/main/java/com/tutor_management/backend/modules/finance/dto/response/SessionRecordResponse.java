@@ -5,11 +5,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
+/**
+ * Response payload for session record details.
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class SessionRecordResponse {
+    
     private Long id;
     private Long studentId;
     private String studentName;
@@ -21,21 +27,27 @@ public class SessionRecordResponse {
     private Boolean paid;
     private String paidAt;
     private String notes;
-    private String sessionDate; // 🆕 Ngày dạy (String để dễ serialize)
+    private String sessionDate;
     private String createdAt;
-    private Boolean completed; // Trạng thái đã dạy (deprecated, use status instead)
+    
+    /**
+     * @deprecated Use status instead.
+     */
+    @Deprecated
+    private Boolean completed;
 
-    // ========== NEW FIELDS FOR CALENDAR OPTIMIZATION ==========
-    private String startTime; // Giờ bắt đầu (HH:mm format, e.g., "14:00")
-    private String endTime; // Giờ kết thúc (HH:mm format, e.g., "15:30")
-    private String subject; // Môn học (e.g., "Toán 10", "Lý 11")
-    private String status; // Trạng thái chi tiết (SCHEDULED, CONFIRMED, COMPLETED, PAID, etc.)
-    private Integer version; // Version for optimistic locking
+    private String startTime;
+    private String endTime;
+    private String subject;
+    private String status;
+    private Integer version;
 
-    // ========== ATTACHMENTS ==========
-    private java.util.List<DocumentDTO> documents;
-    private java.util.List<LessonDTO> lessons;
+    private List<DocumentDTO> documents;
+    private List<LessonDTO> lessons;
 
+    /**
+     * Simplified document metadata for session attachments.
+     */
     @Data
     @Builder
     @NoArgsConstructor
@@ -49,6 +61,9 @@ public class SessionRecordResponse {
         private String filePath;
     }
 
+    /**
+     * Simplified lesson metadata for session attachments.
+     */
     @Data
     @Builder
     @NoArgsConstructor

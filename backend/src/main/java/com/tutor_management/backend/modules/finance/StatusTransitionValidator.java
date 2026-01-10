@@ -7,26 +7,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Validator for lesson status transitions following FSM (Finite State Machine)
- * pattern.
- * 
- * Ensures that status changes follow valid transition paths.
- * For example: SCHEDULED → CONFIRMED → COMPLETED → PAID
- * 
- * See status_fsm.md for detailed state diagram and transition rules.
- * 
- * @author AI Agent
- * @since 2025-12-26
+ * Validator for enforcing session status transitions using a Finite State Machine (FSM) pattern.
+ * Defines the legal lifecycle paths for a {@link SessionRecord}.
  */
 @Slf4j
 @Component
 public class StatusTransitionValidator {
 
-    /**
-     * Allowed state transitions map.
-     * Key: Current status
-     * Value: List of allowed next statuses
-     */
     private static final Map<LessonStatus, List<LessonStatus>> ALLOWED_TRANSITIONS = Map.of(
             LessonStatus.SCHEDULED, List.of(
                     LessonStatus.CONFIRMED,
@@ -46,8 +33,7 @@ public class StatusTransitionValidator {
                     LessonStatus.PENDING_PAYMENT,
                     LessonStatus.CANCELLED_BY_TUTOR,
                     LessonStatus.CANCELLED_BY_STUDENT,
-                    LessonStatus.CONFIRMED // Allow undoing "marked as taught"
-            ),
+                    LessonStatus.CONFIRMED),
 
             LessonStatus.PENDING_PAYMENT, List.of(
                     LessonStatus.PAID,
@@ -55,8 +41,6 @@ public class StatusTransitionValidator {
                     LessonStatus.CANCELLED_BY_TUTOR,
                     LessonStatus.CANCELLED_BY_STUDENT),
 
-            // Even terminal states can be "undone" by an admin/tutor now for maximum
-            // flexibility
             LessonStatus.PAID, List.of(
                     LessonStatus.COMPLETED,
                     LessonStatus.CANCELLED_BY_TUTOR,
@@ -66,94 +50,46 @@ public class StatusTransitionValidator {
             LessonStatus.CANCELLED_BY_TUTOR, List.of(LessonStatus.SCHEDULED));
 
     /**
-     * Validate if transition from 'from' status to 'to' status is allowed.
+     * Validates if a transition from one status to another is permitted.
      * 
-     * @param from Current status
-     * @param to   Target status
-     * @throws InvalidStatusTransitionException if transition is not allowed
+     * @param from The current status.
+     * @param to The target status.
+     * @throws InvalidStatusTransitionException if the transition violates business rules.
      */
     public void validate(LessonStatus from, LessonStatus to) {
         if (from == null || to == null) {
-            throw new IllegalArgumentException("Status cannot be null");
+            throw new IllegalArgumentException("Trạng thái không được để trống");
         }
 
-        // Same status is always allowed (no-op)
-        if (from == to) {
-            log.debug("Status transition: {} -> {} (no change)", from, to);
-            return;
-        }
+        if (from == to) return;
 
         List<LessonStatus> allowedTargets = ALLOWED_TRANSITIONS.getOrDefault(from, List.of());
 
         if (!allowedTargets.contains(to)) {
-            log.warn("Invalid status transition attempted: {} -> {}", from, to);
+            log.warn("Invalid transition: {} -> {}", from, to);
             throw new InvalidStatusTransitionException(
                     from,
                     to,
-                    String.format("Các trạng thái hợp lệ từ %s: %s",
+                    String.format("Chuyển đổi trạng thái từ %s sang %s không hợp lệ. Các trạng thái tiếp theo có thể: %s",
                             from.getDisplayName(),
+                            to.getDisplayName(),
                             formatAllowedStatuses(allowedTargets)));
         }
-
-        log.info("Valid status transition: {} -> {}", from, to);
     }
 
     /**
-     * Get all allowed next states from current state.
-     * 
-     * @param current Current status
-     * @return List of allowed next statuses
-     */
-    public List<LessonStatus> getAllowedNextStates(LessonStatus current) {
-        if (current == null) {
-            return List.of();
-        }
-        return ALLOWED_TRANSITIONS.getOrDefault(current, List.of());
-    }
-
-    /**
-     * Check if a state is terminal (no further transitions allowed).
-     * 
-     * @param status Status to check
-     * @return true if terminal state, false otherwise
-     */
-    public boolean isTerminalState(LessonStatus status) {
-        if (status == null) {
-            return false;
-        }
-        return ALLOWED_TRANSITIONS.getOrDefault(status, List.of()).isEmpty();
-    }
-
-    /**
-     * Check if transition is allowed without throwing exception.
-     * 
-     * @param from Current status
-     * @param to   Target status
-     * @return true if transition is allowed, false otherwise
+     * Checks if a transition is allowed without throwing an exception.
      */
     public boolean isTransitionAllowed(LessonStatus from, LessonStatus to) {
-        if (from == null || to == null) {
-            return false;
-        }
-
-        if (from == to) {
-            return true;
-        }
-
-        List<LessonStatus> allowedTargets = ALLOWED_TRANSITIONS.getOrDefault(from, List.of());
-        return allowedTargets.contains(to);
+        if (from == null || to == null) return false;
+        if (from == to) return true;
+        return ALLOWED_TRANSITIONS.getOrDefault(from, List.of()).contains(to);
     }
 
-    /**
-     * Format allowed statuses for error message.
-     */
     private String formatAllowedStatuses(List<LessonStatus> statuses) {
-        if (statuses.isEmpty()) {
-            return "Không có (trạng thái cuối)";
-        }
-
+        if (statuses.isEmpty()) return "Không có";
         return statuses.stream()
-                .map(s -> s.getDisplayName() + " (" + s.name() + ")")
+                .map(LessonStatus::getDisplayName)
                 .reduce((a, b) -> a + ", " + b)
                 .orElse("");
     }

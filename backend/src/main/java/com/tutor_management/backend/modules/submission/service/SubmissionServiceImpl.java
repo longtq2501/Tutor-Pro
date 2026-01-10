@@ -21,24 +21,24 @@ import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.auth.UserRepository;
 import com.tutor_management.backend.modules.notification.event.ExamGradedEvent;
 import com.tutor_management.backend.modules.notification.event.ExamSubmittedEvent;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Implementation of SubmissionService
+ * Standard implementation of {@link SubmissionService}.
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class SubmissionServiceImpl implements SubmissionService {
     
     private final SubmissionRepository submissionRepository;
@@ -46,386 +46,201 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final UserRepository userRepository;
     private final ExerciseRepository exerciseRepository;
     private final QuestionRepository questionRepository;
-    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
     
     @Override
-    @Transactional
     public SubmissionResponse saveDraft(CreateSubmissionRequest request, String studentId) {
-        log.info("Saving draft for exercise: {} by student: {}", request.getExerciseId(), studentId);
-        
-        // Check if submission already exists
-        Submission submission = submissionRepository
-            .findByExerciseIdAndStudentId(request.getExerciseId(), studentId)
-            .orElse(null);
-        
-        if (submission == null) {
-            // Create new submission
-            submission = Submission.builder()
-                .id(UUID.randomUUID().toString())
-                .exerciseId(request.getExerciseId())
-                .studentId(studentId)
-                .status(SubmissionStatus.DRAFT)
-                .answers(new ArrayList<>())
-                .build();
-        } else {
-            // Clear existing answers
-            submission.getAnswers().clear();
-        }
-        
-        // Add answers
-        for (AnswerRequest answerReq : request.getAnswers()) {
-            StudentAnswer answer = StudentAnswer.builder()
-                .id(UUID.randomUUID().toString())
-                .submission(submission)
-                .questionId(answerReq.getQuestionId())
-                .selectedOption(answerReq.getSelectedOption())
-                .essayText(answerReq.getEssayText())
-                .build();
-            submission.addAnswer(answer);
-        }
-        
-        Submission savedSubmission = saveDraftEntity(request, studentId);
-        log.info("Draft saved successfully: {}", savedSubmission.getId());
-        
-        return mapToSubmissionResponse(savedSubmission);
-    }
-
-    /**
-     * Internal version of saveDraft that returns the entity instead of DTO
-     */
-    private Submission saveDraftEntity(CreateSubmissionRequest request, String studentId) {
-        log.info("Saving draft entity for exercise: {} by student: {}", request.getExerciseId(), studentId);
-        
-        // Check if submission already exists
-        Submission submission = submissionRepository
-            .findByExerciseIdAndStudentId(request.getExerciseId(), studentId)
-            .orElse(null);
-        
-        if (submission == null) {
-            // Create new submission
-            submission = Submission.builder()
-                .id(UUID.randomUUID().toString())
-                .exerciseId(request.getExerciseId())
-                .studentId(studentId)
-                .status(SubmissionStatus.DRAFT)
-                .answers(new ArrayList<>())
-                .build();
-        } else {
-            // Clear existing answers
-            submission.getAnswers().clear();
-        }
-        
-        // Add answers
-        for (AnswerRequest answerReq : request.getAnswers()) {
-            StudentAnswer answer = StudentAnswer.builder()
-                .id(UUID.randomUUID().toString())
-                .submission(submission)
-                .questionId(answerReq.getQuestionId())
-                .selectedOption(answerReq.getSelectedOption())
-                .essayText(answerReq.getEssayText())
-                .build();
-            submission.addAnswer(answer);
-        }
-        
-        return submissionRepository.save(submission);
+        log.info("📝 Saving submission draft | Exercise: {} | Student: {}", request.getExerciseId(), studentId);
+        Submission submission = syncDraftEntity(request, studentId);
+        return mapToSubmissionResponse(submission);
     }
     
     @Override
-    @Transactional
     public SubmissionResponse submit(CreateSubmissionRequest request, String studentId) {
-        log.info("Submitting exercise: {} by student: {}", request.getExerciseId(), studentId);
+        log.info("🚀 Finalizing submission | Exercise: {} | Student: {}", request.getExerciseId(), studentId);
         
-        // 1. Prepare the submission entity (in-memory update)
-        Submission submission = saveDraftEntity(request, studentId);
-        
-        // 2. Update status and timestamp
+        Submission submission = syncDraftEntity(request, studentId);
         submission.setStatus(SubmissionStatus.SUBMITTED);
         submission.setSubmittedAt(LocalDateTime.now());
         
-        // 3. Auto-grade MCQ questions using the in-memory submission object
-        // AutoGradingService.gradeSubmission(submission) will update the submission fields
+        // coordinated auto-grading phase
         autoGradingService.gradeSubmission(submission);
         
-        // 4. Save once (this will perform batched updates for answers and 1 update for submission)
-        Submission submittedSubmission = submissionRepository.save(submission);
-        log.info("Submission completed: {}", submittedSubmission.getId());
+        Submission saved = submissionRepository.save(submission);
+        publishSubmissionEvent(saved, studentId);
         
-        // Publish notification event
-        exerciseRepository.findById(submission.getExerciseId()).ifPresent(ex -> {
-            try {
-                String studentName = userRepository.findById(Long.parseLong(studentId))
-                        .map(User::getFullName)
-                        .orElse("Một học sinh");
-
-                eventPublisher.publishEvent(ExamSubmittedEvent.builder()
-                    .submissionId(submittedSubmission.getId())
-                    .studentId(studentId)
-                    .studentName(studentName)
-                    .exerciseId(ex.getId())
-                    .exerciseTitle(ex.getTitle())
-                    .tutorId(ex.getCreatedBy())
-                    .build());
-            } catch (Exception e) {
-                log.error("Failed to publish ExamSubmittedEvent", e);
-            }
-        });
-        
-        return mapToSubmissionResponse(submittedSubmission);
+        return mapToSubmissionResponse(saved);
     }
     
     @Override
     @Transactional(readOnly = true)
     public SubmissionResponse getSubmission(String id) {
-        log.info("Fetching submission: {}", id);
-        
-        // OPTIMIZATION: Fetch with answers eagerly for details view
         Submission submission = submissionRepository.findByIdWithAnswers(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Submission not found with id: " + id));
-        
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài nộp với ID: " + id));
         return mapToSubmissionResponse(submission);
     }
     
     @Override
     @Transactional(readOnly = true)
     public SubmissionResponse getSubmissionByExerciseAndStudent(String exerciseId, String studentId) {
-        log.info("Fetching submission for exercise: {} and student: {}", exerciseId, studentId);
-        
-        Submission submission = submissionRepository
-            .findByExerciseIdAndStudentId(exerciseId, studentId)
-            .orElseThrow(() -> new ResourceNotFoundException(
-                "Submission not found for exercise: " + exerciseId + " and student: " + studentId));
-        
+        Submission submission = submissionRepository.findByExerciseIdAndStudentId(exerciseId, studentId)
+            .orElseThrow(() -> new ResourceNotFoundException("Học sinh chưa có bài nộp cho bài tập này."));
         return mapToSubmissionResponse(submission);
     }
     
     @Override
     @Transactional(readOnly = true)
     public List<SubmissionListItemResponse> listSubmissionsByExercise(String exerciseId) {
-        log.info("Listing submissions for exercise: {}", exerciseId);
-        
         List<Submission> submissions = submissionRepository.findByExerciseId(exerciseId);
-        
-        if (submissions.isEmpty()) {
-            return List.of();
-        }
+        if (submissions.isEmpty()) return List.of();
 
-        // OPTIMIZATION: Batch fetch users to avoid N+1
-        List<Long> studentIds = submissions.stream()
-            .filter(s -> s.getStudentId() != null)
-            .map(s -> {
-                try {
-                     return Long.parseLong(s.getStudentId());
-                } catch (NumberFormatException e) {
-                    log.warn("Invalid student ID format: {}", s.getStudentId());
-                    return null;
-                }
-            })
-            .filter(java.util.Objects::nonNull)
-            .distinct()
-            .collect(Collectors.toList());
-
-        Map<Long, User> userMap = userRepository.findAllById(studentIds).stream()
-            .collect(Collectors.toMap(User::getId, u -> u, (u1, u2) -> u1));
-        
+        Map<Long, User> studentMap = fetchStudentMap(submissions);
         return submissions.stream()
-            .map(s -> mapToListItemResponse(s, userMap))
+            .map(s -> mapToListItemResponse(s, studentMap))
             .collect(Collectors.toList());
     }
     
     @Override
     @Transactional(readOnly = true)
     public List<SubmissionResponse> listSubmissionsByStudent(String studentId) {
-        log.info("Listing submissions for student: {}", studentId);
-        
-        List<Submission> submissions = submissionRepository.findByStudentId(studentId);
-        
-        return submissions.stream()
+        return submissionRepository.findByStudentId(studentId).stream()
             .map(this::mapToSubmissionResponse)
             .collect(Collectors.toList());
     }
     
     @Override
-    @Transactional
-    public SubmissionResponse gradeSubmission(String submissionId, GradeSubmissionRequest request) {
-        log.info("Grading submission: {}", submissionId);
+    public SubmissionResponse gradeSubmission(String id, GradeSubmissionRequest request) {
+        log.info("⚖️ Grading submission: {}", id);
         
-        // OPTIMIZATION: Fetch with answers eagerly to avoid N+1 during grading
-        Submission submission = submissionRepository.findByIdWithAnswers(submissionId)
-            .orElseThrow(() -> new ResourceNotFoundException("Submission not found with id: " + submissionId));
+        Submission submission = submissionRepository.findByIdWithAnswers(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài nộp với ID: " + id));
         
-        // Update pointed answers from request
-        if (request.getEssayGrades() != null) {
-            for (EssayGradeRequest gradeReq : request.getEssayGrades()) {
-                StudentAnswer answer = submission.getAnswers().stream()
-                    .filter(a -> a.getQuestionId().equals(gradeReq.getQuestionId()))
-                    .findFirst()
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                        "Answer not found for question: " + gradeReq.getQuestionId()));
-                
-                answer.setPoints(gradeReq.getPoints());
-                answer.setFeedback(gradeReq.getFeedback());
-            }
-        }
-
-        // Recalculate scores from all answers to ensure consistency
-        List<Question> questions = questionRepository.findByExerciseIdOrderByOrderIndex(submission.getExerciseId());
-        Map<String, QuestionType> questionTypes = questions.stream()
-            .collect(Collectors.toMap(Question::getId, Question::getType));
-
-        int mcqScore = 0;
-        int essayScore = 0;
-
-        for (StudentAnswer answer : submission.getAnswers()) {
-            QuestionType type = questionTypes.get(answer.getQuestionId());
-            if (type == QuestionType.MCQ) {
-                mcqScore += (answer.getPoints() != null ? answer.getPoints() : 0);
-            } else if (type == QuestionType.ESSAY) {
-                essayScore += (answer.getPoints() != null ? answer.getPoints() : 0);
-            }
-        }
+        applyManualGrades(submission, request);
+        recalculateAndCapScores(submission);
         
-        submission.setMcqScore(mcqScore);
-        submission.setEssayScore(essayScore);
         submission.setTeacherComment(request.getTeacherComment());
         submission.setStatus(SubmissionStatus.GRADED);
         submission.setGradedAt(LocalDateTime.now());
         
-        // Final total score calculation and capping
-        submission.calculateTotalScore();
-        exerciseRepository.findById(submission.getExerciseId()).ifPresent(ex -> {
-            if (submission.getTotalScore() > ex.getTotalPoints()) {
-                log.warn("Submission {} total score ({}) exceeds exercise max points ({}), capping...", 
-                        submissionId, submission.getTotalScore(), ex.getTotalPoints());
-                submission.setTotalScore(ex.getTotalPoints());
-            }
-        });
+        Submission graded = submissionRepository.save(submission);
+        publishGradingEvent(graded);
         
-        Submission gradedSubmission = submissionRepository.save(submission);
-        log.info("Submission graded successfully. MCQ: {}, Essay: {}, Total: {}", 
-                mcqScore, essayScore, gradedSubmission.getTotalScore());
-        
-        // Publish notification event
-        exerciseRepository.findById(submission.getExerciseId()).ifPresent(ex -> {
-            try {
-                eventPublisher.publishEvent(ExamGradedEvent.builder()
-                    .submissionId(gradedSubmission.getId())
-                    .studentId(submission.getStudentId())
-                    .exerciseId(ex.getId())
-                    .exerciseTitle(ex.getTitle())
-                    .score(gradedSubmission.getTotalScore())
-                    .build());
-            } catch (Exception e) {
-                log.error("Failed to publish ExamGradedEvent", e);
-            }
-        });
-        
-        return mapToSubmissionResponse(gradedSubmission);
+        return mapToSubmissionResponse(graded);
     }
-    
-    /**
-     * Map Submission entity to SubmissionResponse DTO
-     */
-    private SubmissionResponse mapToSubmissionResponse(Submission submission) {
-        List<StudentAnswerResponse> answerResponses = submission.getAnswers().stream()
-            .map(this::mapToAnswerResponse)
-            .collect(Collectors.toList());
+
+    // --- Private Processors ---
+
+    private Submission syncDraftEntity(CreateSubmissionRequest r, String studentId) {
+        Submission submission = submissionRepository.findByExerciseIdAndStudentId(r.getExerciseId(), studentId)
+                .orElseGet(() -> Submission.builder()
+                        .exerciseId(r.getExerciseId())
+                        .studentId(studentId)
+                        .status(SubmissionStatus.DRAFT)
+                        .answers(new ArrayList<>())
+                        .build());
         
-        // OPTIMIZATION: Check if studentId is available and fetch name once
-        String studentName = null;
-        if (submission.getStudentId() != null) {
-            try {
-                // If this is a student making their own submission, we could potentially avoid this call 
-                // if we had the user context, but for consistency we check the repo.
-                // However, findById is usually fast/cached.
-                studentName = userRepository.findById(Long.parseLong(submission.getStudentId()))
-                    .map(User::getFullName)
-                    .orElse("Unknown Student");
-            } catch (NumberFormatException ignored) {}
+        submission.getAnswers().clear();
+        for (AnswerRequest req : r.getAnswers()) {
+            submission.addAnswer(StudentAnswer.builder()
+                .questionId(req.getQuestionId())
+                .selectedOption(req.getSelectedOption())
+                .essayText(req.getEssayText())
+                .build());
+        }
+        
+        return submissionRepository.save(submission);
+    }
+
+    private void applyManualGrades(Submission s, GradeSubmissionRequest r) {
+        if (r.getEssayGrades() == null) return;
+
+        for (EssayGradeRequest g : r.getEssayGrades()) {
+            StudentAnswer answer = s.getAnswers().stream()
+                .filter(a -> a.getQuestionId().equals(g.getQuestionId()))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy câu trả lời cho câu hỏi: " + g.getQuestionId()));
+            
+            answer.setPoints(g.getPoints());
+            answer.setFeedback(g.getFeedback());
+        }
+    }
+
+    private void recalculateAndCapScores(Submission s) {
+        List<Question> questions = questionRepository.findByExerciseIdOrderByOrderIndex(s.getExerciseId());
+        Map<String, QuestionType> typeMap = questions.stream()
+            .collect(Collectors.toMap(Question::getId, Question::getType));
+
+        int mcq = 0; int essay = 0;
+        for (StudentAnswer a : s.getAnswers()) {
+            QuestionType type = typeMap.get(a.getQuestionId());
+            int pts = Optional.ofNullable(a.getPoints()).orElse(0);
+            if (type == QuestionType.MCQ) mcq += pts;
+            else if (type == QuestionType.ESSAY) essay += pts;
         }
 
+        s.setMcqScore(mcq);
+        s.setEssayScore(essay);
+        s.calculateTotalScore();
+
+        exerciseRepository.findById(s.getExerciseId()).ifPresent(ex -> {
+            if (s.getTotalScore() > ex.getTotalPoints()) s.setTotalScore(ex.getTotalPoints());
+        });
+    }
+
+    private void publishSubmissionEvent(Submission s, String studentId) {
+        exerciseRepository.findById(s.getExerciseId()).ifPresent(ex -> {
+            String name = userRepository.findById(safeParseLong(studentId)).map(User::getFullName).orElse("Học sinh");
+            eventPublisher.publishEvent(ExamSubmittedEvent.builder()
+                .submissionId(s.getId()).studentId(studentId).studentName(name)
+                .exerciseId(ex.getId()).exerciseTitle(ex.getTitle()).tutorId(ex.getCreatedBy())
+                .build());
+        });
+    }
+
+    private void publishGradingEvent(Submission s) {
+        exerciseRepository.findById(s.getExerciseId()).ifPresent(ex -> {
+            eventPublisher.publishEvent(ExamGradedEvent.builder()
+                .submissionId(s.getId()).studentId(s.getStudentId())
+                .exerciseId(ex.getId()).exerciseTitle(ex.getTitle()).score(s.getTotalScore())
+                .build());
+        });
+    }
+
+    private Map<Long, User> fetchStudentMap(List<Submission> sub) {
+        List<Long> ids = sub.stream().map(s -> safeParseLong(s.getStudentId())).filter(Objects::nonNull).distinct().toList();
+        return userRepository.findAllById(ids).stream().collect(Collectors.toMap(User::getId, u -> u));
+    }
+
+    private Long safeParseLong(String s) {
+        try { return Long.parseLong(s); } catch (Exception e) { return null; }
+    }
+
+    // --- Mappers ---
+
+    private SubmissionResponse mapToSubmissionResponse(Submission s) {
+        String studentName = userRepository.findById(safeParseLong(s.getStudentId())).map(User::getFullName).orElse("N/A");
         return SubmissionResponse.builder()
-            .id(submission.getId())
-            .exerciseId(submission.getExerciseId())
-            .studentId(submission.getStudentId())
-            .studentName(studentName)
-            .status(submission.getStatus())
-            .mcqScore(submission.getMcqScore())
-            .essayScore(submission.getEssayScore())
-            .totalScore(submission.getTotalScore())
-            .submittedAt(submission.getSubmittedAt())
-            .gradedAt(submission.getGradedAt())
-            .teacherComment(submission.getTeacherComment())
-            .createdAt(submission.getCreatedAt())
-            .updatedAt(submission.getUpdatedAt())
-            .answers(answerResponses)
+            .id(s.getId()).exerciseId(s.getExerciseId()).studentId(s.getStudentId()).studentName(studentName)
+            .status(s.getStatus()).mcqScore(s.getMcqScore()).essayScore(s.getEssayScore()).totalScore(s.getTotalScore())
+            .submittedAt(s.getSubmittedAt()).gradedAt(s.getGradedAt()).teacherComment(s.getTeacherComment())
+            .createdAt(s.getCreatedAt()).updatedAt(s.getUpdatedAt())
+            .answers(s.getAnswers().stream().map(this::mapToAnswerResponse).toList())
             .build();
     }
-    
-    /**
-     * Map StudentAnswer entity to StudentAnswerResponse DTO
-     */
-    private StudentAnswerResponse mapToAnswerResponse(StudentAnswer answer) {
+
+    private StudentAnswerResponse mapToAnswerResponse(StudentAnswer a) {
         return StudentAnswerResponse.builder()
-            .id(answer.getId())
-            .questionId(answer.getQuestionId())
-            .selectedOption(answer.getSelectedOption())
-            .essayText(answer.getEssayText())
-            .isCorrect(answer.getIsCorrect())
-            .points(answer.getPoints())
-            .feedback(answer.getFeedback())
+            .id(a.getId()).questionId(a.getQuestionId()).selectedOption(a.getSelectedOption())
+            .essayText(a.getEssayText()).isCorrect(a.getIsCorrect()).points(a.getPoints()).feedback(a.getFeedback())
             .build();
     }
-    
-    /**
-     * Map Submission entity to SubmissionListItemResponse DTO
-     */
-    private SubmissionListItemResponse mapToListItemResponse(Submission submission, Map<Long, User> userMap) {
-        String studentName = "Unknown Student";
-        if (submission.getStudentId() != null) {
-            try {
-                Long studentId = Long.parseLong(submission.getStudentId());
-                User user = userMap.get(studentId);
-                if (user != null) {
-                    studentName = user.getFullName();
-                }
-            } catch (NumberFormatException ignored) {}
-        }
 
+    private SubmissionListItemResponse mapToListItemResponse(Submission s, Map<Long, User> studentMap) {
+        User u = studentMap.get(safeParseLong(s.getStudentId()));
         return SubmissionListItemResponse.builder()
-            .id(submission.getId())
-            .studentId(submission.getStudentId())
-            .studentName(studentName)
-            .status(submission.getStatus())
-            .mcqScore(submission.getMcqScore())
-            .essayScore(submission.getEssayScore())
-            .totalScore(submission.getTotalScore())
-            .submittedAt(submission.getSubmittedAt())
-            .gradedAt(submission.getGradedAt())
+            .id(s.getId()).studentId(s.getStudentId()).studentName(u != null ? u.getFullName() : "N/A")
+            .status(s.getStatus()).mcqScore(s.getMcqScore()).essayScore(s.getEssayScore()).totalScore(s.getTotalScore())
+            .submittedAt(s.getSubmittedAt()).gradedAt(s.getGradedAt())
             .build();
-    }
-
-    /**
-     * Map Submission entity to SubmissionListItemResponse DTO (Legacy/Single use fallback)
-     */
-    private SubmissionListItemResponse mapToListItemResponse(Submission submission) {
-         // Fallback to fetch single user if map not provided (though avoid usage in loops)
-         String studentName = "Unknown Student";
-         if (submission.getStudentId() != null) {
-             studentName = userRepository.findById(Long.parseLong(submission.getStudentId()))
-                     .map(User::getFullName)
-                     .orElse("Unknown Student");
-         }
-         
-         return SubmissionListItemResponse.builder()
-             .id(submission.getId())
-             .studentId(submission.getStudentId())
-             .studentName(studentName)
-             .status(submission.getStatus())
-             .mcqScore(submission.getMcqScore())
-             .essayScore(submission.getEssayScore())
-             .totalScore(submission.getTotalScore())
-             .submittedAt(submission.getSubmittedAt())
-             .gradedAt(submission.getGradedAt())
-             .build();
     }
 }

@@ -1,18 +1,26 @@
 package com.tutor_management.backend.modules.shared;
 
 import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
+/**
+ * Service for managing automated email communications.
+ * Handles HTML email construction and attachment of financial documents.
+ */
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class EmailService {
 
-    @Autowired
-    private JavaMailSender mailSender;
+    private final JavaMailSender mailSender;
 
     @Value("${app.mail.from}")
     private String fromEmail;
@@ -20,40 +28,58 @@ public class EmailService {
     @Value("${app.mail.from-name}")
     private String fromName;
 
+    /**
+     * Sends an invoice email to a parent with an attached PDF.
+     *
+     * @param toEmail       Recipient email address.
+     * @param parentName    Recipient's name for personalization.
+     * @param studentName   Student's name for context.
+     * @param month         The billing month.
+     * @param pdfData       The binary PDF content.
+     * @param invoiceNumber The unique invoice identifier.
+     */
     public void sendInvoiceEmail(String toEmail, String parentName,
             String studentName, String month,
             byte[] pdfData, String invoiceNumber) {
+        log.info("Preparing invoice email for {}, Student: {}, Month: {}", toEmail, studentName, month);
+        
         try {
+            validateInputs(toEmail, pdfData);
+
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            // Sender
             helper.setFrom(fromEmail, fromName);
-
-            // Recipient
             helper.setTo(toEmail);
+            helper.setSubject(String.format("Hóa đơn học phí tháng %s - %s", month, studentName));
 
-            // Subject
-            helper.setSubject("Hóa đơn học phí tháng " + month + " - " + studentName);
-
-            // Email body (HTML)
             String htmlContent = buildEmailContent(parentName, studentName, month, invoiceNumber);
             helper.setText(htmlContent, true);
 
-            // Attach PDF
-            String fileName = "Hoa-don-" + invoiceNumber + ".pdf";
+            String fileName = String.format("Hoa-don-%s.pdf", invoiceNumber);
             helper.addAttachment(fileName, new ByteArrayResource(pdfData));
 
-            // Send
             mailSender.send(message);
-
-            System.out.println("Email sent successfully to: " + toEmail);
+            log.info("Invoice email sent successfully to: {}", toEmail);
 
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send email to: " + toEmail, e);
+            log.error("Failed to send invoice email to: {}", toEmail, e);
+            throw new RuntimeException("Không thể gửi email đến " + toEmail + ": " + e.getMessage(), e);
         }
     }
 
+    private void validateInputs(String toEmail, byte[] pdfData) {
+        if (toEmail == null || toEmail.isBlank()) {
+            throw new IllegalArgumentException("Địa chỉ email người nhận không được để trống");
+        }
+        if (pdfData == null || pdfData.length == 0) {
+            throw new IllegalArgumentException("Dữ liệu PDF không hợp lệ hoặc bị trống");
+        }
+    }
+
+    /**
+     * Constructs the HTML content for the invoice email using defensive string building.
+     */
     private String buildEmailContent(String parentName, String studentName,
             String month, String invoiceNumber) {
         return "<!DOCTYPE html>\n" +
@@ -61,57 +87,15 @@ public class EmailService {
                 "<head>\n" +
                 "    <meta charset=\"UTF-8\">\n" +
                 "    <style>\n" +
-                "        body {\n" +
-                "            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n" +
-                "            line-height: 1.6;\n" +
-                "            color: #333;\n" +
-                "            max-width: 600px;\n" +
-                "            margin: 0 auto;\n" +
-                "            padding: 20px;\n" +
-                "        }\n" +
-                "        .header {\n" +
-                "            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n" +
-                "            color: white;\n" +
-                "            padding: 30px;\n" +
-                "            border-radius: 10px 10px 0 0;\n" +
-                "            text-align: center;\n" +
-                "        }\n" +
-                "        .content {\n" +
-                "            background: #f9fafb;\n" +
-                "            padding: 30px;\n" +
-                "            border-radius: 0 0 10px 10px;\n" +
-                "        }\n" +
-                "        .invoice-info {\n" +
-                "            background: white;\n" +
-                "            padding: 20px;\n" +
-                "            border-radius: 8px;\n" +
-                "            margin: 20px 0;\n" +
-                "            border-left: 4px solid #667eea;\n" +
-                "        }\n" +
-                "        .info-row {\n" +
-                "            display: flex;\n" +
-                "            justify-content: space-between;\n" +
-                "            padding: 8px 0;\n" +
-                "            border-bottom: 1px solid #e5e7eb;\n" +
-                "        }\n" +
-                "        .info-row:last-child {\n" +
-                "            border-bottom: none;\n" +
-                "        }\n" +
-                "        .label {\n" +
-                "            font-weight: bold;\n" +
-                "            color: #6b7280;\n" +
-                "        }\n" +
-                "        .value {\n" +
-                "            color: #111827;\n" +
-                "        }\n" +
-                "        .footer {\n" +
-                "            text-align: center;\n" +
-                "            margin-top: 30px;\n" +
-                "            padding-top: 20px;\n" +
-                "            border-top: 2px solid #e5e7eb;\n" +
-                "            color: #6b7280;\n" +
-                "            font-size: 14px;\n" +
-                "        }\n" +
+                "        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }\n" +
+                "        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center; }\n" +
+                "        .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }\n" +
+                "        .invoice-info { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea; }\n" +
+                "        .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb; }\n" +
+                "        .info-row:last-child { border-bottom: none; }\n" +
+                "        .label { font-weight: bold; color: #6b7280; }\n" +
+                "        .value { color: #111827; }\n" +
+                "        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #6b7280; font-size: 14px; }\n" +
                 "    </style>\n" +
                 "</head>\n" +
                 "<body>\n" +
@@ -122,36 +106,16 @@ public class EmailService {
                 "    \n" +
                 "    <div class=\"content\">\n" +
                 "        <p>Kính gửi Quý phụ huynh <strong>" + parentName + "</strong>,</p>\n" +
-                "        \n" +
-                "        <p>Chúng tôi xin gửi đến Quý phụ huynh hóa đơn học phí cho học sinh <strong>" + studentName
-                + "</strong>.</p>\n" +
-                "        \n" +
+                "        <p>Chúng tôi xin gửi đến Quý phụ huynh hóa đơn học phí cho học sinh <strong>" + studentName + "</strong>.</p>\n" +
                 "        <div class=\"invoice-info\">\n" +
-                "            <div class=\"info-row\">\n" +
-                "                <span class=\"label\">Số hóa đơn:</span>\n" +
-                "                <span class=\"value\">" + invoiceNumber + "</span>\n" +
-                "            </div>\n" +
-                "            <div class=\"info-row\">\n" +
-                "                <span class=\"label\">Tháng:</span>\n" +
-                "                <span class=\"value\">" + month + "</span>\n" +
-                "            </div>\n" +
-                "            <div class=\"info-row\">\n" +
-                "                <span class=\"label\">Học sinh:</span>\n" +
-                "                <span class=\"value\">" + studentName + "</span>\n" +
-                "            </div>\n" +
+                "            <div class=\"info-row\"><span class=\"label\">Số hóa đơn:</span><span class=\"value\">" + invoiceNumber + "</span></div>\n" +
+                "            <div class=\"info-row\"><span class=\"label\">Tháng:</span><span class=\"value\">" + month + "</span></div>\n" +
+                "            <div class=\"info-row\"><span class=\"label\">Học sinh:</span><span class=\"value\">" + studentName + "</span></div>\n" +
                 "        </div>\n" +
-                "        \n" +
                 "        <p>📎 <strong>Hóa đơn chi tiết đính kèm trong file PDF.</strong></p>\n" +
-                "        \n" +
-                "        <p style=\"margin-top: 30px;\">Quý phụ huynh vui lòng kiểm tra và thanh toán theo thông tin trong hóa đơn.</p>\n"
-                +
-                "        \n" +
+                "        <p style=\"margin-top: 30px;\">Quý phụ huynh vui lòng kiểm tra và thanh toán theo thông tin trong hóa đơn.</p>\n" +
                 "        <p>Nếu có bất kỳ thắc mắc nào, xin vui lòng liên hệ với chúng tôi.</p>\n" +
-                "        \n" +
-                "        <div class=\"footer\">\n" +
-                "            <p><strong>English Tutoring</strong></p>\n" +
-                "            <p>Cảm ơn Quý phụ huynh đã tin tưởng! 🙏</p>\n" +
-                "        </div>\n" +
+                "        <div class=\"footer\"><p><strong>English Tutoring</strong></p><p>Cảm ơn Quý phụ huynh đã tin tưởng! 🙏</p></div>\n" +
                 "    </div>\n" +
                 "</body>\n" +
                 "</html>";

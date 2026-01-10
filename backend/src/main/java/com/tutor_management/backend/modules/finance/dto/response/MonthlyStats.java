@@ -5,6 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Aggregated financial statistics for a specific month.
+ */
 @Data
 @Builder
 @NoArgsConstructor

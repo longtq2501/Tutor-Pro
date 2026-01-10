@@ -1,20 +1,37 @@
 package com.tutor_management.backend.modules.document.dto.request;
 
-import jakarta.validation.constraints.*;
-import lombok.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-// ============= Document Request =============
+/**
+ * Request payload for uploading or updating a document's metadata.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class DocumentRequest {
-    @NotBlank(message = "Title is required")
+    /**
+     * User-defined title for the document.
+     */
+    @NotBlank(message = "Tiêu đề không được để trống")
     private String title;
 
-    @NotNull(message = "Category is required")
+    /**
+     * The unique code of the document category (e.g., "GRAMMAR").
+     */
+    @NotNull(message = "Danh mục không được để trống")
     private String category;
 
+    /**
+     * Comprehensive summary of the document content.
+     */
     private String description;
 
-    private Long studentId; // Optional
+    /**
+     * Optional student ID if the document is being uploaded specifically for a student.
+     */
+    private Long studentId;
 }

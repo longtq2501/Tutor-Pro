@@ -3,15 +3,16 @@ package com.tutor_management.backend.modules.exercise.service;
 import com.tutor_management.backend.modules.exercise.dto.response.ImportPreviewResponse;
 
 /**
- * Service interface for parsing exercise text format
+ * AI-assisted parsing engine for converting raw unstructured text into structured assessment data.
+ * Supports specialized syntax for Multiple Choice (MCQ) and Essay question formats.
  */
 public interface ExerciseParserService {
     
     /**
-     * Parse exercise content from text format
+     * Orchestrates the parsing pipeline for a provided text block.
      * 
-     * @param content The text content to parse
-     * @return ImportPreviewResponse containing parsed data and validation results
+     * @param content Raw string containing exercise metadata and question sections.
+     * @return {@link ImportPreviewResponse} Detailed structured data or a list of parsing/validation errors.
      */
     ImportPreviewResponse parseFromText(String content);
 }

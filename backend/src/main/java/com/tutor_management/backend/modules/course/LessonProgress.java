@@ -24,6 +24,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Tracks a specific student's progress and notes for an individual lesson.
+ */
 @Entity
 @Table(name = "lesson_progress", uniqueConstraints = {
         @UniqueConstraint(name = "uk_student_lesson", columnNames = { "student_id", "lesson_id" })
@@ -43,21 +46,36 @@ public class LessonProgress {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * The student whose progress is being tracked.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
     private Student student;
 
+    /**
+     * The lesson being tracked for progress.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lesson_id", nullable = false)
     private Lesson lesson;
 
+    /**
+     * Mark as true when the student achieves the learning objective of the lesson.
+     */
     @Column(name = "is_completed")
     @Builder.Default
     private Boolean isCompleted = false;
 
+    /**
+     * Completion timestamp, manually set or automatically when isCompleted is toggled.
+     */
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
+    /**
+     * Personal study notes or tutor feedback related to this lesson.
+     */
     @Column(columnDefinition = "TEXT")
     private String notes;
 

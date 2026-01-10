@@ -8,13 +8,16 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
- * Repository for Option entity
+ * Data access layer for managing Question Options.
  */
 @Repository
 public interface OptionRepository extends JpaRepository<Option, String> {
     
     /**
-     * Bulk delete all options belonging to an exercise
+     * Bulk deletes all options associated with any question in a specific exercise.
+     * Used for efficient resource cleanup.
+     * 
+     * @param exerciseId UUID of the exercise whose options should be purged.
      */
     @Modifying
     @Query("DELETE FROM Option o WHERE o.question.id IN (SELECT q.id FROM Question q WHERE q.exercise.id = :exerciseId)")

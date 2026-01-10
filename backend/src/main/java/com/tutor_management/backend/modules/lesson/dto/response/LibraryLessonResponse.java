@@ -6,16 +6,22 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * Optimized response for global lesson library browsing.
+ * Excludes heavy content fields to improve listing performance.
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Slf4j
 public class LibraryLessonResponse {
+    
     private Long id;
     private String tutorName;
     private String title;
@@ -25,41 +31,30 @@ public class LibraryLessonResponse {
     private Boolean isPublished;
     private Long categoryId;
     private Boolean isLibrary;
+    
+    // Summary statistics
     private Integer assignedStudentCount;
     private Integer totalViewCount;
     private Double completionRate;
+    
     private LessonCategoryResponse category;
+    
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    /**
+     * Maps lesson entity to library-facing response.
+     * Safely handles lazy collections.
+     */
     public static LibraryLessonResponse fromEntity(Lesson lesson) {
         int assignedCount = 0;
         int totalViews = 0;
         double completionRate = 0.0;
 
-        // Wrap in try-catch to handle any lazy loading issues
-        try {
-            if (lesson.getAssignments() != null) {
-                assignedCount = lesson.getAssignments().size();
-
-                if (assignedCount > 0) {
-                    totalViews = lesson.getAssignments().stream()
-                            .mapToInt(a -> a.getViewCount() != null ? a.getViewCount() : 0)
-                            .sum();
-
-                    long completedCount = lesson.getAssignments().stream()
-                            .filter(a -> Boolean.TRUE.equals(a.getIsCompleted()))
-                            .count();
-
-                    completionRate = (double) completedCount / assignedCount * 100.0;
-                }
-            }
-        } catch (Exception e) {
-            // If lazy loading fails, just use defaults
-            log.debug("Could not load assignments for lesson {}, using defaults", lesson.getId());
-            assignedCount = 0;
-            totalViews = 0;
-            completionRate = 0.0;
+        if (Hibernate.isInitialized(lesson.getAssignments()) && lesson.getAssignments() != null) {
+            assignedCount = lesson.getAssignedStudentCount();
+            totalViews = lesson.getTotalViewCount();
+            completionRate = lesson.getCompletionRate();
         }
 
         return LibraryLessonResponse.builder()
@@ -69,18 +64,13 @@ public class LibraryLessonResponse {
                 .summary(lesson.getSummary())
                 .lessonDate(lesson.getLessonDate())
                 .thumbnailUrl(lesson.getThumbnailUrl())
-                .isPublished(Boolean.TRUE.equals(lesson.getIsPublished()))
-                .isLibrary(Boolean.TRUE.equals(lesson.getIsLibrary()))
+                .isPublished(lesson.getIsPublished())
+                .isLibrary(lesson.getIsLibrary())
                 .categoryId(lesson.getCategory() != null ? lesson.getCategory().getId() : null)
                 .assignedStudentCount(assignedCount)
                 .totalViewCount(totalViews)
                 .completionRate(completionRate)
-                .category(lesson.getCategory() != null ? LessonCategoryResponse.builder()
-                        .id(lesson.getCategory().getId())
-                        .name(lesson.getCategory().getName())
-                        .color(lesson.getCategory().getColor())
-                        .icon(lesson.getCategory().getIcon())
-                        .build() : null)
+                .category(LessonCategoryResponse.fromEntity(lesson.getCategory()))
                 .createdAt(lesson.getCreatedAt())
                 .updatedAt(lesson.getUpdatedAt())
                 .build();

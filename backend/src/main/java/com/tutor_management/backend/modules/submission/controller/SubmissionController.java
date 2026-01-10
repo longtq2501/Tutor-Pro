@@ -7,6 +7,7 @@ import com.tutor_management.backend.modules.submission.dto.request.GradeSubmissi
 import com.tutor_management.backend.modules.submission.dto.response.SubmissionListItemResponse;
 import com.tutor_management.backend.modules.submission.dto.response.SubmissionResponse;
 import com.tutor_management.backend.modules.submission.service.SubmissionService;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +20,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * REST Controller for Submission management
+ * REST Controller for managing student work submissions and evaluation cycles.
+ * Provides endpoints for drafting, final submission, and tutor-led grading.
  */
 @RestController
 @RequestMapping("/api/submissions")
@@ -30,97 +32,87 @@ public class SubmissionController {
     private final SubmissionService submissionService;
     
     /**
-     * Save draft submission
-     * POST /api/submissions/draft
+     * Persists a submission in DRAFT state. 
+     * Authorized for: STUDENT.
      */
     @PostMapping("/draft")
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<ApiResponse<SubmissionResponse>> saveDraft(
             @Valid @RequestBody CreateSubmissionRequest request,
             @AuthenticationPrincipal User user) {
-        log.info("Saving draft for exercise: {} by student: {}", request.getExerciseId(), user.getEmail());
+        log.info("Student {} saving draft for exercise {}", user.getEmail(), request.getExerciseId());
         SubmissionResponse submission = submissionService.saveDraft(request, user.getId().toString());
-        return ResponseEntity.ok(ApiResponse.success("Draft saved successfully", submission));
+        return ResponseEntity.ok(ApiResponse.success("Đã lưu bản nháp thành công", submission));
     }
     
     /**
-     * Submit exercise
-     * POST /api/submissions
+     * Executes final submission of an exercise attempt.
+     * Authorized for: STUDENT.
      */
     @PostMapping
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<ApiResponse<SubmissionResponse>> submit(
             @Valid @RequestBody CreateSubmissionRequest request,
             @AuthenticationPrincipal User user) {
-        log.info("Submitting exercise: {} by student: {}", request.getExerciseId(), user.getEmail());
+        log.info("Student {} submitting exercise {}", user.getEmail(), request.getExerciseId());
         SubmissionResponse submission = submissionService.submit(request, user.getId().toString());
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(ApiResponse.success("Submission completed successfully", submission));
+            .body(ApiResponse.success("Nộp bài thành công", submission));
     }
     
     /**
-     * Get submission by ID
-     * GET /api/submissions/{id}
+     * Retrieves specific submission details.
+     * Authorized for: ADMIN, TUTOR, STUDENT (Owner only logic in service).
      */
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     public ResponseEntity<ApiResponse<SubmissionResponse>> getSubmission(@PathVariable String id) {
-        log.info("Fetching submission: {}", id);
-        SubmissionResponse submission = submissionService.getSubmission(id);
-        return ResponseEntity.ok(ApiResponse.success(submission));
+        return ResponseEntity.ok(ApiResponse.success(submissionService.getSubmission(id)));
     }
     
     /**
-     * Get submission by exercise and student
-     * GET /api/submissions/exercise/{exerciseId}/student/{studentId}
+     * Retrieves a specific attempt by student-exercise pair.
      */
     @GetMapping("/exercise/{exerciseId}/student/{studentId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     public ResponseEntity<ApiResponse<SubmissionResponse>> getSubmissionByExerciseAndStudent(
             @PathVariable String exerciseId,
             @PathVariable String studentId) {
-        log.info("Fetching submission for exercise: {} and student: {}", exerciseId, studentId);
-        SubmissionResponse submission = submissionService.getSubmissionByExerciseAndStudent(exerciseId, studentId);
-        return ResponseEntity.ok(ApiResponse.success(submission));
+        return ResponseEntity.ok(ApiResponse.success(submissionService.getSubmissionByExerciseAndStudent(exerciseId, studentId)));
     }
     
     /**
-     * List submissions for an exercise
-     * GET /api/submissions/exercise/{exerciseId}
+     * Lists all submissions filtered by exercise.
+     * Authorized for: ADMIN, TUTOR.
      */
     @GetMapping("/exercise/{exerciseId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     public ResponseEntity<ApiResponse<List<SubmissionListItemResponse>>> listSubmissionsByExercise(
             @PathVariable String exerciseId) {
-        log.info("Listing submissions for exercise: {}", exerciseId);
-        List<SubmissionListItemResponse> submissions = submissionService.listSubmissionsByExercise(exerciseId);
-        return ResponseEntity.ok(ApiResponse.success(submissions));
+        return ResponseEntity.ok(ApiResponse.success(submissionService.listSubmissionsByExercise(exerciseId)));
     }
     
     /**
-     * List submissions by student
-     * GET /api/submissions/student/{studentId}
+     * Lists all submission attempts for a specific student.
      */
     @GetMapping("/student/{studentId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     public ResponseEntity<ApiResponse<List<SubmissionResponse>>> listSubmissionsByStudent(
             @PathVariable String studentId) {
-        log.info("Listing submissions for student: {}", studentId);
-        List<SubmissionResponse> submissions = submissionService.listSubmissionsByStudent(studentId);
-        return ResponseEntity.ok(ApiResponse.success(submissions));
+        return ResponseEntity.ok(ApiResponse.success(submissionService.listSubmissionsByStudent(studentId)));
     }
     
     /**
-     * Grade essay questions in a submission
-     * PUT /api/submissions/{id}/grade
+     * Finalizes grading and feedback for a student submission.
+     * Authorized for: ADMIN, TUTOR.
      */
     @PutMapping("/{id}/grade")
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     public ResponseEntity<ApiResponse<SubmissionResponse>> gradeSubmission(
             @PathVariable String id,
             @Valid @RequestBody GradeSubmissionRequest request) {
-        log.info("Grading submission: {}", id);
+        log.info("Tutor providing feedback for submission {}", id);
         SubmissionResponse submission = submissionService.gradeSubmission(id, request);
-        return ResponseEntity.ok(ApiResponse.success("Submission graded successfully", submission));
+        return ResponseEntity.ok(ApiResponse.success("Đã chấm điểm bài nộp thành công", submission));
     }
 }

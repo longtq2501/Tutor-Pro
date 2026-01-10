@@ -3,24 +3,19 @@ package com.tutor_management.backend.modules.exercise.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.domain.Persistable;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
- * Exercise entity representing a test/assignment for students
+ * Core entity representing a collection of questions designed for student assessment.
+ * Supports versioning through draft/published states and can be localized to specific classes.
  */
 @Entity
 @Table(name = "exercises", indexes = {
@@ -51,32 +46,39 @@ public class Exercise implements Persistable<String> {
         return isNew;
     }
     
+    /**
+     * Primary name/header for the exercise.
+     */
     @Column(nullable = false, length = 500)
     private String title;
     
+    /**
+     * Detailed instructions or context for the assessment.
+     */
     @Column(columnDefinition = "TEXT")
     private String description;
     
     /**
-     * Time limit in minutes
+     * Maximum duration allowed for completion (in minutes).
+     * If null, no strict time limit is enforced.
      */
     @Column(name = "time_limit")
     private Integer timeLimit;
     
     /**
-     * Total points for the exercise
+     * Sum of all points available across all included questions.
      */
     @Column(name = "total_points", nullable = false)
     private Integer totalPoints;
     
     /**
-     * Deadline for submission
+     * Global cutoff time for submissions.
      */
     @Column(name = "deadline")
     private LocalDateTime deadline;
     
     /**
-     * Status of the exercise
+     * Current availability level (DRAFT, PUBLISHED, ARCHIVED).
      */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -84,13 +86,13 @@ public class Exercise implements Persistable<String> {
     private ExerciseStatus status = ExerciseStatus.DRAFT;
     
     /**
-     * Class ID for filtering exercises by class
+     * UUID of the class/grouping this exercise belongs to.
      */
     @Column(name = "class_id", length = 36)
     private String classId;
     
     /**
-     * Teacher ID who created this exercise
+     * UUID of the staff member responsible for this resource.
      */
     @Column(name = "created_by", nullable = false, length = 36)
     private String createdBy;
@@ -104,17 +106,18 @@ public class Exercise implements Persistable<String> {
     private LocalDateTime updatedAt;
     
     /**
-     * Questions in this exercise
+     * Structured set of questions making up the exercise content.
+     * Ordered by their logical progression index.
      */
     @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
     @JsonManagedReference
-    @org.hibernate.annotations.BatchSize(size = 20)
+    @BatchSize(size = 20)
     @Builder.Default
     private Set<Question> questions = new LinkedHashSet<>();
     
     /**
-     * Helper method to add a question to the exercise
+     * Bi-directional association helper.
      */
     public void addQuestion(Question question) {
         questions.add(question);
@@ -122,7 +125,7 @@ public class Exercise implements Persistable<String> {
     }
     
     /**
-     * Helper method to remove a question from the exercise
+     * Bi-directional association helper.
      */
     public void removeQuestion(Question question) {
         questions.remove(question);

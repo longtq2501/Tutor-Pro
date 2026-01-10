@@ -5,11 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Comprehensive view of a student record, including billing history and parent contact.
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class StudentResponse {
+    
     private Long id;
     private String name;
     private String phone;
@@ -17,21 +21,46 @@ public class StudentResponse {
     private Long pricePerHour;
     private String notes;
     private Boolean active;
+    
+    /**
+     * Enrollment month (YYYY-MM).
+     */
     private String startMonth;
+    
+    /**
+     * Last month with lesson records (YYYY-MM).
+     */
     private String lastActiveMonth;
+    
+    /**
+     * Cumulative count of months with instruction.
+     */
     private Integer monthsLearned;
+    
+    /**
+     * Human-readable duration summary (e.g., "Bắt đầu: 01/2024 • 12 tháng").
+     */
     private String learningDuration;
+    
     private String createdAt;
+    
+    /**
+     * Total tuition amount collected.
+     */
     private Long totalPaid;
+    
+    /**
+     * Current outstanding tuition balance.
+     */
     private Long totalUnpaid;
 
-    // ✅ THÊM CÁC FIELD PARENT
+    // --- Parent Information ---
     private Long parentId;
     private String parentName;
     private String parentEmail;
     private String parentPhone;
 
-    // ✅ THÊM FIELD ACCOUNT
+    // --- Account Information ---
     private String accountEmail;
     private String accountId;
 }

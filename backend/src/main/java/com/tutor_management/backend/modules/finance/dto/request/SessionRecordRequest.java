@@ -9,37 +9,41 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
+/**
+ * Request payload for creating a new session record.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class SessionRecordRequest {
-    @NotNull(message = "Student ID is required")
+    
+    @NotNull(message = "ID học sinh không được để trống")
     private Long studentId;
 
-    @NotBlank(message = "Month is required")
-    @Pattern(regexp = "\\d{4}-\\d{2}", message = "Month must be in format YYYY-MM")
+    @NotBlank(message = "Tháng không được để trống")
+    @Pattern(regexp = "\\d{4}-\\d{2}", message = "Tháng phải có định dạng YYYY-MM")
     private String month;
 
-    @NotNull(message = "Number of sessions is required")
-    @Min(value = 1, message = "Sessions must be at least 1")
+    @NotNull(message = "Số buổi học không được để trống")
+    @Min(value = 1, message = "Số buổi học phải ít nhất là 1")
     private Integer sessions;
 
-    @NotNull(message = "Hours per session is required") // 🆕 Thêm validation
-    @DecimalMin(value = "0.5", message = "Hours per session must be at least 0.5")
-    private Double hoursPerSession; // 🆕 Thêm field này
+    @NotNull(message = "Số giờ học mỗi buổi không được để trống")
+    @DecimalMin(value = "0.5", message = "Số giờ học mỗi buổi phải ít nhất là 0.5")
+    private Double hoursPerSession;
 
-    @NotBlank(message = "Session date is required")
+    @NotBlank(message = "Ngày học không được để trống")
     private String sessionDate;
 
     private String notes;
 
-    // 🆕 New Calendar Fields
     private String startTime;
     private String endTime;
     private String subject;
     private String status;
 
-    // 🆕 Attachments
-    private java.util.List<Long> documentIds;
-    private java.util.List<Long> lessonIds;
+    private List<Long> documentIds;
+    private List<Long> lessonIds;
 }

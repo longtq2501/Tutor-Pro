@@ -12,14 +12,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Implementation of ExerciseParserService
- * Parses structured text format into exercise data
+ * Implementation of {@link ExerciseParserService} using Regular Expressions.
+ * Designed to parse a specific Vietnamese-English hybrid format used by tutors.
  */
 @Service
 @Slf4j
 public class ExerciseParserServiceImpl implements ExerciseParserService {
     
-    // Regex patterns for parsing
+    // --- Regex patterns for orchestration ---
+    
     private static final Pattern METADATA_SECTION_PATTERN = 
         Pattern.compile("===\\s*THÔNG TIN BÀI TẬP\\s*===(.*?)(?====|$)", Pattern.DOTALL);
     
@@ -28,6 +29,8 @@ public class ExerciseParserServiceImpl implements ExerciseParserService {
     
     private static final Pattern ESSAY_SECTION_PATTERN = 
         Pattern.compile("===\\s*PHẦN 2:\\s*TỰ LUẬN\\s*===(.*?)$", Pattern.DOTALL);
+    
+    // --- Regex patterns for detailed extraction ---
     
     private static final Pattern TITLE_PATTERN = 
         Pattern.compile("Tiêu đề:\\s*(.+?)(?=Mô tả:|Thời gian:|Tổng điểm:|===|$)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
@@ -61,7 +64,7 @@ public class ExerciseParserServiceImpl implements ExerciseParserService {
     
     @Override
     public ImportPreviewResponse parseFromText(String content) {
-        log.info("Starting to parse exercise content");
+        log.info("Starting ingestion of raw exercise text. Length: {} chars", content.length());
         
         List<String> validationErrors = new ArrayList<>();
         ImportPreviewResponse response = ImportPreviewResponse.builder()
@@ -69,55 +72,37 @@ public class ExerciseParserServiceImpl implements ExerciseParserService {
             .build();
         
         try {
-            // 1. Extract and parse metadata
-            ExerciseMetadata metadata = extractMetadata(content, validationErrors);
+            // 1. Ingest metadata
+            ExerciseMetadata metadata = ingestMetadata(content, validationErrors);
             response.setMetadata(metadata);
             
-            // 2. Extract and parse MCQ questions
-            List<QuestionPreview> questions = new ArrayList<>();
-            int orderIndex = 0;
-            
-            String mcqSection = extractSection(content, MCQ_SECTION_PATTERN);
-            if (StringUtils.hasText(mcqSection)) {
-                List<QuestionPreview> mcqQuestions = parseMCQQuestions(mcqSection, orderIndex, validationErrors);
-                questions.addAll(mcqQuestions);
-                orderIndex += mcqQuestions.size();
-            }
-            
-            // 3. Extract and parse Essay questions
-            String essaySection = extractSection(content, ESSAY_SECTION_PATTERN);
-            if (StringUtils.hasText(essaySection)) {
-                List<QuestionPreview> essayQuestions = parseEssayQuestions(essaySection, orderIndex, validationErrors);
-                questions.addAll(essayQuestions);
-            }
-            
+            // 2. Ingest assessment content
+            List<QuestionPreview> questions = ingestAssignedContent(content, validationErrors);
             response.setQuestions(questions);
             
-            // 4. Validate overall structure
-            validateExercise(metadata, questions, validationErrors);
+            // 3. Post-parsing integrity check
+            performIntegrityCheck(metadata, questions, validationErrors);
             
-            // 5. Set validity flag
             response.setIsValid(validationErrors.isEmpty());
-            
-            log.info("Parsing completed. Valid: {}, Errors: {}", response.getIsValid(), validationErrors.size());
+            log.info("Ingestion completed. Result: {}, Error count: {}", response.getIsValid(), validationErrors.size());
             
         } catch (Exception e) {
-            log.error("Error parsing exercise content", e);
-            validationErrors.add("Unexpected error during parsing: " + e.getMessage());
+            log.error("Fatal exception during ingestion pipeline", e);
+            validationErrors.add("Lỗi hệ thống trong quá trình xử lý nội dung: " + e.getMessage());
             response.setIsValid(false);
         }
         
         return response;
     }
-    
+
     /**
-     * Extract metadata section from content
+     * Extracts and validates the exercise header information.
      */
-    private ExerciseMetadata extractMetadata(String content, List<String> errors) {
+    private ExerciseMetadata ingestMetadata(String content, List<String> errors) {
         String metadataSection = extractSection(content, METADATA_SECTION_PATTERN);
         
         if (!StringUtils.hasText(metadataSection)) {
-            errors.add("Metadata section (=== THÔNG TIN BÀI TẬP ===) not found");
+            errors.add("Không tìm thấy phần thông tin chung (=== THÔNG TIN BÀI TẬP ===)");
             return ExerciseMetadata.builder().build();
         }
         
@@ -126,12 +111,11 @@ public class ExerciseParserServiceImpl implements ExerciseParserService {
         Integer timeLimit = extractIntField(metadataSection, TIME_LIMIT_PATTERN);
         Integer totalPoints = extractIntField(metadataSection, TOTAL_POINTS_PATTERN);
         
-        // Validate required fields
         if (!StringUtils.hasText(title)) {
-            errors.add("Title (Tiêu đề) is required in metadata section");
+            errors.add("Tiêu đề bài tập không được để trống");
         }
         if (totalPoints == null || totalPoints <= 0) {
-            errors.add("Total points (Tổng điểm) must be a positive number");
+            errors.add("Tổng điểm bài tập phải là số dương");
         }
         
         return ExerciseMetadata.builder()
@@ -141,209 +125,206 @@ public class ExerciseParserServiceImpl implements ExerciseParserService {
             .totalPoints(totalPoints)
             .build();
     }
+
+    /**
+     * Orchestrates the extraction of MCQ and Essay questions from their respective blocks.
+     */
+    private List<QuestionPreview> ingestAssignedContent(String content, List<String> errors) {
+        List<QuestionPreview> questions = new ArrayList<>();
+        
+        // Handle MCQ Section
+        String mcqSection = extractSection(content, MCQ_SECTION_PATTERN);
+        if (StringUtils.hasText(mcqSection)) {
+            questions.addAll(parseMCQQuestions(mcqSection, 0, errors));
+        }
+        
+        // Handle Essay Section
+        String essaySection = extractSection(content, ESSAY_SECTION_PATTERN);
+        if (StringUtils.hasText(essaySection)) {
+            questions.addAll(parseEssayQuestions(essaySection, questions.size(), errors));
+        }
+        
+        return questions;
+    }
     
     /**
-     * Parse MCQ questions from section
+     * Splits and parses the MCQ block.
      */
     private List<QuestionPreview> parseMCQQuestions(String section, int startIndex, List<String> errors) {
         List<QuestionPreview> questions = new ArrayList<>();
-        
-        // Split by [MCQ-X] markers
         String[] questionBlocks = section.split("(?=\\[MCQ-\\d+\\])");
         
         for (String block : questionBlocks) {
-            if (!block.trim().isEmpty() && block.contains("[MCQ-")) {
+            if (StringUtils.hasText(block) && block.contains("[MCQ-")) {
                 QuestionPreview question = parseSingleMCQ(block, startIndex + questions.size(), errors);
                 if (question != null) {
                     questions.add(question);
                 }
             }
         }
-        
         return questions;
     }
     
     /**
-     * Parse a single MCQ question
+     * Details extraction logic for MCQ format.
      */
-    private QuestionPreview parseSingleMCQ(String block, int orderIndex, List<String> errors) {
-        // Extract question number and text
+    private QuestionPreview parseSingleMCQ(String block, int sequenceIndex, List<String> errors) {
         Matcher questionMatcher = MCQ_QUESTION_PATTERN.matcher(block);
         if (!questionMatcher.find()) {
-            errors.add("Invalid MCQ format at position " + orderIndex);
+            errors.add("Định dạng câu hỏi trắc nghiệm không hợp lệ tại vị trí: " + sequenceIndex);
             return null;
         }
         
-        String questionNumber = questionMatcher.group(1);
+        String questionRef = questionMatcher.group(1);
         String questionText = questionMatcher.group(2).trim();
+        List<OptionPreview> options = extractOptions(block);
         
-        // Extract options
-        List<OptionPreview> options = new ArrayList<>();
-        Matcher optionMatcher = OPTION_PATTERN.matcher(block);
-        
-        while (optionMatcher.find()) {
-            String label = optionMatcher.group(1);
-            String optionText = optionMatcher.group(2).trim();
-            
-            options.add(OptionPreview.builder()
-                .label(label)
-                .optionText(optionText)
-                .isCorrect(false) // Will be set based on ANSWER
-                .build());
-        }
-        
-        // Extract correct answer
         String correctAnswer = extractField(block, ANSWER_PATTERN);
         if (!StringUtils.hasText(correctAnswer)) {
-            errors.add("MCQ-" + questionNumber + ": Missing ANSWER field");
+            errors.add("MCQ-" + questionRef + ": Thiếu đáp án đúng (ANSWER)");
         } else {
-            // Mark correct option
-            boolean foundCorrect = false;
-            for (OptionPreview option : options) {
-                if (option.getLabel().equals(correctAnswer)) {
-                    option.setIsCorrect(true);
-                    foundCorrect = true;
-                    break;
-                }
-            }
-            if (!foundCorrect) {
-                errors.add("MCQ-" + questionNumber + ": Correct answer " + correctAnswer + " not found in options");
-            }
+            verifyCorrectAnswerMapping(questionRef, options, correctAnswer, errors);
         }
         
-        // Extract points
         Integer points = extractIntField(block, POINTS_PATTERN);
         if (points == null || points <= 0) {
-            errors.add("MCQ-" + questionNumber + ": Points must be a positive number");
+            errors.add("MCQ-" + questionRef + ": Điểm số phải là số dương");
             points = 0;
         }
         
-        // Validate options count
         if (options.size() != 4) {
-            errors.add("MCQ-" + questionNumber + ": Must have exactly 4 options (A, B, C, D), found " + options.size());
+            errors.add("MCQ-" + questionRef + ": Phải có chính xác 4 lựa chọn (A, B, C, D), tìm thấy: " + options.size());
         }
         
         return QuestionPreview.builder()
             .type(QuestionType.MCQ)
             .questionText(questionText)
             .points(points)
-            .orderIndex(orderIndex)
+            .orderIndex(sequenceIndex)
             .options(options)
             .correctAnswer(correctAnswer)
             .build();
     }
+
+    /**
+     * Sub-parser for MCQ options.
+     */
+    private List<OptionPreview> extractOptions(String block) {
+        List<OptionPreview> options = new ArrayList<>();
+        Matcher optionMatcher = OPTION_PATTERN.matcher(block);
+        while (optionMatcher.find()) {
+            options.add(OptionPreview.builder()
+                .label(optionMatcher.group(1))
+                .optionText(optionMatcher.group(2).trim())
+                .isCorrect(false)
+                .build());
+        }
+        return options;
+    }
+
+    /**
+     * Links the ANSWER label to the correct option object and validates existence.
+     */
+    private void verifyCorrectAnswerMapping(String ref, List<OptionPreview> options, String answer, List<String> errors) {
+        boolean mapped = false;
+        for (OptionPreview option : options) {
+            if (option.getLabel().equalsIgnoreCase(answer)) {
+                option.setIsCorrect(true);
+                mapped = true;
+                break;
+            }
+        }
+        if (!mapped) {
+            errors.add("MCQ-" + ref + ": Không tìm thấy lựa chọn " + answer + " trong danh sách");
+        }
+    }
     
     /**
-     * Parse Essay questions from section
+     * Splits and parses the Essay block.
      */
     private List<QuestionPreview> parseEssayQuestions(String section, int startIndex, List<String> errors) {
         List<QuestionPreview> questions = new ArrayList<>();
-        
-        // Split by [ESSAY-X] markers
         String[] questionBlocks = section.split("(?=\\[ESSAY-\\d+\\])");
         
         for (String block : questionBlocks) {
-            if (!block.trim().isEmpty() && block.contains("[ESSAY-")) {
+            if (StringUtils.hasText(block) && block.contains("[ESSAY-")) {
                 QuestionPreview question = parseSingleEssay(block, startIndex + questions.size(), errors);
                 if (question != null) {
                     questions.add(question);
                 }
             }
         }
-        
         return questions;
     }
     
     /**
-     * Parse a single Essay question
+     * Details extraction logic for Essay format.
      */
-    private QuestionPreview parseSingleEssay(String block, int orderIndex, List<String> errors) {
-        // Extract question number and text
+    private QuestionPreview parseSingleEssay(String block, int sequenceIndex, List<String> errors) {
         Matcher questionMatcher = ESSAY_QUESTION_PATTERN.matcher(block);
         if (!questionMatcher.find()) {
-            errors.add("Invalid ESSAY format at position " + orderIndex);
+            errors.add("Định dạng câu hỏi tự luận không hợp lệ tại vị trí: " + sequenceIndex);
             return null;
         }
         
-        String questionNumber = questionMatcher.group(1);
+        String questionRef = questionMatcher.group(1);
         String questionText = questionMatcher.group(2).trim();
-        
-        // Extract points
         Integer points = extractIntField(block, POINTS_PATTERN);
+        
         if (points == null || points <= 0) {
-            errors.add("ESSAY-" + questionNumber + ": Points must be a positive number");
+            errors.add("ESSAY-" + questionRef + ": Điểm số phải là số dương");
             points = 0;
         }
         
-        // Extract rubric (optional)
         String rubric = extractField(block, RUBRIC_PATTERN);
-        if (StringUtils.hasText(rubric)) {
-            rubric = rubric.trim();
-        }
         
         return QuestionPreview.builder()
             .type(QuestionType.ESSAY)
             .questionText(questionText)
             .points(points)
-            .orderIndex(orderIndex)
-            .rubric(rubric)
+            .orderIndex(sequenceIndex)
+            .rubric(rubric != null ? rubric.trim() : null)
             .build();
     }
     
     /**
-     * Validate the complete exercise
+     * Validates logical consistency across the entire exercise structure.
      */
-    private void validateExercise(ExerciseMetadata metadata, List<QuestionPreview> questions, List<String> errors) {
-        // Check if there's at least one question
+    private void performIntegrityCheck(ExerciseMetadata metadata, List<QuestionPreview> questions, List<String> errors) {
         if (questions.isEmpty()) {
-            errors.add("Exercise must have at least one question");
+            errors.add("Bài tập phải có ít nhất một câu hỏi");
             return;
         }
         
-        // Calculate total points from questions
-        int calculatedTotal = questions.stream()
+        int calculatedPoints = questions.stream()
             .mapToInt(q -> q.getPoints() != null ? q.getPoints() : 0)
             .sum();
         
-        // Verify total points match
-        if (metadata.getTotalPoints() != null && calculatedTotal != metadata.getTotalPoints()) {
-            errors.add("Total points mismatch: metadata says " + metadata.getTotalPoints() + 
-                      " but sum of question points is " + calculatedTotal);
+        if (metadata.getTotalPoints() != null && calculatedPoints != metadata.getTotalPoints()) {
+            errors.add("Tổng điểm không khớp: Thông tin chung là " + metadata.getTotalPoints() + 
+                      " nhưng tổng điểm các câu hỏi là " + calculatedPoints);
         }
     }
     
-    /**
-     * Extract a section using pattern
-     */
+    // --- Basic Regex Helper Methods ---
+
     private String extractSection(String content, Pattern pattern) {
         Matcher matcher = pattern.matcher(content);
-        if (matcher.find()) {
-            return matcher.group(1);
-        }
-        return null;
+        return matcher.find() ? matcher.group(1) : null;
     }
     
-    /**
-     * Extract a text field using pattern
-     */
     private String extractField(String content, Pattern pattern) {
         Matcher matcher = pattern.matcher(content);
-        if (matcher.find()) {
-            return matcher.group(1).trim();
-        }
-        return null;
+        return matcher.find() ? matcher.group(1).trim() : null;
     }
     
-    /**
-     * Extract an integer field using pattern
-     */
     private Integer extractIntField(String content, Pattern pattern) {
         String value = extractField(content, pattern);
         if (StringUtils.hasText(value)) {
             try {
                 return Integer.parseInt(value);
             } catch (NumberFormatException e) {
-                log.warn("Failed to parse integer from: {}", value);
+                log.warn("Regex matched non-integer value: {}", value);
             }
         }
         return null;

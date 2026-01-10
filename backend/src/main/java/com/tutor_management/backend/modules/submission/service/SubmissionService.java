@@ -8,42 +8,45 @@ import com.tutor_management.backend.modules.submission.dto.response.SubmissionRe
 import java.util.List;
 
 /**
- * Service interface for submission management
+ * Service interface for managing student submissions.
+ * Handles draft saving, final submission, auto-grading coordination, and tutor evaluation.
  */
 public interface SubmissionService {
     
     /**
-     * Create or update a draft submission
+     * Records a draft state for a student's attempt. 
+     * Allows students to save progress without triggering the evaluation phase.
      */
     SubmissionResponse saveDraft(CreateSubmissionRequest request, String studentId);
     
     /**
-     * Submit an exercise
+     * Finalizes a student's attempt. 
+     * Triggers the auto-grading sequence for MCQ items and notifies relevant tutors.
      */
     SubmissionResponse submit(CreateSubmissionRequest request, String studentId);
     
     /**
-     * Get submission by ID
+     * Retrieves full submission details including individual answers.
      */
     SubmissionResponse getSubmission(String id);
     
     /**
-     * Get submission by exercise and student
+     * Finds the latest attempt record for a specific student on a given exercise.
      */
     SubmissionResponse getSubmissionByExerciseAndStudent(String exerciseId, String studentId);
     
     /**
-     * List submissions for an exercise
+     * Aggregates all attempts for a specific exercise (Administrative view).
      */
     List<SubmissionListItemResponse> listSubmissionsByExercise(String exerciseId);
     
     /**
-     * List submissions by student
+     * Retrieves all historically submitted work for a specific student.
      */
     List<SubmissionResponse> listSubmissionsByStudent(String studentId);
     
     /**
-     * Grade essay questions in a submission
+     * Records tutor-provided grades and feedback for essay/written responses.
      */
     SubmissionResponse gradeSubmission(String submissionId, GradeSubmissionRequest request);
 }

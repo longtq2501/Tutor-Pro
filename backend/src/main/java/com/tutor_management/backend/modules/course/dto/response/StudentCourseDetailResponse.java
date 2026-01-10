@@ -9,6 +9,9 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Personalized course view for students, including their unique progress.
+ */
 @Data
 @Builder
 @NoArgsConstructor
@@ -26,5 +29,9 @@ public class StudentCourseDetailResponse {
     private LocalDateTime assignedDate;
     private LocalDateTime deadline;
     private LocalDateTime completedAt;
+    
+    /**
+     * Curriculum list with completion status for each lesson.
+     */
     private List<StudentCourseLessonDTO> lessons;
 }

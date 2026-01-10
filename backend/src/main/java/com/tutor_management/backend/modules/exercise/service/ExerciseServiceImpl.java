@@ -1,35 +1,37 @@
 package com.tutor_management.backend.modules.exercise.service;
 
 import com.tutor_management.backend.exception.ResourceNotFoundException;
+import com.tutor_management.backend.modules.auth.UserRepository;
 import com.tutor_management.backend.modules.exercise.domain.*;
 import com.tutor_management.backend.modules.exercise.dto.request.CreateExerciseRequest;
 import com.tutor_management.backend.modules.exercise.dto.request.ImportExerciseRequest;
 import com.tutor_management.backend.modules.exercise.dto.request.OptionRequest;
 import com.tutor_management.backend.modules.exercise.dto.request.QuestionRequest;
-import com.tutor_management.backend.modules.exercise.dto.response.*;
+import com.tutor_management.backend.modules.exercise.dto.response.ExerciseListItemResponse;
+import com.tutor_management.backend.modules.exercise.dto.response.ExerciseResponse;
+import com.tutor_management.backend.modules.exercise.dto.response.ImportPreviewResponse;
+import com.tutor_management.backend.modules.exercise.dto.response.OptionResponse;
+import com.tutor_management.backend.modules.exercise.dto.response.QuestionResponse;
 import com.tutor_management.backend.modules.exercise.repository.ExerciseAssignmentRepository;
 import com.tutor_management.backend.modules.exercise.repository.ExerciseRepository;
 import com.tutor_management.backend.modules.exercise.repository.OptionRepository;
 import com.tutor_management.backend.modules.exercise.repository.QuestionRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import com.tutor_management.backend.modules.auth.UserRepository;
 import com.tutor_management.backend.modules.notification.event.ExerciseAssignedEvent;
 import com.tutor_management.backend.modules.notification.event.ExerciseUpdatedEvent;
+import com.tutor_management.backend.modules.submission.repository.SubmissionRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Implementation of ExerciseService
+ * Standard implementation of {@link ExerciseService}.
+ * Handles persistence, complex nested entity updates, and transactional safety.
  */
 @Service
 @RequiredArgsConstructor
@@ -41,24 +43,22 @@ public class ExerciseServiceImpl implements ExerciseService {
     private final OptionRepository optionRepository;
     private final ExerciseParserService parserService;
     private final ExerciseAssignmentRepository assignmentRepository;
-    private final com.tutor_management.backend.modules.submission.repository.SubmissionRepository submissionRepository;
+    private final SubmissionRepository submissionRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public ImportPreviewResponse previewImport(ImportExerciseRequest request) {
-        log.info("Previewing import for content length: {}", request.getContent().length());
+        log.info("Requesting preview for ingested text (length: {})", request.getContent().length());
         return parserService.parseFromText(request.getContent());
     }
 
     @Override
     @Transactional
     public ExerciseResponse createExercise(CreateExerciseRequest request, String teacherId) {
-        log.info("Creating exercise: {} by teacher: {}", request.getTitle(), teacherId);
+        log.info("Starting creation of exercise '{}' by teacher {}", request.getTitle(), teacherId);
 
-        // Create exercise entity
         Exercise exercise = Exercise.builder()
-                .id(UUID.randomUUID().toString())
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .timeLimit(request.getTimeLimit())
@@ -70,83 +70,44 @@ public class ExerciseServiceImpl implements ExerciseService {
                 .questions(new LinkedHashSet<>())
                 .build();
 
-        // Create questions
-        for (QuestionRequest questionReq : request.getQuestions()) {
-            Question question = createQuestionFromRequest(questionReq, exercise);
-            exercise.addQuestion(question);
-        }
+        processQuestionsFromRequest(request.getQuestions(), exercise);
 
-        // Save exercise (cascade will save questions and options)
         Exercise savedExercise = exerciseRepository.save(exercise);
-
-        log.info("Exercise created successfully with ID: {}", savedExercise.getId());
+        log.info("Exercise created successfully. Generated UUID: {}", savedExercise.getId());
+        
         return mapToExerciseResponse(savedExercise);
     }
 
     @Override
     @Transactional
     public ExerciseResponse updateExercise(String id, CreateExerciseRequest request, String teacherId) {
-        log.info("Updating exercise: {} by teacher: {}", id, teacherId);
+        log.info("Processing update for exercise {} by teacher {}", id, teacherId);
 
-        // Find existing exercise
-        // Find existing exercise - OPTIMIZATION: fetch details to properly handle collections
         Exercise exercise = exerciseRepository.findByIdWithDetails(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Exercise not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài tập với ID: " + id));
 
-        // Verify ownership
-        if (!exercise.getCreatedBy().equals(teacherId)) {
-            throw new SecurityException("You don't have permission to update this exercise");
-        }
+        verifyExerciseOwnership(exercise, teacherId);
 
-        // Update basic fields
-        exercise.setTitle(request.getTitle());
-        exercise.setDescription(request.getDescription());
-        exercise.setTimeLimit(request.getTimeLimit());
-        exercise.setTotalPoints(request.getTotalPoints());
-        exercise.setDeadline(request.getDeadline());
-        if (request.getStatus() != null) {
-            exercise.setStatus(request.getStatus());
-        }
-        exercise.setClassId(request.getClassId());
+        updateBasicMetadata(exercise, request);
 
-        // Remove old questions
+        // Reconstruct the question graph
         exercise.getQuestions().clear();
+        processQuestionsFromRequest(request.getQuestions(), exercise);
 
-        // Add new questions
-        for (QuestionRequest questionReq : request.getQuestions()) {
-            Question question = createQuestionFromRequest(questionReq, exercise);
-            exercise.addQuestion(question);
-        }
-
-        // Save updated exercise
         Exercise updatedExercise = exerciseRepository.save(exercise);
+        notifyStudentsOfUpdate(updatedExercise, teacherId);
 
-        // Notify students
-        try {
-            String tutorName = userRepository.findById(Long.parseLong(teacherId))
-                    .map(u -> u.getFullName())
-                    .orElse("Giáo viên");
-            eventPublisher.publishEvent(ExerciseUpdatedEvent.builder()
-                    .exerciseId(id)
-                    .exerciseTitle(updatedExercise.getTitle())
-                    .tutorName(tutorName)
-                    .build());
-        } catch (Exception e) {
-            log.error("Failed to publish ExerciseUpdatedEvent", e);
-        }
-
-        log.info("Exercise updated successfully: {}", id);
+        log.info("Exercise update committed: {}", id);
         return mapToExerciseResponse(updatedExercise);
     }
 
     @Override
     @Transactional(readOnly = true)
     public ExerciseResponse getExercise(String id) {
-        log.info("Fetching exercise: {}", id);
-
-        // OPTIMIZATION: Fetch exercise with questions and options eagerly
+        log.debug("Fetching exercise details for ID: {}", id);
+        
         Exercise exercise = exerciseRepository.findByIdWithDetails(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Exercise not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài tập với ID: " + id));
 
         return mapToExerciseResponse(exercise);
     }
@@ -154,7 +115,7 @@ public class ExerciseServiceImpl implements ExerciseService {
     @Override
     @Transactional(readOnly = true)
     public List<ExerciseListItemResponse> listExercises(String classId, ExerciseStatus status) {
-        log.info("Listing exercises - classId: {}, status: {}", classId, status);
+        log.debug("Listing exercises (Filter: class={}, status={})", classId, status);
 
         if (classId != null && status != null) {
             return exerciseRepository.findByClassIdAndStatusOptimized(classId, status);
@@ -168,164 +129,195 @@ public class ExerciseServiceImpl implements ExerciseService {
     @Override
     @Transactional
     public void deleteExercise(String id, String teacherId) {
-        log.info("Deleting exercise: {} by teacher: {}", id, teacherId);
+        log.warn("Initiating destructive deletion of exercise {} by tutor {}", id, teacherId);
 
         Exercise exercise = exerciseRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Exercise not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài tập với ID: " + id));
 
-        // Verify ownership
-        if (!exercise.getCreatedBy().equals(teacherId)) {
-            throw new SecurityException("You don't have permission to delete this exercise");
-        }
+        verifyExerciseOwnership(exercise, teacherId);
 
-        // 1. Bulk delete Submissions and Answers
-        submissionRepository.deleteAnswersByExerciseId(id);
-        submissionRepository.deleteSubmissionsByExerciseId(id);
-
-        // 2. Bulk delete Assignments
-        assignmentRepository.deleteByExerciseId(id);
-
-        // 3. Bulk delete Options and Questions
-        optionRepository.deleteByExerciseId(id);
-        questionRepository.deleteByExerciseId(id);
-
-        // 4. Finally delete the Exercise itself
+        performCascadedRemoval(id);
+        
         exerciseRepository.delete(exercise);
-        log.info("Exercise deleted successfully: {}", id);
+        log.info("Exercise and all associated history successfully deleted: {}", id);
     }
 
     @Override
     @Transactional
     public void assignToStudent(String exerciseId, String studentId, String tutorId, LocalDateTime deadline) {
-        log.info("Assigning exercise {} to student {} by tutor {}", exerciseId, studentId, tutorId);
+        log.info("Assigning exercise {} to student {}", exerciseId, studentId);
         
-        Exercise assignmentExercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new ResourceNotFoundException("Exercise not found"));
+        Exercise sourceExercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài tập gốc"));
 
         ExerciseAssignment assignment = assignmentRepository
                 .findByExerciseIdAndStudentId(exerciseId, studentId)
-                .orElse(null);
+                .orElseGet(() -> ExerciseAssignment.builder()
+                        .exerciseId(exerciseId)
+                        .studentId(studentId)
+                        .assignedBy(tutorId)
+                        .status(AssignmentStatus.ASSIGNED)
+                        .build());
 
-        if (assignment == null) {
-            assignment = ExerciseAssignment.builder()
-                    .exerciseId(exerciseId)
-                    .studentId(studentId)
-                    .assignedBy(tutorId)
-                    .deadline(deadline != null ? deadline : assignmentExercise.getDeadline())
-                    .status(AssignmentStatus.ASSIGNED)
-                    .build();
-        } else {
-            assignment.setDeadline(deadline != null ? deadline : assignmentExercise.getDeadline());
-        }
-
+        // Update or set the specific deadline for this student
+        assignment.setDeadline(deadline != null ? deadline : sourceExercise.getDeadline());
+        
         assignmentRepository.save(assignment);
+        notifyStudentOfAssignment(sourceExercise, studentId, tutorId);
         
-        // Notify student
-        try {
-            String tutorName = userRepository.findById(Long.parseLong(tutorId))
-                    .map(u -> u.getFullName())
-                    .orElse("Giáo viên");
-            
-            eventPublisher.publishEvent(ExerciseAssignedEvent.builder()
-                    .exerciseId(exerciseId)
-                    .exerciseTitle(assignmentExercise.getTitle())
-                    .studentId(studentId)
-                    .tutorName(tutorName)
-                    .build());
-        } catch (Exception e) {
-            log.error("Failed to publish ExerciseAssignedEvent for student: {}, tutor: {}", studentId, tutorId, e);
-        }
-        
-        log.info("Exercise assigned successfully");
+        log.info("Assignment record committed for student {}", studentId);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ExerciseListItemResponse> listAssignedExercises(String studentId) {
-        log.info("Listing exercises for student {}", studentId);
+        log.debug("Synthesizing assigned exercises view for student {}", studentId);
         
         List<ExerciseAssignment> assignments = assignmentRepository.findByStudentId(studentId);
+        if (assignments.isEmpty()) return Collections.emptyList();
+
         List<String> exerciseIds = assignments.stream()
                 .map(ExerciseAssignment::getExerciseId)
                 .collect(Collectors.toList());
 
-        if (exerciseIds.isEmpty()) {
-            return List.of();
-        }
-
-        // OPTIMIZATION: Use optimized DTO query to avoid N+1 lazy loading
-        List<ExerciseListItemResponse> exercises = exerciseRepository.findAllByIdOptimized(exerciseIds);
+        List<ExerciseListItemResponse> responses = exerciseRepository.findAllByIdOptimized(exerciseIds);
         
-        // OPTIMIZATION: Fetch submissions ONLY for these exercises to avoid loading entire history
-        var submissions = submissionRepository.findByStudentIdAndExerciseIdIn(studentId, exerciseIds);
-        Map<String, com.tutor_management.backend.modules.submission.domain.Submission> submissionMap = submissions.stream()
+        enrichWithStudentProgress(responses, studentId, assignments);
+
+        return responses;
+    }
+
+    // --- Private Business Helpers ---
+
+    private void verifyExerciseOwnership(Exercise exercise, String teacherId) {
+        if (!exercise.getCreatedBy().equals(teacherId)) {
+            log.error("Security violation: Teacher {} attempted to modify exercise owned by {}", teacherId, exercise.getCreatedBy());
+            throw new SecurityException("Bạn không có quyền thực hiện thao tác này trên bài tập này");
+        }
+    }
+
+    private void updateBasicMetadata(Exercise exercise, CreateExerciseRequest request) {
+        exercise.setTitle(request.getTitle());
+        exercise.setDescription(request.getDescription());
+        exercise.setTimeLimit(request.getTimeLimit());
+        exercise.setTotalPoints(request.getTotalPoints());
+        exercise.setDeadline(request.getDeadline());
+        exercise.setClassId(request.getClassId());
+        if (request.getStatus() != null) {
+            exercise.setStatus(request.getStatus());
+        }
+    }
+
+    private void processQuestionsFromRequest(List<QuestionRequest> questionRequests, Exercise exercise) {
+        if (questionRequests == null) return;
+        
+        for (QuestionRequest qReq : questionRequests) {
+            Question question = Question.builder()
+                    .exercise(exercise)
+                    .type(qReq.getType())
+                    .questionText(qReq.getQuestionText())
+                    .points(qReq.getPoints())
+                    .orderIndex(qReq.getOrderIndex())
+                    .rubric(qReq.getRubric())
+                    .options(new LinkedHashSet<>())
+                    .build();
+
+            if (qReq.getType() == QuestionType.MCQ && qReq.getOptions() != null) {
+                processOptionsForQuestion(qReq, question);
+            }
+            
+            exercise.addQuestion(question);
+        }
+    }
+
+    private void processOptionsForQuestion(QuestionRequest qReq, Question question) {
+        for (OptionRequest oReq : qReq.getOptions()) {
+            Option option = Option.builder()
+                    .question(question)
+                    .label(oReq.getLabel())
+                    .optionText(oReq.getOptionText())
+                    .isCorrect(oReq.getLabel().equals(qReq.getCorrectAnswer()))
+                    .build();
+            question.addOption(option);
+        }
+    }
+
+    private void performCascadedRemoval(String exerciseId) {
+        // Clear student interaction data
+        submissionRepository.deleteAnswersByExerciseId(exerciseId);
+        submissionRepository.deleteSubmissionsByExerciseId(exerciseId);
+        assignmentRepository.deleteByExerciseId(exerciseId);
+
+        // Clear resource structure
+        optionRepository.deleteByExerciseId(exerciseId);
+        questionRepository.deleteByExerciseId(exerciseId);
+    }
+
+    private void enrichWithStudentProgress(List<ExerciseListItemResponse> responses, String studentId, List<ExerciseAssignment> assignments) {
+        List<String> ids = responses.stream().map(ExerciseListItemResponse::getId).collect(Collectors.toList());
+        
+        var submissions = submissionRepository.findByStudentIdAndExerciseIdIn(studentId, ids);
+        var subMap = submissions.stream()
                 .collect(Collectors.toMap(com.tutor_management.backend.modules.submission.domain.Submission::getExerciseId, s -> s, (s1, s2) -> s1));
 
-        // Create a map for quick lookup of deadlines
         var deadlineMap = assignments.stream()
                 .collect(Collectors.toMap(ExerciseAssignment::getExerciseId, 
-                        a -> a.getDeadline() != null ? a.getDeadline() : LocalDateTime.now()));
+                        a -> a.getDeadline() != null ? a.getDeadline() : LocalDateTime.now(), (d1, d2) -> d1));
 
-        return exercises.stream()
-                .map(resp -> {
-                    // Override exercise deadline with assignment deadline if available
-                    if (deadlineMap.containsKey(resp.getId())) {
-                        resp.setDeadline(deadlineMap.get(resp.getId()));
-                    }
-                    
-                    // Attach submission info
-                    if (submissionMap.containsKey(resp.getId())) {
-                        var sub = submissionMap.get(resp.getId());
-                        resp.setSubmissionId(sub.getId());
-                        resp.setSubmissionStatus(sub.getStatus().name());
-                        resp.setStudentTotalScore(sub.getTotalScore());
-                    }
-                    
-                    return resp;
-                })
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Create Question entity from request
-     */
-    private Question createQuestionFromRequest(QuestionRequest request, Exercise exercise) {
-        Question question = Question.builder()
-                .id(UUID.randomUUID().toString())
-                .exercise(exercise)
-                .type(request.getType())
-                .questionText(request.getQuestionText())
-                .points(request.getPoints())
-                .orderIndex(request.getOrderIndex())
-                .rubric(request.getRubric())
-                .options(new LinkedHashSet<>())
-                .build();
-
-        // Add options for MCQ questions
-        if (request.getType() == QuestionType.MCQ && request.getOptions() != null) {
-            for (OptionRequest optionReq : request.getOptions()) {
-                Option option = Option.builder()
-                        .id(UUID.randomUUID().toString())
-                        .question(question)
-                        .label(optionReq.getLabel())
-                        .optionText(optionReq.getOptionText())
-                        .isCorrect(optionReq.getLabel().equals(request.getCorrectAnswer()))
-                        .build();
-                question.addOption(option);
+        responses.forEach(resp -> {
+            resp.setDeadline(deadlineMap.get(resp.getId()));
+            
+            var sub = subMap.get(resp.getId());
+            if (sub != null) {
+                resp.setSubmissionId(sub.getId());
+                resp.setSubmissionStatus(sub.getStatus().name());
+                resp.setStudentTotalScore(sub.getTotalScore());
             }
-        }
-
-        return question;
+        });
     }
 
-    /**
-     * Map Exercise entity to ExerciseResponse DTO
-     */
-    private ExerciseResponse mapToExerciseResponse(Exercise exercise) {
-        List<QuestionResponse> questionResponses = exercise.getQuestions().stream()
-                .map(this::mapToQuestionResponse)
-                .collect(Collectors.toList());
+    // --- Events & Notifications ---
 
+    private void notifyStudentsOfUpdate(Exercise exercise, String teacherId) {
+        try {
+            String tutorName = fetchTeacherName(teacherId);
+            eventPublisher.publishEvent(ExerciseUpdatedEvent.builder()
+                    .exerciseId(exercise.getId())
+                    .exerciseTitle(exercise.getTitle())
+                    .tutorName(tutorName)
+                    .build());
+        } catch (Exception e) {
+            log.error("Critical error while dispatching exercise update notification", e);
+        }
+    }
+
+    private void notifyStudentOfAssignment(Exercise exercise, String studentId, String tutorId) {
+        try {
+            String tutorName = fetchTeacherName(tutorId);
+            eventPublisher.publishEvent(ExerciseAssignedEvent.builder()
+                    .exerciseId(exercise.getId())
+                    .exerciseTitle(exercise.getTitle())
+                    .studentId(studentId)
+                    .tutorName(tutorName)
+                    .build());
+        } catch (Exception e) {
+            log.error("Critical error while dispatching exercise assignment notification", e);
+        }
+    }
+
+    private String fetchTeacherName(String teacherId) {
+        try {
+            return userRepository.findById(Long.parseLong(teacherId))
+                    .map(u -> u.getFullName())
+                    .orElse("Giáo viên");
+        } catch (Exception e) {
+            return "Giáo viên";
+        }
+    }
+
+    // --- Standard Domain Mappers ---
+
+    private ExerciseResponse mapToExerciseResponse(Exercise exercise) {
         return ExerciseResponse.builder()
                 .id(exercise.getId())
                 .title(exercise.getTitle())
@@ -338,22 +330,11 @@ public class ExerciseServiceImpl implements ExerciseService {
                 .createdBy(exercise.getCreatedBy())
                 .createdAt(exercise.getCreatedAt())
                 .updatedAt(exercise.getUpdatedAt())
-                .questions(questionResponses)
+                .questions(exercise.getQuestions().stream().map(this::mapToQuestionResponse).collect(Collectors.toList()))
                 .build();
     }
 
-    /**
-     * Map Question entity to QuestionResponse DTO
-     */
     private QuestionResponse mapToQuestionResponse(Question question) {
-        List<OptionResponse> optionResponses = null;
-
-        if (question.getType() == QuestionType.MCQ && question.getOptions() != null) {
-            optionResponses = question.getOptions().stream()
-                    .map(this::mapToOptionResponse)
-                    .collect(Collectors.toList());
-        }
-
         return QuestionResponse.builder()
                 .id(question.getId())
                 .type(question.getType())
@@ -361,37 +342,16 @@ public class ExerciseServiceImpl implements ExerciseService {
                 .points(question.getPoints())
                 .orderIndex(question.getOrderIndex())
                 .rubric(question.getRubric())
-                .options(optionResponses)
+                .options(question.getOptions().stream().map(this::mapToOptionResponse).collect(Collectors.toList()))
                 .build();
     }
 
-    /**
-     * Map Option entity to OptionResponse DTO
-     */
     private OptionResponse mapToOptionResponse(Option option) {
         return OptionResponse.builder()
                 .id(option.getId())
                 .label(option.getLabel())
                 .optionText(option.getOptionText())
                 .isCorrect(option.getIsCorrect())
-                .build();
-    }
-
-    /**
-     * Map Exercise entity to ExerciseListItemResponse DTO
-     */
-    private ExerciseListItemResponse mapToListItemResponse(Exercise exercise) {
-        return ExerciseListItemResponse.builder()
-                .id(exercise.getId())
-                .title(exercise.getTitle())
-                .description(exercise.getDescription())
-                .totalPoints(exercise.getTotalPoints())
-                .timeLimit(exercise.getTimeLimit())
-                .deadline(exercise.getDeadline())
-                .status(exercise.getStatus())
-                .questionCount(exercise.getQuestions() != null ? exercise.getQuestions().size() : 0)
-                .submissionCount(0) // TODO: Will be populated when submission module is implemented
-                .createdAt(exercise.getCreatedAt())
                 .build();
     }
 }

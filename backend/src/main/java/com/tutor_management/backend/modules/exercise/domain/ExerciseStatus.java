@@ -1,21 +1,21 @@
 package com.tutor_management.backend.modules.exercise.domain;
 
 /**
- * Status of an exercise
+ * Defines the lifecycle states of an exercise within the administrative library.
  */
 public enum ExerciseStatus {
     /**
-     * Exercise is being created/edited, not visible to students
+     * Under construction; hidden from students and cannot be assigned.
      */
     DRAFT,
     
     /**
-     * Exercise is published and visible to students
+     * Active and ready to be assigned or viewed by students.
      */
     PUBLISHED,
     
     /**
-     * Exercise is archived, no longer active
+     * Retired from active use; preserved for historical records but cannot be newly assigned.
      */
     ARCHIVED
 }

@@ -10,73 +10,72 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Service for managing {@link LessonCategory} taxonomy.
+ */
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class LessonCategoryService {
 
     private final LessonCategoryRepository categoryRepository;
 
+    /**
+     * Lists all available lesson categories.
+     */
     @Transactional(readOnly = true)
     public List<LessonCategoryResponse> getAllCategories() {
         return categoryRepository.findAll().stream()
-                .map(this::mapToResponse)
+                .map(LessonCategoryResponse::fromEntity)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Retrieves category details by ID.
+     */
     @Transactional(readOnly = true)
     public LessonCategoryResponse getCategoryById(Long id) {
-        LessonCategory category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy danh mục với id: " + id));
-        return mapToResponse(category);
+        return categoryRepository.findById(id)
+                .map(LessonCategoryResponse::fromEntity)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy danh mục với ID: " + id));
     }
 
-    @Transactional
+    /**
+     * Creates a new lesson category.
+     */
     public LessonCategoryResponse createCategory(LessonCategoryRequest request) {
         LessonCategory category = LessonCategory.builder()
-                .name(request.getName())
-                .description(request.getDescription())
-                .color(request.getColor())
-                .icon(request.getIcon())
+                .name(request.getName()).description(request.getDescription())
+                .color(request.getColor()).icon(request.getIcon())
                 .displayOrder(request.getDisplayOrder() != null ? request.getDisplayOrder() : 0)
                 .build();
 
-        return mapToResponse(categoryRepository.save(category));
+        return LessonCategoryResponse.fromEntity(categoryRepository.save(category));
     }
 
-    @Transactional
+    /**
+     * Updates an existing category configuration.
+     */
     public LessonCategoryResponse updateCategory(Long id, LessonCategoryRequest request) {
         LessonCategory category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy danh mục với id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy danh mục với ID: " + id));
 
         category.setName(request.getName());
         category.setDescription(request.getDescription());
         category.setColor(request.getColor());
         category.setIcon(request.getIcon());
-        if (request.getDisplayOrder() != null) {
-            category.setDisplayOrder(request.getDisplayOrder());
-        }
+        if (request.getDisplayOrder() != null) category.setDisplayOrder(request.getDisplayOrder());
 
-        return mapToResponse(categoryRepository.save(category));
+        return LessonCategoryResponse.fromEntity(categoryRepository.save(category));
     }
 
-    @Transactional
+    /**
+     * Deletes a category record.
+     */
     public void deleteCategory(Long id) {
         if (!categoryRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Không tìm thấy danh mục với id: " + id);
+            throw new ResourceNotFoundException("Không tìm thấy danh mục với ID: " + id);
         }
         categoryRepository.deleteById(id);
-    }
-
-    private LessonCategoryResponse mapToResponse(LessonCategory category) {
-        return LessonCategoryResponse.builder()
-                .id(category.getId())
-                .name(category.getName())
-                .description(category.getDescription())
-                .color(category.getColor())
-                .icon(category.getIcon())
-                .displayOrder(category.getDisplayOrder())
-                .createdAt(category.getCreatedAt())
-                .updatedAt(category.getUpdatedAt())
-                .build();
     }
 }

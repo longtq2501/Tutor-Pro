@@ -7,18 +7,18 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * Repository for StudentAnswer entity
+ * Data access interface for {@link StudentAnswer} details.
  */
 @Repository
 public interface StudentAnswerRepository extends JpaRepository<StudentAnswer, String> {
     
     /**
-     * Find answers by submission ID
+     * List all answers belonging to a specific submission attempt.
      */
     List<StudentAnswer> findBySubmissionId(String submissionId);
     
     /**
-     * Delete answers by submission ID
+     * Cascading cleanup of answers for a specific submission.
      */
     void deleteBySubmissionId(String submissionId);
 }

@@ -9,6 +9,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * Summary representation of a course for catalog and search views.
+ */
 @Data
 @Builder
 @NoArgsConstructor
@@ -26,6 +29,9 @@ public class CourseResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    /**
+     * Maps a Course entity to a summary response for list views.
+     */
     public static CourseResponse fromEntity(Course course) {
         return CourseResponse.builder()
                 .id(course.getId())

@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * Controller providing personalized course views for students.
+ */
 @RestController
 @RequestMapping("/api/student/courses")
 @RequiredArgsConstructor
@@ -25,19 +28,27 @@ public class StudentCourseController {
 
     private final CourseAssignmentService courseAssignmentService;
 
+    /**
+     * Lists all courses currently assigned to the authenticated student.
+     */
     @GetMapping
     public ResponseEntity<ApiResponse<List<CourseAssignmentResponse>>> getMyCourses(
             @AuthenticationPrincipal User user) {
 
         if (user.getStudentId() == null) {
             return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("Student ID not found for this user"));
+                    .body(ApiResponse.error("Student profile not found for the authenticated user"));
         }
 
         List<CourseAssignmentResponse> courses = courseAssignmentService.getStudentCourses(user.getStudentId());
         return ResponseEntity.ok(ApiResponse.success(courses));
     }
 
+    /**
+     * Retrieves the detailed view of a course assigned to the student, including progress status.
+     * 
+     * @param id Course ID
+     */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<StudentCourseDetailResponse>> getCourseDetail(
             @PathVariable Long id,
@@ -45,7 +56,7 @@ public class StudentCourseController {
 
         if (user.getStudentId() == null) {
             return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("Student ID not found for this user"));
+                    .body(ApiResponse.error("Student profile not found for the authenticated user"));
         }
 
         StudentCourseDetailResponse detail = courseAssignmentService.getStudentCourseDetail(id, user.getStudentId());

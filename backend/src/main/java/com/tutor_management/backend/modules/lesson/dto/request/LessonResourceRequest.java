@@ -5,6 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Payload for attaching a resource to a lesson.
+ */
 @Data
 @Builder
 @NoArgsConstructor
@@ -13,7 +16,12 @@ public class LessonResourceRequest {
     private String title;
     private String description;
     private String resourceUrl;
-    private String resourceType;  // PDF, LINK, IMAGE, VIDEO, DOCUMENT
+    
+    /**
+     * Type of resource (e.g., PDF, LINK, IMAGE, VIDEO, DOCUMENT).
+     */
+    private String resourceType;
+    
     private Long fileSize;
     private Integer displayOrder;
 }

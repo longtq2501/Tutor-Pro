@@ -1,10 +1,18 @@
 package com.tutor_management.backend.modules.finance;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.tutor_management.backend.modules.document.DocumentRepository;
+import com.tutor_management.backend.modules.lesson.LessonRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,11 +23,14 @@ import com.tutor_management.backend.modules.student.Student;
 import com.tutor_management.backend.modules.student.StudentRepository;
 import com.tutor_management.backend.modules.notification.event.SessionCreatedEvent;
 import com.tutor_management.backend.modules.notification.event.SessionRescheduledEvent;
-import org.springframework.context.ApplicationEventPublisher;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Standard implementation for managing {@link SessionRecord} lifecycle.
+ * Handles accounting, scheduling, and student notifications for individual lessons.
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -28,464 +39,212 @@ public class SessionRecordService {
 
     private final SessionRecordRepository sessionRecordRepository;
     private final StudentRepository studentRepository;
-    private final com.tutor_management.backend.modules.document.DocumentRepository documentRepository;
-    private final com.tutor_management.backend.modules.lesson.LessonRepository lessonRepository;
+    private final DocumentRepository documentRepository;
+    private final LessonRepository lessonRepository;
     private final StatusTransitionValidator statusTransitionValidator;
     private final ApplicationEventPublisher eventPublisher;
-    private final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
-
-    public List<SessionRecordResponse> getAllRecords() {
-        List<SessionRecord> records = sessionRecordRepository.findAllByOrderByCreatedAtDesc();
-        return records.stream()
-                .map(this::convertToListResponse)
-                .collect(Collectors.toList());
-    }
-
-    public List<SessionRecordResponse> getRecordsByMonth(String month) {
-        List<SessionRecord> records = sessionRecordRepository.findByMonthOrderByCreatedAtDesc(month);
-        return records.stream()
-                .map(this::convertToListResponse)
-                .collect(Collectors.toList());
-    }
     
-    // ... items in between ...
-
-
-
-    /**
-     * Lightweight converter for lists - avoids fetching attachments
-     */
-    private SessionRecordResponse convertToListResponse(SessionRecord record) {
-        return SessionRecordResponse.builder()
-                .id(record.getId())
-                .studentId(record.getStudent().getId())
-                .studentName(record.getStudent().getName())
-                .month(record.getMonth())
-                .sessions(record.getSessions())
-                .hours(record.getHours())
-                .pricePerHour(record.getPricePerHour())
-                .totalAmount(record.getTotalAmount())
-                .paid(record.getPaid())
-                .paidAt(record.getPaidAt() != null ? record.getPaidAt().format(formatter) : null)
-                .notes(record.getNotes())
-                .sessionDate(record.getSessionDate().toString())
-                .createdAt(record.getCreatedAt().format(formatter))
-                .completed(record.getCompleted())
-                .startTime(record.getStartTime() != null
-                        ? record.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm"))
-                        : null)
-                .endTime(record.getEndTime() != null ? record.getEndTime().format(DateTimeFormatter.ofPattern("HH:mm"))
-                        : null)
-                .subject(record.getSubject())
-                .status(record.getStatus() != null ? record.getStatus().name() : null)
-                .version(record.getVersion())
-                // Empty attachments for list view to avoid N+1
-                .documents(java.util.Collections.emptyList())
-                .lessons(java.util.Collections.emptyList())
-                .build();
-    }
-
-    public SessionRecordResponse createRecord(SessionRecordRequest request) {
-        Student student = studentRepository.findById(request.getStudentId())
-                .orElseThrow(() -> new RuntimeException("Student not found"));
-
-        Double hours = request.getHoursPerSession() * request.getSessions();
-        long totalAmount = (long) (hours * student.getPricePerHour()); // Cast result of multiplication
-
-        SessionRecord record = SessionRecord.builder()
-                .student(student)
-                .month(request.getMonth())
-                .sessions(request.getSessions())
-                .hours(hours)
-                .pricePerHour(student.getPricePerHour())
-                .totalAmount(totalAmount)
-                .paid(false)
-                .notes(request.getNotes())
-                .sessionDate(LocalDate.parse(request.getSessionDate()))
-                .startTime(request.getStartTime() != null && !request.getStartTime().isEmpty()
-                        ? java.time.LocalTime.parse(request.getStartTime())
-                        : null)
-                .endTime(request.getEndTime() != null && !request.getEndTime().isEmpty()
-                        ? java.time.LocalTime.parse(request.getEndTime())
-                        : null)
-                .subject(request.getSubject() != null && !request.getSubject().isEmpty() ? request.getSubject() : null)
-                .status(request.getStatus() != null ? LessonStatus.valueOf(request.getStatus())
-                        : LessonStatus.SCHEDULED)
-                .build();
-
-        // 🆕 Attachments
-        if (request.getDocumentIds() != null && !request.getDocumentIds().isEmpty()) {
-            List<com.tutor_management.backend.modules.document.Document> docs = documentRepository
-                    .findAllById(request.getDocumentIds());
-            record.setDocuments(new java.util.HashSet<>(docs));
-        }
-        if (request.getLessonIds() != null && !request.getLessonIds().isEmpty()) {
-            List<com.tutor_management.backend.modules.lesson.Lesson> lessons = lessonRepository
-                    .findAllById(request.getLessonIds());
-            record.setLessons(new java.util.HashSet<>(lessons));
-        }
-
-        SessionRecord saved = sessionRecordRepository.save(record);
-        
-        // Notify student
-        try {
-            eventPublisher.publishEvent(SessionCreatedEvent.builder()
-                    .sessionId(saved.getId())
-                    .studentId(saved.getStudent().getId())
-                    .tutorName("Giáo viên")
-                    .subject(saved.getSubject())
-                    .sessionDate(saved.getSessionDate())
-                    .startTime(saved.getStartTime())
-                    .build());
-        } catch (Exception e) {
-            log.error("Failed to publish SessionCreatedEvent", e);
-        }
-
-        return convertToResponse(saved);
-    }
-
-    public SessionRecordResponse togglePayment(Long id, Integer version) {
-        SessionRecord record = sessionRecordRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Record not found"));
-
-        if (version != null && !record.getVersion().equals(version)) {
-            String errorMsg = String.format(
-                    "Concurrent update detected for Session %d. Expected version %d, but DB has %d",
-                    id, version, record.getVersion());
-            log.error(errorMsg);
-            throw new RuntimeException(errorMsg + ". Please refresh and try again.");
-        }
-
-        record.setPaid(!record.getPaid());
-
-        if (record.getPaid()) {
-            record.setCompleted(true);
-            record.setPaidAt(java.time.LocalDateTime.now());
-            record.setStatus(LessonStatus.PAID);
-        } else {
-            record.setPaidAt(null);
-            record.setStatus(LessonStatus.COMPLETED);
-        }
-
-        SessionRecord updated = sessionRecordRepository.saveAndFlush(record);
-        return convertToResponse(updated);
-    }
-
-    public void deleteRecord(Long id) {
-        SessionRecord record = sessionRecordRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Record not found"));
-        sessionRecordRepository.delete(record);
-    }
-
-    public List<SessionRecordResponse> getAllUnpaidSessions() {
-        List<SessionRecord> unpaidRecords = sessionRecordRepository.findByPaidFalseOrderBySessionDateDesc();
-        return unpaidRecords.stream()
-                .map(this::convertToListResponse)
-                .collect(Collectors.toList());
-    }
-
-    public SessionRecordResponse updateRecord(Long id, SessionRecordUpdateRequest request) {
-        SessionRecord record = sessionRecordRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Record not found"));
-
-        // Optimistic locking
-        if (request.getVersion() != null && !record.getVersion().equals(request.getVersion())) {
-            String errorMsg = String.format(
-                    "Concurrent update detected for Session %d. Expected version %d, but DB has %d",
-                    id, request.getVersion(), record.getVersion());
-            log.error(errorMsg);
-            throw new RuntimeException(errorMsg + ". Please refresh and try again.");
-        }
-
-        // Update fields if present in request
-        if (request.getMonth() != null) {
-            record.setMonth(request.getMonth());
-        }
-
-        if (request.getSessions() != null) {
-            record.setSessions(request.getSessions());
-            // Maintain hours based on new sessions count if hoursPerSession is provided or
-            // use existing ratio
-            double ratio = request.getHoursPerSession() != null ? request.getHoursPerSession()
-                    : (record.getHours() / record.getSessions());
-            record.setHours(request.getSessions() * ratio);
-            record.setTotalAmount((long) (record.getHours() * record.getPricePerHour()));
-        }
-
-        if (request.getSessionDate() != null) {
-            record.setSessionDate(LocalDate.parse(request.getSessionDate()));
-        }
-
-        if (request.getNotes() != null) {
-            record.setNotes(request.getNotes());
-        }
-
-        if (request.getCompleted() != null) {
-            record.setCompleted(request.getCompleted());
-        }
-
-        // New Calendar Fields
-        if (request.getStartTime() != null) {
-            record.setStartTime(
-                    request.getStartTime().isEmpty() ? null : java.time.LocalTime.parse(request.getStartTime()));
-        }
-        if (request.getEndTime() != null) {
-            record.setEndTime(request.getEndTime().isEmpty() ? null : java.time.LocalTime.parse(request.getEndTime()));
-        }
-
-        // Auto-recalculate hours based on time if both provided/available
-        if (record.getStartTime() != null && record.getEndTime() != null) {
-            java.time.Duration duration = java.time.Duration.between(record.getStartTime(), record.getEndTime());
-            if (duration.isNegative())
-                duration = duration.plusDays(1); // Handle overnight
-            double newHours = duration.toMinutes() / 60.0;
-            if (newHours > 0) {
-                record.setHours(newHours);
-                record.setTotalAmount((long) (newHours * record.getPricePerHour()));
-            }
-        }
-
-        if (request.getSubject() != null) {
-            record.setSubject(request.getSubject().isEmpty() ? null : request.getSubject());
-        }
-        if (request.getStatus() != null) {
-            LessonStatus newStatus = LessonStatus.valueOf(request.getStatus());
-            // Optional: validate transition if needed
-            // statusTransitionValidator.validate(record.getStatus(), newStatus);
-            record.setStatus(newStatus);
-
-            // Sync legacy fields
-            if (newStatus == LessonStatus.PAID) {
-                record.setPaid(true);
-                record.setCompleted(true);
-                if (record.getPaidAt() == null)
-                    record.setPaidAt(java.time.LocalDateTime.now());
-            } else if (newStatus == LessonStatus.COMPLETED) {
-                record.setCompleted(true);
-            }
-        }
-
-        // 🆕 Update Attachments
-        if (request.getDocumentIds() != null) {
-            List<com.tutor_management.backend.modules.document.Document> docs = documentRepository
-                    .findAllById(request.getDocumentIds());
-            record.setDocuments(new java.util.HashSet<>(docs));
-        }
-        if (request.getLessonIds() != null) {
-            List<com.tutor_management.backend.modules.lesson.Lesson> lessons = lessonRepository
-                    .findAllById(request.getLessonIds());
-            record.setLessons(new java.util.HashSet<>(lessons));
-        }
-
-        SessionRecord updated = sessionRecordRepository.saveAndFlush(record);
-
-        // Notify student
-        try {
-            eventPublisher.publishEvent(SessionRescheduledEvent.builder()
-                    .sessionId(updated.getId())
-                    .studentId(updated.getStudent().getId())
-                    .tutorName("Giáo viên")
-                    .subject(updated.getSubject())
-                    .newDate(updated.getSessionDate())
-                    .newStartTime(updated.getStartTime())
-                    .build());
-        } catch (Exception e) {
-            log.error("Failed to publish SessionRescheduledEvent", e);
-        }
-
-        return convertToResponse(updated);
-    }
-
-    public SessionRecordResponse toggleCompleted(Long id, Integer version) {
-        SessionRecord record = sessionRecordRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Record not found"));
-
-        if (version != null && !record.getVersion().equals(version)) {
-            String errorMsg = String.format(
-                    "Concurrent update detected for Session %d. Expected version %d, but DB has %d",
-                    id, version, record.getVersion());
-            log.error(errorMsg);
-            throw new RuntimeException(errorMsg + ". Please refresh and try again.");
-        }
-
-        boolean newCompleted = !record.getCompleted();
-        record.setCompleted(newCompleted);
-
-        if (newCompleted) {
-            record.setStatus(LessonStatus.COMPLETED);
-        } else {
-            record.setStatus(LessonStatus.SCHEDULED);
-            record.setPaid(false);
-            record.setPaidAt(null);
-        }
-
-        SessionRecord updated = sessionRecordRepository.saveAndFlush(record);
-        return convertToResponse(updated);
-    }
+    private final DateTimeFormatter isoFormatter = DateTimeFormatter.ISO_DATE_TIME;
+    private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
     /**
-     * Get all sessions for a specific student
+     * Retrieves all session records ordered by creation date (newest first).
+     * 
+     * @return List of all session records in the system.
      */
-    public List<SessionRecordResponse> getRecordsByStudentId(Long studentId) {
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
-
-        List<SessionRecord> records = sessionRecordRepository.findByStudentOrderByCreatedAtDesc(student);
-        return records.stream()
-                .map(this::convertToListResponse)
+    @Transactional(readOnly = true)
+    public List<SessionRecordResponse> getAllRecords() {
+        return sessionRecordRepository.findAllByOrderByCreatedAtDesc().stream()
+                .map(this::mapToListResponse)
                 .collect(Collectors.toList());
     }
 
     /**
-     * Get sessions for a specific student and month
+     * Retrieves all session records for a specific billing month.
+     * 
+     * @param month The billing month in YYYY-MM format.
+     * @return List of session records for the specified month.
      */
-    public List<SessionRecordResponse> getRecordsByStudentIdAndMonth(Long studentId, String month) {
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
-
-        List<SessionRecord> records = sessionRecordRepository.findByStudentAndMonthFilteredOrderByDateAsc(student,
-                month);
-        return records.stream()
-                .map(this::convertToListResponse)
+    @Transactional(readOnly = true)
+    public List<SessionRecordResponse> getRecordsByMonth(String month) {
+        return sessionRecordRepository.findByMonthOrderByCreatedAtDesc(month).stream()
+                .map(this::mapToListResponse)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Retrieves all distinct billing months that have session records.
+     * Useful for populating month filter dropdowns in the UI.
+     * 
+     * @return List of month strings in YYYY-MM format, ordered by month descending.
+     */
+    @Transactional(readOnly = true)
     public List<String> getDistinctMonths() {
         return sessionRecordRepository.findDistinctMonths();
     }
 
-    private SessionRecordResponse convertToResponse(SessionRecord record) {
-        return SessionRecordResponse.builder()
-                .id(record.getId())
-                .studentId(record.getStudent().getId())
-                .studentName(record.getStudent().getName())
-                .month(record.getMonth())
-                .sessions(record.getSessions())
-                .hours(record.getHours())
-                .pricePerHour(record.getPricePerHour())
-                .totalAmount(record.getTotalAmount())
-                .paid(record.getPaid())
-                .paidAt(record.getPaidAt() != null ? record.getPaidAt().format(formatter) : null)
-                .notes(record.getNotes())
-                .sessionDate(record.getSessionDate().toString()) // Format YYYY-MM-DD
-                .createdAt(record.getCreatedAt().format(formatter))
-                .completed(record.getCompleted())
-                // New calendar optimization fields
-                .startTime(record.getStartTime() != null
-                        ? record.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm"))
-                        : null)
-                .endTime(record.getEndTime() != null ? record.getEndTime().format(DateTimeFormatter.ofPattern("HH:mm"))
-                        : null)
-                .subject(record.getSubject())
-                .status(record.getStatus() != null ? record.getStatus().name() : null)
-                .version(record.getVersion())
-                // 🆕 Attachments mapping
-                .documents(record.getDocuments().stream()
-                        .map(doc -> SessionRecordResponse.DocumentDTO.builder()
-                                .id(doc.getId())
-                                .title(doc.getTitle())
-                                .fileName(doc.getFileName())
-                                .fileType(doc.getFileType())
-                                .fileSize(doc.getFileSize())
-                                .filePath(doc.getFilePath())
-                                .build())
-                        .collect(Collectors.toList()))
-                .lessons(record.getLessons().stream()
-                        .map(lesson -> SessionRecordResponse.LessonDTO.builder()
-                                .id(lesson.getId())
-                                .title(lesson.getTitle())
-                                .summary(lesson.getSummary())
-                                .thumbnailUrl(lesson.getThumbnailUrl())
-                                .durationMinutes(lesson.getDurationMinutes())
-                                .isPublished(lesson.getIsPublished())
-                                .build())
-                        .collect(Collectors.toList()))
-                .build();
-    }
-
-    // ========== NEW METHODS FOR PHASE 2 ==========
-
     /**
-     * Get a single session by ID
-     */
-    public SessionRecordResponse getSessionById(Long id) {
-        SessionRecord record = sessionRecordRepository.findByIdWithAttachments(id)
-                .orElseThrow(() -> new RuntimeException("Session not found with id: " + id));
-        return convertToResponse(record);
-    }
-
-    /**
-     * Update session status with optimistic locking
+     * Creates a new session record with automatic price calculation and resource attachment.
+     * Publishes a {@link SessionCreatedEvent} for student notifications.
      * 
-     * @param id              Session ID
-     * @param newStatus       Target status
-     * @param expectedVersion Expected version for optimistic locking
-     * @return Updated session
-     * @throws RuntimeException                 if version mismatch (concurrent
-     *                                          update detected)
-     * @throws InvalidStatusTransitionException if transition is not allowed
+     * @param r The session creation request containing student, date, and subject details.
+     * @return The created session record with full details.
+     * @throws RuntimeException if the student is not found.
      */
-    public SessionRecordResponse updateStatus(Long id, LessonStatus newStatus, Integer expectedVersion) {
-        SessionRecord record = sessionRecordRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Session not found with id: " + id));
+    public SessionRecordResponse createRecord(SessionRecordRequest r) {
+        log.info("🗓️ Creating session record for student {} on {}", r.getStudentId(), r.getSessionDate());
+        
+        Student student = studentRepository.findById(r.getStudentId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy học sinh"));
 
-        // Optimistic locking check
-        if (!record.getVersion().equals(expectedVersion)) {
-            String errorMsg = String.format(
-                    "Concurrent update detected for Session %d. Expected version %d, but DB has %d",
-                    id, expectedVersion, record.getVersion());
-            log.error(errorMsg);
-            throw new RuntimeException(errorMsg + ". Please refresh and try again.");
-        }
+        double hours = r.getHoursPerSession() * r.getSessions();
+        long amount = (long) (hours * student.getPricePerHour());
 
-        // Validate status transition
-        LessonStatus currentStatus = record.getStatus();
-        statusTransitionValidator.validate(currentStatus, newStatus);
+        SessionRecord record = SessionRecord.builder()
+                .student(student)
+                .month(r.getMonth())
+                .sessions(r.getSessions())
+                .hours(hours)
+                .pricePerHour(student.getPricePerHour())
+                .totalAmount(amount)
+                .paid(false)
+                .notes(r.getNotes())
+                .sessionDate(LocalDate.parse(r.getSessionDate()))
+                .startTime(parseTime(r.getStartTime()))
+                .endTime(parseTime(r.getEndTime()))
+                .subject(r.getSubject())
+                .status(parseStatus(r.getStatus()))
+                .build();
 
-        // Update status
-        record.setStatus(newStatus);
-
-        // Auto-update legacy fields for backward compatibility
-        if (newStatus == LessonStatus.COMPLETED || newStatus == LessonStatus.PENDING_PAYMENT) {
-            record.setCompleted(true);
-        }
-        if (newStatus == LessonStatus.PAID) {
-            record.setCompleted(true);
-            record.setPaid(true);
-            if (record.getPaidAt() == null) {
-                record.setPaidAt(java.time.LocalDateTime.now());
-            }
-        }
-
-        // Version will auto-increment due to @Version annotation
-        SessionRecord updated = sessionRecordRepository.saveAndFlush(record);
-
-        // Notify student if status changed to something relevant for them or date/time updated
-        try {
-            eventPublisher.publishEvent(SessionRescheduledEvent.builder()
-                    .sessionId(updated.getId())
-                    .studentId(updated.getStudent().getId())
-                    .tutorName("Giáo viên")
-                    .subject(updated.getSubject())
-                    .newDate(updated.getSessionDate())
-                    .newStartTime(updated.getStartTime())
-                    .build());
-        } catch (Exception e) {
-            log.error("Failed to publish SessionRescheduledEvent from updateStatus", e);
-        }
-
-        return convertToResponse(updated);
+        attachResources(record, r.getDocumentIds(), r.getLessonIds());
+        SessionRecord saved = sessionRecordRepository.save(record);
+        
+        publishCreatedEvent(saved);
+        return mapToFullResponse(saved);
     }
 
     /**
-     * Duplicate a session
-     * Creates a copy with SCHEDULED status and incremented date
+     * Updates an existing session record with optimistic locking support.
+     * Recalculates hours and amounts when session count or time changes.
+     * Publishes a {@link SessionRescheduledEvent} for student notifications.
+     * 
+     * @param id The session record ID to update.
+     * @param r The update request with modified fields.
+     * @return The updated session record.
+     * @throws RuntimeException if the record is not found or version conflict occurs.
+     */
+    public SessionRecordResponse updateRecord(Long id, SessionRecordUpdateRequest r) {
+        log.info("📝 Updating session record: {}", id);
+        
+        SessionRecord record = sessionRecordRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi buổi học"));
+
+        checkVersion(record, r.getVersion());
+
+        if (r.getMonth() != null) record.setMonth(r.getMonth());
+        if (r.getSessionDate() != null) record.setSessionDate(LocalDate.parse(r.getSessionDate()));
+        if (r.getNotes() != null) record.setNotes(r.getNotes());
+        
+        if (r.getSessions() != null) {
+            record.setSessions(r.getSessions());
+            double ratio = Optional.ofNullable(r.getHoursPerSession()).orElse(record.getHours() / record.getSessions());
+            record.setHours(r.getSessions() * ratio);
+            record.setTotalAmount((long) (record.getHours() * record.getPricePerHour()));
+        }
+
+        if (r.getStartTime() != null) record.setStartTime(parseTime(r.getStartTime()));
+        if (r.getEndTime() != null) record.setEndTime(parseTime(r.getEndTime()));
+
+        recalculateHoursFromTime(record);
+
+        if (r.getSubject() != null) record.setSubject(r.getSubject());
+        if (r.getStatus() != null) applyStatusChange(record, LessonStatus.valueOf(r.getStatus()));
+
+        attachResources(record, r.getDocumentIds(), r.getLessonIds());
+
+        SessionRecord updated = sessionRecordRepository.save(record);
+        publishRescheduledEvent(updated);
+        
+        return mapToFullResponse(updated);
+    }
+
+    /**
+     * Permanently removes a session record from the system.
+     * 
+     * @param id The session record ID to delete.
+     * @throws RuntimeException if the record is not found.
+     */
+    public void deleteRecord(Long id) {
+        SessionRecord record = sessionRecordRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi buổi học"));
+        sessionRecordRepository.delete(record);
+    }
+
+    /**
+     * Deletes all session records for a specific billing month.
+     * Use with caution - this is a bulk deletion operation.
+     * 
+     * @param month The billing month in YYYY-MM format.
+     */
+    public void deleteSessionsByMonth(String month) {
+        log.warn("⚠️ Deleting all sessions for month: {}", month);
+        sessionRecordRepository.deleteByMonth(month);
+    }
+
+    /**
+     * Retrieves all unpaid session records ordered by session date (newest first).
+     * Useful for generating payment reminders and financial reports.
+     * 
+     * @return List of unpaid session records.
+     */
+    @Transactional(readOnly = true)
+    public List<SessionRecordResponse> getAllUnpaidSessions() {
+        return sessionRecordRepository.findByPaidFalseOrderBySessionDateDesc().stream()
+                .map(this::mapToListResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Toggles the payment status of a session record.
+     * Automatically updates the status to PAID or COMPLETED and manages timestamps.
+     * 
+     * @param id The session record ID.
+     * @param version The current version for optimistic locking.
+     * @return The updated session record.
+     * @throws RuntimeException if the record is not found or version conflict occurs.
+     */
+    public SessionRecordResponse togglePayment(Long id, Integer version) {
+        SessionRecord record = sessionRecordRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi buổi học"));
+        checkVersion(record, version);
+
+        if (!record.getPaid()) {
+            applyStatusChange(record, LessonStatus.PAID);
+        } else {
+            applyStatusChange(record, LessonStatus.COMPLETED);
+            record.setPaid(false);
+            record.setPaidAt(null);
+        }
+
+        return mapToFullResponse(sessionRecordRepository.save(record));
+    }
+
+    /**
+     * Creates a duplicate of an existing session record.
+     * Useful for quickly creating similar sessions without re-entering all data.
+     * The new session will have a new ID and creation timestamp.
+     * 
+     * @param id The ID of the session to duplicate.
+     * @return The newly created duplicate session record.
+     * @throws RuntimeException if the original session is not found.
      */
     public SessionRecordResponse duplicateSession(Long id) {
-        SessionRecord original = sessionRecordRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Session not found with id: " + id));
+        log.info("📋 Duplicating session record: {}", id);
+        
+        SessionRecord original = sessionRecordRepository.findByIdWithAttachments(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy buổi học với ID: " + id));
 
-        // Create duplicate with SCHEDULED status
+        // Create a new session with the same data
         SessionRecord duplicate = SessionRecord.builder()
                 .student(original.getStudent())
                 .month(original.getMonth())
@@ -493,21 +252,199 @@ public class SessionRecordService {
                 .hours(original.getHours())
                 .pricePerHour(original.getPricePerHour())
                 .totalAmount(original.getTotalAmount())
-                .paid(false)
-                .completed(false)
+                .paid(false)  // New session starts as unpaid
                 .notes(original.getNotes())
-                .sessionDate(original.getSessionDate().plusDays(7)) // Next week by default
+                .sessionDate(original.getSessionDate())
                 .startTime(original.getStartTime())
                 .endTime(original.getEndTime())
                 .subject(original.getSubject())
-                .status(LessonStatus.SCHEDULED)
+                .status(LessonStatus.SCHEDULED)  // New session starts as scheduled
+                .documents(new HashSet<>(original.getDocuments()))
+                .lessons(new HashSet<>(original.getLessons()))
                 .build();
 
         SessionRecord saved = sessionRecordRepository.save(duplicate);
-        return convertToResponse(saved);
+        return mapToFullResponse(saved);
     }
 
-    public void deleteSessionsByMonth(String month) {
-        sessionRecordRepository.deleteByMonth(month);
+    /**
+     * Retrieves all session records for a specific student.
+     * 
+     * @param studentId The student's unique identifier.
+     * @return List of session records for the student.
+     */
+    @Transactional(readOnly = true)
+    public List<SessionRecordResponse> getRecordsByStudentId(Long studentId) {
+        return sessionRecordRepository.findByStudentIdOrderByCreatedAtDesc(studentId).stream()
+                .map(this::mapToListResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Retrieves session records for a specific student and billing month.
+     * 
+     * @param studentId The student's unique identifier.
+     * @param month The billing month in YYYY-MM format.
+     * @return List of session records matching the criteria.
+     * @throws RuntimeException if the student is not found.
+     */
+    @Transactional(readOnly = true)
+    public List<SessionRecordResponse> getRecordsByStudentIdAndMonth(Long studentId, String month) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy học sinh"));
+
+        return sessionRecordRepository.findByStudentAndMonthFilteredOrderByDateAsc(student, month).stream()
+                .map(this::mapToListResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Retrieves a single session record with all attached documents and lessons.
+     * 
+     * @param id The session record ID.
+     * @return The complete session record with attachments.
+     * @throws RuntimeException if the record is not found.
+     */
+    @Transactional(readOnly = true)
+    public SessionRecordResponse getSessionById(Long id) {
+        SessionRecord record = sessionRecordRepository.findByIdWithAttachments(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy buổi học với ID: " + id));
+        return mapToFullResponse(record);
+    }
+
+    /**
+     * Specialized status update with validation and optimistic locking.
+     */
+    public SessionRecordResponse updateStatus(Long id, LessonStatus next, Integer version) {
+        SessionRecord record = sessionRecordRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy buổi học với ID: " + id));
+
+        checkVersion(record, version);
+        statusTransitionValidator.validate(record.getStatus(), next);
+        
+        applyStatusChange(record, next);
+        SessionRecord updated = sessionRecordRepository.save(record);
+        
+        publishRescheduledEvent(updated);
+        return mapToFullResponse(updated);
+    }
+
+    // --- Private Helpers ---
+
+    private void applyStatusChange(SessionRecord record, LessonStatus next) {
+        record.setStatus(next);
+        if (next == LessonStatus.PAID) {
+            record.setPaid(true);
+            record.setCompleted(true);
+            if (record.getPaidAt() == null) record.setPaidAt(LocalDateTime.now());
+        } else if (next == LessonStatus.COMPLETED || next == LessonStatus.PENDING_PAYMENT) {
+            record.setCompleted(true);
+        }
+    }
+
+    private void recalculateHoursFromTime(SessionRecord r) {
+        if (r.getStartTime() != null && r.getEndTime() != null) {
+            java.time.Duration d = java.time.Duration.between(r.getStartTime(), r.getEndTime());
+            if (d.isNegative()) d = d.plusDays(1);
+            double h = d.toMinutes() / 60.0;
+            if (h > 0) {
+                r.setHours(h);
+                r.setTotalAmount((long) (h * r.getPricePerHour()));
+            }
+        }
+    }
+
+    private void attachResources(SessionRecord r, List<Long> docIds, List<Long> lesIds) {
+        if (docIds != null) {
+            r.setDocuments(new HashSet<>(documentRepository.findAllById(docIds)));
+        }
+        if (lesIds != null) {
+            r.setLessons(new HashSet<>(lessonRepository.findAllById(lesIds)));
+        }
+    }
+
+    private void checkVersion(SessionRecord r, Integer version) {
+        if (version != null && !r.getVersion().equals(version)) {
+            throw new RuntimeException("Dữ liệu đã bị thay đổi bởi người dùng khác. Vui lòng tải lại trang.");
+        }
+    }
+
+    private LocalTime parseTime(String t) {
+        return (t == null || t.isEmpty()) ? null : LocalTime.parse(t);
+    }
+
+    private LessonStatus parseStatus(String s) {
+        return (s == null || s.isEmpty()) ? LessonStatus.SCHEDULED : LessonStatus.valueOf(s);
+    }
+
+    private void publishCreatedEvent(SessionRecord s) {
+        try {
+            eventPublisher.publishEvent(SessionCreatedEvent.builder()
+                .sessionId(s.getId()).studentId(s.getStudent().getId()).tutorName("Giáo viên")
+                .subject(s.getSubject()).sessionDate(s.getSessionDate()).startTime(s.getStartTime())
+                .build());
+        } catch (Exception e) { log.error("Failed to publish SessionCreatedEvent", e); }
+    }
+
+    private void publishRescheduledEvent(SessionRecord s) {
+        try {
+            eventPublisher.publishEvent(SessionRescheduledEvent.builder()
+                .sessionId(s.getId()).studentId(s.getStudent().getId()).tutorName("Giáo viên")
+                .subject(s.getSubject()).newDate(s.getSessionDate()).newStartTime(s.getStartTime())
+                .build());
+        } catch (Exception e) { log.error("Failed to publish SessionRescheduledEvent", e); }
+    }
+
+    // --- Mappers ---
+
+    private SessionRecordResponse mapToListResponse(SessionRecord r) {
+        return mapToResponse(r, true);
+    }
+
+    private SessionRecordResponse mapToFullResponse(SessionRecord r) {
+        return mapToResponse(r, false);
+    }
+
+    private SessionRecordResponse mapToResponse(SessionRecord r, boolean lightweight) {
+        SessionRecordResponse.SessionRecordResponseBuilder b = SessionRecordResponse.builder()
+            .id(r.getId()).studentId(r.getStudent().getId()).studentName(r.getStudent().getName())
+            .month(r.getMonth()).sessions(r.getSessions()).hours(r.getHours())
+            .pricePerHour(r.getPricePerHour()).totalAmount(r.getTotalAmount())
+            .paid(r.getPaid()).paidAt(formatDateTime(r.getPaidAt())).notes(r.getNotes())
+            .sessionDate(r.getSessionDate().toString()).createdAt(formatDateTime(r.getCreatedAt()))
+            .completed(r.getCompleted()).startTime(formatTime(r.getStartTime()))
+            .endTime(formatTime(r.getEndTime())).subject(r.getSubject())
+            .status(r.getStatus() != null ? r.getStatus().name() : null).version(r.getVersion());
+
+        if (lightweight) {
+            b.documents(Collections.emptyList()).lessons(Collections.emptyList());
+        } else {
+            b.documents(r.getDocuments().stream().map(this::mapDoc).toList());
+            b.lessons(r.getLessons().stream().map(this::mapLesson).toList());
+        }
+        return b.build();
+    }
+
+    private String formatDateTime(LocalDateTime dt) {
+        return dt != null ? dt.format(isoFormatter) : null;
+    }
+
+    private String formatTime(LocalTime t) {
+        return t != null ? t.format(timeFormatter) : null;
+    }
+
+    private SessionRecordResponse.DocumentDTO mapDoc(com.tutor_management.backend.modules.document.Document d) {
+        return SessionRecordResponse.DocumentDTO.builder()
+            .id(d.getId()).title(d.getTitle()).fileName(d.getFileName())
+            .fileType(d.getFileType()).fileSize(d.getFileSize()).filePath(d.getFilePath())
+            .build();
+    }
+
+    private SessionRecordResponse.LessonDTO mapLesson(com.tutor_management.backend.modules.lesson.Lesson l) {
+        return SessionRecordResponse.LessonDTO.builder()
+            .id(l.getId()).title(l.getTitle()).summary(l.getSummary())
+            .thumbnailUrl(l.getThumbnailUrl()).durationMinutes(l.getDurationMinutes())
+            .isPublished(l.getIsPublished())
+            .build();
     }
 }

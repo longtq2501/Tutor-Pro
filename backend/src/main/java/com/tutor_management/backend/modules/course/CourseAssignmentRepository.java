@@ -9,34 +9,52 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Repository interface for managing {@link CourseAssignment} entities.
+ * Includes optimized queries to prevent N+1 performance issues during progress tracking.
+ */
 @Repository
 public interface CourseAssignmentRepository extends JpaRepository<CourseAssignment, Long> {
-    // ❌ OLD: N+1 query problem
+
     List<CourseAssignment> findByStudentId(Long studentId);
 
     List<CourseAssignment> findByCourseId(Long courseId);
 
-    // ✅ OPTIMIZED: Use @EntityGraph to fetch student and course in one query
+    /**
+     * Fetches course assignments for a student with detailed tutor and course info.
+     * Uses EntityGraph to fetch relationships in a single optimized SQL join.
+     */
     @EntityGraph(attributePaths = { "student", "course", "course.tutor" })
     @Query("SELECT ca FROM CourseAssignment ca WHERE ca.student.id = :studentId")
     List<CourseAssignment> findByStudentIdWithDetails(@Param("studentId") Long studentId);
 
+    /**
+     * Fetches course assignments for a specific course with student details.
+     * Prevents lazy loading issues when listing enrolled students.
+     */
     @EntityGraph(attributePaths = { "student", "course", "course.tutor" })
     @Query("SELECT ca FROM CourseAssignment ca WHERE ca.course.id = :courseId")
     List<CourseAssignment> findByCourseIdWithDetails(@Param("courseId") Long courseId);
 
-    // Keep existing method - already optimized
     Optional<CourseAssignment> findByCourseIdAndStudentId(Long courseId, Long studentId);
 
-    // ✅ OPTIMIZED: Deep fetch including course lessons to avoid N+1
-    @EntityGraph(attributePaths = { "student", "course", "course.tutor", "course.courseLessons",
-            "course.courseLessons.lesson" })
+    /**
+     * Performs a deep fetch of a single assignment including all course lessons.
+     * This is critical for computing real-time progress percentages without additional queries.
+     */
+    @EntityGraph(attributePaths = { 
+        "student", "course", "course.tutor", 
+        "course.courseLessons", "course.courseLessons.lesson" 
+    })
     @Query("SELECT ca FROM CourseAssignment ca WHERE ca.course.id = :courseId AND ca.student.id = :studentId")
     Optional<CourseAssignment> findByCourseIdAndStudentIdWithFullDetails(
             @Param("courseId") Long courseId,
             @Param("studentId") Long studentId);
 
-    // ✅ OPTIMIZED: Fetch assignments with courseLessons for progress calculation
+    /**
+     * Loads all course enrollments for a student including nested lessons.
+     * Optimizes bulk progress calculation for dashboard views.
+     */
     @EntityGraph(attributePaths = { "student", "course", "course.courseLessons", "course.courseLessons.lesson" })
     @Query("SELECT ca FROM CourseAssignment ca WHERE ca.student.id = :studentId")
     List<CourseAssignment> findByStudentIdWithCourseLessons(@Param("studentId") Long studentId);

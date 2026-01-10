@@ -22,7 +22,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * REST Controller for Exercise management
+ * RESTful interface for the Exercise Management System.
+ * Provides endpoints for ingestion, resource management (CRUD), and student assignments.
+ * Access is generally restricted to staff (ADMIN/TUTOR) unless otherwise specified.
  */
 @RestController
 @RequestMapping("/api/exercises")
@@ -34,107 +36,103 @@ public class ExerciseController {
     private final ExerciseService exerciseService;
     
     /**
-     * Parse text and return preview without saving
-     * POST /api/exercises/import/text
+     * Dry-run parsing of raw text into structured exercise data.
+     * Use this to verify accuracy before persistence.
      */
     @PostMapping("/import/text")
     public ResponseEntity<ApiResponse<ImportPreviewResponse>> importPreview(
             @Valid @RequestBody ImportExerciseRequest request) {
-        log.info("Received import preview request");
+        log.info("Accessing NLP parser for raw text (ingestion length: {})", request.getContent().length());
         ImportPreviewResponse preview = exerciseService.previewImport(request);
-        return ResponseEntity.ok(ApiResponse.success("Parsed successfully", preview));
+        return ResponseEntity.ok(ApiResponse.success("Xử lý nội dung văn bản thành công", preview));
     }
     
     /**
-     * Create new exercise
-     * POST /api/exercises
+     * Declares a new exercise resource.
      */
     @PostMapping
     public ResponseEntity<ApiResponse<ExerciseResponse>> createExercise(
             @Valid @RequestBody CreateExerciseRequest request,
             @AuthenticationPrincipal User user) {
-        log.info("Creating exercise: {} by user: {}", request.getTitle(), user.getEmail());
+        log.info("User {} is creating a new exercise: '{}'", user.getEmail(), request.getTitle());
         ExerciseResponse exercise = exerciseService.createExercise(request, user.getId().toString());
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(ApiResponse.success("Exercise created successfully", exercise));
+            .body(ApiResponse.success("Bài tập đã được khởi tạo thành công", exercise));
     }
     
     /**
-     * Update existing exercise
-     * PUT /api/exercises/{id}
+     * Updates an existing exercise Resource. Note: Replaces the sub-resource graph of questions.
      */
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ExerciseResponse>> updateExercise(
             @PathVariable String id,
             @Valid @RequestBody CreateExerciseRequest request,
             @AuthenticationPrincipal User user) {
-        log.info("Updating exercise: {} by user: {}", id, user.getEmail());
+        log.info("User {} is updating exercise UUID: {}", user.getEmail(), id);
         ExerciseResponse exercise = exerciseService.updateExercise(id, request, user.getId().toString());
-        return ResponseEntity.ok(ApiResponse.success("Exercise updated successfully", exercise));
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật bài tập thành công", exercise));
     }
     
     /**
-     * Get exercise by ID
-     * GET /api/exercises/{id}
+     * Fetches the full detailed structure of a specific exercise.
      */
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     public ResponseEntity<ApiResponse<ExerciseResponse>> getExercise(@PathVariable String id) {
-        log.info("Fetching exercise: {}", id);
+        log.debug("Reading full graph for exercise {}", id);
         ExerciseResponse exercise = exerciseService.getExercise(id);
         return ResponseEntity.ok(ApiResponse.success(exercise));
     }
     
     /**
-     * List exercises with optional filters
-     * GET /api/exercises?classId={classId}&status={status}
+     * Queries the exercise library with optional filters.
+     * 
+     * @param classId Filter by specific class categorization.
+     * @param status Filter by draft/published/archived state.
      */
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     public ResponseEntity<ApiResponse<List<ExerciseListItemResponse>>> listExercises(
             @RequestParam(required = false) String classId,
             @RequestParam(required = false) ExerciseStatus status) {
-        log.info("Listing exercises - classId: {}, status: {}", classId, status);
+        log.debug("Quering exercise library (Filter - Class: {}, Status: {})", classId, status);
         List<ExerciseListItemResponse> exercises = exerciseService.listExercises(classId, status);
         return ResponseEntity.ok(ApiResponse.success(exercises));
     }
     
     /**
-     * Delete exercise
-     * DELETE /api/exercises/{id}
+     * Destructive removal of an exercise resource and all related student activity history.
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteExercise(
             @PathVariable String id,
             @AuthenticationPrincipal User user) {
-        log.info("Deleting exercise: {} by user: {}", id, user.getEmail());
+        log.warn("User {} requested deletion of exercise resource: {}", user.getEmail(), id);
         exerciseService.deleteExercise(id, user.getId().toString());
-        return ResponseEntity.ok(ApiResponse.success("Exercise deleted successfully", null));
+        return ResponseEntity.ok(ApiResponse.success("Xóa bài tập thành công", null));
     }
-
+    
     /**
-     * Assign exercise to a specific student
-     * POST /api/exercises/{id}/assign
+     * Links a published exercise to a specific student's curriculum.
      */
     @PostMapping("/{id}/assign")
     public ResponseEntity<ApiResponse<Void>> assignToStudent(
             @PathVariable String id,
             @Valid @RequestBody AssignExerciseRequest request,
             @AuthenticationPrincipal User user) {
-        log.info("Assigning exercise: {} to student: {} by user: {}", id, request.getStudentId(), user.getEmail());
+        log.info("Staff {} assigning exercise {} to student {}", user.getEmail(), id, request.getStudentId());
         exerciseService.assignToStudent(id, request.getStudentId(), user.getId().toString(), request.getDeadline());
-        return ResponseEntity.ok(ApiResponse.success("Exercise assigned successfully", null));
+        return ResponseEntity.ok(ApiResponse.success("Đã giao bài tập cho học sinh thành công", null));
     }
-
+    
     /**
-     * List exercises assigned to the current student
-     * GET /api/exercises/assigned
+     * Personalized view for the authenticated student's assigned assessments.
      */
     @GetMapping("/assigned")
     @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN', 'TUTOR')")
     public ResponseEntity<ApiResponse<List<ExerciseListItemResponse>>> listAssignedExercises(
             @AuthenticationPrincipal User user) {
-        log.info("Listing assigned exercises for student: {}", user.getEmail());
+        log.debug("Reading assigned materials for authenticated student {}", user.getEmail());
         List<ExerciseListItemResponse> exercises = exerciseService.listAssignedExercises(user.getId().toString());
         return ResponseEntity.ok(ApiResponse.success(exercises));
     }

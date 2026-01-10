@@ -5,19 +5,37 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Data response object for {@link com.tutor_management.backend.modules.schedule.RecurringSchedule} details.
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class RecurringScheduleResponse {
+    
     private Long id;
     private Long studentId;
     private String studentName;
+    
+    /**
+     * Raw day integers (1-7).
+     */
     private Integer[] daysOfWeek;
-    private String daysOfWeekDisplay; // "Thứ 2, 4, 6"
+    
+    /**
+     * Localized display string (e.g., "Thứ 2, Thứ 4, Thứ 6").
+     */
+    private String daysOfWeekDisplay;
+    
     private String startTime;
     private String endTime;
-    private String timeRange; // "18:00-20:00"
+    
+    /**
+     * Formatted range string (e.g., "18:00-20:00").
+     */
+    private String timeRange;
+    
     private Double hoursPerSession;
     private String startMonth;
     private String endMonth;

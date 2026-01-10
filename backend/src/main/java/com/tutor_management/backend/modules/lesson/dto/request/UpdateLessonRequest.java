@@ -8,6 +8,10 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Payload for updating an existing {@link com.tutor_management.backend.modules.lesson.Lesson}.
+ * Only non-null fields will be updated in the entity.
+ */
 @Data
 @Builder
 @NoArgsConstructor
@@ -23,4 +27,13 @@ public class UpdateLessonRequest {
     private List<LessonImageRequest> images;
     private List<LessonResourceRequest> resources;
     private Boolean isPublished;
+    
+    // Additional settings
+    private Long categoryId;
+    private Boolean allowLateSubmission;
+    private Double latePenaltyPercent;
+    private Integer points;
+    private Integer passScore;
+    private String difficultyLevel;
+    private Integer durationMinutes;
 }

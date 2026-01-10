@@ -10,18 +10,19 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * Repository for Question entity
+ * Data access layer for managing Assessment Questions.
  */
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, String> {
     
     /**
-     * Find all questions for an exercise, ordered by order index
+     * Lists questions for an exercise in their presentation order.
      */
     List<Question> findByExerciseIdOrderByOrderIndex(String exerciseId);
     
     /**
-     * Find all questions for an exercise with options eagerly fetched
+     * Fetches questions for an exercise with MCQ options eagerly pre-loaded.
+     * Recommended for assessment rendering to avoid lazy loading exceptions.
      */
     @Query("SELECT DISTINCT q FROM Question q " +
            "LEFT JOIN FETCH q.options " +
@@ -30,7 +31,8 @@ public interface QuestionRepository extends JpaRepository<Question, String> {
     List<Question> findByExerciseIdWithDetails(@Param("exerciseId") String exerciseId);
 
     /**
-     * Delete all questions for an exercise
+     * Bulk removes all questions belonging to a specific exercise.
+     * Note: Does NOT automatically remove options unless cascaded in JPA.
      */
     @Modifying
     @Query("DELETE FROM Question q WHERE q.exercise.id = :exerciseId")

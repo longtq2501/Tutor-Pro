@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * Request DTO for creating a submission
+ * Payload for creating a new student {@link com.tutor_management.backend.modules.submission.domain.Submission}.
  */
 @Data
 @Builder
@@ -19,10 +19,10 @@ import java.util.List;
 @AllArgsConstructor
 public class CreateSubmissionRequest {
     
-    @NotBlank(message = "Exercise ID is required")
+    @NotBlank(message = "ID bài tập không được để trống")
     private String exerciseId;
     
-    @NotNull(message = "Answers are required")
+    @NotNull(message = "Danh sách câu trả lời không được để trống")
     @Valid
     private List<AnswerRequest> answers;
 }

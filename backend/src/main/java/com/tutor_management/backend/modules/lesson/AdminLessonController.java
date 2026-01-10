@@ -6,7 +6,6 @@ import com.tutor_management.backend.modules.shared.dto.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -14,8 +13,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Controller for Admin/Tutor Lesson Management
- * Accessible by: ADMIN, TUTOR
+ * Controller for Administrative Lesson Management.
+ * Provides endpoints for mass creation, global updates, and assignment tracking.
+ * Authorized for: ADMIN, TUTOR.
  */
 @RestController
 @RequestMapping("/api/admin/lessons")
@@ -27,100 +27,72 @@ public class AdminLessonController {
     private final AdminLessonService adminLessonService;
 
     /**
-     * Create lesson for multiple students
+     * Creates a new lesson and optionally assigns it to multiple students.
      */
     @PostMapping
     public ResponseEntity<ApiResponse<List<AdminLessonResponse>>> createLesson(
             @Valid @RequestBody CreateLessonRequest request) {
-        try {
-            List<AdminLessonResponse> lessons = adminLessonService.createLessonForStudents(request);
-            return ResponseEntity.ok(ApiResponse.success(lessons));
-        } catch (Exception e) {
-            log.error("Error creating lesson", e);
-            throw e;
-        }
+        log.info("Admin creating lesson: {}", request.getTitle());
+        List<AdminLessonResponse> lessons = adminLessonService.createLessonForStudents(request);
+        return ResponseEntity.ok(ApiResponse.success("Tạo bài giảng thành công", lessons));
     }
 
     /**
-     * Update existing lesson
+     * Updates metadata and content for an existing lesson.
      */
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<AdminLessonResponse>> updateLesson(
             @PathVariable Long id,
             @Valid @RequestBody CreateLessonRequest request) {
-        try {
-            AdminLessonResponse lesson = adminLessonService.updateLesson(id, request);
-            return ResponseEntity.ok(ApiResponse.success("Cập nhật bài giảng thành công", lesson));
-        } catch (Exception e) {
-            log.error("Failed to update lesson", e);
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("Không thể cập nhật: " + e.getMessage()));
-        }
+        log.info("Admin updating lesson ID: {}", id);
+        AdminLessonResponse lesson = adminLessonService.updateLesson(id, request);
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật bài giảng thành công", lesson));
     }
 
     /**
-     * Get all lessons (includes drafts)
+     * Lists all lessons in the system.
      */
     @GetMapping
     public ResponseEntity<ApiResponse<List<AdminLessonResponse>>> getAllLessons() {
-        List<AdminLessonResponse> lessons = adminLessonService.getAllLessons();
-        return ResponseEntity.ok(ApiResponse.success(lessons));
+        return ResponseEntity.ok(ApiResponse.success(adminLessonService.getAllLessons()));
     }
 
     /**
-     * Get lesson by ID
+     * Retrieves full details for a specific lesson by ID.
      */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<AdminLessonResponse>> getLessonById(@PathVariable Long id) {
-        try {
-            AdminLessonResponse lesson = adminLessonService.getLessonById(id);
-            return ResponseEntity.ok(ApiResponse.success(lesson));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(ApiResponse.error("Không tìm thấy bài giảng"));
-        }
+        return ResponseEntity.ok(ApiResponse.success(adminLessonService.getLessonById(id)));
     }
 
     /**
-     * Get lessons by student
+     * Fetches all lessons currently assigned to a specific student.
      */
     @GetMapping("/student/{studentId}")
     public ResponseEntity<ApiResponse<List<AdminLessonResponse>>> getLessonsByStudent(
             @PathVariable Long studentId) {
-        List<AdminLessonResponse> lessons = adminLessonService.getLessonsByStudent(studentId);
-        return ResponseEntity.ok(ApiResponse.success(lessons));
+        return ResponseEntity.ok(ApiResponse.success(adminLessonService.getLessonsByStudent(studentId)));
     }
 
     /**
-     * Delete lesson
+     * Permanently deletes a lesson and its assignments.
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteLesson(@PathVariable Long id) {
-        try {
-            adminLessonService.deleteLesson(id);
-            return ResponseEntity.ok(ApiResponse.success("Xóa bài giảng thành công", null));
-        } catch (Exception e) {
-            log.error("Failed to delete lesson", e);
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("Không thể xóa: " + e.getMessage()));
-        }
+        log.warn("Admin deleting lesson ID: {}", id);
+        adminLessonService.deleteLesson(id);
+        return ResponseEntity.ok(ApiResponse.success("Xóa bài giảng thành công", null));
     }
 
     /**
-     * Toggle publish status
+     * Toggles the publication status of a lesson.
      */
     @PutMapping("/{id}/toggle-publish")
     public ResponseEntity<ApiResponse<AdminLessonResponse>> togglePublishStatus(@PathVariable Long id) {
-        try {
-            AdminLessonResponse lesson = adminLessonService.togglePublishStatus(id);
-            String message = lesson.getIsPublished()
-                    ? "Đã xuất bản bài giảng"
-                    : "Đã chuyển về bản nháp";
-            return ResponseEntity.ok(ApiResponse.success(message, lesson));
-        } catch (Exception e) {
-            log.error("Failed to toggle publish status", e);
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("Không thể thay đổi trạng thái: " + e.getMessage()));
-        }
+        AdminLessonResponse lesson = adminLessonService.togglePublish(id);
+        String message = Boolean.TRUE.equals(lesson.getIsPublished())
+                ? "Đã xuất bản bài giảng"
+                : "Đã chuyển về bản nháp";
+        return ResponseEntity.ok(ApiResponse.success(message, lesson));
     }
 }

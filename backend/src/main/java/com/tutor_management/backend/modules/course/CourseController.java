@@ -27,6 +27,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Administrative controller for course management.
+ * Provides endpoints for tutors and admins to create, update, and assign courses.
+ */
 @RestController
 @RequestMapping("/api/admin/courses")
 @RequiredArgsConstructor
@@ -37,17 +41,25 @@ public class CourseController {
     private final CourseService courseService;
     private final CourseAssignmentService courseAssignmentService;
 
-    // ✅ OPTIMIZED: Returns Projection instead of full entity
+    /**
+     * Lists all existing courses using efficient projections.
+     */
     @GetMapping
     public ResponseEntity<ApiResponse<List<CourseListProjection>>> getAllCourses() {
         return ResponseEntity.ok(ApiResponse.success(courseService.getAllCourses()));
     }
 
+    /**
+     * Retrieves the full details of a specific course, including its curriculum.
+     */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<CourseDetailResponse>> getCourseById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(courseService.getCourseById(id)));
     }
 
+    /**
+     * Creates a new course authored by the authenticated user.
+     */
     @PostMapping
     public ResponseEntity<ApiResponse<CourseResponse>> createCourse(
             @Valid @RequestBody CourseRequest request,
@@ -56,6 +68,9 @@ public class CourseController {
         return ResponseEntity.ok(ApiResponse.success("Tạo khóa học thành công", course));
     }
 
+    /**
+     * Updates an existing course's metadata and lessons.
+     */
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<CourseResponse>> updateCourse(
             @PathVariable Long id,
@@ -64,12 +79,18 @@ public class CourseController {
         return ResponseEntity.ok(ApiResponse.success("Cập nhật khóa học thành công", course));
     }
 
+    /**
+     * Deletes a course and all related student enrollments.
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteCourse(@PathVariable Long id) {
         courseService.deleteCourse(id);
         return ResponseEntity.ok(ApiResponse.success("Xóa khóa học thành công", null));
     }
 
+    /**
+     * Appends new lessons to an existing course.
+     */
     @PostMapping("/{id}/lessons")
     public ResponseEntity<ApiResponse<Void>> addLessonsToCourse(
             @PathVariable Long id,
@@ -78,6 +99,9 @@ public class CourseController {
         return ResponseEntity.ok(ApiResponse.success("Thêm bài giảng vào khóa học thành công", null));
     }
 
+    /**
+     * Removes a lesson from a course's curriculum.
+     */
     @DeleteMapping("/{id}/lessons/{lessonId}")
     public ResponseEntity<ApiResponse<Void>> removeLessonFromCourse(
             @PathVariable Long id,
@@ -86,8 +110,9 @@ public class CourseController {
         return ResponseEntity.ok(ApiResponse.success("Xóa bài giảng khỏi khóa học thành công", null));
     }
 
-    // --- ENROLLMENT (ASSIGNMENT) ENDPOINTS ---
-
+    /**
+     * Assigns/Enrolls one or more students into a specific course.
+     */
     @PostMapping("/{id}/assign")
     public ResponseEntity<ApiResponse<List<CourseAssignmentResponse>>> assignCourse(
             @PathVariable Long id,
@@ -98,11 +123,17 @@ public class CourseController {
         return ResponseEntity.ok(ApiResponse.success("Giao khóa học thành công", assignments));
     }
 
+    /**
+     * Lists all current student assignments/enrollments for a specific course.
+     */
     @GetMapping("/{id}/assignments")
     public ResponseEntity<ApiResponse<List<CourseAssignmentResponse>>> getCourseAssignments(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(courseAssignmentService.getCourseAssignments(id)));
     }
 
+    /**
+     * revokes a student's enrollment in a specific course.
+     */
     @DeleteMapping("/{id}/students/{studentId}")
     public ResponseEntity<ApiResponse<Void>> removeStudentFromCourse(
             @PathVariable Long id,

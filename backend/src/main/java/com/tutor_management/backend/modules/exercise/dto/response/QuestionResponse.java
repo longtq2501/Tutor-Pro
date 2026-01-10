@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * Response DTO for a single question
+ * Detailed representation of an assessment task in the resource library.
  */
 @Data
 @Builder
@@ -24,6 +24,14 @@ public class QuestionResponse {
     private String questionText;
     private Integer points;
     private Integer orderIndex;
+    
+    /**
+     * Guidelines for evaluation.
+     */
     private String rubric;
+    
+    /**
+     * Flat list of possible responses (for MCQ).
+     */
     private List<OptionResponse> options;
 }

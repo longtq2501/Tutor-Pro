@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 
 import com.tutor_management.backend.exception.ResourceNotFoundException;
 import com.tutor_management.backend.modules.auth.User;
@@ -18,6 +20,10 @@ import com.tutor_management.backend.modules.lesson.LessonRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Service for managing the lifecycle of courses and their curriculum.
+ * Provides caching for performance and transactional integrity for updates.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -29,15 +35,26 @@ public class CourseService {
     private final LessonRepository lessonRepository;
     private final UserRepository userRepository;
 
-    // ✅ PERFORMANCE: Cache course list for 5 minutes
-    @org.springframework.cache.annotation.Cacheable(value = "courseList")
+    /**
+     * Retrieves all available courses using memory-efficient projections.
+     * Results are cached for 5 minutes.
+     * 
+     * @return List of courses in projection format
+     */
+    @Cacheable(value = "courseList")
     @Transactional(readOnly = true)
     public List<CourseListProjection> getAllCourses() {
         return courseRepository.findAllCoursesProjection();
     }
 
-    // ✅ PERFORMANCE: Cache individual course details
-    @org.springframework.cache.annotation.Cacheable(value = "courseDetail", key = "#id")
+    /**
+     * Fetches full course details including the ordered curriculum.
+     * 
+     * @param id Course ID
+     * @return Detailed course response
+     * @throws ResourceNotFoundException if ID doesn't exist
+     */
+    @Cacheable(value = "courseDetail", key = "#id")
     @Transactional(readOnly = true)
     public CourseDetailResponse getCourseById(Long id) {
         Course course = courseRepository.findByIdWithDetails(id)
@@ -45,8 +62,15 @@ public class CourseService {
         return CourseDetailResponse.fromEntity(course);
     }
 
-    // ✅ PERFORMANCE: Evict course caches when creating new course
-    @org.springframework.cache.annotation.CacheEvict(value = {"courseList", "courseDetail"}, allEntries = true)
+    /**
+     * Creates a new course and optionally assembles an initial curriculum.
+     * Clears all course-related caches to ensure data consistency.
+     * 
+     * @param request Data for the new course
+     * @param tutor The user authoring the course
+     * @return Summary response of the created course
+     */
+    @CacheEvict(value = {"courseList", "courseDetail"}, allEntries = true)
     public CourseResponse createCourse(CourseRequest request, User tutor) {
         Course course = Course.builder()
                 .title(request.getTitle())
@@ -54,13 +78,12 @@ public class CourseService {
                 .thumbnailUrl(request.getThumbnailUrl())
                 .difficultyLevel(request.getDifficultyLevel())
                 .estimatedHours(request.getEstimatedHours())
-                .isPublished(request.getIsPublished() != null ? request.getIsPublished() : false)
+                .isPublished(Boolean.TRUE.equals(request.getIsPublished()))
                 .tutor(tutor)
                 .build();
 
         Course savedCourse = courseRepository.save(course);
 
-        // Add initial lessons if provided
         if (request.getLessonIds() != null && !request.getLessonIds().isEmpty()) {
             addLessonsToCourse(savedCourse.getId(), request.getLessonIds());
         }
@@ -68,26 +91,25 @@ public class CourseService {
         return CourseResponse.fromEntity(savedCourse);
     }
 
-    // ✅ PERFORMANCE: Evict caches when updating course
-    @org.springframework.cache.annotation.CacheEvict(value = {"courseList", "courseDetail"}, allEntries = true)
+    /**
+     * Updates an existing course's metadata and synchronizes its curriculum.
+     * 
+     * @param id Target Course ID
+     * @param request Updated data
+     * @return Updated course summary
+     */
+    @CacheEvict(value = {"courseList", "courseDetail"}, allEntries = true)
     public CourseResponse updateCourse(Long id, CourseRequest request) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found: " + id));
 
-        if (request.getTitle() != null)
-            course.setTitle(request.getTitle());
-        if (request.getDescription() != null)
-            course.setDescription(request.getDescription());
-        if (request.getThumbnailUrl() != null)
-            course.setThumbnailUrl(request.getThumbnailUrl());
-        if (request.getDifficultyLevel() != null)
-            course.setDifficultyLevel(request.getDifficultyLevel());
-        if (request.getEstimatedHours() != null)
-            course.setEstimatedHours(request.getEstimatedHours());
-        if (request.getIsPublished() != null)
-            course.setIsPublished(request.getIsPublished());
+        if (request.getTitle() != null) course.setTitle(request.getTitle());
+        if (request.getDescription() != null) course.setDescription(request.getDescription());
+        if (request.getThumbnailUrl() != null) course.setThumbnailUrl(request.getThumbnailUrl());
+        if (request.getDifficultyLevel() != null) course.setDifficultyLevel(request.getDifficultyLevel());
+        if (request.getEstimatedHours() != null) course.setEstimatedHours(request.getEstimatedHours());
+        if (request.getIsPublished() != null) course.setIsPublished(request.getIsPublished());
 
-        // Update lesson list if provided
         if (request.getLessonIds() != null) {
             syncCourseLessons(course, request.getLessonIds());
         }
@@ -96,14 +118,11 @@ public class CourseService {
     }
 
     private void syncCourseLessons(Course course, List<Long> newLessonIds) {
-        // Delete all existing course lessons from database
+        // Clear existing mappings to rebuild the sequence
         courseLessonRepository.deleteAllByCourse(course);
         courseLessonRepository.flush();
-
-        // Clear the collection
         course.getCourseLessons().clear();
 
-        // Add new lessons in the specified order
         for (int i = 0; i < newLessonIds.size(); i++) {
             Long lessonId = newLessonIds.get(i);
             Lesson lesson = lessonRepository.findById(lessonId)
@@ -119,8 +138,12 @@ public class CourseService {
         }
     }
 
-    // ✅ PERFORMANCE: Evict caches when deleting course
-    @org.springframework.cache.annotation.CacheEvict(value = {"courseList", "courseDetail"}, allEntries = true)
+    /**
+     * Permanently removes a course and all its student assignments.
+     * 
+     * @param id Course ID
+     */
+    @CacheEvict(value = {"courseList", "courseDetail"}, allEntries = true)
     public void deleteCourse(Long id) {
         if (!courseRepository.existsById(id)) {
             throw new ResourceNotFoundException("Course not found: " + id);
@@ -128,6 +151,9 @@ public class CourseService {
         courseRepository.deleteById(id);
     }
 
+    /**
+     * Appends lessons to the end of a course's existing curriculum.
+     */
     public void addLessonsToCourse(Long courseId, List<Long> lessonIds) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
@@ -139,11 +165,10 @@ public class CourseService {
             Lesson lesson = lessonRepository.findById(lessonId)
                     .orElseThrow(() -> new ResourceNotFoundException("Lesson not found: " + lessonId));
 
-            // Check if already in course
-            boolean exists = course.getCourseLessons().stream()
+            boolean alreadyExists = course.getCourseLessons().stream()
                     .anyMatch(cl -> cl.getLesson().getId().equals(lessonId));
 
-            if (!exists) {
+            if (!alreadyExists) {
                 CourseLesson courseLesson = CourseLesson.builder()
                         .course(course)
                         .lesson(lesson)
@@ -157,13 +182,15 @@ public class CourseService {
         courseRepository.save(course);
     }
 
+    /**
+     * Removes a specific lesson from a course and re-orders remaining items.
+     */
     public void removeLessonFromCourse(Long courseId, Long lessonId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
 
         course.getCourseLessons().removeIf(cl -> cl.getLesson().getId().equals(lessonId));
 
-        // Re-order remaining lessons
         List<CourseLesson> lessons = course.getCourseLessons();
         for (int i = 0; i < lessons.size(); i++) {
             lessons.get(i).setLessonOrder(i + 1);

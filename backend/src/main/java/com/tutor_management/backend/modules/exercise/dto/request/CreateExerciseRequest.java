@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Request DTO for creating or updating an exercise
+ * Payload for declaring or updating an entire exercise structure, including metadata and questions.
  */
 @Data
 @Builder
@@ -23,51 +23,49 @@ import java.util.List;
 @AllArgsConstructor
 public class CreateExerciseRequest {
     
-    /**
-     * Exercise title
-     */
-    @NotBlank(message = "Title is required")
-    @Size(max = 500, message = "Title must not exceed 500 characters")
+    @NotBlank(message = "Tiêu đề không được để trống")
+    @Size(max = 500, message = "Tiêu đề không được vượt quá 500 ký tự")
     private String title;
     
     /**
-     * Exercise description
+     * Summary or instructional preamble for the exercise.
      */
     private String description;
     
     /**
-     * Time limit in minutes
+     * Maximum minutes allowed for completion.
      */
-    @Min(value = 1, message = "Time limit must be at least 1 minute")
+    @Min(value = 1, message = "Thời gian làm bài tối thiểu là 1 phút")
     private Integer timeLimit;
     
     /**
-     * Total points
+     * Sum of points across all included questions.
      */
-    @NotNull(message = "Total points is required")
-    @Min(value = 1, message = "Total points must be at least 1")
+    @NotNull(message = "Tổng điểm không được để trống")
+    @Min(value = 1, message = "Tổng điểm tối thiểu là 1")
     private Integer totalPoints;
     
     /**
-     * Deadline for submission
+     * Default cutoff time for all associated assignments.
      */
     private LocalDateTime deadline;
     
     /**
-     * Class ID
+     * UUID of the class/grouping this exercise is categorized under.
      */
     private String classId;
     
     /**
-     * Exercise status
+     * Initial lifecycle state (defaults to DRAFT if omitted).
      */
-    private ExerciseStatus status;
+    @Builder.Default
+    private ExerciseStatus status = ExerciseStatus.DRAFT;
     
     /**
-     * List of questions
+     * List of assessment tasks defining the exercise content.
      */
-    @NotNull(message = "Questions list is required")
-    @Size(min = 1, message = "At least one question is required")
+    @NotNull(message = "Danh sách câu hỏi không được để trống")
+    @Size(min = 1, message = "Cần ít nhất một câu hỏi")
     @Valid
     private List<QuestionRequest> questions;
 }

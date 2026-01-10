@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Full response DTO for an exercise with all details
+ * Full domain object representing a complete exercise resource.
  */
 @Data
 @Builder
@@ -31,5 +31,9 @@ public class ExerciseResponse {
     private String createdBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    /**
+     * Recursive list containing the full structured content of all questions.
+     */
     private List<QuestionResponse> questions;
 }

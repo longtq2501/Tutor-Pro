@@ -2,9 +2,11 @@ package com.tutor_management.backend.modules.student;
 
 import com.tutor_management.backend.modules.finance.dto.response.SessionRecordResponse;
 import com.tutor_management.backend.modules.student.dto.response.StudentResponse;
+import com.tutor_management.backend.modules.shared.dto.response.ApiResponse;
 import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.finance.SessionRecordService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,9 +16,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Self-service API for students to access their own records and dashboard.
+ * Requires STUDENT role and a linked Student ID.
+ */
 @RestController
 @RequestMapping("/api/student")
 @RequiredArgsConstructor
+@Slf4j
 @PreAuthorize("hasRole('STUDENT')")
 public class StudentApiController {
 
@@ -24,84 +31,58 @@ public class StudentApiController {
     private final StudentService studentService;
 
     /**
-     * Get current student's info
-     * GET /api/student/me
+     * Retrieves the profile info of the currently authenticated student.
      */
     @GetMapping("/me")
-    public ResponseEntity<StudentResponse> getMyInfo(@AuthenticationPrincipal User user) {
-        if (user.getStudentId() == null) {
-            throw new RuntimeException("Student ID not linked to user account");
-        }
-
+    public ResponseEntity<ApiResponse<StudentResponse>> getMyInfo(@AuthenticationPrincipal User user) {
+        ensureStudentLinked(user);
         StudentResponse student = studentService.getStudentById(user.getStudentId());
-        return ResponseEntity.ok(student);
+        return ResponseEntity.ok(ApiResponse.success(student));
     }
 
     /**
-     * Get current student's sessions (optionally filtered by month)
-     * GET /api/student/sessions
-     * GET /api/student/sessions?month=2025-12
+     * Retrieves attendance and billing records for the authenticated student.
+     * Optionally filtered by month (YYYY-MM).
      */
     @GetMapping("/sessions")
-    public ResponseEntity<List<SessionRecordResponse>> getMySessions(
+    public ResponseEntity<ApiResponse<List<SessionRecordResponse>>> getMySessions(
             @AuthenticationPrincipal User user,
             @RequestParam(required = false) String month
     ) {
-        if (user.getStudentId() == null) {
-            throw new RuntimeException("Student ID not linked to user account");
-        }
-
-        List<SessionRecordResponse> sessions;
-
-        if (month != null && !month.isEmpty()) {
-            // Get sessions for specific month
-            sessions = sessionRecordService.getRecordsByStudentIdAndMonth(user.getStudentId(), month);
-        } else {
-            // Get all sessions for this student
-            sessions = sessionRecordService.getRecordsByStudentId(user.getStudentId());
-        }
-
-        return ResponseEntity.ok(sessions);
+        ensureStudentLinked(user);
+        List<SessionRecordResponse> sessions = (month != null && !month.isEmpty()) ?
+                sessionRecordService.getRecordsByStudentIdAndMonth(user.getStudentId(), month) :
+                sessionRecordService.getRecordsByStudentId(user.getStudentId());
+        
+        return ResponseEntity.ok(ApiResponse.success(sessions));
     }
 
     /**
-     * Get current student's dashboard stats
-     * GET /api/student/dashboard?month=2025-12
+     * Retrieves high-level dashboard metrics for the student's current activity.
      */
     @GetMapping("/dashboard")
-    public ResponseEntity<Map<String, Object>> getDashboard(
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getDashboard(
             @AuthenticationPrincipal User user,
             @RequestParam String month
     ) {
-        if (user.getStudentId() == null) {
-            throw new RuntimeException("Student ID not linked to user account");
-        }
-
-        // Get student's sessions for the month
-        List<SessionRecordResponse> sessions = sessionRecordService.getRecordsByStudentIdAndMonth(
-                user.getStudentId(),
-                month
-        );
-
-        // Calculate stats
-        int totalSessions = sessions.size();
-        long completedSessions = sessions.stream().filter(SessionRecordResponse::getCompleted).count();
-        double totalHours = sessions.stream().mapToDouble(SessionRecordResponse::getHours).sum();
-        long totalAmount = sessions.stream().mapToLong(SessionRecordResponse::getTotalAmount).sum();
-        long paidAmount = sessions.stream()
-                .filter(SessionRecordResponse::getPaid)
-                .mapToLong(SessionRecordResponse::getTotalAmount)
-                .sum();
-        long unpaidAmount = totalAmount - paidAmount;
+        ensureStudentLinked(user);
+        List<SessionRecordResponse> sessions = sessionRecordService.getRecordsByStudentIdAndMonth(user.getStudentId(), month);
 
         Map<String, Object> stats = new HashMap<>();
-        stats.put("totalSessions", totalSessions);
-        stats.put("completedSessions", completedSessions);
-        stats.put("totalHours", totalHours);
-        stats.put("totalAmount", totalAmount);
-        stats.put("paidAmount", paidAmount);
-        stats.put("unpaidAmount", unpaidAmount);
+        stats.put("totalSessions", sessions.size());
+        stats.put("completedSessions", sessions.stream().filter(SessionRecordResponse::getCompleted).count());
+        stats.put("totalHours", sessions.stream().mapToDouble(SessionRecordResponse::getHours).sum());
+        stats.put("totalAmount", sessions.stream().mapToLong(SessionRecordResponse::getTotalAmount).sum());
+        stats.put("paidAmount", sessions.stream().filter(SessionRecordResponse::getPaid).mapToLong(SessionRecordResponse::getTotalAmount).sum());
+        stats.put("unpaidAmount", (long)stats.get("totalAmount") - (long)stats.get("paidAmount"));
 
-        return ResponseEntity.ok(stats);
+        return ResponseEntity.ok(ApiResponse.success(stats));
+    }
+
+    private void ensureStudentLinked(User user) {
+        if (user.getStudentId() == null) {
+            log.error("User ID {} is not linked to any student account", user.getId());
+            throw new IllegalStateException("Tài khoản người dùng chưa được liên kết với hồ sơ học sinh");
+        }
     }
 }

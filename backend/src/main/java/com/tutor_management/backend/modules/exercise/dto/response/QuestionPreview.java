@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * Preview DTO for a question during import
+ * Transitional representation of a question found in raw import text.
  */
 @Data
 @Builder

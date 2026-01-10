@@ -1,7 +1,14 @@
 package com.tutor_management.backend.modules.document.dto.response;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+/**
+ * Legacy statistics container for predefined document categories.
+ * Note: Newer implementations should prefer the dynamic Map in DocumentStats.
+ */
 @Data
 @Builder
 @NoArgsConstructor

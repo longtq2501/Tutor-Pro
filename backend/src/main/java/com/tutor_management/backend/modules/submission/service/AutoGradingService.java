@@ -1,21 +1,24 @@
 package com.tutor_management.backend.modules.submission.service;
 
 import com.tutor_management.backend.modules.submission.domain.Submission;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service interface for auto-grading MCQ questions
+ * Service for automated evaluation of student attempts.
+ * Primarily handles logic for Multiple Choice Questions (MCQ).
  */
 public interface AutoGradingService {
     
     /**
-     * Auto-grade MCQ questions in a submission
+     * Executes auto-grading logic and updates the submission's component scores.
      * 
-     * @param submissionId The submission ID to grade
-     * @return The MCQ score
+     * @param submissionId Unique identifier of the attempt record.
+     * @return The calculated score for MCQ items.
      */
     int gradeSubmission(String submissionId);
 
-    @Transactional
+    /**
+     * Executes auto-grading logic on a hydrated submission entity.
+     * Avoids redundant database lookups when called from a parent transaction.
+     */
     int gradeSubmission(Submission submission);
 }

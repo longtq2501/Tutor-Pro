@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * List item response DTO for submission (summary view)
+ * Summary data response for submission listings.
  */
 @Data
 @Builder
@@ -21,7 +21,7 @@ public class SubmissionListItemResponse {
     
     private String id;
     private String studentId;
-    private String studentName; // Will be populated from User service
+    private String studentName;
     private SubmissionStatus status;
     private Integer mcqScore;
     private Integer essayScore;

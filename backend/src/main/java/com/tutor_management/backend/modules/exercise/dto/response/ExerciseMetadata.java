@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Metadata extracted from import text
+ * Metadata snapshot extracted from the NLP parser during exercise ingestion.
  */
 @Data
 @Builder

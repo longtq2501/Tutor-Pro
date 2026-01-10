@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * Request DTO for a single question
+ * Declaration for a single assessment question, supporting both MCQ and Essay formats.
  */
 @Data
 @Builder
@@ -21,43 +21,43 @@ import java.util.List;
 public class QuestionRequest {
     
     /**
-     * Type of question (MCQ or ESSAY)
+     * Interaction format (MCQ or ESSAY).
      */
-    @NotNull(message = "Question type is required")
+    @NotNull(message = "Loại câu hỏi không được để trống")
     private QuestionType type;
     
     /**
-     * The question text
+     * The prompt or instruction text.
      */
-    @NotBlank(message = "Question text is required")
+    @NotBlank(message = "Nội dung câu hỏi không được để trống")
     private String questionText;
     
     /**
-     * Points for this question
+     * Scoring weight for this item.
      */
-    @NotNull(message = "Points is required")
-    @Min(value = 1, message = "Points must be at least 1")
+    @NotNull(message = "Điểm số không được để trống")
+    @Min(value = 1, message = "Điểm số tối thiểu là 1")
     private Integer points;
     
     /**
-     * Order index for sorting
+     * Visual sequence index.
      */
-    @NotNull(message = "Order index is required")
-    @Min(value = 0, message = "Order index must be non-negative")
+    @NotNull(message = "Vị trí không được để trống")
+    @Min(value = 0, message = "Vị trí không được là số âm")
     private Integer orderIndex;
     
     /**
-     * Options for MCQ questions (nullable for essay)
+     * Collection of choices (Required if type is MCQ).
      */
     private List<OptionRequest> options;
     
     /**
-     * Correct answer for MCQ (A, B, C, D) - nullable for essay
+     * The label of the correct option (e.g., 'B'). Required if type is MCQ.
      */
     private String correctAnswer;
     
     /**
-     * Rubric for essay questions (nullable for MCQ)
+     * Assessment guidelines or grading key (primarily for ESSAY).
      */
     private String rubric;
 }

@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Request DTO for grading a single essay question
+ * Payload for grading an individual essay response.
  */
 @Data
 @Builder
@@ -17,12 +17,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class EssayGradeRequest {
     
-    @NotBlank(message = "Question ID is required")
+    @NotBlank(message = "ID câu hỏi không được để trống")
     private String questionId;
     
-    @NotNull(message = "Points is required")
-    @Min(value = 0, message = "Points must be non-negative")
+    @NotNull(message = "Điểm số không được để trống")
+    @Min(value = 0, message = "Điểm số không được nhỏ hơn 0")
     private Integer points;
     
+    /**
+     * Specific feedback for this specific answer.
+     */
     private String feedback;
 }

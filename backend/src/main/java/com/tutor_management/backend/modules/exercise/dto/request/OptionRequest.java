@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Request DTO for a single option in MCQ question
+ * Specific choice declaration for Multiple Choice Questions (MCQ).
  */
 @Data
 @Builder
@@ -17,15 +17,15 @@ import lombok.NoArgsConstructor;
 public class OptionRequest {
     
     /**
-     * Option label (A, B, C, or D)
+     * Selection key (e.g., 'A', 'B', 'C', 'D').
      */
-    @NotBlank(message = "Option label is required")
-    @Pattern(regexp = "[A-D]", message = "Option label must be A, B, C, or D")
+    @NotBlank(message = "Nhãn lựa chọn không được để trống")
+    @Pattern(regexp = "[A-D]", message = "Nhãn lựa chọn phải là A, B, C, hoặc D")
     private String label;
     
     /**
-     * The option text
+     * Display text for the choice.
      */
-    @NotBlank(message = "Option text is required")
+    @NotBlank(message = "Nội dung lựa chọn không được để trống")
     private String optionText;
 }

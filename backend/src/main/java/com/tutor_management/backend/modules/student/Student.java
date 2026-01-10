@@ -7,6 +7,11 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
+/**
+ * Domain entity representing a Student in the system.
+ * Contains demographic information, billing rates, and academic schedules.
+ * Students can be linked to a {@link Parent} for administrative purposes.
+ */
 @Entity
 @Table(name = "students")
 @Getter
@@ -14,35 +19,62 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Ngăn lỗi ByteBuddyProxy
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Student {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * Full name of the student.
+     */
     @Column(nullable = false)
     private String name;
 
+    /**
+     * Optional contact phone number for the student.
+     */
     private String phone;
 
+    /**
+     * Description of the weekly schedule (e.g., "Monday 18:00").
+     */
     @Column(nullable = false)
     private String schedule;
 
+    /**
+     * Billing rate per hour of instruction.
+     */
     @Column(nullable = false)
     private Long pricePerHour;
 
+    /**
+     * Additional academic or behavioral notes.
+     */
     @Column(length = 1000)
     private String notes;
 
+    /**
+     * Lifecycle status of the student (active/inactive).
+     */
     @Builder.Default
     @Column(nullable = false)
     private Boolean active = true;
 
+    /**
+     * The first month the student enrolled (YYYY-MM).
+     */
     private String startMonth;
+
+    /**
+     * The most recent month with recorded attendance (YYYY-MM).
+     */
     private String lastActiveMonth;
 
-    // ===== THÊM QUAN HỆ VỚI PARENT =====
+    /**
+     * Associated parent or guardian record.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     @JsonIgnore
@@ -56,8 +88,9 @@ public class Student {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        createdAt = now;
+        updatedAt = now;
     }
 
     @PreUpdate

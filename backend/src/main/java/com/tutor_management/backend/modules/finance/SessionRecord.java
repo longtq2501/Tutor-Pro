@@ -3,30 +3,22 @@ package com.tutor_management.backend.modules.finance;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.tutor_management.backend.modules.student.Student;
+import com.tutor_management.backend.modules.lesson.Lesson;
+import com.tutor_management.backend.modules.document.Document;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-import jakarta.persistence.Version;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
+/**
+ * Domain entity representing an individual tutoring session record.
+ * Tracks teaching hours, pricing, subjects, and payment status.
+ * Supports linking to {@link Lesson} materials and {@link Document} resources.
+ */
 @Entity
 @Table(name = "session_records", indexes = {
         @Index(name = "idx_session_student_id", columnList = "student_id"),
@@ -34,10 +26,12 @@ import lombok.NoArgsConstructor;
         @Index(name = "idx_session_student_month", columnList = "student_id, month"),
         @Index(name = "idx_session_date", columnList = "sessionDate")
 })
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"lessons", "documents", "student"})
 public class SessionRecord {
 
     @Id
@@ -48,12 +42,21 @@ public class SessionRecord {
     @JoinColumn(name = "student_id", nullable = false)
     private Student student;
 
+    /**
+     * Billing month in format YYYY-MM.
+     */
     @Column(nullable = false)
-    private String month; // Format: YYYY-MM
+    private String month;
 
+    /**
+     * Number of sessions (usually 1 per record).
+     */
     @Column(nullable = false)
     private Integer sessions;
 
+    /**
+     * Duration of the session in decimal hours.
+     */
     @Column(nullable = false)
     private Double hours;
 
@@ -71,64 +74,68 @@ public class SessionRecord {
     @Column(length = 1000)
     private String notes;
 
+    /**
+     * The actual date the session took place.
+     */
     @Column(nullable = false)
-    private LocalDate sessionDate; // Ngày dạy cụ thể
+    private LocalDate sessionDate;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    /**
+     * @deprecated Use {@link #status} instead. 
+     * Kept for backward compatibility with existing data migrations.
+     */
     @Builder.Default
     @Column(nullable = false)
-    private Boolean completed = false; // Trạng thái đã dạy hay chưa (deprecated, use status instead)
+    @Deprecated
+    private Boolean completed = false;
 
-    // ========== NEW FIELDS FOR CALENDAR OPTIMIZATION ==========
+    // --- Scheduling Details ---
 
     @Column(name = "start_time")
-    private LocalTime startTime; // Giờ bắt đầu buổi học (e.g., 14:00)
+    private LocalTime startTime;
 
     @Column(name = "end_time")
-    private LocalTime endTime; // Giờ kết thúc buổi học (e.g., 15:30)
+    private LocalTime endTime;
 
     @Column(length = 100)
-    private String subject; // Môn học (e.g., Toán 10, Lý 11)
+    private String subject;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(length = 50)
-    private LessonStatus status = LessonStatus.SCHEDULED; // Trạng thái chi tiết
+    private LessonStatus status = LessonStatus.SCHEDULED;
 
     @Builder.Default
     @Version
-    private Integer version = 0; // Optimistic locking to prevent concurrent updates
+    private Integer version = 0;
 
-    // ========== ATTACHMENTS (LIBRARY) ==========
-
-    @Builder.Default
-    @ManyToMany(fetch = FetchType.LAZY)
-    @org.hibernate.annotations.BatchSize(size = 50)
-    @JoinTable(name = "session_lessons", joinColumns = @JoinColumn(name = "session_id"), inverseJoinColumns = @JoinColumn(name = "lesson_id"))
-    private java.util.Set<com.tutor_management.backend.modules.lesson.Lesson> lessons = new java.util.HashSet<>();
+    // --- Media & Content Links ---
 
     @Builder.Default
     @ManyToMany(fetch = FetchType.LAZY)
-    @org.hibernate.annotations.BatchSize(size = 50)
-    @JoinTable(name = "session_documents", joinColumns = @JoinColumn(name = "session_id"), inverseJoinColumns = @JoinColumn(name = "document_id"))
-    private java.util.Set<com.tutor_management.backend.modules.document.Document> documents = new java.util.HashSet<>();
+    @BatchSize(size = 50)
+    @JoinTable(name = "session_lessons", 
+               joinColumns = @JoinColumn(name = "session_id"), 
+               inverseJoinColumns = @JoinColumn(name = "lesson_id"))
+    private Set<Lesson> lessons = new HashSet<>();
+
+    @Builder.Default
+    @ManyToMany(fetch = FetchType.LAZY)
+    @BatchSize(size = 50)
+    @JoinTable(name = "session_documents", 
+               joinColumns = @JoinColumn(name = "session_id"), 
+               inverseJoinColumns = @JoinColumn(name = "document_id"))
+    private Set<Document> documents = new HashSet<>();
 
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        if (paid == null) {
-            paid = false;
-        }
-        if (completed == null) {
-            completed = false;
-        }
-        if (status == null) {
-            status = LessonStatus.SCHEDULED;
-        }
-        if (version == null) {
-            version = 0;
-        }
+        if (paid == null) paid = false;
+        if (completed == null) completed = false;
+        if (status == null) status = LessonStatus.SCHEDULED;
+        if (version == null) version = 0;
     }
 }

@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * List item response DTO for exercise (summary view)
+ * Summary representation of an exercise for library browsing and student lists.
  */
 @Data
 @Builder
@@ -30,13 +30,23 @@ public class ExerciseListItemResponse {
     private Integer submissionCount;
     private LocalDateTime createdAt;
     
-    // Student specific submission info
+    /**
+     * ID of the student's submission session (populated in student views).
+     */
     private String submissionId;
+
+    /**
+     * State of the student's progress (e.g., NOT_STARTED, IN_PROGRESS, GRADED).
+     */
     private String submissionStatus;
+
+    /**
+     * Earned score if the submission has been graded.
+     */
     private Integer studentTotalScore;
 
     /**
-     * Constructor for JPQL mapping in ExerciseRepository
+     * Manual projection constructor used for optimized JPQL Repository queries.
      */
     public ExerciseListItemResponse(
             String id, String title, String description, Integer totalPoints,

@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * Response DTO representing a student's enrollment in a course.
+ */
 @Data
 @Builder
 @NoArgsConstructor
@@ -24,6 +27,9 @@ public class CourseAssignmentResponse {
     private Integer progressPercentage;
     private LocalDateTime completedAt;
 
+    /**
+     * Maps a CourseAssignment entity to its response representation.
+     */
     public static CourseAssignmentResponse fromEntity(CourseAssignment assignment) {
         return CourseAssignmentResponse.builder()
                 .id(assignment.getId())

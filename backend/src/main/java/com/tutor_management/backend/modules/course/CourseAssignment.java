@@ -26,6 +26,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Represents the association between a student and a course.
+ * Tracks progress, deadlines, and completion status for a specific enrollment.
+ */
 @Entity
 @Table(name = "course_assignments", uniqueConstraints = {
         @UniqueConstraint(name = "uk_course_student", columnNames = { "course_id", "student_id" })
@@ -45,29 +49,50 @@ public class CourseAssignment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * The course that has been assigned.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
+    /**
+     * The student enrolled in this course assignment.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
     private Student student;
 
+    /**
+     * The timestamp when this course was assigned to the student.
+     */
     @CreationTimestamp
     @Column(name = "assigned_date", updatable = false)
     private LocalDateTime assignedDate;
 
+    /**
+     * The deadline by which the student should complete the course.
+     */
     @Column(name = "deadline")
     private LocalDateTime deadline;
 
+    /**
+     * Current workflow status of the assignment.
+     */
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private AssignmentStatus status = AssignmentStatus.NOT_STARTED;
 
+    /**
+     * Calculated completion percentage based on lesson progress.
+     */
     @Column(name = "progress_percentage")
     @Builder.Default
     private Integer progressPercentage = 0;
 
+    /**
+     * The timestamp when the student finished the final required lesson.
+     */
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 }

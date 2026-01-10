@@ -1,11 +1,13 @@
 package com.tutor_management.backend.modules.dashboard;
 
 import java.util.List;
+import java.time.YearMonth;
 
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,12 +15,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tutor_management.backend.modules.dashboard.dto.response.DashboardStats;
+import com.tutor_management.backend.modules.dashboard.dto.response.StudentDashboardStats;
 import com.tutor_management.backend.modules.finance.dto.response.MonthlyStats;
 import com.tutor_management.backend.modules.shared.PDFGeneratorService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Controller for providing dashboard-related data and report exports.
+ */
 @RestController
 @RequestMapping("/api/dashboard")
 @RequiredArgsConstructor
@@ -28,60 +34,87 @@ public class DashboardController {
     private final DashboardService dashboardService;
     private final PDFGeneratorService pdfGeneratorService;
 
+    /**
+     * Retrieves overall system statistics for administrators and tutors.
+     * 
+     * @param currentMonth The target month (YYYY-MM format). Defaults to current month.
+     * @return DashboardStats containing aggregated financial and growth metrics.
+     */
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @GetMapping("/stats")
     public ResponseEntity<DashboardStats> getDashboardStats(
             @RequestParam(required = false) String currentMonth) {
-        if (currentMonth == null || currentMonth.isEmpty()) {
-            currentMonth = java.time.YearMonth.now().toString();
-        }
-        return ResponseEntity.ok(dashboardService.getDashboardStats(currentMonth));
+        
+        String targetMonth = (currentMonth == null || currentMonth.isEmpty()) 
+                ? YearMonth.now().toString() 
+                : currentMonth;
+                
+        return ResponseEntity.ok(dashboardService.getDashboardStats(targetMonth));
     }
 
+    /**
+     * Retrieves a list of monthly financial statistics for trend analysis.
+     * 
+     * @return List of MonthlyStats records.
+     */
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @GetMapping("/monthly-stats")
     public ResponseEntity<List<MonthlyStats>> getMonthlyStats() {
         return ResponseEntity.ok(dashboardService.getMonthlyStats());
     }
 
+    /**
+     * Retrieves personalized dashboard statistics for a specific student.
+     * 
+     * @param studentId Primary ID of the student.
+     * @param currentMonth The target month (YYYY-MM format). Defaults to current month.
+     * @return StudentDashboardStats containing attendance and financial data.
+     */
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     @GetMapping("/student/stats")
-    public ResponseEntity<com.tutor_management.backend.modules.dashboard.dto.response.StudentDashboardStats> getStudentStats(
+    public ResponseEntity<StudentDashboardStats> getStudentStats(
             @RequestParam Long studentId,
             @RequestParam(required = false) String currentMonth) {
 
-        if (currentMonth == null || currentMonth.isEmpty()) {
-            currentMonth = java.time.YearMonth.now().toString();
-        }
-        return ResponseEntity.ok(dashboardService.getStudentDashboardStats(studentId, currentMonth));
+        String targetMonth = (currentMonth == null || currentMonth.isEmpty()) 
+                ? YearMonth.now().toString() 
+                : currentMonth;
+                
+        return ResponseEntity.ok(dashboardService.getStudentDashboardStats(studentId, targetMonth));
     }
 
+    /**
+     * Generates and exports a comprehensive PDF report of the dashboard metrics.
+     * 
+     * @param currentMonth The month to include in the report (YYYY-MM format).
+     * @return ResponseEntity containing the PDF byte array as an attachment.
+     */
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @GetMapping("/export-pdf")
-    public ResponseEntity<byte[]> exportDashboardPDF(
+    public ResponseEntity<?> exportDashboardPDF(
             @RequestParam(required = false) String currentMonth) {
         try {
-            if (currentMonth == null || currentMonth.isEmpty()) {
-                currentMonth = java.time.YearMonth.now().toString();
-            }
+            String targetMonth = (currentMonth == null || currentMonth.isEmpty()) 
+                    ? YearMonth.now().toString() 
+                    : currentMonth;
 
-            DashboardStats stats = dashboardService.getDashboardStats(currentMonth);
-            List<MonthlyStats> monthlyStats = dashboardService.getMonthlyStats();
+            DashboardStats summaryStats = dashboardService.getDashboardStats(targetMonth);
+            List<MonthlyStats> monthlyTrend = dashboardService.getMonthlyStats();
 
-            byte[] pdfBytes = pdfGeneratorService.generateDashboardReportPDF(stats, monthlyStats);
+            byte[] pdfContent = pdfGeneratorService.generateDashboardReportPDF(summaryStats, monthlyTrend);
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_PDF);
-            headers.setContentDisposition(
+            HttpHeaders responseHeaders = new HttpHeaders();
+            responseHeaders.setContentType(MediaType.APPLICATION_PDF);
+            responseHeaders.setContentDisposition(
                     ContentDisposition.builder("attachment")
-                            .filename("Bao-Cao-He-Thong-" + currentMonth + ".pdf")
+                            .filename("Bao-Cao-He-Thong-" + targetMonth + ".pdf")
                             .build());
 
-            return new ResponseEntity<>(pdfBytes, headers, org.springframework.http.HttpStatus.OK);
+            return new ResponseEntity<>(pdfContent, responseHeaders, HttpStatus.OK);
         } catch (Exception e) {
-            log.error("CRITICAL ERROR in exportDashboardPDF: ", e);
-            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(("Lỗi xuất PDF: " + e.getMessage()).getBytes());
+            log.error("Failed to generate/export dashboard report for month {}: ", currentMonth, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Đã xảy ra lỗi trong quá trình xuất báo cáo PDF: " + e.getMessage());
         }
     }
 }

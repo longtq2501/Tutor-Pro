@@ -18,6 +18,10 @@ import com.tutor_management.backend.modules.student.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Service for Student-facing lesson operations.
+ * Handles lesson retrieval, view tracking, and completion status management.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -29,132 +33,133 @@ public class LessonService {
     private final StudentRepository studentRepository;
     private final CourseAssignmentService courseAssignmentService;
 
-    // ✅ OPTIMIZED: Use @EntityGraph method to prevent N+1 queries
+    /**
+     * Retrieves all lessons assigned to a specific student.
+     * Uses optimized fetching to prevent N+1 queries.
+     */
     @Cacheable(value = "lessons", key = "'student-' + #studentId")
     @Transactional(readOnly = true)
     public List<LessonResponse> getStudentLessons(Long studentId) {
-
-        // Verify student exists
         if (!studentRepository.existsById(studentId)) {
-            throw new ResourceNotFoundException("Student not found with id: " + studentId);
+            throw new ResourceNotFoundException("Không tìm thấy học sinh với ID: " + studentId);
         }
 
-        // ✅ Use optimized method with @EntityGraph
         List<LessonAssignment> assignments = assignmentRepository.findByStudentIdWithDetails(studentId);
-
-        // Initialize collections for each lesson
-        return getLessonResponses(assignments);
+        return mapToResponses(assignments);
     }
 
-    private List<LessonResponse> getLessonResponses(List<LessonAssignment> assignments) {
-        assignments.forEach(assignment -> {
-            Lesson lesson = assignment.getLesson();
-            Hibernate.initialize(lesson.getImages());
-            Hibernate.initialize(lesson.getResources());
-        });
-
-        return assignments.stream()
-                .map(assignment -> LessonResponse.fromEntity(assignment.getLesson(), assignment))
-                .collect(Collectors.toList());
-    }
-
+    /**
+     * Retrieves a single lesson assignment for a student.
+     * Validates that the lesson is officially assigned to the student.
+     */
     @Cacheable(value = "lessons", key = "'lesson-' + #lessonId + '-student-' + #studentId")
     @Transactional(readOnly = true)
     public LessonResponse getLessonById(Long lessonId, Long studentId) {
-
-        // Find assignment (verifies student has access)
         LessonAssignment assignment = assignmentRepository.findByLessonIdAndStudentId(lessonId, studentId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Lesson not found or not assigned to this student"));
+                .orElseThrow(() -> new ResourceNotFoundException("Bài học không tồn tại hoặc chưa được giao cho bạn."));
 
-        Lesson lesson = assignment.getLesson();
-
-        // Initialize collections
-        Hibernate.initialize(lesson.getImages());
-        Hibernate.initialize(lesson.getResources());
-
-        return LessonResponse.fromEntity(lesson, assignment);
+        initializeMedia(assignment.getLesson());
+        return LessonResponse.fromEntity(assignment.getLesson(), assignment);
     }
 
+    /**
+     * Retrieves lessons assigned to a student within a specific month.
+     */
     @Transactional(readOnly = true)
     public List<LessonResponse> getLessonsByMonthYear(Long studentId, int year, int month) {
-
-        // ✅ Use optimized method with @EntityGraph
         List<LessonAssignment> assignments = assignmentRepository.findByStudentIdWithDetails(studentId);
 
-        // Filter by lesson date
         List<LessonAssignment> filtered = assignments.stream()
-                .filter(assignment -> {
-                    var lessonDate = assignment.getLesson().getLessonDate();
-                    return lessonDate.getYear() == year && lessonDate.getMonthValue() == month;
+                .filter(a -> {
+                    var date = a.getLesson().getLessonDate();
+                    return date.getYear() == year && date.getMonthValue() == month;
                 })
                 .collect(Collectors.toList());
 
-        // Initialize collections
-        return getLessonResponses(filtered);
+        return mapToResponses(filtered);
     }
 
+    /**
+     * Records a view event for a lesson.
+     */
+    @Transactional
     public void incrementViewCount(Long lessonId, Long studentId) {
         LessonAssignment assignment = assignmentRepository.findByLessonIdAndStudentId(lessonId, studentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Assignment not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bản ghi bài học của học sinh."));
 
         assignment.incrementViewCount();
         assignmentRepository.save(assignment);
+        log.debug("Incremented view count for student {} on lesson {}", studentId, lessonId);
     }
 
+    /**
+     * Marks a lesson as completed for a student.
+     * Triggers course progress updates.
+     */
     @CacheEvict(value = "lessons", allEntries = true)
+    @Transactional
     public LessonResponse markAsCompleted(Long lessonId, Long studentId) {
         LessonAssignment assignment = assignmentRepository.findByLessonIdAndStudentId(lessonId, studentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Assignment not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bản ghi bài học của học sinh."));
 
         assignment.markAsCompleted();
-        assignment = assignmentRepository.save(assignment);
+        assignmentRepository.save(assignment);
 
-        // Update course progress
         courseAssignmentService.updateProgressOnLessonCompletion(studentId, lessonId, true);
+        log.info("Student {} marked lesson {} as completed", studentId, lessonId);
 
-        Lesson lesson = assignment.getLesson();
-        Hibernate.initialize(lesson.getImages());
-        Hibernate.initialize(lesson.getResources());
-
-        return LessonResponse.fromEntity(lesson, assignment);
+        initializeMedia(assignment.getLesson());
+        return LessonResponse.fromEntity(assignment.getLesson(), assignment);
     }
 
+    /**
+     * Reverts a lesson to 'Incomplete' status for a student.
+     */
     @CacheEvict(value = "lessons", allEntries = true)
+    @Transactional
     public LessonResponse markAsIncomplete(Long lessonId, Long studentId) {
         LessonAssignment assignment = assignmentRepository.findByLessonIdAndStudentId(lessonId, studentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Assignment not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bản ghi bài học của học sinh."));
 
         assignment.markAsIncomplete();
-        assignment = assignmentRepository.save(assignment);
+        assignmentRepository.save(assignment);
 
-        // Update course progress
         courseAssignmentService.updateProgressOnLessonCompletion(studentId, lessonId, false);
+        log.info("Student {} marked lesson {} as incomplete", studentId, lessonId);
 
-        Lesson lesson = assignment.getLesson();
-        Hibernate.initialize(lesson.getImages());
-        Hibernate.initialize(lesson.getResources());
-
-        return LessonResponse.fromEntity(lesson, assignment);
+        initializeMedia(assignment.getLesson());
+        return LessonResponse.fromEntity(assignment.getLesson(), assignment);
     }
 
+    /**
+     * Aggregates learning statistics for a student.
+     */
     @Transactional(readOnly = true)
     public LessonStatsResponse getStudentStats(Long studentId) {
-        // ✅ OPTIMIZED: Use COUNT query instead of loading full list
-        long totalLessons = assignmentRepository.countByStudentId(studentId);
+        long total = assignmentRepository.countByStudentId(studentId);
+        long completed = assignmentRepository.countByStudentIdAndIsCompletedTrue(studentId);
 
-        // Count completed assignments
-        long completedLessons = assignmentRepository.countByStudentIdAndIsCompletedTrue(studentId);
-
-        double completionRate = totalLessons > 0
-                ? (completedLessons * 100.0 / totalLessons)
-                : 0.0;
+        double rate = total > 0 ? (completed * 100.0 / total) : 0.0;
 
         return LessonStatsResponse.builder()
-                .totalLessons(totalLessons)
-                .completedLessons(completedLessons)
-                .inProgressLessons(totalLessons - completedLessons)
-                .completionRate(Math.round(completionRate * 10) / 10.0)
+                .totalLessons(total)
+                .completedLessons(completed)
+                .inProgressLessons(total - completed)
+                .completionRate(Math.round(rate * 10) / 10.0)
                 .build();
+    }
+
+    // --- Private Helpers ---
+
+    private void initializeMedia(Lesson lesson) {
+        Hibernate.initialize(lesson.getImages());
+        Hibernate.initialize(lesson.getResources());
+    }
+
+    private List<LessonResponse> mapToResponses(List<LessonAssignment> assignments) {
+        assignments.forEach(a -> initializeMedia(a.getLesson()));
+        return assignments.stream()
+                .map(a -> LessonResponse.fromEntity(a.getLesson(), a))
+                .collect(Collectors.toList());
     }
 }

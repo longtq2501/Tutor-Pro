@@ -3,10 +3,7 @@ package com.tutor_management.backend.modules.submission.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.domain.Persistable;
@@ -14,9 +11,11 @@ import org.springframework.data.domain.Persistable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
- * Submission entity representing a student's submission for an exercise
+ * Domain entity representing a student's attempt/submission for an {@link com.tutor_management.backend.modules.exercise.Exercise}.
+ * Tracks scores for both auto-graded multiple choice questions (MCQ) and manually graded essays.
  */
 @Entity
 @Table(name = "submissions", indexes = {
@@ -24,10 +23,12 @@ import java.util.List;
     @Index(name = "idx_submission_student_id", columnList = "student_id"),
     @Index(name = "idx_submission_status", columnList = "status")
 })
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@ToString(exclude = "answers")
 public class Submission implements Persistable<String> {
     
     @Id
@@ -45,19 +46,19 @@ public class Submission implements Persistable<String> {
     }
     
     /**
-     * Exercise ID this submission is for
+     * Unique identifier of the target exercise.
      */
     @Column(name = "exercise_id", nullable = false, length = 36)
     private String exerciseId;
     
     /**
-     * Student ID who made this submission
+     * Unique identifier of the student.
      */
     @Column(name = "student_id", nullable = false, length = 36)
     private String studentId;
     
     /**
-     * Status of the submission
+     * Current workflow state of the submission.
      */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -65,40 +66,40 @@ public class Submission implements Persistable<String> {
     private SubmissionStatus status = SubmissionStatus.DRAFT;
     
     /**
-     * Score for MCQ questions (auto-graded)
+     * Points earned from auto-graded MCQ/Question items.
      */
     @Column(name = "mcq_score")
     @Builder.Default
     private Integer mcqScore = 0;
     
     /**
-     * Score for essay questions (manually graded)
+     * Points awarded manually for written/open-ended items.
      */
     @Column(name = "essay_score")
     @Builder.Default
     private Integer essayScore = 0;
     
     /**
-     * Total score (mcqScore + essayScore)
+     * Aggregate score (mcqScore + essayScore).
      */
     @Column(name = "total_score")
     @Builder.Default
     private Integer totalScore = 0;
     
     /**
-     * When the student submitted
+     * Official submission timestamp (transition from DRAFT to SUBMITTED).
      */
     @Column(name = "submitted_at")
     private LocalDateTime submittedAt;
     
     /**
-     * When the teacher graded
+     * When the grading process was finalized.
      */
     @Column(name = "graded_at")
     private LocalDateTime gradedAt;
     
     /**
-     * Teacher's overall comment
+     * Global feedback provided by the tutor for the entire submission.
      */
     @Column(name = "teacher_comment", columnDefinition = "TEXT")
     private String teacherComment;
@@ -112,15 +113,17 @@ public class Submission implements Persistable<String> {
     private LocalDateTime updatedAt;
     
     /**
-     * Student's answers
+     * Detailed individual answers within this submission.
      */
     @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     @Builder.Default
     private List<StudentAnswer> answers = new ArrayList<>();
     
+    // --- Logic Helpers ---
+
     /**
-     * Helper method to add an answer
+     * Attaches an answer to this submission and manages bidirectional state.
      */
     public void addAnswer(StudentAnswer answer) {
         answers.add(answer);
@@ -128,7 +131,7 @@ public class Submission implements Persistable<String> {
     }
     
     /**
-     * Helper method to remove an answer
+     * Detaches an answer from this submission.
      */
     public void removeAnswer(StudentAnswer answer) {
         answers.remove(answer);
@@ -136,7 +139,7 @@ public class Submission implements Persistable<String> {
     }
     
     /**
-     * Calculate and update total score
+     * Synchonizes the total score from individual component scores.
      */
     public void calculateTotalScore() {
         this.totalScore = (mcqScore != null ? mcqScore : 0) + (essayScore != null ? essayScore : 0);
@@ -145,7 +148,7 @@ public class Submission implements Persistable<String> {
     @PrePersist
     protected void onCreate() {
         if (id == null) {
-            id = java.util.UUID.randomUUID().toString();
+            id = UUID.randomUUID().toString();
         }
     }
 

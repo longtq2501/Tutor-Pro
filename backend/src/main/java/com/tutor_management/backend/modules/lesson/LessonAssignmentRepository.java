@@ -7,45 +7,63 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
+/**
+ * Repository interface for {@link LessonAssignment} entities.
+ * Uses @EntityGraph strategies to solve N+1 problems during progress tracking.
+ */
+@Repository
 public interface LessonAssignmentRepository extends JpaRepository<LessonAssignment, Long> {
 
-    // ❌ OLD: N+1 query problem - loads lesson separately for each assignment
-    List<LessonAssignment> findByStudentIdOrderByAssignedDateDesc(Long studentId);
-
-    // ✅ OPTIMIZED: Use @EntityGraph to fetch lesson with category, images, and
-    // resources
-    // ✅ OPTIMIZED: Use @EntityGraph to fetch lesson with category
-    // REMOVED 'images' and 'resources' from EntityGraph to avoid MultipleBagFetchException and Cartesian Product.
-    // These are handled efficiently by @Fetch(FetchMode.SUBSELECT) in Lesson entity and Hibernate.initialize() in Service.
+    /**
+     * Retrieves all assignments for a student with lesson and category details eagerly fetched.
+     */
     @EntityGraph(attributePaths = { "lesson", "lesson.category" })
     @Query("SELECT la FROM LessonAssignment la WHERE la.student.id = :studentId ORDER BY la.assignedDate DESC")
     List<LessonAssignment> findByStudentIdWithDetails(@Param("studentId") Long studentId);
 
-    // ❌ OLD: N+1 query problem
-    List<LessonAssignment> findByLessonIdOrderByAssignedDateDesc(Long lessonId);
+    /**
+     * Retrieves all assignments for a student ordered by assignment date.
+     * Simplified version without eager fetching - use when full lesson details are not needed.
+     */
+    List<LessonAssignment> findByStudentIdOrderByAssignedDateDesc(Long studentId);
 
-    // ✅ OPTIMIZED: Use @EntityGraph to fetch student
+    /**
+     * Retrieves all student assignments for a specific lesson.
+     */
     @EntityGraph(attributePaths = { "student" })
     @Query("SELECT la FROM LessonAssignment la WHERE la.lesson.id = :lessonId ORDER BY la.assignedDate DESC")
     List<LessonAssignment> findByLessonIdWithDetails(@Param("lessonId") Long lessonId);
 
-    // Find specific assignment with Lesson eagerly fetched
+    /**
+     * Checks for an existing assignment for a specific lesson-student pair.
+     */
     @EntityGraph(attributePaths = { "lesson" })
     Optional<LessonAssignment> findByLessonIdAndStudentId(Long lessonId, Long studentId);
 
-    // Check if lesson already assigned to student
+    /**
+     * Quick check for assignment existence.
+     */
     boolean existsByLessonIdAndStudentId(Long lessonId, Long studentId);
 
-    // Count assignments for a lesson
+    /**
+     * Counts how many students have been assigned a specific lesson.
+     */
     long countByLessonId(Long lessonId);
 
-    // Get completed assignments count for student
+    /**
+     * Counts completed assignments for a student.
+     */
     long countByStudentIdAndIsCompletedTrue(Long studentId);
 
-    // Delete specific assignment
+    /**
+     * Removes a specific assignment link.
+     */
     void deleteByLessonIdAndStudentId(Long lessonId, Long studentId);
 
-    // ✅ OPTIMIZED: Count total lessons for a student without loading list
+    /**
+     * Counts total assignments for a student without loading entity data.
+     */
     long countByStudentId(Long studentId);
 }

@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * Lesson representation with personal completion tracking for students.
+ */
 @Data
 @Builder
 @NoArgsConstructor
@@ -18,6 +21,14 @@ public class StudentCourseLessonDTO {
     private String summary;
     private Integer lessonOrder;
     private Boolean isRequired;
+    
+    /**
+     * Whether this specific student has finished the lesson.
+     */
     private Boolean isCompleted;
+    
+    /**
+     * The timestamp when the student marked this lesson as complete.
+     */
     private LocalDateTime completedAt;
 }

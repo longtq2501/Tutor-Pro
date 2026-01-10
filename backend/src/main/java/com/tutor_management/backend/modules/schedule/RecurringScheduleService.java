@@ -1,13 +1,17 @@
 package com.tutor_management.backend.modules.schedule;
 
-import com.tutor_management.backend.modules.schedule.dto.request.RecurringScheduleRequest;
-
-import com.tutor_management.backend.modules.schedule.dto.response.RecurringScheduleResponse;
+import com.tutor_management.backend.modules.auth.UserRepository;
 import com.tutor_management.backend.modules.finance.SessionRecord;
-import com.tutor_management.backend.modules.student.Student;
 import com.tutor_management.backend.modules.finance.SessionRecordRepository;
+import com.tutor_management.backend.modules.notification.event.ScheduleCreatedEvent;
+import com.tutor_management.backend.modules.notification.event.ScheduleUpdatedEvent;
+import com.tutor_management.backend.modules.schedule.dto.request.RecurringScheduleRequest;
+import com.tutor_management.backend.modules.schedule.dto.response.RecurringScheduleResponse;
+import com.tutor_management.backend.modules.student.Student;
 import com.tutor_management.backend.modules.student.StudentRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,57 +24,93 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Service for managing recurring lesson schedules and auto-generating session records.
+ * 
+ * Provides CRUD operations for schedules and intelligent generation of 
+ * monthly session logs based on fixed weekly slots.
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class RecurringScheduleService {
+
+    private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
+    private static final String[] DAY_NAMES = { "", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN" };
 
     private final RecurringScheduleRepository recurringScheduleRepository;
     private final StudentRepository studentRepository;
     private final SessionRecordRepository sessionRecordRepository;
-
-    private final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+    private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     // ==================== CRUD Operations ====================
 
+    /**
+     * Retrieves all recurring schedules, including inactive ones.
+     * @return List of schedule response DTOs
+     */
+    @Transactional(readOnly = true)
     public List<RecurringScheduleResponse> getAllSchedules() {
-        List<RecurringSchedule> schedules = recurringScheduleRepository.findAllByOrderByCreatedAtDesc();
-        return schedules.stream()
+        return recurringScheduleRepository.findAllByOrderByCreatedAtDesc().stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Retrieves all currently active schedules with populated student data.
+     * @return List of active schedule response DTOs
+     */
+    @Transactional(readOnly = true)
     public List<RecurringScheduleResponse> getActiveSchedules() {
-        List<RecurringSchedule> schedules = recurringScheduleRepository.findAllActiveWithStudent();
-        return schedules.stream()
+        return recurringScheduleRepository.findAllActiveWithStudent().stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Fetches a specific schedule by ID.
+     * @param id The schedule identifier
+     * @return Found schedule details
+     * @throws RuntimeException if schedule is not found
+     */
+    @Transactional(readOnly = true)
     public RecurringScheduleResponse getScheduleById(Long id) {
         RecurringSchedule schedule = recurringScheduleRepository.findByIdWithStudent(id)
-                .orElseThrow(() -> new RuntimeException("Schedule not found"));
+                .orElseThrow(() -> new RuntimeException("Recurring schedule not found for ID: " + id));
         return convertToResponse(schedule);
     }
 
+    /**
+     * Finds the primary active schedule for a specific student.
+     * @param studentId The student identifier
+     * @return Active schedule details
+     */
+    @Transactional(readOnly = true)
     public RecurringScheduleResponse getScheduleByStudentId(Long studentId) {
         RecurringSchedule schedule = recurringScheduleRepository
                 .findByStudentIdAndActiveTrueOrderByCreatedAtDesc(studentId)
-                .orElseThrow(() -> new RuntimeException("No active schedule found for student"));
+                .orElseThrow(() -> new RuntimeException("No active schedule found for student ID: " + studentId));
         return convertToResponse(schedule);
     }
 
-    public RecurringScheduleResponse createSchedule(RecurringScheduleRequest request) {
+    /**
+     * Creates a new recurring schedule. 
+     * Automatically deactivates any existing active schedules for the same student.
+     * 
+     * @param request New schedule parameters
+     * @param tutorName Name of the tutor creating the schedule for notification context
+     * @return Created schedule details
+     */
+    public RecurringScheduleResponse createSchedule(RecurringScheduleRequest request, String tutorName) {
         Student student = studentRepository.findById(request.getStudentId())
-                .orElseThrow(() -> new RuntimeException("Student not found"));
+                .orElseThrow(() -> new RuntimeException("Student not found for ID: " + request.getStudentId()));
 
-        // Deactivate existing schedules for this student
-        List<RecurringSchedule> existingSchedules = recurringScheduleRepository
-                .findByStudentIdAndActiveTrue(request.getStudentId());
-        existingSchedules.forEach(schedule -> schedule.setActive(false));
-        recurringScheduleRepository.saveAll(existingSchedules);
+        deactivateExistingSchedules(request.getStudentId());
 
         RecurringSchedule schedule = RecurringSchedule.builder()
                 .student(student)
@@ -87,13 +127,138 @@ public class RecurringScheduleService {
         schedule.setDaysOfWeekArray(request.getDaysOfWeek());
 
         RecurringSchedule saved = recurringScheduleRepository.save(schedule);
+        publishScheduleCreatedNotification(saved, tutorName);
+
         return convertToResponse(saved);
     }
 
+    /**
+     * Updates an existing schedule's configuration.
+     * @param id The schedule ID to update
+     * @param request Updated block of parameters
+     * @return Updated schedule details
+     */
     public RecurringScheduleResponse updateSchedule(Long id, RecurringScheduleRequest request) {
         RecurringSchedule schedule = recurringScheduleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Schedule not found"));
+                .orElseThrow(() -> new RuntimeException("Schedule not found with ID: " + id));
 
+        updateScheduleFields(schedule, request);
+
+        RecurringSchedule updated = recurringScheduleRepository.save(schedule);
+        publishScheduleUpdatedNotification(updated);
+
+        return convertToResponse(updated);
+    }
+
+    /**
+     * Hard deletes a recurring schedule record.
+     * @param id The schedule identifier
+     */
+    public void deleteSchedule(Long id) {
+        RecurringSchedule schedule = recurringScheduleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Attempted to delete non-existent schedule: " + id));
+        recurringScheduleRepository.delete(schedule);
+        log.info("Deleted recurring schedule: {}", id);
+    }
+
+    /**
+     * Toggles the active status of a schedule.
+     * @param id The schedule identifier
+     * @return Updated schedule status
+     */
+    public RecurringScheduleResponse toggleActive(Long id) {
+        RecurringSchedule schedule = recurringScheduleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Schedule not found: " + id));
+        schedule.setActive(!schedule.getActive());
+        RecurringSchedule updated = recurringScheduleRepository.save(schedule);
+        return convertToResponse(updated);
+    }
+
+    // ==================== Auto-Generate Sessions ====================
+
+    /**
+     * Batch generates session records for a given month based on active recurring schedules.
+     * Skips generation for sessions that already exist in the database.
+     *
+     * @param month      Target month in YYYY-MM format
+     * @param studentIds Optional list of student IDs to filter (null or empty = all students)
+     * @return Total count of session records successfully generated
+     */
+    public int generateSessionsForMonth(String month, List<Long> studentIds) {
+        List<RecurringSchedule> targetSchedules = getActiveSchedulesForGeneration(studentIds);
+        if (targetSchedules.isEmpty()) {
+            return 0;
+        }
+
+        Set<String> existingSessionLookup = buildExistingSessionLookup(month, targetSchedules);
+
+        List<SessionRecord> sessionsToSave = new ArrayList<>();
+        for (RecurringSchedule schedule : targetSchedules) {
+            if (isScheduleValidForMonth(schedule, month)) {
+                sessionsToSave.addAll(generateSessionsForSchedule(schedule, month, existingSessionLookup));
+            }
+        }
+
+        if (!sessionsToSave.isEmpty()) {
+            sessionRecordRepository.saveAll(sessionsToSave);
+            log.info("Batch generated {} sessions for month {}", sessionsToSave.size(), month);
+            return sessionsToSave.size();
+        }
+
+        return 0;
+    }
+
+    /**
+     * Checks if any sessions have already been generated/logged for a specific month.
+     * @param month Target month (YYYY-MM)
+     * @param studentId Optional student filter
+     * @return true if sessions exist
+     */
+    @Transactional(readOnly = true)
+    public boolean hasSessionsForMonth(String month, Long studentId) {
+        List<SessionRecord> sessionsInMonth = sessionRecordRepository.findByMonthOrderByCreatedAtDesc(month);
+
+        if (studentId != null) {
+            return sessionsInMonth.stream().anyMatch(record -> record.getStudent().getId().equals(studentId));
+        }
+
+        return !sessionsInMonth.isEmpty();
+    }
+
+    /**
+     * Calculates how many sessions would be generated for a month without actually creating them.
+     * Used for preview and coordination.
+     * 
+     * @param month Target month (YYYY-MM)
+     * @param studentIds Optional student filter
+     * @return Predicted total session count
+     */
+    @Transactional(readOnly = true)
+    public int countSessionsToGenerate(String month, List<Long> studentIds) {
+        List<RecurringSchedule> targetSchedules = getActiveSchedulesForGeneration(studentIds);
+        int totalPredicted = 0;
+
+        for (RecurringSchedule schedule : targetSchedules) {
+            if (isScheduleValidForMonth(schedule, month)) {
+                totalPredicted += countOccurrencesOfDaysInMonth(schedule.getDaysOfWeekArray(), month);
+            }
+        }
+
+        return totalPredicted;
+    }
+
+    // ==================== Private Helper Methods ====================
+
+    private void deactivateExistingSchedules(Long studentId) {
+        List<RecurringSchedule> existingActive = recurringScheduleRepository.findByStudentIdAndActiveTrue(studentId);
+        if (!existingActive.isEmpty()) {
+            existingActive.forEach(s -> s.setActive(false));
+            recurringScheduleRepository.saveAll(existingActive);
+            log.info("Deactivated {} existing schedules for student ID: {}", existingActive.size(), studentId);
+        }
+    }
+
+    private void updateScheduleFields(RecurringSchedule schedule, RecurringScheduleRequest request) {
         schedule.setDaysOfWeekArray(request.getDaysOfWeek());
         schedule.setStartTime(LocalTime.parse(request.getStartTime()));
         schedule.setEndTime(LocalTime.parse(request.getEndTime()));
@@ -110,217 +275,131 @@ public class RecurringScheduleService {
         if (request.getSubject() != null) {
             schedule.setSubject(request.getSubject());
         }
-
-        RecurringSchedule updated = recurringScheduleRepository.save(schedule);
-        return convertToResponse(updated);
     }
 
-    public void deleteSchedule(Long id) {
-        RecurringSchedule schedule = recurringScheduleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Schedule not found"));
-        recurringScheduleRepository.delete(schedule);
-    }
-
-    public RecurringScheduleResponse toggleActive(Long id) {
-        RecurringSchedule schedule = recurringScheduleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Schedule not found"));
-        schedule.setActive(!schedule.getActive());
-        RecurringSchedule updated = recurringScheduleRepository.save(schedule);
-        return convertToResponse(updated);
-    }
-
-    // ==================== Auto-Generate Sessions ====================
-
-    /**
-     * Tạo tự động các buổi học cho 1 tháng theo lịch cố định
-     *
-     * @param month      Tháng cần tạo (YYYY-MM)
-     * @param studentIds Danh sách student IDs (null = tất cả)
-     * @return Số buổi học đã tạo
-     */
-    public int generateSessionsForMonth(String month, List<Long> studentIds) {
-        List<RecurringSchedule> schedules;
-
+    private List<RecurringSchedule> getActiveSchedulesForGeneration(List<Long> studentIds) {
         if (studentIds != null && !studentIds.isEmpty()) {
-            // Chỉ tạo cho các student được chọn
-            schedules = recurringScheduleRepository.findAllActiveWithStudent().stream()
-                    .filter(s -> studentIds.contains(s.getStudent().getId()))
+            return recurringScheduleRepository.findAllActiveWithStudent().stream()
+                    .filter(schedule -> studentIds.contains(schedule.getStudent().getId()))
                     .collect(Collectors.toList());
-        } else {
-            // Tạo cho tất cả
-            schedules = recurringScheduleRepository.findAllActiveWithStudent();
         }
+        return recurringScheduleRepository.findAllActiveWithStudent();
+    }
 
-        if (schedules.isEmpty()) {
-            return 0;
-        }
-
-        // OPTIMIZATION: Fetch existing sessions for the month in ONE query
+    private Set<String> buildExistingSessionLookup(String month, List<RecurringSchedule> schedules) {
         List<Long> studentIdsToScan = schedules.stream()
-                .map(s -> s.getStudent().getId())
+                .map(schedule -> schedule.getStudent().getId())
                 .distinct()
                 .collect(Collectors.toList());
 
         List<SessionRecord> existingRecords = sessionRecordRepository.findByMonthAndStudentIdIn(month, studentIdsToScan);
         
-        // Build efficient lookup set: "studentId_date"
-        java.util.Set<String> existingSessionKeys = existingRecords.stream()
-                .map(sr -> sr.getStudent().getId() + "_" + sr.getSessionDate())
+        return existingRecords.stream()
+                .map(record -> record.getStudent().getId() + "_" + record.getSessionDate())
                 .collect(Collectors.toSet());
-
-        int totalCreated = 0;
-        List<SessionRecord> sessionsToSave = new ArrayList<>();
-
-        for (RecurringSchedule schedule : schedules) {
-            // Check if schedule is valid for this month
-            if (!isScheduleValidForMonth(schedule, month)) {
-                continue;
-            }
-
-            // Generate sessions for this schedule passing the lookup set
-            List<SessionRecord> sessions = generateSessionsForSchedule(schedule, month, existingSessionKeys);
-            sessionsToSave.addAll(sessions);
-        }
-
-        // Batch save
-        if (!sessionsToSave.isEmpty()) {
-            sessionRecordRepository.saveAll(sessionsToSave);
-            totalCreated = sessionsToSave.size();
-        }
-
-        return totalCreated;
     }
 
-    /**
-     * Kiểm tra lịch có valid cho tháng này không
-     */
     private boolean isScheduleValidForMonth(RecurringSchedule schedule, String month) {
-        // Check if schedule starts after this month
-        if (schedule.getStartMonth().compareTo(month) > 0) {
-            return false;
-        }
+        boolean startsAfterMonth = schedule.getStartMonth().compareTo(month) > 0;
+        if (startsAfterMonth) return false;
 
-        // Check if schedule ends before this month
-        if (schedule.getEndMonth() != null && schedule.getEndMonth().compareTo(month) < 0) {
-            return false;
-        }
+        boolean endsBeforeMonth = schedule.getEndMonth() != null && schedule.getEndMonth().compareTo(month) < 0;
+        if (endsBeforeMonth) return false;
 
         return true;
     }
 
-    /**
-     * Tạo các session records cho 1 schedule trong 1 tháng
-     */
-    private List<SessionRecord> generateSessionsForSchedule(RecurringSchedule schedule, String month, java.util.Set<String> existingKeys) {
+    private List<SessionRecord> generateSessionsForSchedule(RecurringSchedule schedule, String month, Set<String> existingLookup) {
         List<SessionRecord> sessions = new ArrayList<>();
-
         YearMonth yearMonth = YearMonth.parse(month);
         LocalDate firstDay = yearMonth.atDay(1);
         LocalDate lastDay = yearMonth.atEndOfMonth();
 
-        Integer[] daysOfWeek = schedule.getDaysOfWeekArray();
-
-        for (int dayOfWeek : daysOfWeek) {
-            // Find all dates in month for this day of week
-            LocalDate date = firstDay.with(TemporalAdjusters.nextOrSame(getDayOfWeek(dayOfWeek)));
+        for (int dayNum : schedule.getDaysOfWeekArray()) {
+            LocalDate date = firstDay.with(TemporalAdjusters.nextOrSame(DayOfWeek.of(dayNum)));
 
             while (!date.isAfter(lastDay)) {
-                // Check if session already exists using Memory Lookup
-                String key = schedule.getStudent().getId() + "_" + date;
+                String lookupKey = schedule.getStudent().getId() + "_" + date;
                 
-                if (!existingKeys.contains(key)) {
-                    // Create session record
-                    SessionRecord session = SessionRecord.builder()
-                            .student(schedule.getStudent())
-                            .month(month)
-                            .sessions(1) // 1 buổi học
-                            .hours(schedule.getHoursPerSession() * 1) // Tính giờ (Double)
-                            .pricePerHour(schedule.getStudent().getPricePerHour())
-                            .totalAmount((long) (schedule.getStudent().getPricePerHour() *
-                                    (schedule.getHoursPerSession() * 1)))
-                            .paid(false)
-                            .sessionDate(date)
-                            .notes("Auto-generated from recurring schedule")
-                            .startTime(schedule.getStartTime())
-                            .endTime(schedule.getEndTime())
-                            .subject(schedule.getSubject())
-                            .status(com.tutor_management.backend.modules.finance.LessonStatus.SCHEDULED)
-                            .build();
-
-                    sessions.add(session);
-                    // Add to keys to prevent duplicate creation if multiple schedules overlap? (Assuming logic allows overlaps if explicit, but here we prevent duplicates for same day/student)
-                    existingKeys.add(key); 
+                if (!existingLookup.contains(lookupKey)) {
+                    sessions.add(buildNewSessionRecord(schedule, date, month));
+                    existingLookup.add(lookupKey); 
                 }
-
-                // Move to next week
                 date = date.plusWeeks(1);
             }
         }
-
         return sessions;
     }
 
-    /**
-     * Convert day number to DayOfWeek
-     * 1 = Monday, 7 = Sunday
-     */
-    private DayOfWeek getDayOfWeek(int day) {
-        return DayOfWeek.of(day);
+    private SessionRecord buildNewSessionRecord(RecurringSchedule schedule, LocalDate date, String month) {
+        Student student = schedule.getStudent();
+        Double actualHours = schedule.getHoursPerSession() * 1.0;
+        long calculatedAmount = (long) (student.getPricePerHour() * actualHours);
+
+        return SessionRecord.builder()
+                .student(student)
+                .month(month)
+                .sessions(1)
+                .hours(actualHours)
+                .pricePerHour(student.getPricePerHour())
+                .totalAmount(calculatedAmount)
+                .paid(false)
+                .sessionDate(date)
+                .notes("Auto-generated from recurring schedule")
+                .startTime(schedule.getStartTime())
+                .endTime(schedule.getEndTime())
+                .subject(schedule.getSubject())
+                .status(com.tutor_management.backend.modules.finance.LessonStatus.SCHEDULED)
+                .build();
     }
 
-    /**
-     * Kiểm tra xem tháng này đã tạo sessions chưa
-     */
-    public boolean hasSessionsForMonth(String month, Long studentId) {
-        List<SessionRecord> sessions = sessionRecordRepository.findByMonthOrderByCreatedAtDesc(month);
+    private int countOccurrencesOfDaysInMonth(Integer[] daysOfWeek, String month) {
+        int count = 0;
+        YearMonth yearMonth = YearMonth.parse(month);
+        LocalDate firstDay = yearMonth.atDay(1);
+        LocalDate lastDay = yearMonth.atEndOfMonth();
 
-        if (studentId != null) {
-            return sessions.stream().anyMatch(s -> s.getStudent().getId().equals(studentId));
-        }
-
-        return !sessions.isEmpty();
-    }
-
-    /**
-     * Thống kê số buổi học sẽ tạo cho tháng
-     */
-    public int countSessionsToGenerate(String month, List<Long> studentIds) {
-        List<RecurringSchedule> schedules;
-
-        if (studentIds != null && !studentIds.isEmpty()) {
-            schedules = recurringScheduleRepository.findAllActiveWithStudent().stream()
-                    .filter(s -> studentIds.contains(s.getStudent().getId()))
-                    .collect(Collectors.toList());
-        } else {
-            schedules = recurringScheduleRepository.findAllActiveWithStudent();
-        }
-
-        int total = 0;
-
-        for (RecurringSchedule schedule : schedules) {
-            if (!isScheduleValidForMonth(schedule, month)) {
-                continue;
-            }
-
-            YearMonth yearMonth = YearMonth.parse(month);
-            LocalDate firstDay = yearMonth.atDay(1);
-            LocalDate lastDay = yearMonth.atEndOfMonth();
-            Integer[] daysOfWeek = schedule.getDaysOfWeekArray();
-
-            for (int dayOfWeek : daysOfWeek) {
-                LocalDate date = firstDay.with(TemporalAdjusters.nextOrSame(getDayOfWeek(dayOfWeek)));
-
-                while (!date.isAfter(lastDay)) {
-                    total++;
-                    date = date.plusWeeks(1);
-                }
+        for (int dayNum : daysOfWeek) {
+            LocalDate date = firstDay.with(TemporalAdjusters.nextOrSame(DayOfWeek.of(dayNum)));
+            while (!date.isAfter(lastDay)) {
+                count++;
+                date = date.plusWeeks(1);
             }
         }
-
-        return total;
+        return count;
     }
 
-    // ==================== Helpers ====================
+    private void publishScheduleCreatedNotification(RecurringSchedule schedule, String tutorName) {
+        try {
+            eventPublisher.publishEvent(ScheduleCreatedEvent.builder()
+                    .scheduleId(schedule.getId())
+                    .studentId(schedule.getStudent().getId().toString())
+                    .studentName(schedule.getStudent().getName())
+                    .tutorName(tutorName)
+                    .subject(schedule.getSubject())
+                    .daysOfWeek(formatDaysOfWeek(schedule.getDaysOfWeekArray()))
+                    .startTime(schedule.getStartTime())
+                    .build());
+        } catch (Exception e) {
+            log.error("Notification alert failed for schedule creation {}: {}", schedule.getId(), e.getMessage());
+        }
+    }
+
+    private void publishScheduleUpdatedNotification(RecurringSchedule schedule) {
+        try {
+            eventPublisher.publishEvent(ScheduleUpdatedEvent.builder()
+                    .scheduleId(schedule.getId())
+                    .studentId(schedule.getStudent().getId().toString())
+                    .studentName(schedule.getStudent().getName())
+                    .tutorName("Giáo viên")
+                    .subject(schedule.getSubject())
+                    .daysOfWeek(formatDaysOfWeek(schedule.getDaysOfWeekArray()))
+                    .startTime(schedule.getStartTime())
+                    .build());
+        } catch (Exception e) {
+            log.error("Notification alert failed for schedule update {}: {}", schedule.getId(), e.getMessage());
+        }
+    }
 
     private RecurringScheduleResponse convertToResponse(RecurringSchedule schedule) {
         Integer[] days = schedule.getDaysOfWeekArray();
@@ -340,20 +419,15 @@ public class RecurringScheduleService {
                 .active(schedule.getActive())
                 .notes(schedule.getNotes())
                 .subject(schedule.getSubject())
-                .createdAt(schedule.getCreatedAt().format(formatter))
-                .updatedAt(schedule.getUpdatedAt().format(formatter))
+                .createdAt(schedule.getCreatedAt().format(ISO_FORMATTER))
+                .updatedAt(schedule.getUpdatedAt().format(ISO_FORMATTER))
                 .build();
     }
 
     private String formatDaysOfWeek(Integer[] days) {
-        if (days == null || days.length == 0) {
-            return "";
-        }
-
-        String[] dayNames = { "", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN" };
-
+        if (days == null || days.length == 0) return "";
         return Arrays.stream(days)
-                .map(day -> dayNames[day])
+                .map(day -> DAY_NAMES[day])
                 .collect(Collectors.joining(", "));
     }
 }

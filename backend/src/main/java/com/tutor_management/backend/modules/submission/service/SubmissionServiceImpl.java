@@ -19,6 +19,8 @@ import com.tutor_management.backend.modules.exercise.repository.QuestionReposito
 import com.tutor_management.backend.modules.exercise.domain.Exercise;
 import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.auth.UserRepository;
+import com.tutor_management.backend.modules.notification.event.ExamGradedEvent;
+import com.tutor_management.backend.modules.notification.event.ExamSubmittedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -44,6 +46,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final UserRepository userRepository;
     private final ExerciseRepository exerciseRepository;
     private final QuestionRepository questionRepository;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     
     @Override
     @Transactional
@@ -146,6 +149,26 @@ public class SubmissionServiceImpl implements SubmissionService {
         // 4. Save once (this will perform batched updates for answers and 1 update for submission)
         Submission submittedSubmission = submissionRepository.save(submission);
         log.info("Submission completed: {}", submittedSubmission.getId());
+        
+        // Publish notification event
+        exerciseRepository.findById(submission.getExerciseId()).ifPresent(ex -> {
+            try {
+                String studentName = userRepository.findById(Long.parseLong(studentId))
+                        .map(User::getFullName)
+                        .orElse("Một học sinh");
+
+                eventPublisher.publishEvent(ExamSubmittedEvent.builder()
+                    .submissionId(submittedSubmission.getId())
+                    .studentId(studentId)
+                    .studentName(studentName)
+                    .exerciseId(ex.getId())
+                    .exerciseTitle(ex.getTitle())
+                    .tutorId(ex.getCreatedBy())
+                    .build());
+            } catch (Exception e) {
+                log.error("Failed to publish ExamSubmittedEvent", e);
+            }
+        });
         
         return mapToSubmissionResponse(submittedSubmission);
     }
@@ -280,6 +303,21 @@ public class SubmissionServiceImpl implements SubmissionService {
         Submission gradedSubmission = submissionRepository.save(submission);
         log.info("Submission graded successfully. MCQ: {}, Essay: {}, Total: {}", 
                 mcqScore, essayScore, gradedSubmission.getTotalScore());
+        
+        // Publish notification event
+        exerciseRepository.findById(submission.getExerciseId()).ifPresent(ex -> {
+            try {
+                eventPublisher.publishEvent(ExamGradedEvent.builder()
+                    .submissionId(gradedSubmission.getId())
+                    .studentId(submission.getStudentId())
+                    .exerciseId(ex.getId())
+                    .exerciseTitle(ex.getTitle())
+                    .score(gradedSubmission.getTotalScore())
+                    .build());
+            } catch (Exception e) {
+                log.error("Failed to publish ExamGradedEvent", e);
+            }
+        });
         
         return mapToSubmissionResponse(gradedSubmission);
     }

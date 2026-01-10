@@ -1,7 +1,7 @@
 'use client';
 
 import {
-    BookCheck, BookOpen,
+    BookOpen,
     CalendarDays,
     ClipboardList,
     FileText,
@@ -34,8 +34,6 @@ const FinanceDashboard = dynamic(() => import('@/features/finance/management/com
 //    loading: () => <MonthlyViewSkeleton />
 // });
 // const UnpaidSessionsView = dynamic(() => import('@/features/finance/unpaid-sessions'));
-const StudentHomeworkView = dynamic(() => import('@/features/learning/homework/student-homework'));
-const TutorHomeworkView = dynamic(() => import('@/features/learning/homework/tutor-homework-view'));
 const DocumentLibrary = dynamic(() => import('@/features/documents/document-library'));
 const CalendarView = dynamic(() => import('@/features/calendar/calendar-view'));
 
@@ -64,6 +62,7 @@ import { UIProvider, useUI } from '@/contexts/UIContext';
 
 import ExerciseDashboard from '@/features/exercises/exercise-dashboard';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 
 // ============================================================================
 // MEMOIZED SUB-COMPONENTS FOR RENDERING ISOLATION
@@ -98,6 +97,7 @@ const AppHeader = React.memo(({ title, user, initials, roleBadge, logout }: {
                     </div>
                 </div>
                 <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
+                    <NotificationBell />
                     <ModeToggle />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -170,9 +170,6 @@ const MainContentSwitcher = React.memo(({ currentView, hasAnyRole }: {
                 {/* Student Lesson View */}
                 {currentView === 'lessons' && hasAnyRole(['STUDENT']) && <LessonViewWrapper />}
 
-                {/* Homework */}
-                {currentView === 'homework' && hasAnyRole(['STUDENT']) && <StudentHomeworkView />}
-                {currentView === 'homework' && hasAnyRole(['ADMIN', 'TUTOR']) && <TutorHomeworkView />}
 
                 {/* Other views */}
                 {/* {currentView === 'unpaid' && hasAnyRole(['ADMIN', 'TUTOR']) && <UnpaidSessionsView />} */}
@@ -246,7 +243,6 @@ function AppContent() {
             { id: 'finance', label: 'Tài Chính', icon: TrendingUp }, // Unified View
             { id: 'calendar', label: 'Lịch Dạy', icon: CalendarDays },
             { id: 'lessons', label: 'Bài Giảng', icon: BookOpen },
-            { id: 'homework', label: 'Bài Tập', icon: BookCheck },
             { id: 'exercises', label: 'Khảo thí', icon: ClipboardList },
             // { id: 'unpaid', label: 'Công Nợ', icon: AlertCircle },
             { id: 'documents', label: 'Tài Liệu', icon: FileText },

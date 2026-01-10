@@ -5,41 +5,78 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CONTINUITY.md" beforeDir="false" afterPath="$PROJECT_DIR$/CONTINUITY.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README_DEPLOY.md" beforeDir="false" afterPath="$PROJECT_DIR$/README_DEPLOY.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api_security_tester.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/api_security_tester.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/api_test_plan.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/Tutor-Management-API.postman_collection.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/Tutor-Management-Local.postman_environment.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/issue_fix_plan.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/issue_fix_plan_v2.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/issue_resolution_task.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/config/CacheConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/config/CacheConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/dashboard/dto/response/DashboardStats.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/dashboard/dto/response/DashboardStats.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/shared/PDFGeneratorService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/shared/PDFGeneratorService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/student/StudentRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/student/StudentRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/BackendApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/BackendApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/config/JwtAuthenticationFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/config/JwtAuthenticationFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/config/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/config/SecurityConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/exercise/service/ExerciseServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/exercise/service/ExerciseServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/homework/Homework.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/homework/HomeworkRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/homework/HomeworkService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/homework/StudentHomeworkController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/homework/TutorHomeworkController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/homework/dto/request/HomeworkGradingRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/homework/dto/request/HomeworkRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/homework/dto/request/HomeworkStatusUpdateRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/homework/dto/request/HomeworkSubmissionRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/homework/dto/response/HomeworkResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/homework/dto/response/HomeworkStatsResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/schedule/RecurringScheduleController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/schedule/RecurringScheduleController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/schedule/RecurringScheduleService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/schedule/RecurringScheduleService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/submission/service/SubmissionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/submission/service/SubmissionServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/app/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/dashboard/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/build.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/build_log.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/dashboard/admin-dashboard/components/EnhancedRevenueChart.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/dashboard/admin-dashboard/components/EnhancedRevenueChart.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/dashboard/admin-dashboard/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/dashboard/admin-dashboard/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/dashboard/admin-dashboard/types/dashboard.types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/dashboard/admin-dashboard/types/dashboard.types.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/finance/management/context/FinanceContext.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/finance/management/context/FinanceContext.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/services/dashboard.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/dashboard.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lint_output.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/tsc_output.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/tsc_output_2.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/tsc_output_utf8.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/security_report.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/walkthrough_api_fixes.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/create-homework-dialog/components/FileUploadSection.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/create-homework-dialog/components/FormField.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/create-homework-dialog/hooks/useFileUpload.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/create-homework-dialog/hooks/useHomeworkForm.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/create-homework-dialog/index.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/create-homework-dialog/types.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/homework-detail-dialog/components/FileUploader.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/homework-detail-dialog/components/GradingResult.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/homework-detail-dialog/components/HomeworkContent.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/homework-detail-dialog/components/HomeworkInfo.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/homework-detail-dialog/components/SubmissionForm.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/homework-detail-dialog/components/SubmittedInfo.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/homework-detail-dialog/hooks/useHomeworkSubmission.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/homework-detail-dialog/index.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/homework-detail-dialog/utils.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/student-homework/components/EmptyState.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/student-homework/components/HomeworkCard.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/student-homework/components/HomeworkStats.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/student-homework/components/HomeworkTabs.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/student-homework/hooks/useHomeworks.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/student-homework/index.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/student-homework/utils/homeworkHelpers.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-detail/components/AttachmentList.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-detail/components/GradedDisplay.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-detail/components/GradingForm.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-detail/components/GradingSection.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-detail/components/HomeworkDescription.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-detail/components/HomeworkInfo.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-detail/components/SubmissionInfo.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-detail/hooks/useGrading.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-detail/index.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-detail/utils/statusHelpers.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-view/components/EmptyState.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-view/components/ExerciseLibraryPanel.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-view/components/HomeworkCard.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-view/components/HomeworkStats.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-view/components/StudentDropZone.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-view/components/StudentSelector.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-view/components/VisualDocumentCard.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-view/hooks/useHomeworks.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-view/hooks/useOptimisticHomework.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-view/hooks/useStudents.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-view/index.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/homework/tutor-homework-view/utils/statusHelpers.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/hooks/useQueryKeys.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/hooks/useQueryKeys.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/services/homework.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/services/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/types/homework.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/types/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/types/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/logs/application.log" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -94,45 +131,45 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.BackendApplication.executor": "Run",
-    "Maven.backend [clean].executor": "Run",
-    "Maven.backend [install].executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Notification.DisplayName-DoNotAsk-DatabaseConfigFileWatcher.found": "Database connection parameters found",
-    "Notification.DoNotAsk-DatabaseConfigFileWatcher.found": "true",
-    "RequestMappingsPanelOrder0": "0",
-    "RequestMappingsPanelOrder1": "1",
-    "RequestMappingsPanelWidth0": "75",
-    "RequestMappingsPanelWidth1": "75",
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "Spring Boot.BackendApplication.executor": "Run",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "extract.method.default.visibility": "private",
-    "git-widget-placeholder": "main",
-    "ignore.virus.scanning.warn.message": "true",
-    "junie.onboarding.icon.badge.shown": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "D:/long-personal-project/Tutor-Management",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "CodeWithMe",
-    "to.speed.mode.migration.done": "true",
-    "ts.external.directory.path": "D:\\tutor-management\\frontend\\node_modules\\typescript\\lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.BackendApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.backend [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.backend [install].executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Notification.DisplayName-DoNotAsk-DatabaseConfigFileWatcher.found&quot;: &quot;Database connection parameters found&quot;,
+    &quot;Notification.DoNotAsk-DatabaseConfigFileWatcher.found&quot;: &quot;true&quot;,
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;Spring Boot.BackendApplication.executor&quot;: &quot;Run&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;extract.method.default.visibility&quot;: &quot;private&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/long-personal-project/Tutor-Management&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;CodeWithMe&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;D:\\tutor-management\\frontend\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="com.tutor_management.backend.exception" />
@@ -235,6 +272,9 @@
       <workItem from="1767838293219" duration="3065000" />
       <workItem from="1767882646712" duration="1020000" />
       <workItem from="1767959188969" duration="819000" />
+      <workItem from="1767972937796" duration="244000" />
+      <workItem from="1767980096278" duration="1054000" />
+      <workItem from="1768052705004" duration="5625000" />
     </task>
     <servers />
   </component>

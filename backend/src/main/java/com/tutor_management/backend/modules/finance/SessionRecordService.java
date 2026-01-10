@@ -13,6 +13,9 @@ import com.tutor_management.backend.modules.finance.dto.request.SessionRecordUpd
 import com.tutor_management.backend.modules.finance.dto.response.SessionRecordResponse;
 import com.tutor_management.backend.modules.student.Student;
 import com.tutor_management.backend.modules.student.StudentRepository;
+import com.tutor_management.backend.modules.notification.event.SessionCreatedEvent;
+import com.tutor_management.backend.modules.notification.event.SessionRescheduledEvent;
+import org.springframework.context.ApplicationEventPublisher;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +31,7 @@ public class SessionRecordService {
     private final com.tutor_management.backend.modules.document.DocumentRepository documentRepository;
     private final com.tutor_management.backend.modules.lesson.LessonRepository lessonRepository;
     private final StatusTransitionValidator statusTransitionValidator;
+    private final ApplicationEventPublisher eventPublisher;
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
 
     public List<SessionRecordResponse> getAllRecords() {
@@ -122,6 +126,21 @@ public class SessionRecordService {
         }
 
         SessionRecord saved = sessionRecordRepository.save(record);
+        
+        // Notify student
+        try {
+            eventPublisher.publishEvent(SessionCreatedEvent.builder()
+                    .sessionId(saved.getId())
+                    .studentId(saved.getStudent().getId())
+                    .tutorName("Giáo viên")
+                    .subject(saved.getSubject())
+                    .sessionDate(saved.getSessionDate())
+                    .startTime(saved.getStartTime())
+                    .build());
+        } catch (Exception e) {
+            log.error("Failed to publish SessionCreatedEvent", e);
+        }
+
         return convertToResponse(saved);
     }
 
@@ -259,6 +278,21 @@ public class SessionRecordService {
         }
 
         SessionRecord updated = sessionRecordRepository.saveAndFlush(record);
+
+        // Notify student
+        try {
+            eventPublisher.publishEvent(SessionRescheduledEvent.builder()
+                    .sessionId(updated.getId())
+                    .studentId(updated.getStudent().getId())
+                    .tutorName("Giáo viên")
+                    .subject(updated.getSubject())
+                    .newDate(updated.getSessionDate())
+                    .newStartTime(updated.getStartTime())
+                    .build());
+        } catch (Exception e) {
+            log.error("Failed to publish SessionRescheduledEvent", e);
+        }
+
         return convertToResponse(updated);
     }
 
@@ -425,6 +459,21 @@ public class SessionRecordService {
 
         // Version will auto-increment due to @Version annotation
         SessionRecord updated = sessionRecordRepository.saveAndFlush(record);
+
+        // Notify student if status changed to something relevant for them or date/time updated
+        try {
+            eventPublisher.publishEvent(SessionRescheduledEvent.builder()
+                    .sessionId(updated.getId())
+                    .studentId(updated.getStudent().getId())
+                    .tutorName("Giáo viên")
+                    .subject(updated.getSubject())
+                    .newDate(updated.getSessionDate())
+                    .newStartTime(updated.getStartTime())
+                    .build());
+        } catch (Exception e) {
+            log.error("Failed to publish SessionRescheduledEvent from updateStatus", e);
+        }
+
         return convertToResponse(updated);
     }
 

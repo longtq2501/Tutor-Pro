@@ -232,7 +232,8 @@ Tóm tắt progress gần nhất và suggest next step."
 Module [name] đã xong. Update CONTINUITY.md:
 - Move to Done
 - Add metrics/achievements
-- Clear Working Set"
+- Clear Working Set
+- Create command to run "git add . && git commit -m 'feat(module): optimize module' && git push origin main"
 ```
 
 ---

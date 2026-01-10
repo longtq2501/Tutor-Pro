@@ -13,6 +13,10 @@ import com.tutor_management.backend.modules.exercise.repository.OptionRepository
 import com.tutor_management.backend.modules.exercise.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.tutor_management.backend.modules.auth.UserRepository;
+import com.tutor_management.backend.modules.notification.event.ExerciseAssignedEvent;
+import com.tutor_management.backend.modules.notification.event.ExerciseUpdatedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +42,8 @@ public class ExerciseServiceImpl implements ExerciseService {
     private final ExerciseParserService parserService;
     private final ExerciseAssignmentRepository assignmentRepository;
     private final com.tutor_management.backend.modules.submission.repository.SubmissionRepository submissionRepository;
+    private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public ImportPreviewResponse previewImport(ImportExerciseRequest request) {
@@ -114,6 +120,20 @@ public class ExerciseServiceImpl implements ExerciseService {
 
         // Save updated exercise
         Exercise updatedExercise = exerciseRepository.save(exercise);
+
+        // Notify students
+        try {
+            String tutorName = userRepository.findById(Long.parseLong(teacherId))
+                    .map(u -> u.getFullName())
+                    .orElse("Giáo viên");
+            eventPublisher.publishEvent(ExerciseUpdatedEvent.builder()
+                    .exerciseId(id)
+                    .exerciseTitle(updatedExercise.getTitle())
+                    .tutorName(tutorName)
+                    .build());
+        } catch (Exception e) {
+            log.error("Failed to publish ExerciseUpdatedEvent", e);
+        }
 
         log.info("Exercise updated successfully: {}", id);
         return mapToExerciseResponse(updatedExercise);
@@ -199,6 +219,23 @@ public class ExerciseServiceImpl implements ExerciseService {
         }
 
         assignmentRepository.save(assignment);
+        
+        // Notify student
+        try {
+            String tutorName = userRepository.findById(Long.parseLong(tutorId))
+                    .map(u -> u.getFullName())
+                    .orElse("Giáo viên");
+            
+            eventPublisher.publishEvent(ExerciseAssignedEvent.builder()
+                    .exerciseId(exerciseId)
+                    .exerciseTitle(assignmentExercise.getTitle())
+                    .studentId(studentId)
+                    .tutorName(tutorName)
+                    .build());
+        } catch (Exception e) {
+            log.error("Failed to publish ExerciseAssignedEvent for student: {}, tutor: {}", studentId, tutorId, e);
+        }
+        
         log.info("Exercise assigned successfully");
     }
 

@@ -3,6 +3,7 @@ package com.tutor_management.backend.modules.dashboard;
 import java.util.List;
 import java.time.YearMonth;
 
+import com.tutor_management.backend.modules.shared.dto.response.ApiResponse;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -42,14 +43,14 @@ public class DashboardController {
      */
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @GetMapping("/stats")
-    public ResponseEntity<DashboardStats> getDashboardStats(
+    public ResponseEntity<ApiResponse<DashboardStats>> getDashboardStats(
             @RequestParam(required = false) String currentMonth) {
         
         String targetMonth = (currentMonth == null || currentMonth.isEmpty()) 
                 ? YearMonth.now().toString() 
                 : currentMonth;
                 
-        return ResponseEntity.ok(dashboardService.getDashboardStats(targetMonth));
+        return ResponseEntity.ok(ApiResponse.success(dashboardService.getDashboardStats(targetMonth)));
     }
 
     /**
@@ -59,8 +60,8 @@ public class DashboardController {
      */
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @GetMapping("/monthly-stats")
-    public ResponseEntity<List<MonthlyStats>> getMonthlyStats() {
-        return ResponseEntity.ok(dashboardService.getMonthlyStats());
+    public ResponseEntity<ApiResponse<List<MonthlyStats>>> getMonthlyStats() {
+        return ResponseEntity.ok(ApiResponse.success(dashboardService.getMonthlyStats()));
     }
 
     /**
@@ -72,7 +73,7 @@ public class DashboardController {
      */
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     @GetMapping("/student/stats")
-    public ResponseEntity<StudentDashboardStats> getStudentStats(
+    public ResponseEntity<ApiResponse<StudentDashboardStats>> getStudentStats(
             @RequestParam Long studentId,
             @RequestParam(required = false) String currentMonth) {
 
@@ -80,7 +81,7 @@ public class DashboardController {
                 ? YearMonth.now().toString() 
                 : currentMonth;
                 
-        return ResponseEntity.ok(dashboardService.getStudentDashboardStats(studentId, targetMonth));
+        return ResponseEntity.ok(ApiResponse.success(dashboardService.getStudentDashboardStats(studentId, targetMonth)));
     }
 
     /**

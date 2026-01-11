@@ -55,7 +55,7 @@ export const ImportExercise: React.FC<ImportExerciseProps> = ({ classId, onSucce
 
             {step === 1 && (
                 <ImportUploadStep
-                    onParse={parseText}
+                    onParse={(content, cid) => parseText(cid ? content : content, cid)}
                     isLoading={isLoading}
                     error={error}
                 />

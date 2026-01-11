@@ -3,12 +3,15 @@
 import { invoicesApi, sessionsApi } from '@/lib/services';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 import { useFinanceContext } from '../context/FinanceContext';
 import { useFinanceData } from './useFinanceData';
+import { isCancelledStatus } from '@/lib/types/lesson-status';
 
 export function useFinanceActions() {
   const { refreshData, records } = useFinanceData();
   const { selectedStudentIds, clearSelection } = useFinanceContext();
+  const queryClient = useQueryClient();
 
   const [generatingInvoice, setGeneratingInvoice] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
@@ -16,16 +19,12 @@ export function useFinanceActions() {
   const [emailResult, setEmailResult] = useState<any>(null);
 
   // Helper to get selected session Ids based on selected students
-  // In `monthly-view` or `debt-view`, selecting a student usually implies selecting all their visible sessions
-  // or specific sessions? 
-  // In `StudentFinanceCard`, we selected the studentId.
-  // We need to resolve which session IDs belong to these students from the currently loaded records.
-  
   const getSelectedSessionIds = () => {
     // records contains all raw sessions.
     // select sessions where studentId is in selectedStudentIds
+    // AND exclude broken/cancelled sessions from financial actions
     return records
-      .filter(r => selectedStudentIds.includes(r.studentId))
+      .filter(r => selectedStudentIds.includes(r.studentId) && (!r.status || !isCancelledStatus(r.status)))
       .map(r => r.id);
   };
 
@@ -46,6 +45,9 @@ export function useFinanceActions() {
         await sessionsApi.togglePayment(id);
       }
       await refreshData();
+      // Invalidate dashboard stats to reflect payment changes
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-monthly'] });
       clearSelection();
     };
 
@@ -65,7 +67,7 @@ export function useFinanceActions() {
 
     try {
       setGeneratingInvoice(true);
-      
+
       // We assume the backend can handle multiple students if provided, 
       // OR we just use the first student's month?
       // Invoices typically are per month.
@@ -79,7 +81,7 @@ export function useFinanceActions() {
       const response = await invoicesApi.downloadInvoicePDF({
         studentId: selectedStudentIds[0], // Primary student (unused if multiple)
         month: firstSession.month, // Provide a month context 
-        sessionRecordIds: sessionIds, 
+        sessionRecordIds: sessionIds,
         multipleStudents: selectedStudentIds.length > 1,
         selectedStudentIds: selectedStudentIds
       });
@@ -96,7 +98,7 @@ export function useFinanceActions() {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      
+
       toast.success('Đã tải xuống báo giá!');
     } catch (error) {
       console.error('Invoice error:', error);

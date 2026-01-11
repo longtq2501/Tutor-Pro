@@ -6,14 +6,42 @@
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/contexts/AuthContext.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/contexts/AuthContext.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/services/document.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/document.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/services/invoice.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/invoice.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/services/parent.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/parent.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/services/recurring-schedule.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/recurring-schedule.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/services/session.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/session.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/services/student.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/student.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CONTINUITY.md" beforeDir="false" afterPath="$PROJECT_DIR$/CONTINUITY.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/document/DocumentController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/document/DocumentController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/exercise/controller/ExerciseController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/exercise/controller/ExerciseController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/exercise/repository/ExerciseRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/exercise/repository/ExerciseRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/exercise/service/ExerciseService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/exercise/service/ExerciseService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/exercise/service/ExerciseServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/exercise/service/ExerciseServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/finance/SessionRecordService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/submission/domain/SubmissionStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/submission/domain/SubmissionStatus.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/submission/repository/SubmissionRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/submission/repository/SubmissionRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/dashboard/admin-dashboard/hooks/useDashboardData.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/dashboard/admin-dashboard/hooks/useDashboardData.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/hooks/useDashboardData.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/dashboard/student-dashboard/hooks/useDashboardData.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/documents/ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/ISSUES.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-library/components/CategoryGrid.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-library/components/CategoryGrid.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-library/components/CategoryView.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-library/components/CategoryView.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-library/components/DocumentList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-library/components/DocumentList.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-library/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-library/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-preview-modal/components/ModalHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-preview-modal/components/ModalHeader.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-preview-modal/components/PDFPreview.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-preview-modal/components/PDFPreview.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/exercise-import/ImportExercise.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/exercise-import/ImportExercise.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/exercise-import/components/ImportPreviewStep.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/exercise-import/components/ImportPreviewStep.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/exercise-import/components/ImportUploadStep.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/exercise-import/components/ImportUploadStep.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/exercise-import/hooks/useImport.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/exercise-import/hooks/useImport.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/exercise-import/services/exerciseService.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/exercise-import/services/exerciseService.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/exercise-import/types/exercise.types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/exercise-import/types/exercise.types.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/exercises/ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/exercises/ISSUES.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/exercises/components/ExerciseList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/exercises/components/ExerciseList.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/exercises/exercise-dashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/exercises/exercise-dashboard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/exercises/hooks/useExercises.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/exercises/hooks/useExercises.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/finance/ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/finance/ISSUES.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/finance/management/components/StudentFinanceCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/finance/management/components/StudentFinanceCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/finance/management/hooks/useFinanceActions.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/finance/management/hooks/useFinanceActions.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/submission/components/teacher/SubmissionList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/submission/components/teacher/SubmissionList.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/submission/types/submission.types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/submission/types/submission.types.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/services/dashboard.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/dashboard.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -214,6 +242,8 @@
       <workItem from="1768052705004" duration="6240000" />
       <workItem from="1768067042398" duration="2621000" />
       <workItem from="1768129635827" duration="1740000" />
+      <workItem from="1768139921414" duration="16000" />
+      <workItem from="1768142367910" duration="1421000" />
     </task>
     <servers />
   </component>

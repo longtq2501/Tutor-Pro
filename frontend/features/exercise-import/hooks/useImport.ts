@@ -9,12 +9,16 @@ export const useImport = (classId?: string) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
-    const parseText = async (content: string) => {
+    const parseText = async (content: string, cid?: string) => {
         setIsLoading(true);
         setError(null);
         try {
-            const data = await exerciseService.importPreview(content, classId);
+            const data = await exerciseService.importPreview(content, cid || classId);
             if (data.isValid) {
+                // Persist the selected category into metadata for step 2
+                if (cid || classId) {
+                    data.metadata.classId = cid || classId;
+                }
                 setPreviewData(data);
                 setStep(2);
             } else {

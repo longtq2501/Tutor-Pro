@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { Eye, FileText, Loader2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { submissionService } from '../../services/submissionService';
-import { SubmissionListItemResponse } from '../../types/submission.types';
+import { SubmissionListItemResponse, SubmissionStatusEnum } from '../../types/submission.types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface SubmissionListProps {
@@ -106,9 +106,10 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
                                     </TableCell>
                                     <TableCell className="py-1 px-4">
                                         <Badge variant={
-                                            sub.status === 'GRADED' ? 'default' :
-                                                sub.status === 'SUBMITTED' ? 'secondary' : 'outline'
-                                        } className="px-2 py-0 h-5 text-[10px]">
+                                            sub.status === SubmissionStatusEnum.GRADED ? 'default' :
+                                                sub.status === SubmissionStatusEnum.SUBMITTED ? 'secondary' :
+                                                    sub.status === SubmissionStatusEnum.PENDING ? 'outline' : 'secondary'
+                                        } className={`px-2 py-0 h-5 text-[10px] ${sub.status === SubmissionStatusEnum.PENDING ? 'border-orange-200 text-orange-600 bg-orange-50 dark:bg-orange-950/20' : ''}`}>
                                             {sub.status}
                                         </Badge>
                                     </TableCell>
@@ -117,8 +118,10 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
                                     </TableCell>
                                     <TableCell className="py-1 px-4 text-center text-xs font-semibold">{sub.mcqScore ?? '-'}</TableCell>
                                     <TableCell className="py-1 px-4 text-center text-xs">
-                                        {sub.status === 'GRADED' ? (
+                                        {sub.status === SubmissionStatusEnum.GRADED ? (
                                             <span className="font-semibold text-yellow-600 dark:text-yellow-500">{sub.essayScore}</span>
+                                        ) : sub.status === SubmissionStatusEnum.PENDING ? (
+                                            <span className="text-muted-foreground/40 italic text-[10px]">Unstarted</span>
                                         ) : (
                                             <span className="text-muted-foreground italic text-[10px]">Pending</span>
                                         )}
@@ -132,12 +135,13 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
                                             size="sm"
                                             className="h-8 w-8 p-0"
                                             onClick={() => onSelectSubmission(sub.id)}
-                                            title={sub.status === 'GRADED' ? "View" : "Grade"}
+                                            disabled={sub.status === SubmissionStatusEnum.PENDING}
+                                            title={sub.status === SubmissionStatusEnum.GRADED ? "View" : sub.status === SubmissionStatusEnum.PENDING ? "Not started" : "Grade"}
                                         >
-                                            {sub.status === 'GRADED' ? (
+                                            {sub.status === SubmissionStatusEnum.GRADED ? (
                                                 <Eye className="h-4 w-4" />
                                             ) : (
-                                                <FileText className="h-4 w-4" />
+                                                <FileText className={`h-4 w-4 ${sub.status === SubmissionStatusEnum.PENDING ? 'opacity-20' : ''}`} />
                                             )}
                                         </Button>
                                     </TableCell>

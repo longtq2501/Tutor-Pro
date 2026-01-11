@@ -11,12 +11,14 @@ import {
 } from '@/components/ui/table';
 import { exerciseService } from '@/features/exercise-import/services/exerciseService';
 import { ExerciseListItemResponse, ExerciseStatus } from '@/features/exercise-import/types/exercise.types';
+import { PageResponse } from '@/lib/types';
 import { format } from 'date-fns';
-import { Edit, FileText, Loader2, Play, Plus, Trash2, UserPlus } from 'lucide-react';
+import { Edit, FileText, Loader2, Play, Plus, Search, Trash2, UserPlus, X } from 'lucide-react';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { formatExerciseTitle } from '@/lib/utils';
 import { studentsApi } from '@/lib/services/student';
+import { lessonCategoryApi } from '@/lib/services/lesson-category';
 import { Student } from '@/lib/types';
 import {
     Dialog,
@@ -54,10 +56,45 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
     const queryClient = useQueryClient();
     const isStudent = role === 'STUDENT';
 
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+
+    // Handle debounce
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+            setPage(0); // Reset to first page on search
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    // Categories list for filter
+    const { data: categories = [] } = useQuery({
+        queryKey: ['lesson-categories'],
+        queryFn: () => lessonCategoryApi.getAll(),
+        enabled: !isStudent
+    });
+
     // ⚡ React Query hooks
-    const { data: exercises = [], isLoading: isExercisesLoading } = isStudent
+    const { data: exercisesData, isLoading: isExercisesLoading } = isStudent
         ? useAssignedExercises()
-        : useExercises();
+        : useExercises(
+            selectedCategory === 'ALL' ? undefined : selectedCategory,
+            undefined,
+            debouncedSearch || undefined,
+            page,
+            pageSize
+        );
+
+    const exercises = isStudent
+        ? (exercisesData as ExerciseListItemResponse[] || [])
+        : (exercisesData as any)?.content || [];
+
+    const totalElements = isStudent ? exercises.length : (exercisesData as any)?.totalElements || 0;
+    const totalPages = isStudent ? 1 : (exercisesData as any)?.totalPages || 1;
 
     // Students list for assign dialog (Keep as useQuery for consistency)
     const { data: students = [], isLoading: isStudentsLoading } = useQuery({
@@ -144,7 +181,7 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
         <Card className="animate-in fade-in slide-in-from-bottom-2 duration-400">
             <CardHeader className="py-3 px-4 flex flex-row items-center justify-between border-b">
                 <CardTitle className="text-lg flex items-center gap-2">
-                    Danh sách bài tập ({exercises.length})
+                    Danh sách bài tập ({totalElements})
                     {isExercisesLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
                 </CardTitle>
                 {(role === 'TEACHER' || role === 'ADMIN') && (
@@ -153,6 +190,45 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
                     </Button>
                 )}
             </CardHeader>
+
+            {/* Filter Bar */}
+            {!isStudent && (
+                <div className="px-4 py-3 border-b bg-muted/20 flex flex-col sm:flex-row gap-3">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Tìm kiếm bài tập..."
+                            className="pl-9 h-9 border-muted-foreground/20 focus:border-primary transition-all shadow-sm"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        {searchTerm && (
+                            <button
+                                onClick={() => setSearchTerm('')}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-foreground text-muted-foreground transition-colors"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
+                    </div>
+                    <div className="w-full sm:w-[200px]">
+                        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                            <SelectTrigger className="h-9 border-muted-foreground/20 shadow-sm focus:ring-1">
+                                <SelectValue placeholder="Tất cả danh mục" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="ALL">Tất cả danh mục</SelectItem>
+                                {categories.map((cat: any) => (
+                                    <SelectItem key={cat.id} value={cat.id.toString()}>
+                                        {cat.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+            )}
+
             <CardContent className="p-0 sm:p-4">
                 {exercises.length === 0 ? (
                     <div className="text-center py-12 space-y-3">
@@ -179,7 +255,7 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {exercises.map((ex) => (
+                                    {exercises.map((ex: ExerciseListItemResponse) => (
                                         <TableRow key={ex.id} className="cursor-pointer group hover:bg-muted/50 transition-colors" onClick={() => {
                                             if (role === 'STUDENT') onSelectExercise(ex, 'PLAY');
                                             else onSelectExercise(ex, 'GRADE');
@@ -233,7 +309,7 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
 
                         {/* Mobile: Card View */}
                         <div className="md:hidden space-y-3 p-4">
-                            {exercises.map((ex) => (
+                            {exercises.map((ex: ExerciseListItemResponse) => (
                                 <Card key={ex.id} className="overflow-hidden border shadow-sm hover:border-primary/50 transition-all active:scale-[0.98]" onClick={() => {
                                     if (role === 'STUDENT') onSelectExercise(ex, 'PLAY');
                                     else onSelectExercise(ex, 'GRADE');
@@ -295,6 +371,33 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
                         </div>
                     </>
                 )}
+
+                {/* Pagination Controls (Teacher/Admin only) */}
+                {!isStudent && totalPages > 1 && (
+                    <div className="flex items-center justify-between p-4 border-t">
+                        <div className="text-xs text-muted-foreground">
+                            Trang {page + 1} / {totalPages}
+                        </div>
+                        <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setPage(p => Math.max(0, p - 1))}
+                                disabled={page === 0 || isExercisesLoading}
+                            >
+                                Trước
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                                disabled={page >= totalPages - 1 || isExercisesLoading}
+                            >
+                                Sau
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </CardContent>
 
             <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
@@ -344,6 +447,6 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </Card>
+        </Card >
     );
 };

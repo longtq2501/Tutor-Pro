@@ -9,6 +9,15 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { useQuery } from '@tanstack/react-query';
+import { lessonCategoryApi } from '@/lib/services/lesson-category';
 import { AlertTriangle, Check, CheckCircle2, Edit2, Plus, Save, Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import {
@@ -96,6 +105,7 @@ export const ImportPreviewStep: React.FC<ImportPreviewStepProps> = ({
             description: metadata.description,
             timeLimit: metadata.timeLimit,
             totalPoints: metadata.totalPoints || 0,
+            classId: metadata.classId,
             status: ExerciseStatus.PUBLISHED,
             questions: questionRequests
         };
@@ -111,6 +121,13 @@ export const ImportPreviewStep: React.FC<ImportPreviewStepProps> = ({
                     <CardTitle>Exercise Details</CardTitle>
                 </CardHeader>
                 <CardContent className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2 md:col-span-2">
+                        <Label>Category</Label>
+                        <CategorySelect
+                            value={metadata.classId || ''}
+                            onChange={val => setMetadata(prev => ({ ...prev, classId: val }))}
+                        />
+                    </div>
                     <div className="space-y-2">
                         <Label>Title</Label>
                         <Input
@@ -214,12 +231,16 @@ export const ImportPreviewStep: React.FC<ImportPreviewStepProps> = ({
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
                                             {q.options?.map((opt, i) => (
                                                 <div key={i} className={cn(
-                                                    "p-2 rounded border flex items-center gap-2 text-sm",
-                                                    opt.isCorrect ? "border-green-500 bg-green-50" : "border-gray-200"
+                                                    "p-2 rounded border flex items-center gap-2 text-sm transition-colors",
+                                                    opt.isCorrect
+                                                        ? "border-green-500 bg-green-50 dark:bg-green-900/30 dark:text-green-100"
+                                                        : "border-gray-200 dark:border-border"
                                                 )}>
                                                     <span className={cn(
                                                         "font-bold w-6 h-6 flex items-center justify-center rounded-full text-xs",
-                                                        opt.isCorrect ? "bg-green-500 text-white" : "bg-gray-100 text-gray-500"
+                                                        opt.isCorrect
+                                                            ? "bg-green-500 text-white"
+                                                            : "bg-gray-100 dark:bg-muted text-gray-500 dark:text-muted-foreground"
                                                     )}>{opt.label}</span>
                                                     <span>{opt.optionText}</span>
                                                     {opt.isCorrect && <CheckCircle2 className="h-4 w-4 text-green-500 ml-auto" />}
@@ -341,5 +362,31 @@ export const ImportPreviewStep: React.FC<ImportPreviewStepProps> = ({
                 </div>
             </div>
         </div>
+    );
+};
+
+const CategorySelect: React.FC<{ value: string; onChange: (val: string) => void }> = ({ value, onChange }) => {
+    const { data: categories = [] } = useQuery({
+        queryKey: ['lesson-categories'],
+        queryFn: () => lessonCategoryApi.getAll()
+    });
+
+    // Ensure we handle "NONE" vs undefined/empty string
+    const safeValue = value === "NONE" ? "NONE" : value || "NONE";
+
+    return (
+        <Select value={safeValue} onValueChange={(val) => onChange(val === "NONE" ? "" : val)}>
+            <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="NONE">No Category</SelectItem>
+                {categories.map((cat: any) => (
+                    <SelectItem key={cat.id} value={cat.id.toString()}>
+                        {cat.name}
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
     );
 };

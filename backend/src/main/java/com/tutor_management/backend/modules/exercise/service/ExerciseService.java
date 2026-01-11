@@ -6,6 +6,9 @@ import com.tutor_management.backend.modules.exercise.dto.request.ImportExerciseR
 import com.tutor_management.backend.modules.exercise.dto.response.ExerciseListItemResponse;
 import com.tutor_management.backend.modules.exercise.dto.response.ExerciseResponse;
 import com.tutor_management.backend.modules.exercise.dto.response.ImportPreviewResponse;
+import com.tutor_management.backend.modules.exercise.dto.response.TutorStudentSummaryResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -53,9 +56,10 @@ public interface ExerciseService {
      * 
      * @param classId Optional class filter.
      * @param status Optional draft/published status filter.
+     * @param pageable Pagination and sorting metadata.
      * @return Summary projections of matching resources.
      */
-    List<ExerciseListItemResponse> listExercises(String classId, ExerciseStatus status);
+    Page<ExerciseListItemResponse> listExercises(String classId, ExerciseStatus status, String search, Pageable pageable);
     
     /**
      * Permanently removes an exercise and all its associated data (submissions, assignments).
@@ -79,4 +83,9 @@ public interface ExerciseService {
      * Retrieves all assigned materials for a student, including their current progress/score.
      */
     List<ExerciseListItemResponse> listAssignedExercises(String studentId);
+
+    /**
+     * Aggregates completion statistics for all students to power the Tutor Dashboard.
+     */
+    List<TutorStudentSummaryResponse> getStudentSummaries();
 }

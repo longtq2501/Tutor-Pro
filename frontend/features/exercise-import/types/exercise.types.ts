@@ -103,6 +103,7 @@ export interface ExerciseMetadata {
     description?: string;
     timeLimit?: number;
     totalPoints?: number;
+    classId?: string;
 }
 
 export interface ImportPreviewResponse {
@@ -129,3 +130,22 @@ export interface ExerciseListItemResponse {
     submissionStatus?: string;
     studentTotalScore?: number;
 }
+
+export interface TutorStudentSummaryResponse {
+    studentId: string;
+    studentName: string;
+    grade: string;
+    pendingCount: number;
+    submittedCount: number;
+    gradedCount: number;
+    totalAssigned: number;
+    recentExercises?: ExerciseStatusSummary[];
+}
+
+export interface ExerciseStatusSummary {
+    exerciseId: string;
+    title: string;
+    status: string;
+    score?: number;
+}
+

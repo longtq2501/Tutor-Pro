@@ -5,6 +5,11 @@ package com.tutor_management.backend.modules.submission.domain;
  */
 public enum SubmissionStatus {
     /**
+     * The exercise has been assigned to the student, but they haven't started it yet.
+     */
+    PENDING,
+
+    /**
      * Work in progress by the student; not yet visible to the tutor for grading.
      */
     DRAFT,

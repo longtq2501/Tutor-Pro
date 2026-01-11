@@ -6,8 +6,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { AlertCircle, FileText, Upload } from 'lucide-react';
 import React, { useState } from 'react';
 
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { useQuery } from '@tanstack/react-query';
+import { lessonCategoryApi } from '@/lib/services/lesson-category';
+import { Label } from '@/components/ui/label';
+
 interface ImportUploadStepProps {
-    onParse: (content: string) => void;
+    onParse: (content: string, classId?: string) => void;
     isLoading: boolean;
     error: string | null;
 }
@@ -34,10 +45,16 @@ RUBRIC: Ngữ pháp (10), Nội dung (10)`;
 
 export const ImportUploadStep: React.FC<ImportUploadStepProps> = ({ onParse, isLoading, error }) => {
     const [content, setContent] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState<string>('');
+
+    const { data: categories = [] } = useQuery({
+        queryKey: ['lesson-categories'],
+        queryFn: () => lessonCategoryApi.getAll()
+    });
 
     const handleParse = () => {
         if (!content.trim()) return;
-        onParse(content);
+        onParse(content, selectedCategory || undefined);
     };
 
     return (
@@ -80,7 +97,25 @@ export const ImportUploadStep: React.FC<ImportUploadStepProps> = ({ onParse, isL
                     </Dialog>
                 </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+                <div className="space-y-2 max-w-sm">
+                    <Label>Assign to Category (Optional)</Label>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="NONE">No Category</SelectItem>
+                            {categories.map((cat: any) => (
+                                <SelectItem key={cat.id} value={cat.id.toString()}>
+                                    {cat.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <p className="text-[10px] text-muted-foreground">Exercises in a category are easier for tutors to find.</p>
+                </div>
+
                 {error && (
                     <Alert variant="destructive">
                         <AlertCircle className="h-4 w-4" />

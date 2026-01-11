@@ -12,16 +12,22 @@ import com.tutor_management.backend.modules.exercise.dto.response.ExerciseRespon
 import com.tutor_management.backend.modules.exercise.dto.response.ImportPreviewResponse;
 import com.tutor_management.backend.modules.exercise.dto.response.OptionResponse;
 import com.tutor_management.backend.modules.exercise.dto.response.QuestionResponse;
+import com.tutor_management.backend.modules.exercise.dto.response.TutorStudentSummaryResponse;
 import com.tutor_management.backend.modules.exercise.repository.ExerciseAssignmentRepository;
 import com.tutor_management.backend.modules.exercise.repository.ExerciseRepository;
 import com.tutor_management.backend.modules.exercise.repository.OptionRepository;
 import com.tutor_management.backend.modules.exercise.repository.QuestionRepository;
+import com.tutor_management.backend.modules.student.StudentRepository;
 import com.tutor_management.backend.modules.notification.event.ExerciseAssignedEvent;
 import com.tutor_management.backend.modules.notification.event.ExerciseUpdatedEvent;
+import com.tutor_management.backend.modules.submission.domain.Submission;
+import com.tutor_management.backend.modules.submission.domain.SubmissionStatus;
 import com.tutor_management.backend.modules.submission.repository.SubmissionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +50,7 @@ public class ExerciseServiceImpl implements ExerciseService {
     private final ExerciseParserService parserService;
     private final ExerciseAssignmentRepository assignmentRepository;
     private final SubmissionRepository submissionRepository;
+    private final StudentRepository studentRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -114,16 +121,9 @@ public class ExerciseServiceImpl implements ExerciseService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ExerciseListItemResponse> listExercises(String classId, ExerciseStatus status) {
-        log.debug("Listing exercises (Filter: class={}, status={})", classId, status);
-
-        if (classId != null && status != null) {
-            return exerciseRepository.findByClassIdAndStatusOptimized(classId, status);
-        } else if (classId != null) {
-            return exerciseRepository.findByClassIdOptimized(classId);
-        } else {
-            return exerciseRepository.findAllOptimized();
-        }
+    public Page<ExerciseListItemResponse> listExercises(String classId, ExerciseStatus status, String search, Pageable pageable) {
+        log.debug("Listing exercises (Filter: class={}, status={}, search={}, page={})", classId, status, search, pageable.getPageNumber());
+        return exerciseRepository.findByFiltersOptimized(classId, status, search, pageable);
     }
 
     @Override
@@ -163,9 +163,18 @@ public class ExerciseServiceImpl implements ExerciseService {
         assignment.setDeadline(deadline != null ? deadline : sourceExercise.getDeadline());
         
         assignmentRepository.save(assignment);
+        
+        // Ensure a submission record exists with PENDING status
+        submissionRepository.findByExerciseIdAndStudentId(exerciseId, studentId)
+                .orElseGet(() -> submissionRepository.save(Submission.builder()
+                        .exerciseId(exerciseId)
+                        .studentId(studentId)
+                        .status(SubmissionStatus.PENDING)
+                        .build()));
+
         notifyStudentOfAssignment(sourceExercise, studentId, tutorId);
         
-        log.info("Assignment record committed for student {}", studentId);
+        log.info("Assignment record and pending submission committed for student {}", studentId);
     }
 
     @Override
@@ -185,6 +194,46 @@ public class ExerciseServiceImpl implements ExerciseService {
         enrichWithStudentProgress(responses, studentId, assignments);
 
         return responses;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TutorStudentSummaryResponse> getStudentSummaries() {
+        log.info("Aggregating student performance summaries for tutor dashboard");
+        
+        var students = studentRepository.findByActiveTrueWithParent();
+        var rawStats = submissionRepository.countAllByStudentAndStatus();
+        
+        // Map stats by studentId
+        Map<String, Map<SubmissionStatus, Integer>> statsMap = new HashMap<>();
+        for (Object[] row : rawStats) {
+            String studentId = (String) row[0];
+            SubmissionStatus status = (SubmissionStatus) row[1];
+            Integer count = ((Long) row[2]).intValue();
+            
+            statsMap.computeIfAbsent(studentId, k -> new HashMap<>()).put(status, count);
+        }
+        
+        return students.stream().map(student -> {
+            String sId = student.getId().toString();
+            var counts = statsMap.getOrDefault(sId, Collections.emptyMap());
+            
+            int pending = counts.getOrDefault(SubmissionStatus.PENDING, 0);
+            int submitted = counts.getOrDefault(SubmissionStatus.SUBMITTED, 0) + 
+                            counts.getOrDefault(SubmissionStatus.DRAFT, 0);
+            int graded = counts.getOrDefault(SubmissionStatus.GRADED, 0);
+            int total = pending + submitted + graded;
+            
+            return TutorStudentSummaryResponse.builder()
+                    .studentId(sId)
+                    .studentName(student.getName())
+                    .grade("N/A") // Can be updated if grade field is added to Student
+                    .pendingCount(pending)
+                    .submittedCount(submitted)
+                    .gradedCount(graded)
+                    .totalAssigned(total)
+                    .build();
+        }).collect(Collectors.toList());
     }
 
     // --- Private Business Helpers ---
@@ -257,6 +306,8 @@ public class ExerciseServiceImpl implements ExerciseService {
         List<String> ids = responses.stream().map(ExerciseListItemResponse::getId).collect(Collectors.toList());
         
         var submissions = submissionRepository.findByStudentIdAndExerciseIdIn(studentId, ids);
+        log.info("Enriching {} exercises for student {}. Found {} submissions in DB.", responses.size(), studentId, submissions.size());
+
         var subMap = submissions.stream()
                 .collect(Collectors.toMap(com.tutor_management.backend.modules.submission.domain.Submission::getExerciseId, s -> s, (s1, s2) -> s1));
 
@@ -269,9 +320,12 @@ public class ExerciseServiceImpl implements ExerciseService {
             
             var sub = subMap.get(resp.getId());
             if (sub != null) {
+                log.info("Matched submission {} (status: {}) for exercise {}", sub.getId(), sub.getStatus(), resp.getId());
                 resp.setSubmissionId(sub.getId());
                 resp.setSubmissionStatus(sub.getStatus().name());
                 resp.setStudentTotalScore(sub.getTotalScore());
+            } else {
+                log.info("No matching submission found for exercise {}. Defaulting to PENDING.", resp.getId());
             }
         });
     }

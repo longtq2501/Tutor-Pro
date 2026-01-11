@@ -4,6 +4,7 @@ import { SearchBar } from './SearchBar';
 import { DocumentList } from './DocumentList';
 import { DocumentListSkeleton } from './DocumentListSkeleton';
 import type { Document, DocumentCategory } from '@/lib/types';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Props {
   category: DocumentCategory;
@@ -25,6 +26,8 @@ export const CategoryView = ({
   category, documents, searchQuery, onSearchChange, onBack, onUpload, onPreview, onDownload, onDelete,
   page, setPage, totalPages, isLoading
 }: Props) => {
+  const { user } = useAuth();
+  const isStudent = user?.role === 'STUDENT';
   const categoryInfo = CATEGORIES.find(c => c.key === category);
   const icon = (categoryInfo?.icon as string) || (typeof category === 'object' ? (category as any).icon : '📁');
   const name = categoryInfo?.name || (typeof category === 'object' ? (category as any).name : category);
@@ -44,10 +47,12 @@ export const CategoryView = ({
             </div>
           </div>
         </div>
-        <button onClick={onUpload} className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground px-4 lg:px-6 py-2.5 lg:py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
-          <Upload size={18} />
-          Thêm tài liệu
-        </button>
+        {!isStudent && (
+          <button onClick={onUpload} className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground px-4 lg:px-6 py-2.5 lg:py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
+            <Upload size={18} />
+            Thêm tài liệu
+          </button>
+        )}
       </div>
 
       <SearchBar value={searchQuery} onChange={onSearchChange} />

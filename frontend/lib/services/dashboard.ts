@@ -11,12 +11,12 @@ export const dashboardApi = {
     const response = await api.get('/dashboard/stats', {
       params: { currentMonth }
     });
-    return response.data;
+    return response.data.data;
   },
 
   getMonthlyStats: async (): Promise<MonthlyStats[]> => {
     const response = await api.get('/dashboard/monthly-stats');
-    return response.data;
+    return response.data.data;
   },
 
   /** * LẤY SỐ LIỆU DASHBOARD CHO HỌC SINH (Student Delight Edition)
@@ -27,7 +27,7 @@ export const dashboardApi = {
     const response = await api.get('/dashboard/student/stats', {
       params: { studentId, currentMonth }
     });
-    return response.data;
+    return response.data.data;
   },
 
   exportPdf: async (currentMonth?: string): Promise<Blob> => {
@@ -35,6 +35,6 @@ export const dashboardApi = {
       params: { currentMonth },
       responseType: 'blob'
     });
-    return response.data;
+    return response.data; // Blob is usually return directly as data
   }
 };

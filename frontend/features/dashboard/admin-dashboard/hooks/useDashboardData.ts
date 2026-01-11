@@ -8,7 +8,7 @@ export const useDashboardData = () => {
   const { data: stats, isLoading: loadingStats } = useQuery({
     queryKey: ['dashboard-stats', currentMonth],
     queryFn: () => dashboardApi.getStats(currentMonth),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0, // Always fetch fresh in background
     gcTime: 10 * 60 * 1000,
     placeholderData: keepPreviousData,
     initialData: () => {
@@ -24,7 +24,7 @@ export const useDashboardData = () => {
   const { data: monthlyStats, isLoading: loadingMonthly } = useQuery({
     queryKey: ['dashboard-monthly'],
     queryFn: () => dashboardApi.getMonthlyStats(),
-    staleTime: 10 * 60 * 1000,
+    staleTime: 0, // Always fetch fresh in background
     gcTime: 15 * 60 * 1000,
     placeholderData: keepPreviousData,
     initialData: () => {

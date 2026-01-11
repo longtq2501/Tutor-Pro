@@ -29,7 +29,7 @@ export const useDashboardData = (studentId: number | undefined) => {
   // 2. Fetch Sessions List (Dynamic based on selected month)
   const { data: sessions, isLoading: loadingSessions } = useQuery({
     queryKey: ['student-sessions', studentId, currentMonth],
-    queryFn: () => api.get(`/student/sessions?month=${currentMonth}`).then(res => res.data),
+    queryFn: () => api.get(`/student/sessions?month=${currentMonth}`).then(res => res.data.data),
     enabled: !!studentId,
     refetchOnWindowFocus: true, // Ensure we refetch when user switches back to tab
   });

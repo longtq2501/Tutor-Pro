@@ -33,6 +33,33 @@ Merging `monthly-view` and `unpaid-sessions` into a unified, high-performance **
     - **Issue:** Persistent bar and extra space appearing at bottom.
     - **Action:** Fixed by removing non-standard `zoom` scaling in `globals.css` and optimizing component layout (`min-h-screen`, `pb-24`).
 
+- [x] [P1] **Incorrect Quotation Total Calculation**
+    - **Issue:** The Quotation (Báo giá) function incorrectly includes canceled sessions ("Học sinh hủy") in the total session count and amount calculation.
+    - **Example:** A student with 3 taught sessions and 4 canceled sessions is billed for 7 sessions in the PDF, while the UI correctly displays 3 sessions billed.
+    - **Action:** Updated `useFinanceActions` to filter out sessions with `CANCELLED_BY_STUDENT` or `CANCELLED_BY_TUTOR` status before generating invoice/email.
+    - **Status:** ✅ Fixed
+
+- [x] [P1] **Incorrect Payment Progress Bar Logic**
+    - **Issue:** The payment progress bar (Green/Red/Grey) currently factors in Cancelled sessions as potentially "Unpaid" or "Pending", skewing the visual representation.
+    - **Goal:** Cancelled sessions should be ignored in the progress calculation as they do not require payment.
+    - **Action:** Updated `StudentFinanceCard` to calculate progress based on billable sessions (excluding `CANCELLED_BY_STUDENT` / `CANCELLED_BY_TUTOR`).
+    - **Status:** ✅ Fixed
+
+- [x] [P1] **Dashboard vs Finance Module Data Mismatch**
+    - **Issue:** The "Total Paid" and "Outstanding Debt" amounts in the main Dashboard do not match the detailed breakdown in the Finance Module, even though the Total Revenue matches.
+    - **Example (Dec 2025):** 
+        - Finance Module: Paid ~6.6m, Debt ~1.1m (Calculated from session details).
+        - Dashboard: Paid 4.4m, Debt 3.36m.
+- [x] [P1] **Dashboard vs Finance Module Data Mismatch**
+    - **Issue:** The "Total Paid" and "Outstanding Debt" amounts in the main Dashboard do not match the detailed breakdown in the Finance Module, even though the Total Revenue matches.
+    - **Example (Dec 2025):** 
+        - Finance Module: Paid ~6.6m, Debt ~1.1m (Calculated from session details).
+        - Dashboard: Paid 4.4m, Debt 3.36m.
+    - **Root Cause 1:** **Stale Cache**. The `SessionRecordService` methods were not evicting the `dashboardStats` cache. (Fixed by adding `@CacheEvict`).
+    - **Root Cause 2:** **Legacy Data (NULL Status)**. Old sessions with `status = NULL` were being excluded by the JPQL query `status NOT IN (CANCELLED...)` because `NULL != CANCELLED` is Unknown/False in SQL. The Frontend logic (JS) was correctly including them.
+    - **Action:** Updated JPQL queries in `SessionRecordRepository` to explicitly check `(sr.status IS NULL OR sr.status NOT IN (...))`.
+    - **Status:** ✅ Fixed
+
 ---
 
 ## 📦 Archive: Completed Items

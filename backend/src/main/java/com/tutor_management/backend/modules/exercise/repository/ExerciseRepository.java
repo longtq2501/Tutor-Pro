@@ -3,6 +3,8 @@ package com.tutor_management.backend.modules.exercise.repository;
 import com.tutor_management.backend.modules.exercise.domain.Exercise;
 import com.tutor_management.backend.modules.exercise.domain.ExerciseStatus;
 import com.tutor_management.backend.modules.exercise.dto.response.ExerciseListItemResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -57,34 +59,58 @@ public interface ExerciseRepository extends JpaRepository<Exercise, String> {
      * Optimized projection for the global exercise library.
      * Fetches metadata and question counts without loading full BLOBs or child collections.
      */
-    @Query("SELECT new com.tutor_management.backend.modules.exercise.dto.response.ExerciseListItemResponse(" +
+    @Query(value = "SELECT new com.tutor_management.backend.modules.exercise.dto.response.ExerciseListItemResponse(" +
            "e.id, e.title, e.description, e.totalPoints, e.timeLimit, e.deadline, e.status, " +
            "CAST(SIZE(e.questions) AS integer), CAST(0 AS integer), e.createdAt) " +
            "FROM Exercise e " +
-           "ORDER BY e.createdAt DESC")
-    List<ExerciseListItemResponse> findAllOptimized();
+           "ORDER BY e.createdAt DESC",
+           countQuery = "SELECT COUNT(e) FROM Exercise e")
+    Page<ExerciseListItemResponse> findAllOptimized(Pageable pageable);
 
     /**
      * Optimized projection for class-specific exercise lists.
      */
-    @Query("SELECT new com.tutor_management.backend.modules.exercise.dto.response.ExerciseListItemResponse(" +
+    @Query(value = "SELECT new com.tutor_management.backend.modules.exercise.dto.response.ExerciseListItemResponse(" +
            "e.id, e.title, e.description, e.totalPoints, e.timeLimit, e.deadline, e.status, " +
            "CAST(SIZE(e.questions) AS integer), CAST(0 AS integer), e.createdAt) " +
            "FROM Exercise e " +
            "WHERE e.classId = :classId " +
-           "ORDER BY e.createdAt DESC")
-    List<ExerciseListItemResponse> findByClassIdOptimized(@Param("classId") String classId);
+           "ORDER BY e.createdAt DESC",
+           countQuery = "SELECT COUNT(e) FROM Exercise e WHERE e.classId = :classId")
+    Page<ExerciseListItemResponse> findByClassIdOptimized(@Param("classId") String classId, Pageable pageable);
 
     /**
      * Optimized projection filtered by class and status.
      */
-    @Query("SELECT new com.tutor_management.backend.modules.exercise.dto.response.ExerciseListItemResponse(" +
+    @Query(value = "SELECT new com.tutor_management.backend.modules.exercise.dto.response.ExerciseListItemResponse(" +
            "e.id, e.title, e.description, e.totalPoints, e.timeLimit, e.deadline, e.status, " +
            "CAST(SIZE(e.questions) AS integer), CAST(0 AS integer), e.createdAt) " +
            "FROM Exercise e " +
            "WHERE e.classId = :classId AND e.status = :status " +
-           "ORDER BY e.createdAt DESC")
-    List<ExerciseListItemResponse> findByClassIdAndStatusOptimized(@Param("classId") String classId, @Param("status") ExerciseStatus status);
+           "ORDER BY e.createdAt DESC",
+           countQuery = "SELECT COUNT(e) FROM Exercise e WHERE e.classId = :classId AND e.status = :status")
+    Page<ExerciseListItemResponse> findByClassIdAndStatusOptimized(@Param("classId") String classId, @Param("status") ExerciseStatus status, Pageable pageable);
+
+    /**
+     * Optimized projection filtered by class, status, and title search.
+     */
+    @Query(value = "SELECT new com.tutor_management.backend.modules.exercise.dto.response.ExerciseListItemResponse(" +
+           "e.id, e.title, e.description, e.totalPoints, e.timeLimit, e.deadline, e.status, " +
+           "CAST(SIZE(e.questions) AS integer), CAST(0 AS integer), e.createdAt) " +
+           "FROM Exercise e " +
+           "WHERE (:classId IS NULL OR e.classId = :classId) " +
+           "AND (:status IS NULL OR e.status = :status) " +
+           "AND (:search IS NULL OR LOWER(e.title) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "ORDER BY e.createdAt DESC",
+           countQuery = "SELECT COUNT(e) FROM Exercise e " +
+           "WHERE (:classId IS NULL OR e.classId = :classId) " +
+           "AND (:status IS NULL OR e.status = :status) " +
+           "AND (:search IS NULL OR LOWER(e.title) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<ExerciseListItemResponse> findByFiltersOptimized(
+            @Param("classId") String classId,
+            @Param("status") ExerciseStatus status,
+            @Param("search") String search,
+            Pageable pageable);
 
     /**
      * Batch projection retrieval for a set of specific exercise UUIDs.

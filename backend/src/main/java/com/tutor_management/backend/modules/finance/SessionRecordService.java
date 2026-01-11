@@ -24,6 +24,8 @@ import com.tutor_management.backend.modules.student.StudentRepository;
 import com.tutor_management.backend.modules.notification.event.SessionCreatedEvent;
 import com.tutor_management.backend.modules.notification.event.SessionRescheduledEvent;
 
+import org.springframework.cache.annotation.CacheEvict;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -91,6 +93,7 @@ public class SessionRecordService {
      * @return The created session record with full details.
      * @throws RuntimeException if the student is not found.
      */
+    @CacheEvict(value = {"dashboardStats", "monthlyStats"}, allEntries = true)
     public SessionRecordResponse createRecord(SessionRecordRequest r) {
         log.info("🗓️ Creating session record for student {} on {}", r.getStudentId(), r.getSessionDate());
         
@@ -133,6 +136,7 @@ public class SessionRecordService {
      * @return The updated session record.
      * @throws RuntimeException if the record is not found or version conflict occurs.
      */
+    @CacheEvict(value = {"dashboardStats", "monthlyStats"}, allEntries = true)
     public SessionRecordResponse updateRecord(Long id, SessionRecordUpdateRequest r) {
         log.info("📝 Updating session record: {}", id);
         
@@ -174,6 +178,7 @@ public class SessionRecordService {
      * @param id The session record ID to delete.
      * @throws RuntimeException if the record is not found.
      */
+    @CacheEvict(value = {"dashboardStats", "monthlyStats"}, allEntries = true)
     public void deleteRecord(Long id) {
         SessionRecord record = sessionRecordRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi buổi học"));
@@ -186,6 +191,7 @@ public class SessionRecordService {
      * 
      * @param month The billing month in YYYY-MM format.
      */
+    @CacheEvict(value = {"dashboardStats", "monthlyStats"}, allEntries = true)
     public void deleteSessionsByMonth(String month) {
         log.warn("⚠️ Deleting all sessions for month: {}", month);
         sessionRecordRepository.deleteByMonth(month);
@@ -213,6 +219,7 @@ public class SessionRecordService {
      * @return The updated session record.
      * @throws RuntimeException if the record is not found or version conflict occurs.
      */
+    @CacheEvict(value = {"dashboardStats", "monthlyStats"}, allEntries = true)
     public SessionRecordResponse togglePayment(Long id, Integer version) {
         SessionRecord record = sessionRecordRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi buổi học"));
@@ -238,6 +245,7 @@ public class SessionRecordService {
      * @return The newly created duplicate session record.
      * @throws RuntimeException if the original session is not found.
      */
+    @CacheEvict(value = {"dashboardStats", "monthlyStats"}, allEntries = true)
     public SessionRecordResponse duplicateSession(Long id) {
         log.info("📋 Duplicating session record: {}", id);
         
@@ -315,6 +323,7 @@ public class SessionRecordService {
     /**
      * Specialized status update with validation and optimistic locking.
      */
+    @CacheEvict(value = {"dashboardStats", "monthlyStats"}, allEntries = true)
     public SessionRecordResponse updateStatus(Long id, LessonStatus next, Integer version) {
         SessionRecord record = sessionRecordRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy buổi học với ID: " + id));

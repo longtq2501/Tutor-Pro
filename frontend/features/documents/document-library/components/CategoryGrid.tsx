@@ -9,6 +9,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/hooks/useQueryKeys';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CategoryFormModal } from './CategoryFormModal';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Props {
   categories: any[];
@@ -28,6 +29,8 @@ const CategoryGridSkeleton = () => (
 
 export const CategoryGrid = memo(({ categories, counts, onCategoryClick, onDeleteCategory, isLoading }: Props) => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const isStudent = user?.role === 'STUDENT';
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleteName, setDeleteName] = useState<string>('');
   const [isDeleting, setIsDeleting] = useState(false);
@@ -142,7 +145,7 @@ export const CategoryGrid = memo(({ categories, counts, onCategoryClick, onDelet
                   </div>
                 </button>
 
-                {isDynamic && (
+                {isDynamic && !isStudent && (
                   <div className="absolute top-2 right-2 flex items-center gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity z-10">
                     <button
                       onClick={(e) => handleEditClick(e, cat)}
@@ -165,19 +168,21 @@ export const CategoryGrid = memo(({ categories, counts, onCategoryClick, onDelet
           })}
 
           {/* Add Category Button Card */}
-          <motion.button
-            layout
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            onClick={handleAddClick}
-            className="w-full h-full min-h-[100px] border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl flex flex-col items-center justify-center p-4 text-gray-400 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all gap-2"
-          >
-            <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full group-hover:bg-primary/20">
-              <Plus size={24} />
-            </div>
-            <span className="font-medium text-sm">Thêm danh mục mới</span>
-          </motion.button>
+          {!isStudent && (
+            <motion.button
+              layout
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              onClick={handleAddClick}
+              className="w-full h-full min-h-[100px] border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl flex flex-col items-center justify-center p-4 text-gray-400 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all gap-2"
+            >
+              <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full group-hover:bg-primary/20">
+                <Plus size={24} />
+              </div>
+              <span className="font-medium text-sm">Thêm danh mục mới</span>
+            </motion.button>
+          )}
         </AnimatePresence>
       </div>
 

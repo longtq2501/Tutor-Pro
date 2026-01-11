@@ -5,6 +5,7 @@ import type { Document } from '@/lib/types';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Download, Eye, FileText, Trash2, Upload } from 'lucide-react';
 import { memo } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Props {
   documents: Document[];
@@ -16,6 +17,9 @@ interface Props {
 }
 
 export const DocumentList = memo(({ documents, searchQuery, onPreview, onDownload, onDelete, onAddNew }: Props) => {
+  const { user } = useAuth();
+  const isStudent = user?.role === 'STUDENT';
+
   if (documents.length === 0) {
     return (
       <motion.div
@@ -33,13 +37,15 @@ export const DocumentList = memo(({ documents, searchQuery, onPreview, onDownloa
           {searchQuery ? 'Thử tìm kiếm với từ khóa khác' : 'Tải lên tài liệu để chia sẻ với học sinh'}
         </p>
 
-        <button
-          onClick={onAddNew}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-xl font-medium inline-flex items-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/25"
-        >
-          <Upload size={20} />
-          Thêm tài liệu mới
-        </button>
+        {!isStudent && (
+          <button
+            onClick={onAddNew}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-xl font-medium inline-flex items-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/25"
+          >
+            <Upload size={20} />
+            Thêm tài liệu mới
+          </button>
+        )}
       </motion.div>
     );
   }
@@ -106,13 +112,15 @@ export const DocumentList = memo(({ documents, searchQuery, onPreview, onDownloa
                   <Download size={16} />
                   <span className="hidden sm:inline">Tải về</span>
                 </button>
-                <button
-                  onClick={() => onDelete(doc.id)}
-                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                  title="Xóa"
-                >
-                  <Trash2 size={18} />
-                </button>
+                {!isStudent && (
+                  <button
+                    onClick={() => onDelete(doc.id)}
+                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                    title="Xóa"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                )}
               </div>
             </div>
           </motion.div>

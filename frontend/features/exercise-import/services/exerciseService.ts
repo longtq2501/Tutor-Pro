@@ -1,5 +1,5 @@
 import api from '@/lib/services/axios-instance';
-import { ApiResponse } from '@/lib/types';
+import { ApiResponse, PageResponse } from '@/lib/types';
 import {
     CreateExerciseRequest,
     Exercise,
@@ -8,6 +8,7 @@ import {
     ImportExerciseRequest,
     ImportPreviewResponse,
     AssignExerciseRequest,
+    TutorStudentSummaryResponse,
 } from '../types/exercise.types';
 
 export const exerciseService = {
@@ -45,14 +46,15 @@ export const exerciseService = {
     },
 
     /**
-     * List exercises with optional filters
+     * List exercises with optional filters and pagination
      */
-    getAll: async (classId?: string, status?: ExerciseStatus): Promise<ExerciseListItemResponse[]> => {
-        const params: { classId?: string; status?: string } = {};
+    getAll: async (classId?: string, status?: ExerciseStatus, search?: string, page = 0, size = 10): Promise<PageResponse<ExerciseListItemResponse>> => {
+        const params: any = { page, size };
         if (classId) params.classId = classId;
         if (status) params.status = status;
+        if (search) params.search = search;
 
-        const response = await api.get<ApiResponse<ExerciseListItemResponse[]>>('/exercises', { params });
+        const response = await api.get<ApiResponse<PageResponse<ExerciseListItemResponse>>>('/exercises', { params });
         return response.data.data;
     },
 
@@ -79,4 +81,21 @@ export const exerciseService = {
         const response = await api.get<ApiResponse<ExerciseListItemResponse[]>>('/exercises/assigned');
         return response.data.data;
     },
+
+    /**
+     * Get student summary list for tutor dashboard
+     */
+    getTutorStudentSummaries: async (): Promise<TutorStudentSummaryResponse[]> => {
+        const response = await api.get<ApiResponse<TutorStudentSummaryResponse[]>>('/tutor/dashboard/students');
+        return response.data.data;
+    },
+
+    /**
+     * Get exercises assigned to a specific student (For Tutors/Admins)
+     */
+    getAssignedByStudentId: async (studentId: string): Promise<ExerciseListItemResponse[]> => {
+        const response = await api.get<ApiResponse<ExerciseListItemResponse[]>>(`/exercises/assigned/${studentId}`);
+        return response.data.data;
+    },
 };
+

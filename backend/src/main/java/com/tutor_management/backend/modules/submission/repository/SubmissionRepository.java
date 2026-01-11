@@ -65,4 +65,11 @@ public interface SubmissionRepository extends JpaRepository<Submission, String> 
     @Modifying
     @Query("DELETE FROM Submission s WHERE s.exerciseId = :exerciseId")
     void deleteSubmissionsByExerciseId(@Param("exerciseId") String exerciseId);
+
+    /**
+     * Aggregates submission counts by status for all students.
+     * Used for the Tutor Dashboard student summary view.
+     */
+    @Query("SELECT s.studentId, s.status, COUNT(s) FROM Submission s GROUP BY s.studentId, s.status")
+    List<Object[]> countAllByStudentAndStatus();
 }

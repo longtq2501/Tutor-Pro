@@ -2,6 +2,7 @@
 // I'll define submission types here.
 
 export enum SubmissionStatusEnum {
+    PENDING = 'PENDING',
     DRAFT = 'DRAFT',
     SUBMITTED = 'SUBMITTED',
     GRADED = 'GRADED'

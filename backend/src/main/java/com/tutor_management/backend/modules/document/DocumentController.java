@@ -127,7 +127,7 @@ public class DocumentController {
     /**
      * Retrieves library-wide metrics and storage summaries.
      */
-    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     @GetMapping("/stats")
     public ResponseEntity<ApiResponse<DocumentStats>> getStatistics() {
         return ResponseEntity.ok(ApiResponse.success(documentService.getStatistics()));

@@ -11,6 +11,7 @@ import { memo, useMemo, useState } from 'react';
 import { useFinanceContext } from '../context/FinanceContext';
 import { FinanceGroupedRecord } from '../types';
 import { SessionItem } from './SessionItem';
+import { isCancelledStatus } from '@/lib/types/lesson-status';
 
 interface StudentFinanceCardProps {
     group: FinanceGroupedRecord;
@@ -25,15 +26,22 @@ function StudentFinanceCardComponent({ group, onDeleteSession, onTogglePayment }
     const isSelected = selectedStudentIds.includes(group.studentId);
 
     // Memoized Derived Calculations - Only recalculate when sessions change
-    const paidSessions = useMemo(
-        () => group.sessions.filter(s => s.paid).length,
+    const billableSessions = useMemo(
+        () => group.sessions.filter(s => !s.status || !isCancelledStatus(s.status)),
         [group.sessions]
     );
 
-    const unpaidSessions = useMemo(
-        () => group.sessions.filter(s => !s.paid).length,
-        [group.sessions]
+    const paidSessions = useMemo(
+        () => billableSessions.filter(s => s.paid).length,
+        [billableSessions]
     );
+
+    const unpaidSessions = useMemo(
+        () => billableSessions.filter(s => !s.paid).length,
+        [billableSessions]
+    );
+
+    const totalBillable = Math.max(billableSessions.length, 1); // Avoid division by zero
 
     const hasUnpaid = useMemo(
         () => unpaidSessions > 0,
@@ -87,11 +95,11 @@ function StudentFinanceCardComponent({ group, onDeleteSession, onTogglePayment }
                             <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden flex max-w-[200px]">
                                 <div
                                     className="bg-emerald-500 h-full"
-                                    style={{ width: `${(paidSessions / group.totalSessions) * 100}%` }}
+                                    style={{ width: `${(paidSessions / totalBillable) * 100}%` }}
                                 />
                                 <div
                                     className="bg-rose-500 h-full"
-                                    style={{ width: `${(unpaidSessions / group.totalSessions) * 100}%` }}
+                                    style={{ width: `${(unpaidSessions / totalBillable) * 100}%` }}
                                 />
                             </div>
 

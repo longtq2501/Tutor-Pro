@@ -4,6 +4,7 @@
 
 import type { Document } from '@/lib/types';
 import { Download, ExternalLink, FileText, Loader2, Trash2, X } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ModalHeaderProps {
   document: Document;
@@ -22,6 +23,9 @@ export function ModalHeader({
   onDelete,
   onOpenInNewTab,
 }: ModalHeaderProps) {
+  const { user } = useAuth();
+  const isStudent = user?.role === 'STUDENT';
+
   return (
     <div className="flex flex-row items-center justify-between p-3 sm:p-5 border-b border-border/50 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md gap-3 z-20">
       <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
@@ -65,7 +69,7 @@ export function ModalHeader({
           <span className="hidden sm:inline">{downloading ? 'Đang tải...' : 'Tải xuống'}</span>
         </button>
 
-        {onDelete && (
+        {onDelete && !isStudent && (
           <button
             onClick={onDelete}
             className="p-2 hover:bg-destructive/10 text-destructive rounded-lg transition-colors"

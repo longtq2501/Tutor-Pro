@@ -14,19 +14,33 @@ Comprehensive refactor of the Document Library module from hardcoded categories 
 
 ## 🎯 Current Status
 
-**All phases completed!** The Document Library module is now production-ready with:
-- ✅ Dynamic category system with CRUD operations
-- ✅ Pagination for large datasets
-- ✅ Responsive preview modal (mobile & desktop)
-- ✅ Optimized backend queries (N+1 eliminated)
-- ✅ Custom colors and icons for categories
-- ✅ Smooth animations and loading states
+**Ongoing Refinement:** Addressing role-based permissions and mobile response issues.
+- ✅ Phase 1-4 Core features completed
+- ✅ Role-based permissions (Student view) implemented
+- ✅ iPhone 16 specific preview scaling fixed (Google Docs Viewer integration)
 
 ---
 
 ## 📋 Active Items
 
-*No active items at this time. All planned features have been implemented.*
+*No active items at this time. All requirements met. Scaling issues on iPhone 16 have been resolved via Google Docs Viewer.*
+
+---
+
+## 📦 Archive: Completed Items
+
+### UX / Permissions - ✅ DONE
+- [x] [P1-High] **Role-based Action Restriction (Student View)**
+  - Solution: Integrated `useAuth` hook into `DocumentLibrary`, `CategoryGrid`, `CategoryView`, `DocumentList`, and `ModalHeader`.
+  - Action: Hidden "Tải lên", "Thêm danh mục", "Sửa/Xóa" buttons for users with `STUDENT` role.
+  - Result: Students can now only Preview, Download, and Open documents.
+
+### UI / Responsive - ✅ DONE
+- [x] [P1-High] **iPhone 16 Preview Scaling Bug**
+  - Bug: Document cut off and zoom-out restricted on modern iOS devices.
+  - Solution: Implemented mobile device detection in `PDFPreview.tsx`.
+  - Action: Switch to `https://docs.google.com/viewer` for all mobile browsers while keeping native viewer for desktop.
+  - Result: Fixed scaling issues and enabled smooth pinch-zoom on high-DPI devices like iPhone 16.
 
 ---
 

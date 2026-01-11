@@ -15,6 +15,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -92,11 +95,13 @@ public class ExerciseController {
      */
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
-    public ResponseEntity<ApiResponse<List<ExerciseListItemResponse>>> listExercises(
+    public ResponseEntity<ApiResponse<Page<ExerciseListItemResponse>>> listExercises(
             @RequestParam(required = false) String classId,
-            @RequestParam(required = false) ExerciseStatus status) {
-        log.debug("Quering exercise library (Filter - Class: {}, Status: {})", classId, status);
-        List<ExerciseListItemResponse> exercises = exerciseService.listExercises(classId, status);
+            @RequestParam(required = false) ExerciseStatus status,
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
+        log.debug("Quering exercise library (Filter - Class: {}, Status: {}, Search: {}, Page: {})", classId, status, search, pageable.getPageNumber());
+        Page<ExerciseListItemResponse> exercises = exerciseService.listExercises(classId, status, search, pageable);
         return ResponseEntity.ok(ApiResponse.success(exercises));
     }
     
@@ -134,6 +139,17 @@ public class ExerciseController {
             @AuthenticationPrincipal User user) {
         log.debug("Reading assigned materials for authenticated student {}", user.getEmail());
         List<ExerciseListItemResponse> exercises = exerciseService.listAssignedExercises(user.getId().toString());
+        return ResponseEntity.ok(ApiResponse.success(exercises));
+    }
+    /**
+     * Staff/Admin view for a specific student's assigned assessments.
+     */
+    @GetMapping("/assigned/{studentId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
+    public ResponseEntity<ApiResponse<List<ExerciseListItemResponse>>> listStudentAssignedExercises(
+            @PathVariable String studentId) {
+        log.debug("Staff reading assigned materials for student {}", studentId);
+        List<ExerciseListItemResponse> exercises = exerciseService.listAssignedExercises(studentId);
         return ResponseEntity.ok(ApiResponse.success(exercises));
     }
 }

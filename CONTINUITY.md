@@ -33,7 +33,9 @@ Optimize existing TMS from "functional" to "production-ready":
 ### Done:
 - ✅ Document module (categories, pagination, preview responsive)
 - ✅ Finance Management module: Unified `monthly-view` and `unpaid-sessions` into a high-performance dashboard.
-    - **Achievements:** 75% faster initial load, 99% fewer re-renders, 80% less memory usage.
+    - **Achievements:** 
+        - 75% faster initial load, 99% fewer re-renders, 80% less memory usage.
+        - **Data Integrity:** Fixed critical Dashboard vs Finance data mismatch using "Stale-While-Revalidate" caching strategy. Now uses `@CacheEvict` for zero-latency updates.
 - ✅ **Calendar Module:** Optimized for performance and production-ready UX.
     - **Achievements:** 0.2s ultra-fast animations, zero-lag re-renders (`useCallback` + `memo`), fixed critical feedback & document category bugs.
     - **Features:** Drag-and-drop rescheduling, chronological session sorting, perfectly aligned skeletons, and mobile-responsive modal layouts.
@@ -47,14 +49,18 @@ Optimize existing TMS from "functional" to "production-ready":
     - **Achievements:** 100% Clean Code compliance, centralized logic (70% less duplication).
     - **Metrics:** Event latency <200ms, DB query <50ms (strategic indexing), UI delivery <500ms.
     - **Features:** SSE with Heartbeat & Auto-reconnect, Event-driven Spring backend, unified Issue tracking.
+- [x] Fix Student Dashboard crash (403 and API Unwrapping)
+- [x] Fix Document Stats fetch error (403 for Students)
+- [x] **Document Module Refinement**: Implemented role-based permissions (Student view) and fixed iPhone 16 preview zoom issues.
 
 ### Now:
-- 🔄 **Optimization Phase Finalization**: Preparing for repository synchronization and next module selection.
+- 🔄 **Exercise Module Upgrade**: Implementing pagination, Pending status tracking, and Tutor UI redesign.
+- 🔄 **Optimization Phase Finalization**: Preparing for repository synchronization.
 
 ### Next:
-- [ ] Review next high-impact module (likely Exercises or User/Auth).
+- [ ] Review next high-impact module (Exercises).
 
 ## Open Questions
 
-## Working Set (Context tập trung)
-- (Empty - Session Complete)
+### Working Set:
+*(Empty)*

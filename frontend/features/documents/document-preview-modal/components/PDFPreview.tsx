@@ -11,8 +11,14 @@ interface PDFPreviewProps {
 export function PDFPreview({ url, title }: PDFPreviewProps) {
   const [loading, setLoading] = useState(true);
 
-  // Fit width to viewport, no zoom controls needed
-  const pdfUrl = `${url}#view=FitH&zoom=page-width&toolbar=0&navpanes=0&scrollbar=1`;
+  // Detect if it's a mobile device (especially iOS which has issues with iframes)
+  const isMobile = typeof window !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+  // For mobile, Google Docs Viewer provides a much more stable experience with proper scaling and zooming
+  // For desktop, we stick to the native viewer which is faster and supports parameters
+  const pdfUrl = isMobile
+    ? `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`
+    : `${url}#view=FitH&zoom=page-width&toolbar=0&navpanes=0&scrollbar=1`;
 
   return (
     <div className="w-full h-full relative bg-gray-100 dark:bg-gray-900 leading-[0]">

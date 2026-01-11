@@ -29,8 +29,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const accessToken = localStorage.getItem('accessToken');
         const storedUser = localStorage.getItem('user');
 
-        if (accessToken && storedUser) {
-          setUser(JSON.parse(storedUser));
+        // Validate storedUser before parsing
+        if (accessToken && storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
+          try {
+            setUser(JSON.parse(storedUser));
+          } catch (parseError) {
+            // Invalid JSON in localStorage, clear it
+            console.warn('Invalid user data in localStorage, clearing...');
+            localStorage.removeItem('user');
+          }
 
           // Verify token is still valid
           try {

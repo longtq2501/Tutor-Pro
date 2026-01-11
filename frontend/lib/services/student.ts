@@ -7,7 +7,7 @@ export const studentsApi = {
    */
   getAll: async (): Promise<Student[]> => {
     const response = await api.get('/students');
-    return response.data;
+    return response.data.data;
   },
 
   /** * LẤY THÔNG TIN CHI TIẾT MỘT HỌC SINH THEO ID
@@ -16,7 +16,7 @@ export const studentsApi = {
    */
   getById: async (id: number): Promise<Student> => {
     const response = await api.get(`/students/${id}`);
-    return response.data;
+    return response.data.data;
   },
 
   /** * TẠO MỚI MỘT HỌC SINH
@@ -25,7 +25,7 @@ export const studentsApi = {
    */
   create: async (data: StudentRequest): Promise<Student> => {
     const response = await api.post('/students', data);
-    return response.data;
+    return response.data.data;
   },
 
   /** * CẬP NHẬT THÔNG TIN HỌC SINH
@@ -35,7 +35,7 @@ export const studentsApi = {
    */
   update: async (id: number, data: StudentRequest): Promise<Student> => {
     const response = await api.put(`/students/${id}`, data);
-    return response.data;
+    return response.data.data;
   },
 
   /** * XÓA HỌC SINH KHỎI HỆ THỐNG
@@ -52,6 +52,6 @@ export const studentsApi = {
    */
   toggleActive: async (id: number): Promise<Student> => {
     const response = await api.put(`/students/${id}/toggle-active`);
-    return response.data;
+    return response.data.data;
   },
 };

@@ -7,7 +7,7 @@ export const parentsApi = {
    */
   getAll: async (): Promise<Parent[]> => {
     const response = await api.get('/parents');
-    return response.data;
+    return response.data.data;
   },
 
   /** * LẤY THÔNG TIN CHI TIẾT PHỤ HUYNH THEO ID
@@ -16,7 +16,7 @@ export const parentsApi = {
    */
   getById: async (id: number): Promise<Parent> => {
     const response = await api.get(`/parents/${id}`);
-    return response.data;
+    return response.data.data;
   },
 
   /** * TẠO MỚI THÔNG TIN PHỤ HUYNH
@@ -25,7 +25,7 @@ export const parentsApi = {
    */
   create: async (data: ParentRequest): Promise<Parent> => {
     const response = await api.post('/parents', data);
-    return response.data;
+    return response.data.data;
   },
 
   /** * CẬP NHẬT THÔNG TIN PHỤ HUYNH
@@ -35,7 +35,7 @@ export const parentsApi = {
    */
   update: async (id: number, data: ParentRequest): Promise<Parent> => {
     const response = await api.put(`/parents/${id}`, data);
-    return response.data;
+    return response.data.data;
   },
 
   /** * XÓA PHỤ HUYNH KHỎI HỆ THỐNG
@@ -52,6 +52,6 @@ export const parentsApi = {
    */
   search: async (keyword: string): Promise<Parent[]> => {
     const response = await api.get('/parents/search', { params: { keyword } });
-    return response.data;
+    return response.data.data;
   },
 };

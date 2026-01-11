@@ -7,7 +7,7 @@ export const recurringSchedulesApi = {
    */
   getAll: async (): Promise<RecurringSchedule[]> => {
     const response = await api.get('/recurring-schedules');
-    return response.data;
+    return response.data.data;
   },
 
   /** * LẤY DANH SÁCH CÁC LỊCH HỌC ĐANG CÒN HOẠT ĐỘNG
@@ -15,7 +15,7 @@ export const recurringSchedulesApi = {
    */
   getActive: async (): Promise<RecurringSchedule[]> => {
     const response = await api.get('/recurring-schedules/active');
-    return response.data;
+    return response.data.data;
   },
 
   /** * LẤY CHI TIẾT LỊCH HỌC ĐỊNH KỲ THEO ID
@@ -24,7 +24,7 @@ export const recurringSchedulesApi = {
    */
   getById: async (id: number): Promise<RecurringSchedule> => {
     const response = await api.get(`/recurring-schedules/${id}`);
-    return response.data;
+    return response.data.data;
   },
 
   /** * LẤY LỊCH HỌC ĐỊNH KỲ CỦA MỘT HỌC SINH CỤ THỂ
@@ -33,7 +33,7 @@ export const recurringSchedulesApi = {
    */
   getByStudentId: async (studentId: number): Promise<RecurringSchedule> => {
     const response = await api.get(`/recurring-schedules/student/${studentId}`);
-    return response.data;
+    return response.data.data;
   },
 
   /** * TẠO MỚI LỊCH HỌC ĐỊNH KỲ
@@ -42,7 +42,7 @@ export const recurringSchedulesApi = {
    */
   create: async (data: RecurringScheduleRequest): Promise<RecurringSchedule> => {
     const response = await api.post('/recurring-schedules', data);
-    return response.data;
+    return response.data.data;
   },
 
   /** * CẬP NHẬT THÔNG TIN LỊCH HỌC ĐỊNH KỲ
@@ -52,7 +52,7 @@ export const recurringSchedulesApi = {
    */
   update: async (id: number, data: RecurringScheduleRequest): Promise<RecurringSchedule> => {
     const response = await api.put(`/recurring-schedules/${id}`, data);
-    return response.data;
+    return response.data.data;
   },
 
   /** * XÓA LỊCH HỌC ĐỊNH KỲ KHỎI HỆ THỐNG
@@ -69,7 +69,7 @@ export const recurringSchedulesApi = {
    */
   toggleActive: async (id: number): Promise<RecurringSchedule> => {
     const response = await api.put(`/recurring-schedules/${id}/toggle-active`);
-    return response.data;
+    return response.data.data;
   },
 
   /** * TỰ ĐỘNG TẠO CÁC BUỔI HỌC TRONG THÁNG DỰA TRÊN LỊCH ĐỊNH KỲ
@@ -81,7 +81,7 @@ export const recurringSchedulesApi = {
       month,
       studentIds
     });
-    return response.data;
+    return response.data.data;
   },
 
   /** * KIỂM TRA XEM THÁNG HIỆN TẠI ĐÃ ĐƯỢC TẠO BUỔI HỌC CHƯA
@@ -92,7 +92,7 @@ export const recurringSchedulesApi = {
     const response = await api.get('/recurring-schedules/check-month', {
       params: { month, studentId }
     });
-    return response.data;
+    return response.data.data;
   },
 
   /** * ĐẾM SỐ LƯỢNG BUỔI HỌC DỰ KIẾN SẼ ĐƯỢC TẠO TRONG THÁNG
@@ -104,6 +104,6 @@ export const recurringSchedulesApi = {
       month,
       studentIds
     });
-    return response.data;
+    return response.data.data;
   },
 };

@@ -14,13 +14,13 @@ export const documentsApi = {
     const response = await api.get('/documents', {
       params: { page, size }
     });
-    return response.data;
+    return response.data.data;
   },
 
   /** * LẤY CHI TIẾT TÀI LIỆU THEO ID */
   getById: async (id: number): Promise<AppDocument> => {
     const response = await api.get(`/documents/${id}`);
-    return response.data;
+    return response.data.data;
   },
 
   /** * LẤY DANH SÁCH TÀI LIỆU THEO DANH MỤC (PHÂN TRANG) */
@@ -28,13 +28,13 @@ export const documentsApi = {
     const response = await api.get(`/documents/category/${category}`, {
       params: { page, size }
     });
-    return response.data;
+    return response.data.data;
   },
 
   /** * TÌM KIẾM TÀI LIỆU THEO TỪ KHÓA */
   search: async (keyword: string): Promise<AppDocument[]> => {
     const response = await api.get('/documents/search', { params: { keyword } });
-    return response.data;
+    return response.data.data;
   },
 
   /** * TẢI TÀI LIỆU MỚI LÊN HỆ THỐNG (LƯU TRỮ QUA CLOUDINARY)
@@ -48,7 +48,7 @@ export const documentsApi = {
     const response = await api.post('/documents', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    return response.data;
+    return response.data.data;
   },
 
   /** * TẢI DỮ LIỆU FILE TỪ CLOUDINARY VỀ DƯỚI DẠNG BLOB */
@@ -56,7 +56,7 @@ export const documentsApi = {
     try {
       // LẤY URL CLOUDINARY TỪ BACKEND
       const response = await api.get(`/documents/${id}/download`);
-      const cloudinaryUrl = response.data.url;
+      const cloudinaryUrl = response.data.data.url;
 
       // TRUY XUẤT FILE TRỰC TIẾP TỪ CLOUDINARY
       const fileResponse = await fetch(cloudinaryUrl);
@@ -97,20 +97,20 @@ export const documentsApi = {
   /** * LẤY THỐNG KÊ VỀ KHO TÀI LIỆU (SỐ LƯỢNG, DUNG LƯỢNG...) */
   getStats: async (): Promise<DocumentStats> => {
     const response = await api.get('/documents/stats');
-    return response.data;
+    return response.data.data;
   },
 
   /** * LẤY DANH SÁCH CÁC DANH MỤC TÀI LIỆU HIỆN CÓ */
   getCategories: async (): Promise<any[]> => {
     const response = await api.get('/document-categories');
-    return response.data;
+    return response.data.data;
   },
 
   /** * LẤY ĐƯỜNG DẪN XEM TRƯỚC (PREVIEW) TRỰC TIẾP TỪ CLOUDINARY */
   getPreviewUrl: async (id: number): Promise<string> => {
     try {
       const response = await api.get(`/documents/${id}/preview`);
-      const cloudinaryUrl = response.data.url;
+      const cloudinaryUrl = response.data.data.url;
       console.log('📄 Cloudinary preview URL:', cloudinaryUrl);
       return cloudinaryUrl;
     } catch (error) {
@@ -127,12 +127,12 @@ export const documentsApi = {
   /** * TẠO DANH MỤC MỚI */
   createCategory: async (category: Partial<Category>): Promise<Category> => {
     const response = await api.post('/document-categories', category);
-    return response.data;
+    return response.data.data;
   },
 
   /** * CẬP NHẬT DANH MỤC */
   updateCategory: async (id: number, category: Partial<Category>): Promise<Category> => {
     const response = await api.put(`/document-categories/${id}`, category);
-    return response.data;
+    return response.data.data;
   }
 };

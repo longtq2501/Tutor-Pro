@@ -7,7 +7,7 @@ export const sessionsApi = {
    */
   getAll: async (): Promise<SessionRecord[]> => {
     const response = await api.get('/sessions');
-    return response.data;
+    return response.data.data;
   },
 
   /** * LẤY DANH SÁCH BUỔI HỌC THEO THÁNG CỤ THỂ
@@ -16,7 +16,7 @@ export const sessionsApi = {
    */
   getByMonth: async (month: string): Promise<SessionRecord[]> => {
     const response = await api.get(`/sessions/month/${month}`);
-    return response.data;
+    return response.data.data;
   },
 
   /** * LẤY DANH SÁCH CÁC THÁNG ĐÃ CÓ DỮ LIỆU BUỔI HỌC
@@ -24,7 +24,7 @@ export const sessionsApi = {
    */
   getMonths: async (): Promise<string[]> => {
     const response = await api.get('/sessions/months');
-    return response.data;
+    return response.data.data;
   },
 
   /** * TẠO MỚI MỘT BẢN GHI BUỔI HỌC
@@ -33,7 +33,7 @@ export const sessionsApi = {
    */
   create: async (data: SessionRecordRequest): Promise<SessionRecord> => {
     const response = await api.post('/sessions', data);
-    return response.data;
+    return response.data.data;
   },
 
   /** * CẬP NHẬT THÔNG TIN BUỔI HỌC
@@ -43,7 +43,7 @@ export const sessionsApi = {
    */
   update: async (id: number, data: SessionRecordUpdateRequest): Promise<SessionRecord> => {
     const response = await api.put(`/sessions/${id}`, data);
-    return response.data;
+    return response.data.data;
   },
 
   /** * THAY ĐỔI TRẠNG THÁI THANH TOÁN CỦA BUỔI HỌC
@@ -54,7 +54,7 @@ export const sessionsApi = {
     const response = await api.put(`/sessions/${id}/toggle-payment`, null, {
       params: { version }
     });
-    return response.data;
+    return response.data.data;
   },
 
   /** * XÓA BẢN GHI BUỔI HỌC KHỎI HỆ THỐNG
@@ -70,7 +70,7 @@ export const sessionsApi = {
    */
   getUnpaid: async (): Promise<SessionRecord[]> => {
     const response = await api.get('/sessions/unpaid');
-    return response.data;
+    return response.data.data;
   },
 
   /** * THAY ĐỔI TRẠNG THÁI HOÀN THÀNH (ĐÃ DẠY/CHƯA DẠY) CỦA BUỔI HỌC
@@ -81,7 +81,7 @@ export const sessionsApi = {
     const response = await api.put(`/sessions/${id}/toggle-completed`, null, {
       params: { version }
     });
-    return response.data;
+    return response.data.data;
   },
 
   /**
@@ -89,7 +89,7 @@ export const sessionsApi = {
    */
   getById: async (id: number): Promise<SessionRecord> => {
     const response = await api.get(`/sessions/${id}`);
-    return response.data;
+    return response.data.data;
   },
 
   /**
@@ -99,15 +99,15 @@ export const sessionsApi = {
     const response = await api.patch(`/sessions/${id}/status`, null, {
       params: { newStatus, version }
     });
-    return response.data;
+    return response.data.data;
   },
 
   /**
    * Nhân bản một buổi học
    */
   duplicate: async (id: number): Promise<SessionRecord> => {
-    const { data } = await api.post(`/sessions/${id}/duplicate`);
-    return data;
+    const response = await api.post(`/sessions/${id}/duplicate`);
+    return response.data.data;
   },
 
   /**

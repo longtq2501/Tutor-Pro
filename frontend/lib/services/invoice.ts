@@ -8,7 +8,7 @@ export const invoicesApi = {
    */
   generateInvoice: async (request: InvoiceRequest): Promise<InvoiceResponse> => {
     const response = await api.post('/invoices/generate', request);
-    return response.data;
+    return response.data.data;
   },
 
   /** * TẢI XUỐNG FILE PDF HÓA ĐƠN CHO MỘT ĐỐI TƯỢNG CỤ THỂ
@@ -54,7 +54,7 @@ export const invoicesApi = {
    */
   sendInvoiceEmail: async (request: InvoiceRequest): Promise<any> => {
     const response = await api.post('/invoices/send-email', request);
-    return response.data;
+    return response.data.data;
   },
 
   /** * GỬI EMAIL HÓA ĐƠN HÀNG LOẠT THEO DANH SÁCH CHỈ ĐỊNH
@@ -63,7 +63,7 @@ export const invoicesApi = {
    */
   sendInvoiceEmailBatch: async (request: InvoiceRequest): Promise<any> => {
     const response = await api.post('/invoices/send-email-batch', request);
-    return response.data;
+    return response.data.data;
   },
 
   /** * GỬI EMAIL HÓA ĐƠN CHO TOÀN BỘ PHỤ HUYNH TRONG THÁNG
@@ -72,6 +72,6 @@ export const invoicesApi = {
    */
   sendInvoiceEmailAll: async (request: InvoiceRequest): Promise<any> => {
     const response = await api.post('/invoices/send-email-all', request);
-    return response.data;
+    return response.data.data;
   },
 };

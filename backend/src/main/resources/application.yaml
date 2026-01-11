@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:mysql://yamanote.proxy.rlwy.net:28075/railway?rewriteBatchedStatements=true
+    url: jdbc:mysql://localhost:3306/tutor_management?rewriteBatchedStatements=true
     username: root
-    password: ZxcrDghnhFCiDFGmyxcNpNeDAWwkjhMC
+    password: root_password_vps
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 25   # Railway limit

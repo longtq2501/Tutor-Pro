@@ -50,11 +50,11 @@ function SessionItemComponent({ session, index, onDelete }: SessionItemProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.03 }}
             className={cn(
-                "flex items-center justify-between p-3 rounded-xl bg-background border border-border/40 transition-colors shadow-sm group/item",
+                "flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-background border border-border/40 transition-colors shadow-sm group/item",
                 !isCancelled ? "hover:border-primary/30" : "opacity-75 bg-muted/20"
             )}
         >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className={cn(
                     "w-1 h-8 rounded-full flex-shrink-0 transition-colors",
                     isPaid ? 'bg-emerald-500' :
@@ -62,22 +62,22 @@ function SessionItemComponent({ session, index, onDelete }: SessionItemProps) {
                             session.status === 'SCHEDULED' ? 'bg-slate-300' :
                                 'bg-rose-500' // Default unpaid/completed
                 )} />
-                <div>
-                    <div className={cn("font-bold text-sm text-foreground", isCancelled && "line-through text-muted-foreground")}>
+                <div className="flex-1 min-w-0">
+                    <div className={cn("font-bold text-sm text-foreground truncate", isCancelled && "line-through text-muted-foreground")}>
                         {format(new Date(session.sessionDate), 'dd/MM/yyyy')}
                     </div>
                     <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                        <Clock className="w-3 h-3 text-muted-foreground/70" />
-                        <span>{session.hours}h</span>
-                        <span className="w-1 h-1 rounded-full bg-border" />
-                        <span className="truncate max-w-[150px]">{session.subject || 'N/A'}</span>
+                        <Clock className="w-3 h-3 text-muted-foreground/70 shrink-0" />
+                        <span className="shrink-0">{session.hours}h</span>
+                        <span className="w-1 h-1 rounded-full bg-border shrink-0" />
+                        <span className="truncate min-w-0">{session.subject || 'N/A'}</span>
                     </div>
                 </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
                 <Badge variant="outline" className={cn(
-                    "text-[10px] h-5 px-1.5 font-bold border",
+                    "text-[10px] h-5 px-1.5 font-bold border whitespace-nowrap shrink-0",
                     badgeConfig.className
                 )}>
                     {badgeConfig.text}

@@ -91,7 +91,7 @@ function StatCard({
 }: any) {
     return (
         <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
-            <CardContent className="p-4 flex items-start justify-between">
+            <CardContent className="p-3 sm:p-4 flex items-start justify-between">
                 <div>
                     <p className="text-sm font-medium text-muted-foreground mb-1">{title}</p>
                     <h3 className="text-2xl font-bold tracking-tight truncate" title={value}>

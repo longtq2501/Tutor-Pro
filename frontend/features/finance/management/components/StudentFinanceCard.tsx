@@ -67,20 +67,20 @@ function StudentFinanceCardComponent({ group, onDeleteSession, onTogglePayment }
                     onClick={() => toggleStudentSelection(group.studentId)}
                 />
 
-                <div className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 relative z-10">
+                <div className="p-3 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 relative z-10">
                     <Checkbox
                         checked={isSelected}
                         onCheckedChange={() => toggleStudentSelection(group.studentId)}
                         className="mt-1 sm:mt-0 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                     />
 
-                    <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                    <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 items-center">
                         {/* Student Name & Basic Info - Col span 4 */}
                         <div className="md:col-span-4">
                             <h3 className="font-black text-lg truncate leading-tight tracking-tight">
                                 {group.studentName}
                             </h3>
-                            <div className="flex items-center gap-2 mt-1.5 text-muted-foreground">
+                            <div className="flex items-center gap-2 mt-1 text-muted-foreground">
                                 <Badge variant="secondary" className="font-bold text-[10px] px-2 h-5 bg-muted hover:bg-muted">
                                     {group.totalSessions} buổi
                                 </Badge>
@@ -90,9 +90,9 @@ function StudentFinanceCardComponent({ group, onDeleteSession, onTogglePayment }
                         </div>
 
                         {/* Payment Status Summary - Col span 5 */}
-                        <div className="md:col-span-5 flex items-center gap-4">
+                        <div className="md:col-span-5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
                             {/* Progress bar visual */}
-                            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden flex max-w-[200px]">
+                            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden flex min-w-[100px] md:max-w-[200px]">
                                 <div
                                     className="bg-emerald-500 h-full"
                                     style={{ width: `${(paidSessions / totalBillable) * 100}%` }}
@@ -103,15 +103,15 @@ function StudentFinanceCardComponent({ group, onDeleteSession, onTogglePayment }
                                 />
                             </div>
 
-                            <div className="flex gap-3 text-xs font-bold">
+                            <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs font-bold">
                                 {paidSessions > 0 && (
-                                    <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                    <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 whitespace-nowrap">
                                         <div className="w-2 h-2 rounded-full bg-emerald-500" />
                                         {paidSessions} đã TT
                                     </span>
                                 )}
                                 {unpaidSessions > 0 && (
-                                    <span className="text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                                    <span className="text-rose-600 dark:text-rose-400 flex items-center gap-1 whitespace-nowrap">
                                         <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
                                         {unpaidSessions} chưa TT
                                     </span>
@@ -123,12 +123,12 @@ function StudentFinanceCardComponent({ group, onDeleteSession, onTogglePayment }
                         <div className="md:col-span-3 flex items-center justify-between md:justify-end gap-4">
                             <div className="text-right">
                                 <div className={cn(
-                                    "text-xl font-black tabular-nums tracking-tight",
+                                    "text-xl font-black tabular-nums tracking-tight leading-none",
                                     hasUnpaid ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"
                                 )}>
                                     {formatCurrency(group.totalAmount)}
                                 </div>
-                                <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mt-0.5">
+                                <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
                                     {formatCurrency(group.pricePerHour)}/H
                                 </div>
                             </div>

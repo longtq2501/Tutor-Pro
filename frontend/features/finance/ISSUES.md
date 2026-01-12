@@ -24,6 +24,18 @@ Merging `monthly-view` and `unpaid-sessions` into a unified, high-performance **
 
 ## 📋 Active Items
 
+- [x] [P1] **Fixed Width Inconsistency**
+    - **Issue:** Chiều rộng của tabview Tài Chính đang bị fix cứng, không đồng nhất với các tabview khác trên màn hình lớn.
+    - **Action:** Remove hardcoded container width constraints to allow full-width resizing.
+
+- [x] [P1] **Comprehensive Responsive Design & Layout Stability**
+    - **Achievements:**
+        - Fixed tablet text wrap on view tabs.
+        - Synchronized sidebar-aware positioning for `BulkActionsToolbar`.
+        - Enforced long-text truncation in `SessionItem` for 375px screens.
+        - Compacted card layout (reduced excessive whitespace).
+    - **Status:** ✅ Done (Verified on iPhone SE & Desktop)
+
 - [x] [P1] **Collapsible Stutter**
     - **Issue:** Khi thu gọn phần chi tiết (collapse), component bị khựng lại một nhịp rồi mới đóng lại hẳn.
     - **Action:** Fixed by removing conflicting CSS `transition-all` on the parent `Card` and switching `height` easing from `backOut` (which caused a tiny expansion before shrink) to a standard cubic-bezier.

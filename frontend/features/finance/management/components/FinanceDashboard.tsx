@@ -17,7 +17,7 @@ function DashboardInner() {
         <div className="">
             <FinanceHeader />
 
-            <div className="container mx-auto p-4 md:p-8 space-y-8">
+            <div className="p-3 md:p-8 space-y-4 md:space-y-8">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}

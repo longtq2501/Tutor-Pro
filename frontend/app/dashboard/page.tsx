@@ -194,7 +194,7 @@ function AppContent() {
 
     const initialView = (searchParams.get('view') as View) || 'dashboard';
     const [currentView, setCurrentView] = useState<View>(initialView);
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    const { isCollapsed, setIsCollapsed } = useUI();
     const { user, logout, hasAnyRole } = useAuth();
 
     // Auto-collapse logic for tablets
@@ -293,8 +293,6 @@ function AppContent() {
                 navItems={navItems}
                 currentView={currentView === 'monthly' ? 'finance' : currentView}
                 setCurrentView={handleSetCurrentView}
-                isCollapsed={isCollapsed}
-                setIsCollapsed={setIsCollapsed}
             />
 
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10 bg-background">

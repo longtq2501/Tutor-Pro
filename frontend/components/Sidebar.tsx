@@ -14,15 +14,13 @@ interface SidebarProps {
     currentView: View;
     setCurrentView: (view: View) => void;
     navItems: NavItem[];
-    isCollapsed: boolean;
-    setIsCollapsed: (collapsed: boolean) => void;
 }
 
 // Cấu hình Spring Animation cho cảm giác "Premium"
 const SPRING_CONFIG = { type: "spring", stiffness: 300, damping: 30, mass: 1 } as const;
 
-export const Sidebar = memo(({ currentView, setCurrentView, navItems, isCollapsed, setIsCollapsed }: SidebarProps) => {
-    const { isSidebarOpen, setSidebarOpen } = useUI();
+export const Sidebar = memo(({ currentView, setCurrentView, navItems }: SidebarProps) => {
+    const { isSidebarOpen, setSidebarOpen, isCollapsed, setIsCollapsed } = useUI();
     const [isMobile, setIsMobile] = useState(false);
     const [isLargeDesktop, setIsLargeDesktop] = useState(false);
 

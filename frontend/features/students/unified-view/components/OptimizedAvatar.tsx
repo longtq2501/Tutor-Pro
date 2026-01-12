@@ -21,7 +21,7 @@ export function OptimizedAvatar({ name, isActive, className }: OptimizedAvatarPr
     return (
         <div
             className={cn(
-                "relative w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg shrink-0 overflow-hidden",
+                "relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-white font-bold text-xl sm:text-2xl shadow-lg shrink-0 overflow-hidden",
                 "contain-paint will-change-transform", // Performance optimization
                 className
             )}

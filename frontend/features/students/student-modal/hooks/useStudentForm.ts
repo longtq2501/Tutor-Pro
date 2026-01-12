@@ -24,26 +24,26 @@ export function useStudentForm(student: Student | null, onSuccess: () => void) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (student) {
-      setFormData({
-        name: student.name,
-        phone: student.phone || '',
-        schedule: student.schedule,
-        pricePerHour: student.pricePerHour,
-        notes: student.notes || '',
-        active: student.active,
-        startMonth: student.startMonth || new Date().toISOString().slice(0, 7),
-        parentId: student.parentId,
-        createAccount: !!student.accountEmail,
-        email: student.accountEmail || '',
-        password: '',
-      });
-    } else {
+    if (!student) {
       setFormData(initialFormData);
+      return;
     }
+    setFormData({
+      name: student.name,
+      phone: student.phone || '',
+      schedule: student.schedule,
+      pricePerHour: student.pricePerHour,
+      notes: student.notes || '',
+      active: student.active,
+      startMonth: student.startMonth || new Date().toISOString().slice(0, 7),
+      parentId: student.parentId,
+      createAccount: !!student.accountEmail,
+      email: student.accountEmail || '',
+      password: '',
+    });
   }, [student]);
 
-  const updateField = (field: keyof StudentRequest, value: any) => {
+  const updateField = <K extends keyof StudentRequest>(field: K, value: StudentRequest[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -55,11 +55,7 @@ export function useStudentForm(student: Student | null, onSuccess: () => void) {
 
     try {
       setLoading(true);
-      if (student) {
-        await studentsApi.update(student.id, formData);
-      } else {
-        await studentsApi.create(formData);
-      }
+      await (student ? studentsApi.update(student.id, formData) : studentsApi.create(formData));
       onSuccess();
     } catch (error) {
       console.error('Error saving student:', error);

@@ -14,7 +14,7 @@ function DashboardInner() {
     const { showEmailResult, emailResult, closeEmailResult, ...actions } = useFinanceActions();
 
     return (
-        <div className="">
+        <div className="flex flex-col min-w-0 overflow-x-hidden relative">
             <FinanceHeader />
 
             <div className="p-3 md:p-8 space-y-4 md:space-y-8">

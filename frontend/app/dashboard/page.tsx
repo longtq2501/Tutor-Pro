@@ -17,6 +17,8 @@ import React, { useCallback, useMemo, useState } from 'react';
 // ============================================================================
 import AdminDashboard from '@/features/dashboard/admin-dashboard';
 import { LoadingState } from '@/features/dashboard/admin-dashboard/components/LoadingState';
+import { StudentViewSkeleton } from '@/features/students/unified-view/components/StudentViewSkeleton';
+import { FinanceViewSkeleton } from '@/features/finance/management/components/FinanceViewSkeleton';
 import { AnimatePresence, motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
 
@@ -24,11 +26,11 @@ import dynamic from 'next/dynamic';
 const StudentDashboard = dynamic(() => import('@/features/dashboard/student-dashboard'));
 
 const UnifiedStudentView = dynamic(() => import('@/features/students/unified-view'), {
-    loading: () => <LoadingState />
+    loading: () => <StudentViewSkeleton />
 });
 
 const FinanceDashboard = dynamic(() => import('@/features/finance/management/components/FinanceDashboard'), {
-    loading: () => <LoadingState />
+    loading: () => <FinanceViewSkeleton />
 });
 // const MonthlyView = dynamic(() => import('@/features/finance/monthly-view'), {
 //    loading: () => <MonthlyViewSkeleton />

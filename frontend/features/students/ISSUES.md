@@ -1,45 +1,32 @@
 # Student Module - Issues & Optimization
 
-## Metrics & KPIs
-- **Load Time:** < 1s (with pagination and caching)
-- **Category Management:** Fully dynamic (CRUD operations)
-- **Responsive Design:** Mobile-first, works on all screen sizes
-- **Backend Performance:** Optimized queries (JOIN FETCH, caching)
-- **UX Quality:** Custom dialogs, smooth animations, skeleton loading
-
-## Performance Issues
-- [ ] [P0-Critical] Issue description
-  - Root cause: ...
-  - Target: ...
-  - Metrics: ...
-- [ ] [P1-High] Issue description
-
 ## UX Issues
-- [ ] [P1-High] Issue description
-- [ ] [P2-Medium] Issue description
+- [x] [P1-High] Missing Skeleton Loaders
+  - Solution: Implemented `StudentCardSkeleton` and integrated it into `student-list/index.tsx`.
+  - Impact: Improved loading UX, reduced "jumpy" feeling.
+- [x] [P2-Medium] Modal Body Scroll Lock
+  - Solution: Replaced manual DOM manipulation with a reusable `useScrollLock` hook in `frontend/lib/hooks`.
 
 ## UI Issues
-
+- [x] [P2-Medium] iPhone SE Content Spacing
+  - Solution: Reduced internal padding (`p-4`) and avatar size (`w-14`) on mobile. Tightened gaps in button grid.
 
 ## Technical Debt (Optional)
-- [ ] Code smell 1
-- [ ] Refactor needed 2
+- [x] [P2-Medium] StudentModal length (Refactored to ~45 lines)
+  - Solution: Extracted `StudentFormFields`, `StartMonthField`, and `NotesField`.
+  - Violates: GEMINI.md (target < 50 lines) - Fixed.
 
 ---
 
 ## Completed Work (Archive)
 - [x] [P0-Critical] Initialized ISSUES.md
-  - Solution: Created file with Metrics & KPIs
+- [x] [P1-High] Header Action Layout Refactor (from CONTINUITY)
+- [x] [P2-Medium] Mobile Stats Layout Optimization (from CONTINUITY)
+- [x] [P2-Medium] Fixed Width Inconsistency (from CONTINUITY)
+- [x] [P1-High] Generic Spinner Loading State
+  - Solution: Replaced with `StudentCardSkeleton` layout.
   - Tested: ✅
-- [x] [P2-Medium] Header Action Layout Refactor
-  - Solution: Refined mobile layout: Stacked Search, Tabs, and Button vertically on mobile. Set proper full-width constraints.
+- [x] [P1-High] Missing Skeleton Loaders
+  - Solution: Created precise skeleton components matching final cards.
   - Tested: ✅
-- [x] [P2-Medium] Mobile Stats Layout Optimization
-  - Solution: Changed grid to `grid-cols-1` on mobile for stacked layout.
-  - Tested: ✅
-- [x] [P2-Medium] Fixed Width Inconsistency
-  - Solution: Removed `max-w-7xl` and `container` classes to allow full-width dynamic resizing.
-  - Tested: ✅
-- [x] [P1-High] Sidebar Responsive Layout Breakage
-  - Solution: Updated `OptimizedStudentGrid` responsiveness to use `xl` and `2xl` breakpoints, preventing overlap when sidebar is open.
-  - Tested: ✅
+- [x] [P1-High] Sidebar Responsive Layout Breakage (from CONTINUITY)

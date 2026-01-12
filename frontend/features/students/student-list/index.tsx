@@ -12,6 +12,7 @@ import { StudentListHeader } from './components/StudentListHeader';
 import { FilterTabs } from './components/FilterTabs';
 import { StudentCard } from './components/StudentCard';
 import { EmptyState } from './components/EmptyState';
+import { StudentListSkeleton } from './components/StudentCardSkeleton';
 import StudentModal from '@/features/students/student-modal';
 import AddSessionModal from '@/features/calendar/add-session-modal';
 import { RecurringScheduleModal } from '@/features/calendar/recurring-schedule';
@@ -64,11 +65,10 @@ export default function StudentList() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-96">
-        <div className="flex flex-col items-center gap-3">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-primary"></div>
-          <p className="text-muted-foreground font-medium animate-pulse">Đang tải danh sách...</p>
-        </div>
+      <div className="space-y-8">
+        <div className="h-32 w-full bg-muted/30 animate-pulse rounded-3xl" />
+        <div className="h-12 w-64 bg-muted/30 animate-pulse rounded-xl" />
+        <StudentListSkeleton />
       </div>
     );
   }

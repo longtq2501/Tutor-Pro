@@ -57,9 +57,9 @@ export const UnifiedStudentCard = memo(function UnifiedStudentCard({
             )}
 
             {/* Card Header */}
-            <div className="p-5 sm:p-6 space-y-4">
+            <div className="p-4 sm:p-6 space-y-4">
                 {/* Student Info Row */}
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-3 sm:gap-4">
                     {/* Avatar with subtle glow */}
                     <motion.div
                         whileHover={{ scale: 1.1, rotate: 5 }}
@@ -214,7 +214,7 @@ export const UnifiedStudentCard = memo(function UnifiedStudentCard({
             </div>
 
             {/* Action Buttons - Enhanced colors */}
-            <div className="px-5 pb-5 sm:px-6 sm:pb-6 flex gap-3">
+            <div className="px-4 pb-4 sm:px-6 sm:pb-6 flex gap-2 sm:gap-3">
                 <Button
                     variant="outline"
                     className="flex-1 gap-2 border-2 hover:border-primary/50 dark:hover:border-primary/60 hover:bg-primary/5 dark:hover:bg-primary/10 transition-all"

@@ -47,7 +47,7 @@ export function OptimizedStudentGrid({
 
     if (isLoading) {
         return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
                 {[...Array(6)].map((_, i) => (
                     <StudentCardSkeleton key={i} />
                 ))}
@@ -65,7 +65,7 @@ export function OptimizedStudentGrid({
 
     return (
         <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
                 {students.slice(0, visibleCount).map((student) => (
                     <UnifiedStudentCard
                         key={student.id}

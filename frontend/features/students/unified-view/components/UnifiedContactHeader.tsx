@@ -82,7 +82,7 @@ export function UnifiedContactHeader({
             </div>
 
             {/* Stats Overview */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <StatsCard
                     icon={<Users className="w-5 h-5" />}
                     label="Đang học"
@@ -113,35 +113,35 @@ export function UnifiedContactHeader({
             {/* Search & Filters */}
             <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
                 {/* Search */}
-                <div className="relative flex-1 max-w-md">
+                <div className="relative w-full sm:flex-1 sm:max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                         placeholder="Tìm học sinh, phụ huynh, số điện thoại..."
-                        className="pl-10 h-11"
+                        className="pl-10 h-11 w-full"
                         value={searchTerm}
                         onChange={(e) => onSearchChange(e.target.value)}
                     />
                 </div>
 
-                {/* Filter Tabs */}
-                <Tabs value={filter} onValueChange={onFilterChange} className="w-full sm:w-auto">
-                    <TabsList className="h-11">
-                        <TabsTrigger value="all" className="h-9">Tất cả</TabsTrigger>
-                        <TabsTrigger value="active" className="h-9">Đang học</TabsTrigger>
-                        <TabsTrigger value="inactive" className="h-9">Đã nghỉ</TabsTrigger>
-                    </TabsList>
-                </Tabs>
+                {/* Actions Group (Tabs + Button) */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto pb-2 sm:pb-0">
+                    <Tabs value={filter} onValueChange={onFilterChange} className="w-full sm:w-auto">
+                        <TabsList className="h-11 w-full sm:w-auto grid grid-cols-3 sm:flex">
+                            <TabsTrigger value="all" className="h-9">Tất cả</TabsTrigger>
+                            <TabsTrigger value="active" className="h-9">Đang học</TabsTrigger>
+                            <TabsTrigger value="inactive" className="h-9">Đã nghỉ</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
 
-                {/* Add Button */}
-                <Button
-                    size="lg"
-                    onClick={onAddStudent}
-                    className="gap-2 bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/30 h-11"
-                >
-                    <Plus className="w-5 h-5" />
-                    <span className="hidden sm:inline">Thêm học sinh</span>
-                    <span className="sm:hidden">Thêm</span>
-                </Button>
+                    <Button
+                        size="lg"
+                        onClick={onAddStudent}
+                        className="gap-2 bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/30 h-11 shrink-0 w-full sm:w-auto"
+                    >
+                        <Plus className="w-5 h-5" />
+                        <span className="inline">Thêm học sinh</span>
+                    </Button>
+                </div>
             </div>
         </motion.div>
     );

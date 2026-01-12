@@ -121,7 +121,7 @@ export default function UnifiedContactManagement() {
     }, []);
 
     return (
-        <div className="container mx-auto p-4 sm:p-6 space-y-6 sm:space-y-8 max-w-7xl">
+        <div className="p-4 sm:p-6 space-y-6 sm:space-y-8 w-full">
             <UnifiedContactHeader
                 stats={stats}
                 searchTerm={searchTerm}

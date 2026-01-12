@@ -1,32 +1,39 @@
 # Student Module - Issues & Optimization
 
+- [x] [P0-Critical] High Backend RAM Usage
+  - Solution: Implemented pagination and lightweight summary DTOs to reduce object instantiation.
+- [x] [P0-Critical] Missing Pagination in Student List
+  - Solution: Integrated `Pageable` on the backend and updated frontend services/hooks to handle `PageResponse`.
+- [x] [P1-High] Over-fetching in List API
+  - Solution: Created `StudentSummaryResponse` containing only essential fields for the student list view.
+
 ## UX Issues
 - [x] [P1-High] Missing Skeleton Loaders
   - Solution: Implemented `StudentCardSkeleton` and integrated it into `student-list/index.tsx`.
-  - Impact: Improved loading UX, reduced "jumpy" feeling.
-- [x] [P2-Medium] Modal Body Scroll Lock
-  - Solution: Replaced manual DOM manipulation with a reusable `useScrollLock` hook in `frontend/lib/hooks`.
+- [ ] [P1-High] Missing Search/Filter Persistence
+  - Root cause: Search and filters are lost on page refresh.
+  - Target: Sync filters with URL query parameters.
 
 ## UI Issues
 - [x] [P2-Medium] iPhone SE Content Spacing
-  - Solution: Reduced internal padding (`p-4`) and avatar size (`w-14`) on mobile. Tightened gaps in button grid.
+  - Solution: Reduced internal padding and avatar size on mobile.
+- [ ] [P2-Medium] iPhone 16 Pro Max Responsive Check
+  - Root cause: Potential grid layout issues on very wide or specific mobile viewports.
+  - Target: Ensure zero overflow and proper alignment.
 
-## Technical Debt (Optional)
-- [x] [P2-Medium] StudentModal length (Refactored to ~45 lines)
-  - Solution: Extracted `StudentFormFields`, `StartMonthField`, and `NotesField`.
-  - Violates: GEMINI.md (target < 50 lines) - Fixed.
+- [x] [P2-Medium] Long Component Functions
+  - Solution: Refactored `StudentList`, `StudentCard`, and `AddSessionModal` into modular sub-components and hooks, all now comply with < 50 line rule.
+- [x] [P2-Medium] Missing JSDoc/Javadoc
+  - Solution: Added comprehensive documentation to all new backend methods and frontend components.
+- [ ] [P2-Medium] Missing Automated Tests
+  - Root cause: Logic in `StudentService` and hooks lack unit tests.
 
 ---
 
 ## Completed Work (Archive)
-- [x] [P0-Critical] Initialized ISSUES.md
-- [x] [P1-High] Header Action Layout Refactor (from CONTINUITY)
-- [x] [P2-Medium] Mobile Stats Layout Optimization (from CONTINUITY)
-- [x] [P2-Medium] Fixed Width Inconsistency (from CONTINUITY)
-- [x] [P1-High] Generic Spinner Loading State
-  - Solution: Replaced with `StudentCardSkeleton` layout.
-  - Tested: ✅
-- [x] [P1-High] Missing Skeleton Loaders
-  - Solution: Created precise skeleton components matching final cards.
-  - Tested: ✅
-- [x] [P1-High] Sidebar Responsive Layout Breakage (from CONTINUITY)
+- [x] [P0-Critical] Implemented Backend Pagination (Spring Data Pageable)
+- [x] [P1-High] Created lightweight `StudentSummaryResponse` DTO
+- [x] [P2-Medium] Refactored `StudentList` & `StudentCard` (< 50 lines)
+- [x] [P2-Medium] Optimized "Total Unpaid" query using Projection
+- [x] [P1-High] Generic Spinner Loading State -> Skeleton
+- [x] [P2-Medium] StudentModal length (Refactored to ~45 lines)

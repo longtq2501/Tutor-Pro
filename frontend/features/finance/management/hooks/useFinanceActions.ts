@@ -7,6 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useFinanceContext } from '../context/FinanceContext';
 import { useFinanceData } from './useFinanceData';
 import { isCancelledStatus } from '@/lib/types/lesson-status';
+import type { SessionRecord } from '@/lib/types/finance';
 
 export function useFinanceActions() {
   const { refreshData, records } = useFinanceData();
@@ -24,8 +25,8 @@ export function useFinanceActions() {
     // select sessions where studentId is in selectedStudentIds
     // AND exclude broken/cancelled sessions from financial actions
     return records
-      .filter(r => selectedStudentIds.includes(r.studentId) && (!r.status || !isCancelledStatus(r.status)))
-      .map(r => r.id);
+      .filter((r: SessionRecord) => selectedStudentIds.includes(r.studentId) && (!r.status || !isCancelledStatus(r.status)))
+      .map((r: SessionRecord) => r.id);
   };
 
   const markSelectedPaid = async () => {

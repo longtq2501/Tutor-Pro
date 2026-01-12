@@ -19,9 +19,10 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
 
     /**
      * Retrieves all lessons with their associated student assignments.
+     * Use Pageable for efficient memory management in administrative views.
      */
-    @Query("SELECT l FROM Lesson l LEFT JOIN FETCH l.assignments ORDER BY l.createdAt DESC")
-    List<Lesson> findAllWithAssignments();
+    @Query("SELECT DISTINCT l FROM Lesson l LEFT JOIN FETCH l.assignments ORDER BY l.createdAt DESC")
+    org.springframework.data.domain.Page<Lesson> findAllWithAssignments(org.springframework.data.domain.Pageable pageable);
 
     /**
      * Retrieves a memory-optimized summary of all published library lessons.
@@ -58,7 +59,8 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
      * Retrieves all library lessons as full entities (not projections).
      * Returns lessons ordered by creation date (newest first).
      * 
-     * @return List of library lessons.
+     * @param pageable The pagination information.
+     * @return Page of library lessons.
      */
-    List<Lesson> findByIsLibraryTrueOrderByCreatedAtDesc();
+    org.springframework.data.domain.Page<Lesson> findByIsLibraryTrueOrderByCreatedAtDesc(org.springframework.data.domain.Pageable pageable);
 }

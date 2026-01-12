@@ -43,9 +43,9 @@ export function useStudents() {
   };
 
   return {
-    students: students || [],
+    students: students?.content || [],
     loading,
-    loadStudents,
+    loadStudents: async () => { await loadStudents(); },
     deleteStudent
   };
 }

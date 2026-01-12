@@ -15,6 +15,7 @@ services:
     build: ./backend
     container_name: spring_backend
     restart: always
+    mem_limit: 512m
     ports:
       - "8080:8080"
     depends_on:
@@ -25,6 +26,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: root_password_vps
       APP_INIT-DATA_ENABLED: "false"
       SPRING_PROFILES_ACTIVE: prod
+      JAVA_OPTS: "-Xms256m -Xmx448m"
 
   frontend:
     build: ./frontend

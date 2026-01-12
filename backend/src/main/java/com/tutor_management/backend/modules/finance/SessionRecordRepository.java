@@ -24,7 +24,7 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, Lo
            "LEFT JOIN FETCH sr.student " +
            "WHERE sr.student.id = :studentId " +
            "ORDER BY sr.createdAt DESC")
-    List<SessionRecord> findByStudentIdOrderByCreatedAtDesc(@Param("studentId") Long studentId);
+    org.springframework.data.domain.Page<SessionRecord> findByStudentIdOrderByCreatedAtDesc(@Param("studentId") Long studentId, org.springframework.data.domain.Pageable pageable);
 
     /**
      * Retrieves all session records for a specific student.
@@ -35,13 +35,13 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, Lo
     @Query("SELECT sr FROM SessionRecord sr " +
            "LEFT JOIN FETCH sr.student " +
            "ORDER BY sr.createdAt DESC")
-    List<SessionRecord> findAllByOrderByCreatedAtDesc();
+    org.springframework.data.domain.Page<SessionRecord> findAllByOrderByCreatedAtDesc(org.springframework.data.domain.Pageable pageable);
 
     @Query("SELECT sr FROM SessionRecord sr " +
            "LEFT JOIN FETCH sr.student " +
            "WHERE sr.month = :month " +
            "ORDER BY sr.createdAt DESC")
-    List<SessionRecord> findByMonthOrderByCreatedAtDesc(@Param("month") String month);
+    org.springframework.data.domain.Page<SessionRecord> findByMonthOrderByCreatedAtDesc(@Param("month") String month, org.springframework.data.domain.Pageable pageable);
 
     @Query("SELECT DISTINCT sr.month FROM SessionRecord sr ORDER BY sr.month DESC")
     List<String> findDistinctMonths();
@@ -93,7 +93,7 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, Lo
            "LEFT JOIN FETCH sr.student " +
            "WHERE sr.paid = false " +
            "ORDER BY sr.sessionDate DESC")
-    List<SessionRecord> findByPaidFalseOrderBySessionDateDesc();
+    org.springframework.data.domain.Page<SessionRecord> findByPaidFalseOrderBySessionDateDesc(org.springframework.data.domain.Pageable pageable);
 
     @Query("SELECT sr FROM SessionRecord sr " +
            "LEFT JOIN FETCH sr.student s " +
@@ -168,4 +168,14 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, Lo
     @Modifying
     @Query(value = "DELETE FROM session_lessons WHERE lesson_id = :lessonId", nativeQuery = true)
     void deleteLessonReferences(@Param("lessonId") Long lessonId);
+
+    /**
+     * Projects total unpaid amounts for a list of student IDs.
+     * Used for optimized summary calculation.
+     */
+    @Query("SELECT sr.student.id, SUM(sr.totalAmount) FROM SessionRecord sr " +
+           "WHERE sr.student.id IN :studentIds AND sr.paid = false " +
+           "AND (sr.status IS NULL OR sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR)) " +
+           "GROUP BY sr.student.id")
+    List<Object[]> sumTotalUnpaidByStudentIdIn(@Param("studentIds") List<Long> studentIds);
 }

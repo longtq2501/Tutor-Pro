@@ -13,6 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+
 /**
  * Controller providing specialized analytical views for tutors.
  * Focuses on student performance aggregation and tracking.
@@ -27,11 +31,12 @@ public class TutorDashboardController {
     private final ExerciseService exerciseService;
 
     /**
-     * Retrieves a student-centric summary of exercise completion statuses.
+     * Retrieves a student-centric summary of exercise completion statuses with pagination.
      */
     @GetMapping("/students")
-    public ResponseEntity<ApiResponse<List<TutorStudentSummaryResponse>>> getStudentSummaries() {
-        log.info("Fetching student exercise summaries for tutor dashboard");
-        return ResponseEntity.ok(ApiResponse.success(exerciseService.getStudentSummaries()));
+    public ResponseEntity<ApiResponse<Page<TutorStudentSummaryResponse>>> getStudentSummaries(
+            @PageableDefault(size = 10) Pageable pageable) {
+        log.info("Fetching student exercise summaries for tutor dashboard (page: {})", pageable.getPageNumber());
+        return ResponseEntity.ok(ApiResponse.success(exerciseService.getStudentSummaries(pageable)));
     }
 }

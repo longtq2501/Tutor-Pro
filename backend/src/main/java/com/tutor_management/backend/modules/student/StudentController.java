@@ -2,8 +2,13 @@ package com.tutor_management.backend.modules.student;
 
 import com.tutor_management.backend.modules.student.dto.request.StudentRequest;
 import com.tutor_management.backend.modules.student.dto.response.StudentResponse;
+import com.tutor_management.backend.modules.student.dto.response.StudentSummaryResponse;
 import com.tutor_management.backend.modules.shared.dto.response.ApiResponse;
 import com.tutor_management.backend.exception.ResourceNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Sort;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,12 +33,15 @@ public class StudentController {
     private final StudentRepository studentRepository;
 
     /**
-     * Retrieves the complete student registry.
+     * Retrieves the complete student registry using pagination.
+     * Returns a lightweight summary to optimize performance.
      */
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<StudentResponse>>> getAllStudents() {
-        return ResponseEntity.ok(ApiResponse.success(studentService.getAllStudents()));
+    public ResponseEntity<ApiResponse<Page<StudentSummaryResponse>>> getAllStudents(
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(studentService.getStudentsPaginated(pageable)));
     }
 
     /**

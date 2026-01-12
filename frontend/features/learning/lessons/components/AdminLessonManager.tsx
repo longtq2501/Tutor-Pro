@@ -1,5 +1,7 @@
 'use client';
 
+import { useMemo } from 'react';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BookOpen, BookMarked, GraduationCap, Library } from 'lucide-react';
 import { LessonLibraryTab } from './LessonLibraryTab';
@@ -14,7 +16,13 @@ import { Badge } from '@/components/ui/badge';
  * Quản lý bài giảng cho giáo viên
  */
 export function AdminLessonManager() {
-  const { data: libraryLessons = [] } = useLessonLibrary();
+  const { data: lessonsData } = useLessonLibrary();
+  const libraryLessonsCount = useMemo(() => {
+    if (!lessonsData) return 0;
+    if (Array.isArray(lessonsData)) return lessonsData.length;
+    return lessonsData.totalElements ?? lessonsData.content?.length ?? 0;
+  }, [lessonsData]);
+
   const { data: courses = [] } = useAdminCourses();
 
   return (
@@ -46,7 +54,7 @@ export function AdminLessonManager() {
                 <Library className="h-5 w-5" />
                 <span>Kho học liệu</span>
                 <Badge variant="secondary" className="ml-0.5 rounded-full px-2 py-0.5 text-xs font-medium">
-                  {libraryLessons.length}
+                  {libraryLessonsCount}
                 </Badge>
               </div>
             </TabsTrigger>

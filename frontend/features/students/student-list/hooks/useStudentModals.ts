@@ -4,13 +4,31 @@
 import { useState } from 'react';
 import type { Student } from '@/lib/types';
 
-export function useStudentModals() {
+export interface StudentModalState {
+  showModal: boolean;
+  editingStudent: Student | null;
+  openCreate: () => void;
+  openEdit: (student: Student) => void;
+  closeStudentModal: () => void;
+
+  showAddSessionModal: boolean;
+  selectedStudentIdForSession: number | null;
+  openAddSession: (studentId: number) => void;
+  closeAddSession: () => void;
+
+  showRecurringModal: boolean;
+  selectedStudentForSchedule: Student | null;
+  openSchedule: (student: Student) => void;
+  closeSchedule: () => void;
+}
+
+export function useStudentModals(): StudentModalState {
   const [showModal, setShowModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
-  
+
   const [showAddSessionModal, setShowAddSessionModal] = useState(false);
   const [selectedStudentIdForSession, setSelectedStudentIdForSession] = useState<number | null>(null);
-  
+
   const [showRecurringModal, setShowRecurringModal] = useState(false);
   const [selectedStudentForSchedule, setSelectedStudentForSchedule] = useState<Student | null>(null);
 
@@ -56,13 +74,13 @@ export function useStudentModals() {
     openCreate,
     openEdit,
     closeStudentModal,
-    
+
     // Add Session Modal
     showAddSessionModal,
     selectedStudentIdForSession,
     openAddSession,
     closeAddSession,
-    
+
     // Schedule Modal
     showRecurringModal,
     selectedStudentForSchedule,

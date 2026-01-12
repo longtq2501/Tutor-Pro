@@ -5,29 +5,30 @@ import {
     SessionFeedbackResponse
 } from '@/features/feedback/types';
 import axios from '@/lib/services/axios-instance';
+import { ApiResponse } from '@/lib/types';
 
 const BASE_URL = '/feedbacks';
 
 export const feedbackService = {
     createFeedback: async (data: SessionFeedbackRequest): Promise<number> => {
-        const response = await axios.post<number>(BASE_URL, data);
-        return response.data;
+        const response = await axios.post<ApiResponse<number>>(BASE_URL, data);
+        return response.data.data;
     },
 
     updateFeedback: async (id: number, data: SessionFeedbackRequest): Promise<number> => {
-        const response = await axios.put<number>(`${BASE_URL}/${id}`, data);
-        return response.data;
+        const response = await axios.put<ApiResponse<number>>(`${BASE_URL}/${id}`, data);
+        return response.data.data;
     },
 
     getFeedbackById: async (id: number): Promise<SessionFeedbackResponse> => {
-        const response = await axios.get<SessionFeedbackResponse>(`${BASE_URL}/${id}`);
-        return response.data;
+        const response = await axios.get<ApiResponse<SessionFeedbackResponse>>(`${BASE_URL}/${id}`);
+        return response.data.data;
     },
 
     getFeedbackBySession: async (sessionId: number, studentId: number): Promise<SessionFeedbackResponse | null> => {
         try {
-            const response = await axios.get<SessionFeedbackResponse>(`${BASE_URL}/session/${sessionId}/student/${studentId}`);
-            return response.data;
+            const response = await axios.get<ApiResponse<SessionFeedbackResponse>>(`${BASE_URL}/session/${sessionId}/student/${studentId}`);
+            return response.data.data;
         } catch (error) {
             // Return null if not found (404)
             return null;
@@ -35,24 +36,24 @@ export const feedbackService = {
     },
 
     // --- Smart Generator ---
-    
+
     generateComment: async (req: GenerateCommentRequest): Promise<GenerateCommentResponse> => {
-        const response = await axios.post<GenerateCommentResponse>(`${BASE_URL}/generate`, req);
-        return response.data;
+        const response = await axios.post<ApiResponse<GenerateCommentResponse>>(`${BASE_URL}/generate`, req);
+        return response.data.data;
     },
 
     getKeywords: async (category: string, ratingLevel: string): Promise<string[]> => {
-        const response = await axios.get<string[]>(`${BASE_URL}/keywords`, {
+        const response = await axios.get<ApiResponse<string[]>>(`${BASE_URL}/keywords`, {
             params: { category, ratingLevel }
         });
-        return response.data;
+        return response.data.data;
     },
-    
+
     getClipboardContent: async (id: number): Promise<string> => {
-        const response = await axios.get<string>(`${BASE_URL}/${id}/clipboard`);
-        return response.data;
+        const response = await axios.get<ApiResponse<string>>(`${BASE_URL}/${id}/clipboard`);
+        return response.data.data;
     },
-    
+
     exportStudentFeedback: async (studentId: number) => {
         const response = await axios.get(`${BASE_URL}/export/student/${studentId}`, {
             responseType: 'blob',

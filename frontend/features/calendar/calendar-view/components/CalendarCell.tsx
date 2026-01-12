@@ -104,7 +104,7 @@ export const CalendarCell = memo(({
                     <AnimatePresence>
                         {visibleSessions.map((session, index) => (
                             <DraggableSession
-                                key={session.id}
+                                key={`${session.id}-${session.version}`}
                                 session={session}
                                 index={index}
                                 onSessionClick={onSessionClick}

@@ -2,6 +2,7 @@ package com.tutor_management.backend.modules.lesson;
 
 import com.tutor_management.backend.modules.shared.dto.response.ApiResponse;
 import com.tutor_management.backend.modules.lesson.dto.response.LessonResponse;
+import com.tutor_management.backend.modules.lesson.dto.response.StudentLessonSummaryResponse;
 import com.tutor_management.backend.modules.lesson.dto.response.LessonStatsResponse;
 import com.tutor_management.backend.modules.auth.User;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Controller for Student-facing lesson operations.
@@ -31,11 +34,13 @@ public class StudentLessonController {
      * Retrieves all lessons assigned to the authenticated student.
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<LessonResponse>>> getAllLessons(@AuthenticationPrincipal User user) {
+    public ResponseEntity<ApiResponse<Page<StudentLessonSummaryResponse>>> getAllLessons(
+            @AuthenticationPrincipal User user,
+            Pageable pageable) {
         if (user.getStudentId() == null) {
             return ResponseEntity.badRequest().body(ApiResponse.error("Không tìm thấy thông tin học sinh cho tài khoản này."));
         }
-        return ResponseEntity.ok(ApiResponse.success(lessonService.getStudentLessons(user.getStudentId())));
+        return ResponseEntity.ok(ApiResponse.success(lessonService.getStudentLessons(user.getStudentId(), pageable)));
     }
 
     /**
@@ -58,14 +63,15 @@ public class StudentLessonController {
      * Filters student lessons by month and year.
      */
     @GetMapping("/filter")
-    public ResponseEntity<ApiResponse<List<LessonResponse>>> getLessonsByMonthYear(
+    public ResponseEntity<ApiResponse<Page<StudentLessonSummaryResponse>>> getLessonsByMonthYear(
             @RequestParam int year,
             @RequestParam int month,
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal User user,
+            Pageable pageable) {
         if (user.getStudentId() == null) {
             return ResponseEntity.badRequest().body(ApiResponse.error("Không tìm thấy thông tin học sinh."));
         }
-        return ResponseEntity.ok(ApiResponse.success(lessonService.getLessonsByMonthYear(user.getStudentId(), year, month)));
+        return ResponseEntity.ok(ApiResponse.success(lessonService.getLessonsByMonthYear(user.getStudentId(), year, month, pageable)));
     }
 
     /**

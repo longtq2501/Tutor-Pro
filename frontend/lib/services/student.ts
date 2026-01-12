@@ -1,12 +1,15 @@
 import api from './axios-instance';
 import type { Student, StudentRequest } from '../types';
+import type { PageResponse } from '../types/common';
 
 export const studentsApi = {
-  /** * LẤY DANH SÁCH TẤT CẢ HỌC SINH
-   * @returns {Promise<Student[]>} Mảng đối tượng học sinh
+  /** * LẤY DANH SÁCH TẤT CẢ HỌC SINH (PHÂN TRANG)
+   * @param {number} page - Số trang (bắt đầu từ 0)
+   * @param {number} size - Kích thước trang
+   * @returns {Promise<PageResponse<Student>>} Đối tượng phân trang học sinh
    */
-  getAll: async (): Promise<Student[]> => {
-    const response = await api.get('/students');
+  getAll: async (page = 0, size = 100): Promise<PageResponse<Student>> => {
+    const response = await api.get(`/students?page=${page}&size=${size}`);
     return response.data.data;
   },
 

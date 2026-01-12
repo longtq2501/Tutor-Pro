@@ -2,6 +2,7 @@ package com.tutor_management.backend.modules.lesson;
 
 import com.tutor_management.backend.modules.lesson.dto.request.CreateLessonRequest;
 import com.tutor_management.backend.modules.lesson.dto.response.AdminLessonResponse;
+import com.tutor_management.backend.modules.lesson.dto.response.AdminLessonSummaryResponse;
 import com.tutor_management.backend.modules.shared.dto.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Controller for Administrative Lesson Management.
@@ -53,8 +56,8 @@ public class AdminLessonController {
      * Lists all lessons in the system.
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<AdminLessonResponse>>> getAllLessons() {
-        return ResponseEntity.ok(ApiResponse.success(adminLessonService.getAllLessons()));
+    public ResponseEntity<ApiResponse<Page<AdminLessonSummaryResponse>>> getAllLessons(Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(adminLessonService.getAllLessons(pageable)));
     }
 
     /**
@@ -69,9 +72,10 @@ public class AdminLessonController {
      * Fetches all lessons currently assigned to a specific student.
      */
     @GetMapping("/student/{studentId}")
-    public ResponseEntity<ApiResponse<List<AdminLessonResponse>>> getLessonsByStudent(
-            @PathVariable Long studentId) {
-        return ResponseEntity.ok(ApiResponse.success(adminLessonService.getLessonsByStudent(studentId)));
+    public ResponseEntity<ApiResponse<Page<AdminLessonSummaryResponse>>> getLessonsByStudent(
+            @PathVariable Long studentId,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(adminLessonService.getLessonsByStudent(studentId, pageable)));
     }
 
     /**

@@ -72,4 +72,10 @@ public interface SubmissionRepository extends JpaRepository<Submission, String> 
      */
     @Query("SELECT s.studentId, s.status, COUNT(s) FROM Submission s GROUP BY s.studentId, s.status")
     List<Object[]> countAllByStudentAndStatus();
+
+    /**
+     * Aggregates submission counts by status for a specific list of students.
+     */
+    @Query("SELECT s.studentId, s.status, COUNT(s) FROM Submission s WHERE s.studentId IN :studentIds GROUP BY s.studentId, s.status")
+    List<Object[]> countByStudentIdInAndStatus(@Param("studentIds") List<String> studentIds);
 }

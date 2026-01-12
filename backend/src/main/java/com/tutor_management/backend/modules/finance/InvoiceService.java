@@ -76,8 +76,8 @@ public class InvoiceService {
         Student student = studentRepository.findById(r.getStudentId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy học sinh"));
 
-        List<SessionRecord> records = sessionRecordRepository.findByStudentIdOrderByCreatedAtDesc(r.getStudentId())
-                .stream().filter(rec -> rec.getMonth().equals(r.getMonth()) && !rec.getPaid()).toList();
+        List<SessionRecord> records = sessionRecordRepository.findByStudentIdAndMonth(r.getStudentId(), r.getMonth())
+                .stream().filter(rec -> !rec.getPaid()).toList();
 
         if (records.isEmpty()) throw new RuntimeException("Không tìm thấy buổi học nào chưa thanh toán trong tháng " + r.getMonth());
 

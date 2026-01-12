@@ -21,13 +21,26 @@ public interface LessonAssignmentRepository extends JpaRepository<LessonAssignme
      */
     @EntityGraph(attributePaths = { "lesson", "lesson.category" })
     @Query("SELECT la FROM LessonAssignment la WHERE la.student.id = :studentId ORDER BY la.assignedDate DESC")
-    List<LessonAssignment> findByStudentIdWithDetails(@Param("studentId") Long studentId);
+    org.springframework.data.domain.Page<LessonAssignment> findByStudentIdWithDetails(@Param("studentId") Long studentId, org.springframework.data.domain.Pageable pageable);
+
+    /**
+     * Filters student lessons by month and year with pagination.
+     */
+    @EntityGraph(attributePaths = { "lesson", "lesson.category" })
+    @Query("SELECT la FROM LessonAssignment la WHERE la.student.id = :studentId " +
+           "AND YEAR(la.lesson.lessonDate) = :year AND MONTH(la.lesson.lessonDate) = :month " +
+           "ORDER BY la.lesson.lessonDate DESC")
+    org.springframework.data.domain.Page<LessonAssignment> findByStudentIdAndMonthYear(
+            @Param("studentId") Long studentId, 
+            @Param("year") int year, 
+            @Param("month") int month, 
+            org.springframework.data.domain.Pageable pageable);
 
     /**
      * Retrieves all assignments for a student ordered by assignment date.
      * Simplified version without eager fetching - use when full lesson details are not needed.
      */
-    List<LessonAssignment> findByStudentIdOrderByAssignedDateDesc(Long studentId);
+    org.springframework.data.domain.Page<LessonAssignment> findByStudentIdOrderByAssignedDateDesc(Long studentId, org.springframework.data.domain.Pageable pageable);
 
     /**
      * Retrieves all student assignments for a specific lesson.

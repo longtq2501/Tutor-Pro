@@ -17,6 +17,11 @@ import java.util.Optional;
 public interface ExerciseAssignmentRepository extends JpaRepository<ExerciseAssignment, String> {
     
     /**
+     * Lists assignments for a specific student with pagination.
+     */
+    org.springframework.data.domain.Page<ExerciseAssignment> findByStudentId(String studentId, org.springframework.data.domain.Pageable pageable);
+
+    /**
      * Lists all assignments for a specific student.
      */
     List<ExerciseAssignment> findByStudentId(String studentId);

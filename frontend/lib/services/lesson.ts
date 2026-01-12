@@ -1,12 +1,12 @@
 import api from './axios-instance';
-import type { Lesson, LessonStats, ApiResponse } from '../types';
+import type { Lesson, LessonStats, ApiResponse, PageResponse } from '../types';
 
 export const lessonsApi = {
   /** * LẤY DANH SÁCH TẤT CẢ BÀI HỌC CỦA HỌC SINH HIỆN TẠI
    * @returns {Promise<Lesson[]>} Danh sách bài học kèm trạng thái riêng của học sinh
    */
-  getAll: async (): Promise<Lesson[]> => {
-    const response = await api.get<ApiResponse<Lesson[]>>('/student/lessons');
+  getAll: async (): Promise<PageResponse<Lesson>> => {
+    const response = await api.get<ApiResponse<PageResponse<Lesson>>>('/student/lessons');
     return response.data.data;
   },
 
@@ -24,8 +24,8 @@ export const lessonsApi = {
    * @param {number} month - Tháng cần lọc
    * @returns {Promise<Lesson[]>}
    */
-  getByMonthYear: async (year: number, month: number): Promise<Lesson[]> => {
-    const response = await api.get<ApiResponse<Lesson[]>>(
+  getByMonthYear: async (year: number, month: number): Promise<PageResponse<Lesson>> => {
+    const response = await api.get<ApiResponse<PageResponse<Lesson>>>(
       `/student/lessons/filter?year=${year}&month=${month}`
     );
     return response.data.data;

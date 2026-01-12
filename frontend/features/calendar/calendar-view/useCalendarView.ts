@@ -6,8 +6,8 @@ import { toast } from 'sonner';
 import { UseCalendarViewReturn } from './CalendarView.types';
 import type { CalendarViewType } from './components/ViewSwitcher';
 import { useCalendarData } from './hooks/useCalendarData';
-import { useCalendarDays } from './hooks/useCalendarDays';
-import { useCalendarStats } from './hooks/useCalendarStats';
+import { getCalendarDays } from './hooks/useCalendarDays';
+import { getCalendarStats } from './hooks/useCalendarStats';
 import type { CalendarDay } from './types';
 import { getMonthStr } from './utils';
 
@@ -34,7 +34,6 @@ export const useCalendarView = (): UseCalendarViewReturn => {
     const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
     const [loadingSessions, setLoadingSessions] = useState<Set<number>>(new Set());
     const [isScrolled, setIsScrolled] = useState(false);
-    const [isInitialLoad, setIsInitialLoad] = useState(true);
 
     // === 2. State Lọc (Logic chuyển từ UI index.tsx sang) ===
     const [statusFilter, setStatusFilter] = useState<string | 'ALL'>('ALL');
@@ -57,17 +56,19 @@ export const useCalendarView = (): UseCalendarViewReturn => {
     }, []);
 
     // === 4. Data Fetching ===
-    const { sessions, setSessions, students, loading, isFetching, loadData, updateSession } = useCalendarData(currentDate);
+    const { sessions, students, loading, isFetching, loadData, updateSession } = useCalendarData(currentDate);
 
-    useEffect(() => {
-        if (!loading) {
-            setIsInitialLoad(false);
-        }
-    }, [loading]);
+    // Track initial load (sticky false after first true -> false transition)
+    const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+    if (!loading && !hasLoadedOnce) {
+        setHasLoadedOnce(true);
+    }
+    const isInitialLoad = !hasLoadedOnce;
 
     // === 5. Logic xử lý dữ liệu & Filtering (Performance optimized) ===
     const sortedSessions = useMemo(() => {
-        return [...sessions].sort((a, b) => {
+        const sessionList = sessions || [];
+        return [...sessionList].sort((a, b) => {
             const dateA = new Date(a.sessionDate).getTime();
             const dateB = new Date(b.sessionDate).getTime();
             if (dateA !== dateB) return dateA - dateB;
@@ -79,8 +80,8 @@ export const useCalendarView = (): UseCalendarViewReturn => {
         });
     }, [sessions]);
 
-    const rawCalendarDays = useMemo(() => useCalendarDays(currentDate, sortedSessions), [currentDate, sortedSessions]);
-    const stats = useCalendarStats(sortedSessions);
+    const rawCalendarDays = useMemo(() => getCalendarDays(currentDate, sortedSessions), [currentDate, sortedSessions]);
+    const stats = useMemo(() => getCalendarStats(sortedSessions), [sortedSessions]);
 
     // Grouping status filter logic for reuse
     const applyFilters = useCallback((s: SessionRecord) => {
@@ -128,21 +129,26 @@ export const useCalendarView = (): UseCalendarViewReturn => {
     }, [selectedDay, selectedSession, contextMenu, updateSession]);
 
     const handleAutoGenerate = async () => {
-        const promise = recurringSchedulesApi.generateSessions(getMonthStr(currentDate));
-        toast.promise(promise, {
-            loading: 'Đang tự động tạo lịch học...',
-            success: (result) => {
-                loadData();
-                return `✅ ${result.message || 'Đã tạo xong các buổi học!'}`;
-            },
-            error: '❌ Không thể tạo buổi học tự động.'
-        });
+        setIsGenerating(true);
+        try {
+            const promise = recurringSchedulesApi.generateSessions(getMonthStr(currentDate));
+            toast.promise(promise, {
+                loading: 'Đang tự động tạo lịch học...',
+                success: (result) => {
+                    loadData();
+                    return `✅ ${result.message || 'Đã tạo xong các buổi học!'}`;
+                },
+                error: '❌ Không thể tạo buổi học tự động.'
+            });
+            await promise;
+        } finally {
+            setIsGenerating(false);
+        }
     };
 
     const handleDeleteSession = useCallback(async (id: number) => {
         const promise = async () => {
             await sessionsApi.delete(id);
-            setSessions(prev => prev.filter(s => s.id !== id));
             if (selectedDay) {
                 setSelectedDay(prev => prev ? {
                     ...prev,
@@ -159,7 +165,7 @@ export const useCalendarView = (): UseCalendarViewReturn => {
             success: 'Đã xóa buổi học thành công',
             error: 'Lỗi khi xóa buổi học'
         });
-    }, [selectedDay, selectedSession, setSessions, loadData]);
+    }, [selectedDay, selectedSession, loadData]);
 
     const handleSessionClick = useCallback((session: SessionRecord) => {
         setModalMode('view');
@@ -316,24 +322,38 @@ export const useCalendarView = (): UseCalendarViewReturn => {
         // Ensure we update the month string if dragged to a different month
         const newMonth = newDate.substring(0, 7); // "YYYY-MM"
 
+        // 1. Construct clean payload (remove undefined/null)
         const updateData: SessionRecordUpdateRequest = {
             sessionDate: newDate,
             month: newMonth,
             version: session.version
         };
 
+        // Remove undefined keys to prevent 400 Bad Request
+        Object.keys(updateData).forEach(key => {
+            const k = key as keyof SessionRecordUpdateRequest;
+            if (updateData[k] === undefined) delete updateData[k];
+        });
+
         const promise = async () => {
-            const result = await sessionsApi.update(session.id, updateData);
-            handleUpdateSession(result);
-            return `Đã dời lịch sang ngày ${newDate}`;
+            try {
+                const result = await sessionsApi.update(session.id, updateData);
+                handleUpdateSession(result);
+                return `Đã dời lịch sang ngày ${newDate}`;
+            } catch (error) {
+                // If anything fails (400, 409, etc.), force reload to sync with server
+                console.error("Drag update failed, reloading...", error);
+                await loadData();
+                throw error; // Re-throw to trigger toast error
+            }
         };
 
         toast.promise(promise(), {
             loading: 'Đang dời lịch học...',
             success: (msg) => msg,
-            error: 'Lỗi khi dời lịch học'
+            error: 'Lỗi khi dời lịch học (đã đồng bộ lại)'
         });
-    }, [handleUpdateSession]);
+    }, [handleUpdateSession, loadData]);
 
     return {
         currentDate, currentView, isGenerating, selectedDay, selectedSession, showAddSessionModal,

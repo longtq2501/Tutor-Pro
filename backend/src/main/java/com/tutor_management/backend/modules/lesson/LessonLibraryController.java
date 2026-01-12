@@ -15,6 +15,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Controller for managing the Lesson Library.
@@ -33,16 +35,16 @@ public class LessonLibraryController {
      * Lists all library lessons.
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<LibraryLessonResponse>>> getAllLessons() {
-        return ResponseEntity.ok(ApiResponse.success(libraryService.getAllLibraryLessons()));
+    public ResponseEntity<ApiResponse<Page<LibraryLessonResponse>>> getAllLessons(Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(libraryService.getAllLibraryLessons(pageable)));
     }
 
     /**
-     * Lists lessons that have not been assigned to any students.
+     * Lists lessons that have not been assigned to any students (pure library items).
      */
     @GetMapping("/unassigned")
-    public ResponseEntity<ApiResponse<List<LibraryLessonResponse>>> getUnassignedLessons() {
-        return ResponseEntity.ok(ApiResponse.success(libraryService.getUnassignedLessons()));
+    public ResponseEntity<ApiResponse<Page<LibraryLessonResponse>>> getUnassignedLessons(Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(libraryService.getUnassignedLessons(pageable)));
     }
 
     /**

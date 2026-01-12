@@ -4,6 +4,7 @@ import com.tutor_management.backend.modules.lesson.dto.request.CreateLessonReque
 import com.tutor_management.backend.modules.lesson.dto.response.AdminLessonResponse;
 import com.tutor_management.backend.exception.ResourceNotFoundException;
 import com.tutor_management.backend.modules.finance.SessionRecordRepository;
+import com.tutor_management.backend.modules.lesson.dto.response.AdminLessonSummaryResponse;
 import com.tutor_management.backend.modules.student.Student;
 import com.tutor_management.backend.modules.student.StudentRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Service for Administrative lesson management.
@@ -61,12 +64,15 @@ public class AdminLessonService {
 
     /**
      * Lists all lessons in the system with their assignment metrics.
+     * Uses lightweight DTOs to minimize RAM usage.
+     * 
+     * @param pageable The pagination information.
+     * @return Page containing lesson summary details.
      */
     @Transactional(readOnly = true)
-    public List<AdminLessonResponse> getAllLessons() {
-        return lessonRepository.findAllWithAssignments().stream()
-                .map(AdminLessonResponse::fromEntity)
-                .collect(Collectors.toList());
+    public Page<AdminLessonSummaryResponse> getAllLessons(Pageable pageable) {
+        return lessonRepository.findAllWithAssignments(pageable)
+                .map(this::mapToSummary);
     }
 
     /**
@@ -127,16 +133,35 @@ public class AdminLessonService {
 
     /**
      * Retrieves all lessons currently tasked to a specific student.
+     * 
+     * @param studentId The student's unique identifier.
+     * @param pageable The pagination information.
+     * @return Page of lesson summaries for the student.
      */
     @Transactional(readOnly = true)
-    public List<AdminLessonResponse> getLessonsByStudent(Long studentId) {
+    public Page<AdminLessonSummaryResponse> getLessonsByStudent(Long studentId, Pageable pageable) {
         if (!studentRepository.existsById(studentId)) {
             throw new ResourceNotFoundException("Không tìm thấy học sinh với ID: " + studentId);
         }
+    
+        return assignmentRepository.findByStudentIdOrderByAssignedDateDesc(studentId, pageable)
+                .map(a -> mapToSummary(a.getLesson()));
+    }
 
-        return assignmentRepository.findByStudentIdOrderByAssignedDateDesc(studentId).stream()
-                .map(a -> AdminLessonResponse.fromEntity(a.getLesson()))
-                .collect(Collectors.toList());
+    private AdminLessonSummaryResponse mapToSummary(Lesson lesson) {
+        return AdminLessonSummaryResponse.builder()
+                .id(lesson.getId())
+                .title(lesson.getTitle())
+                .tutorName(lesson.getTutorName())
+                .lessonDate(lesson.getLessonDate())
+                .isPublished(lesson.getIsPublished())
+                .isLibrary(lesson.getIsLibrary())
+                .assignedStudentCount(lesson.getAssignedStudentCount())
+                .totalViewCount(lesson.getTotalViewCount())
+                .completionRate(lesson.getCompletionRate())
+                .categoryName(lesson.getCategory() != null ? lesson.getCategory().getName() : null)
+                .createdAt(lesson.getCreatedAt())
+                .build();
     }
 
     // --- Private Logic ---

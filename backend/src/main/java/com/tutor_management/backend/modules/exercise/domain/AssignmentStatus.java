@@ -8,6 +8,11 @@ public enum AssignmentStatus {
      * The exercise has been linked to the student but not yet opened.
      */
     ASSIGNED,
+    
+    /**
+     * Waiting for the student to start.
+     */
+    PENDING,
 
     /**
      * The student has started the exercise but has not submitted it yet.

@@ -2,6 +2,8 @@ package com.tutor_management.backend.modules.lesson;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import org.hibernate.Hibernate;
 import org.springframework.cache.annotation.CacheEvict;
@@ -13,6 +15,8 @@ import com.tutor_management.backend.exception.ResourceNotFoundException;
 import com.tutor_management.backend.modules.course.CourseAssignmentService;
 import com.tutor_management.backend.modules.lesson.dto.response.LessonResponse;
 import com.tutor_management.backend.modules.lesson.dto.response.LessonStatsResponse;
+import com.tutor_management.backend.modules.lesson.dto.response.StudentLessonSummaryResponse;
+import com.tutor_management.backend.modules.lesson.dto.response.LessonCategoryResponse;
 import com.tutor_management.backend.modules.student.StudentRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -35,17 +39,16 @@ public class LessonService {
 
     /**
      * Retrieves all lessons assigned to a specific student.
-     * Uses optimized fetching to prevent N+1 queries.
+     * Uses optimized fetching and lightweight DTOs to minimize RAM usage.
      */
-    @Cacheable(value = "lessons", key = "'student-' + #studentId")
     @Transactional(readOnly = true)
-    public List<LessonResponse> getStudentLessons(Long studentId) {
+    public Page<StudentLessonSummaryResponse> getStudentLessons(Long studentId, Pageable pageable) {
         if (!studentRepository.existsById(studentId)) {
             throw new ResourceNotFoundException("Không tìm thấy học sinh với ID: " + studentId);
         }
 
-        List<LessonAssignment> assignments = assignmentRepository.findByStudentIdWithDetails(studentId);
-        return mapToResponses(assignments);
+        return assignmentRepository.findByStudentIdWithDetails(studentId, pageable)
+                .map(this::mapToStudentSummary);
     }
 
     /**
@@ -66,17 +69,26 @@ public class LessonService {
      * Retrieves lessons assigned to a student within a specific month.
      */
     @Transactional(readOnly = true)
-    public List<LessonResponse> getLessonsByMonthYear(Long studentId, int year, int month) {
-        List<LessonAssignment> assignments = assignmentRepository.findByStudentIdWithDetails(studentId);
+    public Page<StudentLessonSummaryResponse> getLessonsByMonthYear(Long studentId, int year, int month, Pageable pageable) {
+        return assignmentRepository.findByStudentIdAndMonthYear(studentId, year, month, pageable)
+                .map(this::mapToStudentSummary);
+    }
 
-        List<LessonAssignment> filtered = assignments.stream()
-                .filter(a -> {
-                    var date = a.getLesson().getLessonDate();
-                    return date.getYear() == year && date.getMonthValue() == month;
-                })
-                .collect(Collectors.toList());
-
-        return mapToResponses(filtered);
+    private StudentLessonSummaryResponse mapToStudentSummary(LessonAssignment a) {
+        Lesson l = a.getLesson();
+        return StudentLessonSummaryResponse.builder()
+                .id(l.getId())
+                .title(l.getTitle())
+                .tutorName(l.getTutorName())
+                .summary(l.getSummary())
+                .lessonDate(l.getLessonDate())
+                .thumbnailUrl(l.getThumbnailUrl())
+                .isCompleted(a.getIsCompleted())
+                .completedAt(a.getCompletedAt())
+                .viewCount(a.getViewCount())
+                .category(LessonCategoryResponse.fromEntity(l.getCategory()))
+                .createdAt(l.getCreatedAt())
+                .build();
     }
 
     /**

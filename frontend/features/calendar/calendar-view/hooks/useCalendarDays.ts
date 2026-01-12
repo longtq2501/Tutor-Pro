@@ -5,7 +5,7 @@ import type { SessionRecord } from '@/lib/types';
 import type { CalendarDay } from '../types';
 import { getLocalDateStr } from '../utils';
 
-export const useCalendarDays = (currentDate: Date, sessions: SessionRecord[]): CalendarDay[] => {
+export const getCalendarDays = (currentDate: Date, sessions: SessionRecord[]): CalendarDay[] => {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const firstDay = new Date(year, month, 1);

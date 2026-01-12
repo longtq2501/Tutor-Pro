@@ -17,10 +17,10 @@ export const useExercises = (classId?: string, status?: ExerciseStatus, search?:
 /**
  * Hook for students to fetch their assigned exercises
  */
-export const useAssignedExercises = () => {
+export const useAssignedExercises = (page = 0, size = 10) => {
     return useQuery({
-        queryKey: queryKeys.exercises.assigned(),
-        queryFn: () => exerciseService.getAssigned(),
+        queryKey: [...queryKeys.exercises.assigned(), { page, size }],
+        queryFn: () => exerciseService.getAssigned(page, size),
         staleTime: 10 * 1000,
     });
 };
@@ -28,10 +28,10 @@ export const useAssignedExercises = () => {
 /**
  * Hook for tutors to fetch student performance summaries
  */
-export const useTutorStudentSummaries = () => {
+export const useTutorStudentSummaries = (page = 0, size = 10) => {
     return useQuery({
-        queryKey: [...queryKeys.exercises.all, 'student-summaries'],
-        queryFn: () => exerciseService.getTutorStudentSummaries(),
+        queryKey: [...queryKeys.exercises.all, 'student-summaries', { page, size }],
+        queryFn: () => exerciseService.getTutorStudentSummaries(page, size),
         staleTime: 60 * 1000, // 1 minute
     });
 };

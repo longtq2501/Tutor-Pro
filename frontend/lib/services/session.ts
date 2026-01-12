@@ -1,21 +1,22 @@
 import api from './axios-instance';
 import type { SessionRecord, SessionRecordRequest, SessionRecordUpdateRequest } from '../types';
+import type { PageResponse } from '../types/common';
 
 export const sessionsApi = {
   /** * LẤY DANH SÁCH TẤT CẢ CÁC BUỔI HỌC
-   * @returns {Promise<SessionRecord[]>} Mảng các bản ghi buổi học
+   * @returns {Promise<PageResponse<SessionRecord>>}
    */
-  getAll: async (): Promise<SessionRecord[]> => {
-    const response = await api.get('/sessions');
+  getAll: async (page = 0, size = 100): Promise<PageResponse<SessionRecord>> => {
+    const response = await api.get(`/sessions?page=${page}&size=${size}`);
     return response.data.data;
   },
 
   /** * LẤY DANH SÁCH BUỔI HỌC THEO THÁNG CỤ THỂ
    * @param {string} month - Định dạng tháng (Ví dụ: "2023-12")
-   * @returns {Promise<SessionRecord[]>}
+   * @returns {Promise<PageResponse<SessionRecord>>}
    */
-  getByMonth: async (month: string): Promise<SessionRecord[]> => {
-    const response = await api.get(`/sessions/month/${month}`);
+  getByMonth: async (month: string, page = 0, size = 100): Promise<PageResponse<SessionRecord>> => {
+    const response = await api.get(`/sessions/month/${month}?page=${page}&size=${size}`);
     return response.data.data;
   },
 
@@ -66,10 +67,10 @@ export const sessionsApi = {
   },
 
   /** * LẤY DANH SÁCH CÁC BUỔI HỌC CHƯA ĐƯỢC THANH TOÁN
-   * @returns {Promise<SessionRecord[]>}
+   * @returns {Promise<PageResponse<SessionRecord>>}
    */
-  getUnpaid: async (): Promise<SessionRecord[]> => {
-    const response = await api.get('/sessions/unpaid');
+  getUnpaid: async (page = 0, size = 100): Promise<PageResponse<SessionRecord>> => {
+    const response = await api.get(`/sessions/unpaid?page=${page}&size=${size}`);
     return response.data.data;
   },
 

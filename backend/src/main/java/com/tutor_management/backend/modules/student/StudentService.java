@@ -20,6 +20,9 @@ import com.tutor_management.backend.modules.parent.Parent;
 import com.tutor_management.backend.modules.parent.ParentRepository;
 import com.tutor_management.backend.modules.student.dto.request.StudentRequest;
 import com.tutor_management.backend.modules.student.dto.response.StudentResponse;
+import com.tutor_management.backend.modules.student.dto.response.StudentSummaryResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,6 +67,30 @@ public class StudentService {
         return students.stream()
                 .map(s -> convertToResponseOptimized(s, recordsMap.getOrDefault(s.getId(), Collections.emptyList()), usersMap.get(s.getId())))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Retrieves a paginated list of students with optimized summary data.
+     * Prevents loading full session histories for all students.
+     * 
+     * @param pageable Pagination configuration.
+     * @return A page of student summaries.
+     */
+    @Transactional(readOnly = true)
+    public Page<StudentSummaryResponse> getStudentsPaginated(Pageable pageable) {
+        Page<Student> studentPage = studentRepository.findAllWithParent(pageable);
+        if (studentPage.isEmpty()) return Page.empty();
+
+        List<Long> studentIds = studentPage.getContent().stream().map(Student::getId).toList();
+
+        // Optimized batch load for only totalUnpaid - avoid loading full SessionRecord Entities
+        Map<Long, Long> unpaidMap = sessionRecordRepository.sumTotalUnpaidByStudentIdIn(studentIds)
+                .stream().collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> (Long) row[1]
+                ));
+
+        return studentPage.map(student -> convertToSummaryResponse(student, unpaidMap.getOrDefault(student.getId(), 0L)));
     }
 
     /**
@@ -297,6 +324,23 @@ public class StudentService {
         }
 
         return response;
+    }
+
+    private StudentSummaryResponse convertToSummaryResponse(Student student, Long totalUnpaid) {
+        String lastActiveMonth = student.getLastActiveMonth();
+        Integer monthsLearned = calculateMonthsLearned(student.getStartMonth(), lastActiveMonth);
+
+        return StudentSummaryResponse.builder()
+                .id(student.getId())
+                .name(student.getName())
+                .phone(student.getPhone())
+                .schedule(student.getSchedule())
+                .pricePerHour(student.getPricePerHour())
+                .active(student.getActive())
+                .totalUnpaid(totalUnpaid)
+                .startMonth(student.getStartMonth())
+                .learningDuration(buildLearningDuration(student.getStartMonth(), monthsLearned))
+                .build();
     }
 
     private Integer calculateMonthsLearned(String start, String last) {

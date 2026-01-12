@@ -1,52 +1,28 @@
-# Calendar Module - Issues & Optimization
+# Calendar Management - Issues & Optimization
 
-## 🎯 Current Status
+## Performance Issues
+- [x] [P1-High] Calendar view initial load time
+  - Root cause: Fetching all sessions for the month without pre-fetching
+  - Status: FIXED with optimized caching and month pre-fetching in `useCalendarData`.
 
-**Module Optimization & Refactoring Completed!** The Calendar module has been modernized with:
-- ✅ **Performance:** Optimized re-renders via `useCallback` and `memo`. Ultra-fast 0.2s duration-based animations.
-- ✅ **Reliability:** Fixed critical data persistence bugs in feedback and document counting.
-- ✅ **UI/UX:** Improved mobile responsiveness, aligned skeletons, and added drag-and-drop rescheduling.
-- ✅ **Infrastructure:** Solidified React Query caching and API fetch limits.
+- [x] [P2-Medium] Optimize data fetching for calendar cells
+  - Status: FIXED with transition away from redundant state and improved prop drilling.
+
+## UX Issues
+- [x] [P1-High] Drag & drop fails on consecutive moves (Optimistic Locking)
+  - Symptom: "Dữ liệu đã bị thay đổi bởi người dùng khác" on 2nd drag.
+  - Root cause: Frontend state (session version) not updating correctly after first move.
+  - Status: FIXED.
+    1. Forced `DraggableSession` remount on version change (`key={id-version}`).
+    2. Updated `useDraggable` ID to include version (`id={session-id-version}`) to prevent ID collisions during `AnimatePresence` exit animations.
+
+## Technical Debt (Optional)
+- [x] Refactor long components in `features/calendar` to follow 50-line rule
+  - Status: Completed refactor of `CalendarView` and `CalendarHeader`.
 
 ---
 
-## 📋 Active Items
-
-- [ ] **No active items.** All reported issues have been resolved.
-
----
-
-## 📦 Archive: Completed Work
-
-### 🛡️ Bug Fixes (Resolved)
-- [x] [P0-Critical] **Document category count mismatch**
-  - **Issue:** Fetching only 100 docs caused incorrect counts in selection modal.
-  - **Fix:** Increased fetch limit to 2000 in `useLessonDetailModal.ts`.
-- [x] [P0-Critical] **Session comment/review not persisting**
-  - **Issue:** Feedback ID cross-session leaking.
-  - **Fix:** Explicitly reset `existingFeedbackId` and form state in `SmartFeedbackForm.tsx`.
-- [x] [P1-High] **Incorrect Vietnamese category names**
-  - **Fix:** Prioritized `categoryDisplayName` in Enum mapping.
-- [x] [P1-High] **LazyInitializationException in Feedback API**
-  - **Fix:** Added `@Transactional` and `@EntityGraph` to backend services.
-
-### ⚡ Performance & Optimization
-- [x] [P1-High] **Unnecessary Re-renders**
-  - **Action:** Memoized all handlers in `useCalendarView` and stabilized `CalendarGrid` props.
-- [x] [P1-High] **API Fetch Optimization**
-  - **Action:** Added 5-minute `staleTime` and implemented `keepPreviousData` for fluid navigation.
-- [x] [P1-High] **Optimized Modal Animation Speed**
-  - **Action:** Switched from sluggish spring to 0.2s ease-out transitions. Removed conflicting CSS transitions.
-
-### 🎨 UI/UX Improvements
-- [x] [P3-Low] **Drag-and-Drop Rescheduling**
-  - **Action:** Integrated `@dnd-kit` with premium visual feedback and optimistic updates.
-- [x] [P2-Medium] **Aligned Calendar Skeleton**
-  - **Issue:** Skeleton was stretched and misaligned.
-  - **Fix:** Unified layout classes (padding, rounded-corners) between `CalendarSkeleton` and `CalendarGrid`.
-- [x] [P2-Medium] **Mobile Responsiveness Overhaul**
-  - **Action:** Grid-based stacking for modals, flexible height, and compact mobile indicators.
-- [x] [P2-Medium] **Chronological Session Sorting**
-  - **Fix:** Implemented ascending sort by date and startTime in `ListView` and `MonthView`.
-- [x] [P1-High] **Feedback Header Overlap**
-  - **Fix:** Responsive stackable header for `SmartFeedbackForm`.
+## Completed Work (Archive)
+- [x] **[P1-High] Session editing layout scroll issue**: Fixed flexible container structure in `LessonDetailModal`.
+- [x] **[P1-High] AI Feedback Generator UI usability**: Redesigned with glassmorphism and improved layout.
+- [x] **[P2-Medium] AI Feedback selection feedback**: Enhanced badge styling and hover states.

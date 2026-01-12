@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import { PageResponse } from '@/lib/types';
 
 interface StudentDetailViewProps {
     studentSummary: TutorStudentSummaryResponse;
@@ -35,10 +36,11 @@ export const StudentDetailView: React.FC<StudentDetailViewProps> = ({
     onBack,
     onViewExercise
 }) => {
-    const { data: exercises = [], isLoading } = useQuery({
+    const { data: exercisesData, isLoading } = useQuery({
         queryKey: ['exercises', 'student', studentSummary.studentId],
-        queryFn: () => exerciseService.getAssignedByStudentId(studentSummary.studentId),
+        queryFn: () => exerciseService.getAssignedByStudentId(studentSummary.studentId, 0, 100),
     });
+    const exercises: ExerciseListItemResponse[] = (exercisesData as PageResponse<ExerciseListItemResponse>)?.content || [];
 
     // Grouping logic
     const pendingExercises = exercises.filter(ex => !ex.submissionStatus || ex.submissionStatus === 'PENDING');

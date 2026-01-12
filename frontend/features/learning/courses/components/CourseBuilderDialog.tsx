@@ -124,9 +124,14 @@ export function CourseBuilderDialog({
     const { watch, reset, setValue, getValues } = form;
     const selectedLessonIds = watch('lessonIds') || [];
 
+    const lessons = useMemo(() => {
+        if (!libraryLessons) return [];
+        return Array.isArray(libraryLessons) ? libraryLessons : (libraryLessons.content || []);
+    }, [libraryLessons]);
+
     const sortedSelectedLessons = useMemo(() => {
-        return selectedLessonIds.map(id => libraryLessons.find(l => l.id === id)).filter(Boolean);
-    }, [selectedLessonIds, libraryLessons]);
+        return selectedLessonIds.map(id => lessons.find(l => l.id === id)).filter(Boolean);
+    }, [selectedLessonIds, lessons]);
 
     const handleReorder = (newSortedLessons: any[]) => {
         const newIds = newSortedLessons.map(l => l.id);
@@ -183,10 +188,10 @@ export function CourseBuilderDialog({
     }, []);
 
     const filteredLessons = useMemo(() =>
-        libraryLessons.filter((lesson) =>
+        lessons.filter((lesson) =>
             lesson.title.toLowerCase().includes(searchQuery.toLowerCase())
         ),
-        [libraryLessons, searchQuery]
+        [lessons, searchQuery]
     );
 
     return (

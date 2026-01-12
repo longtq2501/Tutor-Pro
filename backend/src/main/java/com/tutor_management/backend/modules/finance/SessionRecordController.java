@@ -10,6 +10,8 @@ import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -31,16 +33,18 @@ public class SessionRecordController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<SessionRecordResponse>>> getAllRecords() {
-        log.info("Fetching all session records");
-        return ResponseEntity.ok(ApiResponse.success(sessionRecordService.getAllRecords()));
+    public ResponseEntity<ApiResponse<Page<SessionRecordResponse>>> getAllRecords(Pageable pageable) {
+        log.info("Fetching paged session records");
+        return ResponseEntity.ok(ApiResponse.success(sessionRecordService.getAllRecords(pageable)));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     @GetMapping("/month/{month}")
-    public ResponseEntity<ApiResponse<List<SessionRecordResponse>>> getRecordsByMonth(@PathVariable String month) {
-        log.info("Fetching session records for month: {}", month);
-        return ResponseEntity.ok(ApiResponse.success(sessionRecordService.getRecordsByMonth(month)));
+    public ResponseEntity<ApiResponse<Page<SessionRecordResponse>>> getRecordsByMonth(
+            @PathVariable String month,
+            Pageable pageable) {
+        log.info("Fetching paged session records for month: {}", month);
+        return ResponseEntity.ok(ApiResponse.success(sessionRecordService.getRecordsByMonth(month, pageable)));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
@@ -77,8 +81,8 @@ public class SessionRecordController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @GetMapping("/unpaid")
-    public ResponseEntity<ApiResponse<List<SessionRecordResponse>>> getAllUnpaidSessions() {
-        return ResponseEntity.ok(ApiResponse.success(sessionRecordService.getAllUnpaidSessions()));
+    public ResponseEntity<ApiResponse<Page<SessionRecordResponse>>> getAllUnpaidSessions(Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(sessionRecordService.getAllUnpaidSessions(pageable)));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
@@ -134,11 +138,11 @@ public class SessionRecordController {
         if (studentId != null && month != null) {
             sessions = sessionRecordService.getRecordsByStudentIdAndMonth(studentId, month);
         } else if (month != null) {
-            sessions = sessionRecordService.getRecordsByMonth(month);
+            sessions = sessionRecordService.getRecordsByMonth(month, Pageable.unpaged()).getContent();
         } else if (studentId != null) {
-            sessions = sessionRecordService.getRecordsByStudentId(studentId);
+            sessions = sessionRecordService.getRecordsByStudentId(studentId, Pageable.unpaged()).getContent();
         } else {
-            sessions = sessionRecordService.getAllRecords();
+            sessions = sessionRecordService.getAllRecords(Pageable.unpaged()).getContent();
         }
 
         try {

@@ -119,7 +119,11 @@ export function AdminLessonsTab() {
   const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { data: lessons = [], isLoading } = useAdminLessons();
+  const { data: lessonsData, isLoading } = useAdminLessons();
+  const lessons = useMemo(() => {
+    if (!lessonsData) return [];
+    return Array.isArray(lessonsData) ? lessonsData : (lessonsData.content || []);
+  }, [lessonsData]);
 
   // Calculate counts for dashboard
   const lessonCounts = useMemo(() => lessons.reduce((acc, lesson) => {
@@ -219,7 +223,7 @@ export function AdminLessonsTab() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedLessons.map((lesson) => (
+                    {paginatedLessons.map((lesson: any) => (
                       <AdminLessonRow key={lesson.id} lesson={lesson} onPreview={handlePreview} />
                     ))}
                   </TableBody>

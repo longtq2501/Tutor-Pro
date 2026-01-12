@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.time.LocalDateTime;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -39,12 +41,26 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     List<Student> findByActiveTrueWithParent();
 
     /**
+     * Paginated version of active student retrieval with parent fetching.
+     */
+    @Query(value = "SELECT s FROM Student s LEFT JOIN FETCH s.parent WHERE s.active = true ORDER BY s.createdAt DESC",
+           countQuery = "SELECT COUNT(s) FROM Student s WHERE s.active = true")
+    Page<Student> findByActiveTrueWithParent(Pageable pageable);
+
+    /**
      * Retrieves the complete student registry with parents eagerly fetched to avoid N+1 queries.
      */
     @Query("SELECT DISTINCT s FROM Student s " +
             "LEFT JOIN FETCH s.parent " +
             "ORDER BY s.createdAt DESC")
     List<Student> findAllWithParentOrderByCreatedAtDesc();
+
+    /**
+     * Paginated version of student retrieval with parent fetching.
+     */
+    @Query(value = "SELECT s FROM Student s LEFT JOIN FETCH s.parent ORDER BY s.createdAt DESC",
+           countQuery = "SELECT COUNT(s) FROM Student s")
+    Page<Student> findAllWithParent(Pageable pageable);
 
     /**
      * Counts the number of students enrolled within a specific time frame.

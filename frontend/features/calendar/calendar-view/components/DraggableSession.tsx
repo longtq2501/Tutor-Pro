@@ -20,7 +20,7 @@ export const DraggableSession = memo(({
     onContextMenu
 }: DraggableSessionProps) => {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-        id: `session-${session.id}`,
+        id: `session-${session.id}-${session.version}`,
         data: session,
     });
 

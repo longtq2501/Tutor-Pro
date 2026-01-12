@@ -67,23 +67,23 @@ export function UnassignStudentsDialog({
     queryFn: async () => {
       try {
         const result = await lessonLibraryApi.getAssignedStudents(lesson.id);
-        
+
         if (!result || result.length === 0) {
           return [];
         }
-        
+
         const firstItem = result[0];
-        
+
         // Nếu có studentId và studentName => StudentAssignmentDTO
         if ('studentId' in firstItem && 'studentName' in firstItem) {
-          const allStudents = await studentsApi.getAll();
-          const studentMap = new Map(allStudents.map(s => [s.id, s]));
-          
+          const allStudents = await studentsApi.getAll(0, 1000);
+          const studentMap = new Map(allStudents.content.map(s => [s.id, s]));
+
           return (result as StudentAssignmentDTO[])
             .map(assignment => {
               const student = studentMap.get(assignment.studentId);
               if (!student) return null;
-              
+
               return {
                 id: student.id,
                 name: student.name,
@@ -93,7 +93,7 @@ export function UnassignStudentsDialog({
             })
             .filter((s): s is StudentWithAssignment => s !== null);
         }
-        
+
         // Nếu có id và name => Student[] (API đã trả về students trực tiếp)
         if ('id' in firstItem && 'name' in firstItem) {
           return (result as any[]).map(student => ({
@@ -103,7 +103,7 @@ export function UnassignStudentsDialog({
             isAssigned: true,
           } as StudentWithAssignment));
         }
-        
+
         return [];
       } catch (err) {
         throw err;
@@ -122,8 +122,8 @@ export function UnassignStudentsDialog({
         description: `Đã thu hồi bài giảng từ ${selectedStudentIds.length} học sinh`,
       });
       queryClient.invalidateQueries({ queryKey: ['lesson-library'] });
-      queryClient.invalidateQueries({ 
-        queryKey: ['lesson-library-assigned-students', lesson.id] 
+      queryClient.invalidateQueries({
+        queryKey: ['lesson-library-assigned-students', lesson.id]
       });
       setSelectedStudentIds([]);
       setShowConfirmDialog(false);

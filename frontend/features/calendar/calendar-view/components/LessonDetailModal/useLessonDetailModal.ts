@@ -53,7 +53,8 @@ export function useLessonDetailModal({ session, onClose, onUpdate, onDelete, ini
         queryKey: ['admin-lesson-library'],
         queryFn: async () => {
             try {
-                return await lessonLibraryApi.getAll();
+                const response = await lessonLibraryApi.getAll();
+                return response.content;
             } catch (err) {
                 console.error("Failed to fetch lesson library", err);
                 return [];

@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Service for managing the lesson library and student assignments.
@@ -34,20 +36,18 @@ public class LessonLibraryService {
      * Retrieves all lessons in the library, including assignment metrics.
      */
     @Transactional(readOnly = true)
-    public List<LibraryLessonResponse> getAllLibraryLessons() {
-        return lessonRepository.findAll().stream()
-                .map(LibraryLessonResponse::fromEntity)
-                .collect(Collectors.toList());
+    public Page<LibraryLessonResponse> getAllLibraryLessons(Pageable pageable) {
+        return lessonRepository.findAll(pageable)
+                .map(LibraryLessonResponse::fromEntity);
     }
 
     /**
      * Retrieves only lessons that have not been assigned to any students (pure library items).
      */
     @Transactional(readOnly = true)
-    public List<LibraryLessonResponse> getUnassignedLessons() {
-        return lessonRepository.findByIsLibraryTrueOrderByCreatedAtDesc().stream()
-                .map(LibraryLessonResponse::fromEntity)
-                .collect(Collectors.toList());
+    public Page<LibraryLessonResponse> getUnassignedLessons(Pageable pageable) {
+        return lessonRepository.findByIsLibraryTrueOrderByCreatedAtDesc(pageable)
+                .map(LibraryLessonResponse::fromEntity);
     }
 
     /**

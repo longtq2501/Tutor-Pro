@@ -80,12 +80,12 @@ public interface ExerciseService {
     void assignToStudent(String exerciseId, String studentId, String tutorId, LocalDateTime deadline);
 
     /**
-     * Retrieves all assigned materials for a student, including their current progress/score.
+     * Retrieves assigned materials for a student with pagination support.
      */
-    List<ExerciseListItemResponse> listAssignedExercises(String studentId);
+    Page<ExerciseListItemResponse> listAssignedExercises(String studentId, Pageable pageable);
 
     /**
-     * Aggregates completion statistics for all students to power the Tutor Dashboard.
+     * Aggregates completion statistics for students with pagination support.
      */
-    List<TutorStudentSummaryResponse> getStudentSummaries();
+    Page<TutorStudentSummaryResponse> getStudentSummaries(Pageable pageable);
 }

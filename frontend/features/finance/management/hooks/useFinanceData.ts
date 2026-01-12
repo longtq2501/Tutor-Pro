@@ -2,6 +2,7 @@
 
 import { sessionsApi } from '@/lib/services';
 import type { SessionRecord } from '@/lib/types';
+import type { PageResponse } from '@/lib/types/common';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { useEffect, useMemo } from 'react';
@@ -15,20 +16,25 @@ export function useFinanceData() {
 
   const formattedMonth = useMemo(() => format(selectedDate, 'yyyy-MM'), [selectedDate]);
 
-  const fetchFn = async () => {
+  const fetchFn = async (): Promise<SessionRecord[]> => {
+    let response: PageResponse<SessionRecord>;
     if (viewMode === 'MONTHLY') {
-      return sessionsApi.getByMonth(formattedMonth);
+      response = await sessionsApi.getByMonth(formattedMonth);
     } else {
       // DEBT view
-      const data = await sessionsApi.getUnpaid();
-      // Filter strictly for unpaid logical items? 
-      // Consistent with useUnpaidSessions: COMPLETED or PENDING_PAYMENT
-      return data.filter((r: SessionRecord) => r.status === 'COMPLETED' || r.status === 'PENDING_PAYMENT');
+      response = await sessionsApi.getUnpaid();
     }
+
+    // Maintain existing filtering logic but handle paginated response
+    const content = response.content || [];
+    if (viewMode === 'DEBT') {
+      return content.filter((r: SessionRecord) => r.status === 'COMPLETED' || r.status === 'PENDING_PAYMENT');
+    }
+    return content;
   };
 
-  const queryKey = viewMode === 'MONTHLY' 
-    ? ['sessions', formattedMonth] 
+  const queryKey = viewMode === 'MONTHLY'
+    ? ['sessions', formattedMonth]
     : ['unpaid-sessions'];
 
   const {
@@ -43,18 +49,23 @@ export function useFinanceData() {
   });
 
   // Derived State: Filtering and Grouping
+  const records = useMemo((): SessionRecord[] => {
+    if (!rawRecords) return [];
+    return Array.isArray(rawRecords) ? rawRecords : ((rawRecords as any).content || []);
+  }, [rawRecords]);
+
   const filteredRecords = useMemo(() => {
-    if (!searchTerm.trim()) return rawRecords;
+    if (!searchTerm.trim()) return records;
     const term = searchTerm.toLowerCase();
-    
+
     // Helper to check safely
     const matches = (s?: string | null) => (s ?? '').toLowerCase().includes(term);
 
-    return rawRecords.filter((r: SessionRecord) => 
-      matches(r.studentName) || 
+    return records.filter((r: SessionRecord) =>
+      matches(r.studentName) ||
       matches(r.subject)
     );
-  }, [rawRecords, searchTerm]);
+  }, [records, searchTerm]);
 
   const allGroupedRecords = useMemo(() => {
     return groupSessionsByStudent(filteredRecords);
@@ -83,7 +94,7 @@ export function useFinanceData() {
 
     const promise = async () => {
       await sessionsApi.delete(id);
-      
+
       // Invalidate both potential keys to be safe
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['sessions'] }),
@@ -100,14 +111,14 @@ export function useFinanceData() {
   };
 
   const togglePayment = async (id: number) => {
-     // This logic is mainly for Monthly view single toggle
-     const promise = async () => {
-       await sessionsApi.togglePayment(id);
-       await queryClient.invalidateQueries({ queryKey: ['sessions'] });
-       await queryClient.invalidateQueries({ queryKey: ['unpaid-sessions'] });
-     };
+    // This logic is mainly for Monthly view single toggle
+    const promise = async () => {
+      await sessionsApi.togglePayment(id);
+      await queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      await queryClient.invalidateQueries({ queryKey: ['unpaid-sessions'] });
+    };
 
-     toast.promise(promise(), {
+    toast.promise(promise(), {
       loading: 'Đang cập nhật...',
       success: 'Đã cập nhật thanh toán',
       error: 'Lỗi cập nhật'
@@ -115,7 +126,7 @@ export function useFinanceData() {
   };
 
   return {
-    records: rawRecords,
+    records: records,
     filteredRecords,
     groupedRecords: paginatedGroupedRecords,
     loading,

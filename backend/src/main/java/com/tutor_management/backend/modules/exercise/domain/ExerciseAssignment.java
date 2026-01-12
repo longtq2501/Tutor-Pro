@@ -62,7 +62,7 @@ public class ExerciseAssignment {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default
-    private AssignmentStatus status = AssignmentStatus.ASSIGNED;
+    private AssignmentStatus status = AssignmentStatus.PENDING;
 
     @PrePersist
     protected void onCreate() {

@@ -12,76 +12,57 @@ interface OptimizedStudentGridProps {
     onViewDetails?: (student: Student) => void;
 }
 
-export function OptimizedStudentGrid({
-    students,
-    isLoading,
-    onViewSchedule,
-    onAddSession,
-    onEdit,
-    onViewDetails
-}: OptimizedStudentGridProps) {
-    const [visibleCount, setVisibleCount] = useState(6); // Show 6 initially
+function LoadingGrid() {
+    return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
+            {[...Array(6)].map((_, i) => <StudentCardSkeleton key={i} />)}
+        </div>
+    );
+}
+
+function EmptyState() {
+    return <div className="text-center py-10 text-muted-foreground">Không tìm thấy học sinh nào.</div>;
+}
+
+export function OptimizedStudentGrid(props: OptimizedStudentGridProps) {
+    const [visibleCount, setVisibleCount] = useState(6);
     const loadMoreRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        // Reset separate visible count when students list changes (e.g. search/filter)
-        setVisibleCount(6);
-    }, [students.length, students]); // Correct dependency for reset
+    useEffect(() => { setVisibleCount(6); }, [props.students, props.students.length]);
 
     useEffect(() => {
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (entries[0].isIntersecting && visibleCount < students.length) {
-                    setVisibleCount(prev => Math.min(prev + 6, students.length)); // Load 6 more
-                }
-            },
-            { rootMargin: '200px' }
-        );
+        const currentRef = loadMoreRef.current;
+        const total = props.students.length;
+        const obs = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && visibleCount < total) {
+                setVisibleCount(prev => Math.min(prev + 6, total));
+            }
+        }, { rootMargin: '200px' });
 
-        if (loadMoreRef.current) {
-            observer.observe(loadMoreRef.current);
-        }
+        if (currentRef) obs.observe(currentRef);
+        return () => obs.disconnect();
+    }, [visibleCount, props.students.length]);
 
-        return () => observer.disconnect();
-    }, [visibleCount, students.length]);
-
-    if (isLoading) {
-        return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
-                {[...Array(6)].map((_, i) => (
-                    <StudentCardSkeleton key={i} />
-                ))}
-            </div>
-        );
-    }
-
-    if (students.length === 0) {
-        return (
-            <div className="text-center py-10 text-muted-foreground">
-                Không tìm thấy học sinh nào.
-            </div>
-        );
-    }
+    if (props.isLoading) return <LoadingGrid />;
+    if (props.students.length === 0) return <EmptyState />;
 
     return (
         <>
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
-                {students.slice(0, visibleCount).map((student) => (
+                {props.students.slice(0, visibleCount).map((student) => (
                     <UnifiedStudentCard
                         key={student.id}
                         student={student}
-                        onViewSchedule={onViewSchedule}
-                        onAddSession={onAddSession}
-                        onEdit={onEdit}
-                        onViewDetails={onViewDetails}
+                        onViewSchedule={props.onViewSchedule}
+                        onAddSession={props.onAddSession}
+                        onEdit={props.onEdit}
+                        onViewDetails={props.onViewDetails}
                     />
                 ))}
             </div>
-
-            {/* Load More Trigger */}
-            {visibleCount < students.length && (
+            {visibleCount < props.students.length && (
                 <div ref={loadMoreRef} className="h-20 flex justify-center items-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
                 </div>
             )}
         </>

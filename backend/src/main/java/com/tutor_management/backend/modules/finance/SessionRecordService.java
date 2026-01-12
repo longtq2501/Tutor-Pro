@@ -23,6 +23,8 @@ import com.tutor_management.backend.modules.student.Student;
 import com.tutor_management.backend.modules.student.StudentRepository;
 import com.tutor_management.backend.modules.notification.event.SessionCreatedEvent;
 import com.tutor_management.backend.modules.notification.event.SessionRescheduledEvent;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import org.springframework.cache.annotation.CacheEvict;
 
@@ -55,10 +57,9 @@ public class SessionRecordService {
      * @return List of all session records in the system.
      */
     @Transactional(readOnly = true)
-    public List<SessionRecordResponse> getAllRecords() {
-        return sessionRecordRepository.findAllByOrderByCreatedAtDesc().stream()
-                .map(this::mapToListResponse)
-                .collect(Collectors.toList());
+    public Page<SessionRecordResponse> getAllRecords(Pageable pageable) {
+        return sessionRecordRepository.findAllByOrderByCreatedAtDesc(pageable)
+                .map(this::mapToListResponse);
     }
 
     /**
@@ -68,10 +69,9 @@ public class SessionRecordService {
      * @return List of session records for the specified month.
      */
     @Transactional(readOnly = true)
-    public List<SessionRecordResponse> getRecordsByMonth(String month) {
-        return sessionRecordRepository.findByMonthOrderByCreatedAtDesc(month).stream()
-                .map(this::mapToListResponse)
-                .collect(Collectors.toList());
+    public Page<SessionRecordResponse> getRecordsByMonth(String month, Pageable pageable) {
+        return sessionRecordRepository.findByMonthOrderByCreatedAtDesc(month, pageable)
+                .map(this::mapToListResponse);
     }
 
     /**
@@ -120,7 +120,7 @@ public class SessionRecordService {
                 .build();
 
         attachResources(record, r.getDocumentIds(), r.getLessonIds());
-        SessionRecord saved = sessionRecordRepository.save(record);
+        SessionRecord saved = sessionRecordRepository.saveAndFlush(record);
         
         publishCreatedEvent(saved);
         return mapToFullResponse(saved);
@@ -143,6 +143,7 @@ public class SessionRecordService {
         SessionRecord record = sessionRecordRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi buổi học"));
 
+        log.info("Checking version for Session {}: DB={}, Request={}", id, record.getVersion(), r.getVersion());
         checkVersion(record, r.getVersion());
 
         if (r.getMonth() != null) record.setMonth(r.getMonth());
@@ -166,7 +167,7 @@ public class SessionRecordService {
 
         attachResources(record, r.getDocumentIds(), r.getLessonIds());
 
-        SessionRecord updated = sessionRecordRepository.save(record);
+        SessionRecord updated = sessionRecordRepository.saveAndFlush(record);
         publishRescheduledEvent(updated);
         
         return mapToFullResponse(updated);
@@ -204,10 +205,9 @@ public class SessionRecordService {
      * @return List of unpaid session records.
      */
     @Transactional(readOnly = true)
-    public List<SessionRecordResponse> getAllUnpaidSessions() {
-        return sessionRecordRepository.findByPaidFalseOrderBySessionDateDesc().stream()
-                .map(this::mapToListResponse)
-                .collect(Collectors.toList());
+    public Page<SessionRecordResponse> getAllUnpaidSessions(Pageable pageable) {
+        return sessionRecordRepository.findByPaidFalseOrderBySessionDateDesc(pageable)
+                .map(this::mapToListResponse);
     }
 
     /**
@@ -233,7 +233,7 @@ public class SessionRecordService {
             record.setPaidAt(null);
         }
 
-        return mapToFullResponse(sessionRecordRepository.save(record));
+        return mapToFullResponse(sessionRecordRepository.saveAndFlush(record));
     }
 
     /**
@@ -282,10 +282,9 @@ public class SessionRecordService {
      * @return List of session records for the student.
      */
     @Transactional(readOnly = true)
-    public List<SessionRecordResponse> getRecordsByStudentId(Long studentId) {
-        return sessionRecordRepository.findByStudentIdOrderByCreatedAtDesc(studentId).stream()
-                .map(this::mapToListResponse)
-                .collect(Collectors.toList());
+    public Page<SessionRecordResponse> getRecordsByStudentId(Long studentId, Pageable pageable) {
+        return sessionRecordRepository.findByStudentIdOrderByCreatedAtDesc(studentId, pageable)
+                .map(this::mapToListResponse);
     }
 
     /**
@@ -332,7 +331,7 @@ public class SessionRecordService {
         statusTransitionValidator.validate(record.getStatus(), next);
         
         applyStatusChange(record, next);
-        SessionRecord updated = sessionRecordRepository.save(record);
+        SessionRecord updated = sessionRecordRepository.saveAndFlush(record);
         
         publishRescheduledEvent(updated);
         return mapToFullResponse(updated);

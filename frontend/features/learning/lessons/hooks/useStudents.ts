@@ -8,13 +8,18 @@ export const studentKeys = {
   detail: (id: number) => [...studentKeys.all, 'detail', id] as const,
 };
 
+import { Student } from '@/lib/types';
+
 /**
  * Hook để lấy danh sách tất cả học sinh
  */
 export const useStudents = () => {
-  return useQuery({
-    queryKey: studentKeys.lists(),
-    queryFn: studentsApi.getAll,
+  return useQuery<Student[]>({
+    queryKey: studentKeys.lists(),  
+    queryFn: async () => {
+      const data = await studentsApi.getAll(0, 1000);
+      return data.content;
+    },
   });
 };
 

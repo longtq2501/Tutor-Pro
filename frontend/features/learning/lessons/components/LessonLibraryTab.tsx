@@ -195,7 +195,11 @@ export function LessonLibraryTab() {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  const { data: lessons = [], isLoading } = useLessonLibrary();
+  const { data: lessonsData, isLoading } = useLessonLibrary();
+  const lessons = useMemo(() => {
+    if (!lessonsData) return [];
+    return Array.isArray(lessonsData) ? lessonsData : (lessonsData.content || []);
+  }, [lessonsData]);
   const { categories } = useLessonCategories();
 
   const createMutation = useCreateLibraryLesson();

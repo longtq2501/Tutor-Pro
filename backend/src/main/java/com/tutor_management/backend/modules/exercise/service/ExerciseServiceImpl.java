@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -156,7 +157,7 @@ public class ExerciseServiceImpl implements ExerciseService {
                         .exerciseId(exerciseId)
                         .studentId(studentId)
                         .assignedBy(tutorId)
-                        .status(AssignmentStatus.ASSIGNED)
+                        .status(AssignmentStatus.PENDING)
                         .build());
 
         // Update or set the specific deadline for this student
@@ -179,30 +180,46 @@ public class ExerciseServiceImpl implements ExerciseService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ExerciseListItemResponse> listAssignedExercises(String studentId) {
-        log.debug("Synthesizing assigned exercises view for student {}", studentId);
+    public Page<ExerciseListItemResponse> listAssignedExercises(String studentId, Pageable pageable) {
+        log.debug("Synthesizing assigned exercises view for student {} (page: {})", studentId, pageable.getPageNumber());
         
-        List<ExerciseAssignment> assignments = assignmentRepository.findByStudentId(studentId);
-        if (assignments.isEmpty()) return Collections.emptyList();
+        Page<ExerciseAssignment> assignmentsPage = assignmentRepository.findByStudentId(studentId, pageable);
+        if (assignmentsPage.isEmpty()) return Page.empty();
 
+        List<ExerciseAssignment> assignments = assignmentsPage.getContent();
         List<String> exerciseIds = assignments.stream()
                 .map(ExerciseAssignment::getExerciseId)
                 .collect(Collectors.toList());
 
         List<ExerciseListItemResponse> responses = exerciseRepository.findAllByIdOptimized(exerciseIds);
         
-        enrichWithStudentProgress(responses, studentId, assignments);
+        // Match order of assignmentsPage
+        Map<String, ExerciseListItemResponse> respMap = responses.stream()
+                .collect(Collectors.toMap(ExerciseListItemResponse::getId, r -> r));
+        
+        List<ExerciseListItemResponse> orderedResponses = assignments.stream()
+                .map(a -> respMap.get(a.getExerciseId()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
 
-        return responses;
+        enrichWithStudentProgress(orderedResponses, studentId, assignments);
+
+        return new PageImpl<>(orderedResponses, pageable, assignmentsPage.getTotalElements());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<TutorStudentSummaryResponse> getStudentSummaries() {
-        log.info("Aggregating student performance summaries for tutor dashboard");
+    public Page<TutorStudentSummaryResponse> getStudentSummaries(Pageable pageable) {
+        log.info("Aggregating student performance summaries for tutor dashboard (page: {})", pageable.getPageNumber());
         
-        var students = studentRepository.findByActiveTrueWithParent();
-        var rawStats = submissionRepository.countAllByStudentAndStatus();
+        var studentsPage = studentRepository.findByActiveTrueWithParent(pageable);
+        if (studentsPage.isEmpty()) return Page.empty();
+
+        List<String> studentIds = studentsPage.getContent().stream()
+                .map(s -> s.getId().toString())
+                .collect(Collectors.toList());
+
+        var rawStats = submissionRepository.countByStudentIdInAndStatus(studentIds);
         
         // Map stats by studentId
         Map<String, Map<SubmissionStatus, Integer>> statsMap = new HashMap<>();
@@ -214,7 +231,7 @@ public class ExerciseServiceImpl implements ExerciseService {
             statsMap.computeIfAbsent(studentId, k -> new HashMap<>()).put(status, count);
         }
         
-        return students.stream().map(student -> {
+        List<TutorStudentSummaryResponse> content = studentsPage.getContent().stream().map(student -> {
             String sId = student.getId().toString();
             var counts = statsMap.getOrDefault(sId, Collections.emptyMap());
             
@@ -227,13 +244,15 @@ public class ExerciseServiceImpl implements ExerciseService {
             return TutorStudentSummaryResponse.builder()
                     .studentId(sId)
                     .studentName(student.getName())
-                    .grade("N/A") // Can be updated if grade field is added to Student
+                    .grade("N/A") 
                     .pendingCount(pending)
                     .submittedCount(submitted)
                     .gradedCount(graded)
                     .totalAssigned(total)
                     .build();
         }).collect(Collectors.toList());
+
+        return new PageImpl<>(content, pageable, studentsPage.getTotalElements());
     }
 
     // --- Private Business Helpers ---
@@ -322,10 +341,18 @@ public class ExerciseServiceImpl implements ExerciseService {
             if (sub != null) {
                 log.info("Matched submission {} (status: {}) for exercise {}", sub.getId(), sub.getStatus(), resp.getId());
                 resp.setSubmissionId(sub.getId());
-                resp.setSubmissionStatus(sub.getStatus().name());
+                
+                // Add Overdue logic
+                String internalStatus = sub.getStatus().name();
+                if (sub.getStatus() == SubmissionStatus.PENDING && resp.getDeadline() != null && resp.getDeadline().isBefore(LocalDateTime.now())) {
+                    internalStatus = "OVERDUE";
+                }
+                
+                resp.setSubmissionStatus(internalStatus);
                 resp.setStudentTotalScore(sub.getTotalScore());
             } else {
                 log.info("No matching submission found for exercise {}. Defaulting to PENDING.", resp.getId());
+                resp.setSubmissionStatus("PENDING");
             }
         });
     }

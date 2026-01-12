@@ -130,15 +130,13 @@ public class ExerciseController {
         return ResponseEntity.ok(ApiResponse.success("Đã giao bài tập cho học sinh thành công", null));
     }
     
-    /**
-     * Personalized view for the authenticated student's assigned assessments.
-     */
     @GetMapping("/assigned")
     @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN', 'TUTOR')")
-    public ResponseEntity<ApiResponse<List<ExerciseListItemResponse>>> listAssignedExercises(
-            @AuthenticationPrincipal User user) {
-        log.debug("Reading assigned materials for authenticated student {}", user.getEmail());
-        List<ExerciseListItemResponse> exercises = exerciseService.listAssignedExercises(user.getId().toString());
+    public ResponseEntity<ApiResponse<Page<ExerciseListItemResponse>>> listAssignedExercises(
+            @AuthenticationPrincipal User user,
+            @PageableDefault(size = 10, sort = "assignedAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
+        log.debug("Reading assigned materials for authenticated student {} (page: {})", user.getEmail(), pageable.getPageNumber());
+        Page<ExerciseListItemResponse> exercises = exerciseService.listAssignedExercises(user.getId().toString(), pageable);
         return ResponseEntity.ok(ApiResponse.success(exercises));
     }
     /**
@@ -146,10 +144,11 @@ public class ExerciseController {
      */
     @GetMapping("/assigned/{studentId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
-    public ResponseEntity<ApiResponse<List<ExerciseListItemResponse>>> listStudentAssignedExercises(
-            @PathVariable String studentId) {
-        log.debug("Staff reading assigned materials for student {}", studentId);
-        List<ExerciseListItemResponse> exercises = exerciseService.listAssignedExercises(studentId);
+    public ResponseEntity<ApiResponse<Page<ExerciseListItemResponse>>> listStudentAssignedExercises(
+            @PathVariable String studentId,
+            @PageableDefault(size = 10, sort = "assignedAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
+        log.debug("Staff reading assigned materials for student {} (page: {})", studentId, pageable.getPageNumber());
+        Page<ExerciseListItemResponse> exercises = exerciseService.listAssignedExercises(studentId, pageable);
         return ResponseEntity.ok(ApiResponse.success(exercises));
     }
 }

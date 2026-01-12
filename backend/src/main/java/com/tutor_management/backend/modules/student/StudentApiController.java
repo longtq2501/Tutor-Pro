@@ -7,6 +7,8 @@ import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.finance.SessionRecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -45,16 +47,18 @@ public class StudentApiController {
      * Optionally filtered by month (YYYY-MM).
      */
     @GetMapping("/sessions")
-    public ResponseEntity<ApiResponse<List<SessionRecordResponse>>> getMySessions(
+    public ResponseEntity<ApiResponse<Object>> getMySessions(
             @AuthenticationPrincipal User user,
-            @RequestParam(required = false) String month
+            @RequestParam(required = false) String month,
+            Pageable pageable
     ) {
         ensureStudentLinked(user);
-        List<SessionRecordResponse> sessions = (month != null && !month.isEmpty()) ?
-                sessionRecordService.getRecordsByStudentIdAndMonth(user.getStudentId(), month) :
-                sessionRecordService.getRecordsByStudentId(user.getStudentId());
-        
-        return ResponseEntity.ok(ApiResponse.success(sessions));
+        if (month != null && !month.isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.success(
+                    sessionRecordService.getRecordsByStudentIdAndMonth(user.getStudentId(), month)));
+        }
+        return ResponseEntity.ok(ApiResponse.success(
+                sessionRecordService.getRecordsByStudentId(user.getStudentId(), pageable)));
     }
 
     /**

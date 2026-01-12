@@ -1,5 +1,5 @@
 import api from './axios-instance';
-import type { ApiResponse } from '../types';
+import type { ApiResponse, PageResponse } from '../types';
 import type {
   LessonDTO,
   LessonLibraryDTO,
@@ -20,8 +20,8 @@ export const lessonLibraryApi = {
    * GET /api/admin/lesson-library
    * @returns {Promise<LessonLibraryDTO[]>} Danh sách bài giảng trong kho
    */
-  getAll: async (): Promise<LessonLibraryDTO[]> => {
-    const response = await api.get<ApiResponse<LessonLibraryDTO[]>>(
+  getAll: async (): Promise<PageResponse<LessonLibraryDTO>> => {
+    const response = await api.get<ApiResponse<PageResponse<LessonLibraryDTO>>>(
       '/admin/lesson-library'
     );
     return response.data.data;
@@ -32,8 +32,8 @@ export const lessonLibraryApi = {
    * GET /api/admin/lesson-library/unassigned
    * @returns {Promise<LessonLibraryDTO[]>} Danh sách bài giảng chưa giao
    */
-  getUnassigned: async (): Promise<LessonLibraryDTO[]> => {
-    const response = await api.get<ApiResponse<LessonLibraryDTO[]>>(
+  getUnassigned: async (): Promise<PageResponse<LessonLibraryDTO>> => {
+    const response = await api.get<ApiResponse<PageResponse<LessonLibraryDTO>>>(
       '/admin/lesson-library/unassigned'
     );
     return response.data.data;
@@ -135,8 +135,8 @@ export const adminLessonsApi = {
    * GET /api/admin/lessons
    * @returns {Promise<LessonDTO[]>} Danh sách bài giảng
    */
-  getAll: async (): Promise<LessonDTO[]> => {
-    const response = await api.get<ApiResponse<LessonDTO[]>>('/admin/lessons');
+  getAll: async (): Promise<PageResponse<LessonDTO>> => {
+    const response = await api.get<ApiResponse<PageResponse<LessonDTO>>>('/admin/lessons');
     return response.data.data;
   },
 
@@ -159,8 +159,8 @@ export const adminLessonsApi = {
    * @param {number} studentId - ID học sinh
    * @returns {Promise<LessonDTO[]>} Danh sách bài giảng của học sinh
    */
-  getByStudent: async (studentId: number): Promise<LessonDTO[]> => {
-    const response = await api.get<ApiResponse<LessonDTO[]>>(
+  getByStudent: async (studentId: number): Promise<PageResponse<LessonDTO>> => {
+    const response = await api.get<ApiResponse<PageResponse<LessonDTO>>>(
       `/admin/lessons/student/${studentId}`
     );
     return response.data.data;

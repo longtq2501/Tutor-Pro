@@ -81,16 +81,18 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
 
                 {/* Main Content */}
                 <div className={cn(
-                    "flex-1 w-full overflow-y-auto lg:overflow-hidden",
-                    isTaughtOrPaid ? "flex flex-col lg:grid lg:grid-cols-12" : ""
+                    "flex-1 w-full overflow-hidden flex flex-col lg:flex-row",
+                    isTaughtOrPaid ? "" : ""
                 )}>
 
                     {/* LEFT COLUMN */}
                     <div className={cn(
-                        "flex flex-col bg-background shrink-0",
-                        isTaughtOrPaid ? "lg:h-full lg:col-span-4 border-b lg:border-b-0 lg:border-r border-border/60" : "w-full h-full"
+                        "flex flex-col bg-background min-h-0",
+                        isTaughtOrPaid
+                            ? "lg:h-full lg:w-1/3 border-b lg:border-b-0 lg:border-r border-border/60"
+                            : "w-full"
                     )}>
-                        <div className="p-4 sm:p-6 flex-1 overflow-y-auto no-scrollbar space-y-6">
+                        <div className="flex-1 overflow-y-auto no-scrollbar p-4 sm:p-6 space-y-6">
                             <StudentCard session={localSession} />
 
                             {mode === 'view' ? (
@@ -132,14 +134,12 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
 
                     {/* RIGHT COLUMN */}
                     {isTaughtOrPaid && (
-                        <div className="lg:col-span-8 bg-muted/5 flex flex-col min-h-[500px] lg:h-full lg:overflow-hidden">
-                            <div className="flex-1 flex flex-col lg:overflow-hidden">
-                                <SmartFeedbackForm
-                                    sessionRecordId={localSession.id}
-                                    studentId={localSession.studentId}
-                                    studentName={localSession.studentName}
-                                />
-                            </div>
+                        <div className="flex-1 bg-muted/5 flex flex-col min-h-0 lg:h-full overflow-y-auto lg:overflow-hidden">
+                            <SmartFeedbackForm
+                                sessionRecordId={localSession.id}
+                                studentId={localSession.studentId}
+                                studentName={localSession.studentName}
+                            />
                         </div>
                     )}
                 </div>

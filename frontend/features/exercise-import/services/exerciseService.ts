@@ -77,24 +77,24 @@ export const exerciseService = {
     /**
      * Get exercises assigned to the current student
      */
-    getAssigned: async (): Promise<ExerciseListItemResponse[]> => {
-        const response = await api.get<ApiResponse<ExerciseListItemResponse[]>>('/exercises/assigned');
+    getAssigned: async (page = 0, size = 10): Promise<PageResponse<ExerciseListItemResponse>> => {
+        const response = await api.get<ApiResponse<PageResponse<ExerciseListItemResponse>>>('/exercises/assigned', { params: { page, size } });
         return response.data.data;
     },
 
     /**
      * Get student summary list for tutor dashboard
      */
-    getTutorStudentSummaries: async (): Promise<TutorStudentSummaryResponse[]> => {
-        const response = await api.get<ApiResponse<TutorStudentSummaryResponse[]>>('/tutor/dashboard/students');
+    getTutorStudentSummaries: async (page = 0, size = 10): Promise<PageResponse<TutorStudentSummaryResponse>> => {
+        const response = await api.get<ApiResponse<PageResponse<TutorStudentSummaryResponse>>>('/tutor/dashboard/students', { params: { page, size } });
         return response.data.data;
     },
 
     /**
      * Get exercises assigned to a specific student (For Tutors/Admins)
      */
-    getAssignedByStudentId: async (studentId: string): Promise<ExerciseListItemResponse[]> => {
-        const response = await api.get<ApiResponse<ExerciseListItemResponse[]>>(`/exercises/assigned/${studentId}`);
+    getAssignedByStudentId: async (studentId: string, page = 0, size = 10): Promise<PageResponse<ExerciseListItemResponse>> => {
+        const response = await api.get<ApiResponse<PageResponse<ExerciseListItemResponse>>>(`/exercises/assigned/${studentId}`, { params: { page, size } });
         return response.data.data;
     },
 };

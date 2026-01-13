@@ -287,7 +287,7 @@ docker-compose up -d
 **Author:** Tôn Quỳnh Long  
 **Email:** [tonquynhlong05@gmail.com]  
 **LinkedIn:** [Your LinkedIn Profile]  
-**GitHub:** [[Your GitHub Profile](https://github.com/longtq2501)]
+**GitHub:** [[My Github Profile](https://github.com/longtq2501)]
 
 ---
 

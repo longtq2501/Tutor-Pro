@@ -73,7 +73,7 @@ public class LessonLibraryService {
      */
     @CacheEvict(value = "lessons", allEntries = true)
     public void assignLessonToStudents(Long lessonId, List<Long> studentIds, String assignedBy) {
-        Lesson lesson = lessonRepository.findById(lessonId)
+        Lesson lesson = lessonRepository.findByIdWithDetails(lessonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài giảng."));
 
         List<Student> students = studentRepository.findAllById(studentIds);
@@ -107,7 +107,7 @@ public class LessonLibraryService {
         }
 
         if (assignmentRepository.countByLessonId(lessonId) == 0) {
-            Lesson lesson = lessonRepository.findById(lessonId).orElse(null);
+            Lesson lesson = lessonRepository.findByIdWithDetails(lessonId).orElse(null);
             if (lesson != null) {
                 lesson.markAsLibrary();
                 lessonRepository.save(lesson);
@@ -130,7 +130,7 @@ public class LessonLibraryService {
      */
     @CacheEvict(value = "lessons", allEntries = true)
     public void deleteLibraryLesson(Long lessonId) {
-        Lesson lesson = lessonRepository.findById(lessonId)
+        Lesson lesson = lessonRepository.findByIdWithDetails(lessonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài giảng."));
         lessonRepository.delete(lesson);
     }

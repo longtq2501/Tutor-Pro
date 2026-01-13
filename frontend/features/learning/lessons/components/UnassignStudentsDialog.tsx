@@ -37,6 +37,7 @@ import { lessonLibraryApi } from '@/lib/services';
 import { studentsApi } from '@/lib/services';
 import type { LessonLibraryDTO } from '../types';
 import type { StudentAssignmentDTO } from '../types';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface UnassignStudentsDialogProps {
   open: boolean;
@@ -49,6 +50,68 @@ interface StudentWithAssignment {
   name: string;
   phone: string | null;
   isAssigned: boolean;
+}
+
+interface SelectionToolbarProps {
+  selectedCount: number;
+  totalCount: number;
+  onSelectAll: () => void;
+  onClearSelection: () => void;
+}
+
+/**
+ * Sticky selection toolbar that remains visible during scroll.
+ * Displays selection count and bulk action controls.
+ * Animates in/out when selections change.
+ */
+function SelectionToolbar({
+  selectedCount,
+  totalCount,
+  onSelectAll,
+  onClearSelection,
+}: SelectionToolbarProps) {
+  if (selectedCount === 0) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: 100, opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="absolute bottom-20 left-4 right-4 z-10"
+      >
+        <div className="bg-primary text-primary-foreground p-3 rounded-lg shadow-lg flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-primary-foreground/20 flex items-center justify-center font-bold text-sm">
+              {selectedCount}
+            </div>
+            <span className="text-sm font-medium">
+              Đã chọn {selectedCount}/{totalCount}
+            </span>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onClearSelection}
+              className="h-8"
+            >
+              Bỏ chọn
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onSelectAll}
+              className="h-8"
+            >
+              {selectedCount === totalCount ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  );
 }
 
 export function UnassignStudentsDialog({
@@ -210,43 +273,16 @@ export function UnassignStudentsDialog({
               </p>
             </div>
           ) : (
-            <>
+            <div className="space-y-4 relative">
               {/* Search bar */}
-              <div className="space-y-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    placeholder="Tìm kiếm học sinh..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-
-                {/* Stats */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary">
-                      Đã giao: {assignedStudents.length} học sinh
-                    </Badge>
-                    {selectedStudentIds.length > 0 && (
-                      <Badge variant="destructive">
-                        Đã chọn: {selectedStudentIds.length}
-                      </Badge>
-                    )}
-                  </div>
-                  {filteredStudents.length > 0 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleSelectAll}
-                    >
-                      {selectedStudentIds.length === filteredStudents.length
-                        ? 'Bỏ chọn tất cả'
-                        : 'Chọn tất cả'}
-                    </Button>
-                  )}
-                </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Tìm kiếm học sinh..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
               </div>
 
               {/* Student list */}
@@ -265,7 +301,7 @@ export function UnassignStudentsDialog({
                   </p>
                 </div>
               ) : (
-                <ScrollArea className="h-[300px] rounded-md border">
+                <ScrollArea className="h-[350px] rounded-md border">
                   <div className="p-4 space-y-2">
                     {filteredStudents.map((student) => (
                       <div
@@ -293,7 +329,15 @@ export function UnassignStudentsDialog({
                   </div>
                 </ScrollArea>
               )}
-            </>
+
+              {/* Sticky selection toolbar */}
+              <SelectionToolbar
+                selectedCount={selectedStudentIds.length}
+                totalCount={filteredStudents.length}
+                onSelectAll={handleSelectAll}
+                onClearSelection={() => setSelectedStudentIds([])}
+              />
+            </div>
           )}
 
           <DialogFooter>

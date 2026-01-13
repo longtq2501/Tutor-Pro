@@ -1,5 +1,3 @@
-'use client';
-
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { BookOpen, Info, Play } from 'lucide-react';
@@ -12,6 +10,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import VideoPlayer from '@/components/ui/video-player';
 
 interface LessonDetailViewProps {
   lessonId: number;
@@ -149,21 +148,9 @@ export default function LessonDetailView({ lessonId, onClose, isPreview = false 
             </div>
 
             <div className="flex-1 p-6 space-y-8">
-              {/* Video Player Section */}
+              {/* Enhanced Video Player Section */}
               {lesson.videoUrl ? (
-                <div className="group relative rounded-2xl overflow-hidden bg-black shadow-2xl ring-1 ring-white/10">
-                  <div className="aspect-video">
-                    <video
-                      src={lesson.videoUrl}
-                      controls
-                      controlsList="nodownload"
-                      className="w-full h-full object-contain"
-                      poster={lesson.thumbnailUrl}
-                    >
-                      Trình duyệt của bạn không hỗ trợ phát video.
-                    </video>
-                  </div>
-                </div>
+                <VideoPlayer src={lesson.videoUrl} poster={lesson.thumbnailUrl} />
               ) : (
                 <div className="aspect-video bg-muted/20 rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-primary/20 group hover:border-primary/40 transition-colors">
                   <div className="text-center space-y-3">

@@ -26,26 +26,29 @@ export function AdminLessonManager() {
   const { data: courses = [] } = useAdminCourses();
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header with Motion animate */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-3"
-      >
-        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground/80 to-foreground/60">
-          Quản Lý Bài Giảng
-        </h1>
-        <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">
-          Nền tảng quản lý kho học liệu và xây dựng lộ trình học tập chuyên nghiệp cho giáo viên.
-        </p>
-      </motion.div>
+    // Responsive Layout: 
+    // - Desktop (lg): Fixed height (screen - header), no window scroll
+    <div className="flex flex-col h-[calc(100vh-7rem)] lg:overflow-hidden">
 
-      <Tabs defaultValue="library" className="w-full">
-        <div className="border-b border-border/40 pb-px mb-8">
-          <TabsList className="h-auto p-0 bg-transparent gap-8 overflow-x-auto no-scrollbar justify-start w-full">
+      {/* Header: Padding reduced for compact desktop view */}
+      <div className="flex-none p-4 lg:px-6 lg:py-3 space-y-2 lg:space-y-3">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-1"
+        >
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground/80 to-foreground/60">
+            Quản Lý Bài Giảng
+          </h1>
+          <p className="text-xs sm:text-sm lg:text-base text-muted-foreground leading-relaxed line-clamp-1 lg:line-clamp-none">
+            Nền tảng quản lý kho học liệu và xây dựng lộ trình học tập chuyên nghiệp cho giáo viên.
+          </p>
+        </motion.div>
+      </div>
 
-
+      <Tabs defaultValue="library" className="flex flex-col flex-1 min-h-0">
+        <div className="flex-none px-4 sm:px-6 lg:px-8 border-b border-border/40">
+          <TabsList className="h-auto p-0 bg-transparent gap-6 lg:gap-8 overflow-x-auto no-scrollbar justify-start w-full">
             <TabsTrigger
               value="library"
               className="relative h-11 rounded-none border-b-2 border-transparent bg-transparent px-2 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none"
@@ -74,21 +77,29 @@ export function AdminLessonManager() {
           </TabsList>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-        >
-
-
-          <TabsContent value="library" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-            <LessonLibraryTab />
+        <div className="flex-1 lg:overflow-hidden relative">
+          <TabsContent value="library" className="h-full mt-0 focus-visible:outline-none focus-visible:ring-0">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="h-full lg:overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6"
+            >
+              <LessonLibraryTab />
+            </motion.div>
           </TabsContent>
 
-          <TabsContent value="courses" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-            <CourseManagementTab />
+          <TabsContent value="courses" className="h-full mt-0 focus-visible:outline-none focus-visible:ring-0">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="h-full lg:overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6"
+            >
+              <CourseManagementTab />
+            </motion.div>
           </TabsContent>
-        </motion.div>
+        </div>
       </Tabs>
     </div>
   );

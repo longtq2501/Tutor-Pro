@@ -69,7 +69,7 @@ import { LessonForm } from './LessonForm';
 import { PremiumCategoryCard } from './PremiumCategoryCard';
 import { PremiumLessonCard } from './PremiumLessonCard';
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 8; // Compact view: 8 items per page
 
 const LessonLibraryRow = memo(({
   lesson,
@@ -499,7 +499,7 @@ export function LessonLibraryTab() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
                 >
                   {paginatedLessons.map((lesson, idx) => (
                     <motion.div

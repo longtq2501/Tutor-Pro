@@ -178,6 +178,21 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="AdminLessonServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="backend" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.tutor_management.backend.modules.lesson.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.tutor_management.backend.modules.lesson" />
+      <option name="MAIN_CLASS_NAME" value="com.tutor_management.backend.modules.lesson.AdminLessonServiceTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="BackendApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
       <module name="backend" />
@@ -188,6 +203,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.AdminLessonServiceTest" />
         <item itemvalue="Application.BackendApplication" />
       </list>
     </recent_temporary>

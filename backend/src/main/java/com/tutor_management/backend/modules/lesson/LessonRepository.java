@@ -63,4 +63,18 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
      * @return Page of library lessons.
      */
     org.springframework.data.domain.Page<Lesson> findByIsLibraryTrueOrderByCreatedAtDesc(org.springframework.data.domain.Pageable pageable);
+
+    /**
+     * Retrieves a lesson by ID with all associated collections eagerly fetched.
+     * Uses JOIN FETCH to prevent N+1 queries when accessing images, resources, and category.
+     * 
+     * @param id The lesson ID
+     * @return Optional containing the lesson with initialized collections
+     */
+    @Query("SELECT DISTINCT l FROM Lesson l " +
+           "LEFT JOIN FETCH l.images " +
+           "LEFT JOIN FETCH l.resources " +
+           "LEFT JOIN FETCH l.category " +
+           "WHERE l.id = :id")
+    java.util.Optional<Lesson> findByIdWithDetails(@org.springframework.data.repository.query.Param("id") Long id);
 }

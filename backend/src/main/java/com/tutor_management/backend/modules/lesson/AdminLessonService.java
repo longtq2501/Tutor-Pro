@@ -77,10 +77,11 @@ public class AdminLessonService {
 
     /**
      * Fetches details for a single lesson record.
+     * Uses optimized query to eagerly fetch collections and prevent N+1 queries.
      */
     @Transactional(readOnly = true)
     public AdminLessonResponse getLessonById(Long id) {
-        return lessonRepository.findById(id)
+        return lessonRepository.findByIdWithDetails(id)
                 .map(AdminLessonResponse::fromEntity)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài giảng với ID: " + id));
     }
@@ -92,7 +93,7 @@ public class AdminLessonService {
     @CacheEvict(value = "lessons", allEntries = true)
     @Transactional
     public AdminLessonResponse updateLesson(Long id, CreateLessonRequest request) {
-        Lesson lesson = lessonRepository.findById(id)
+        Lesson lesson = lessonRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài giảng ID: " + id));
 
         applyUpdateToLesson(lesson, request);
@@ -106,7 +107,7 @@ public class AdminLessonService {
     @CacheEvict(value = "lessons", allEntries = true)
     @Transactional
     public void deleteLesson(Long id) {
-        Lesson lesson = lessonRepository.findById(id)
+        Lesson lesson = lessonRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài giảng với ID: " + id));
 
         int count = lesson.getAssignedStudentCount();
@@ -122,7 +123,7 @@ public class AdminLessonService {
     @CacheEvict(value = "lessons", allEntries = true)
     @Transactional
     public AdminLessonResponse togglePublish(Long id) {
-        Lesson lesson = lessonRepository.findById(id)
+        Lesson lesson = lessonRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài giảng với ID: " + id));
 
         if (lesson.getIsPublished()) lesson.unpublish();

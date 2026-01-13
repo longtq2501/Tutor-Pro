@@ -26,17 +26,17 @@ export const PremiumCategoryCard = memo(({
 }: PremiumCategoryCardProps) => {
     return (
         <motion.button
-            whileHover={{ scale: 1.02, y: -2 }}
+            whileHover={{ scale: 1.02, y: -1 }}
             whileTap={{ scale: 0.98 }}
             onClick={onClick}
             className={cn(
                 "group relative overflow-hidden",
-                "p-6 rounded-2xl border-2 text-left w-full h-full",
+                "flex items-center gap-3 px-3 py-2 rounded-lg border text-left w-full h-16", // Horizontal Layout, Fixed Height
                 "transition-all duration-300",
-                "will-change-transform contain-layout", // GPU Acceleration
+                "will-change-transform contain-layout",
                 isActive
-                    ? "border-primary bg-primary/5 shadow-xl shadow-primary/10"
-                    : "border-border hover:border-primary/50 bg-card shadow-sm hover:shadow-md"
+                    ? "border-primary bg-primary/5 shadow-md shadow-primary/5"
+                    : "border-border hover:border-primary/50 bg-card shadow-sm hover:shadow"
             )}
         >
             {/* Dynamic Gradient Background Overlay */}
@@ -46,56 +46,48 @@ export const PremiumCategoryCard = memo(({
                 gradient
             )} />
 
-            {/* Icon Section */}
-            <div className="relative flex items-start justify-between mb-5">
-                <div className={cn(
-                    "w-14 h-14 rounded-2xl flex items-center justify-center",
-                    "bg-gradient-to-br shadow-lg transition-all duration-500",
-                    "group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-primary/20",
-                    gradient,
-                    "text-white"
-                )}>
-                    {icon || <Layers className="w-7 h-7" />}
-                </div>
-
-                {isActive && (
-                    <motion.div
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg border-2 border-background"
-                    >
-                        <Check className="w-4 h-4 stroke-[3]" />
-                    </motion.div>
-                )}
+            {/* Icon Section - Compact */}
+            <div className={cn(
+                "w-10 h-10 rounded-md flex items-center justify-center shrink-0",
+                "bg-gradient-to-br shadow-sm transition-all duration-500",
+                "group-hover:scale-110 group-hover:rotate-3",
+                gradient,
+                "text-white"
+            )}>
+                {icon || <Layers className="w-5 h-5" />}
             </div>
 
-            {/* Content */}
-            <div className="relative space-y-1.5">
-                <h4 className="font-bold text-lg text-foreground tracking-tight group-hover:text-primary transition-colors duration-300">
+            {/* Content - Side by Side */}
+            <div className="flex-1 min-w-0 flex flex-col justify-center">
+                <h4 className="font-bold text-sm text-foreground tracking-tight group-hover:text-primary transition-colors duration-300 truncate">
                     {title}
                 </h4>
-                <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-black tabular-nums tracking-tighter">
+                <div className="flex items-center gap-1.5 opacity-80">
+                    <span className="text-xs font-bold tabular-nums">
                         {count}
                     </span>
-                    <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                        bài giảng
+                    <span className="text-[10px] uppercase tracking-wider">
+                        bài
                     </span>
                 </div>
             </div>
 
-            {/* Decorative Orbs */}
-            <div className={cn(
-                "absolute -right-8 -bottom-8 w-32 h-32 rounded-full",
-                "bg-gradient-to-br opacity-5 blur-3xl transition-all duration-700",
-                "group-hover:opacity-20 group-hover:scale-150",
-                gradient
-            )} />
+            {/* Selection Indicator */}
+            {isActive && (
+                <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-sm shrink-0"
+                >
+                    <Check className="w-3 h-3 stroke-[3]" />
+                </motion.div>
+            )}
 
+            {/* Decorative Orbs - Minimized */}
             <div className={cn(
-                "absolute -left-12 -top-12 w-24 h-24 rounded-full",
-                "bg-gradient-to-br opacity-0 blur-2xl transition-all duration-700",
-                "group-hover:opacity-10 group-hover:translate-x-4 group-hover:translate-y-4",
+                "absolute -right-4 -bottom-4 w-12 h-12 rounded-full",
+                "bg-gradient-to-br opacity-5 blur-xl transition-all duration-700",
+                "group-hover:opacity-20",
                 gradient
             )} />
         </motion.button>

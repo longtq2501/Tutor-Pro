@@ -2,6 +2,8 @@ package com.tutor_management.backend.modules.lesson;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.tutor_management.backend.modules.finance.SessionRecordRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -36,6 +38,7 @@ public class LessonService {
     private final LessonAssignmentRepository assignmentRepository;
     private final StudentRepository studentRepository;
     private final CourseAssignmentService courseAssignmentService;
+    private final SessionRecordRepository sessionRecordRepository;
 
     /**
      * Retrieves all lessons assigned to a specific student.
@@ -53,16 +56,31 @@ public class LessonService {
 
     /**
      * Retrieves a single lesson assignment for a student.
-     * Validates that the lesson is officially assigned to the student.
+     * Validates that the lesson is officially assigned to the student OR linked to a session.
      */
     @Cacheable(value = "lessons", key = "'lesson-' + #lessonId + '-student-' + #studentId")
     @Transactional(readOnly = true)
     public LessonResponse getLessonById(Long lessonId, Long studentId) {
-        LessonAssignment assignment = assignmentRepository.findByLessonIdAndStudentId(lessonId, studentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Bài học không tồn tại hoặc chưa được giao cho bạn."));
+        // 1. Try to find explicit homework assignment (Primary access)
+        java.util.Optional<LessonAssignment> assignmentOpt = assignmentRepository.findByLessonIdAndStudentId(lessonId, studentId);
+        
+        if (assignmentOpt.isPresent()) {
+            LessonAssignment assignment = assignmentOpt.get();
+            initializeMedia(assignment.getLesson());
+            return LessonResponse.fromEntity(assignment.getLesson(), assignment);
+        }
 
-        initializeMedia(assignment.getLesson());
-        return LessonResponse.fromEntity(assignment.getLesson(), assignment);
+        // 2. Fallback: Check if attached to a SessionRecord (Classwork access)
+        if (sessionRecordRepository.existsByStudentIdAndLessonId(studentId, lessonId)) {
+            Lesson lesson = lessonRepository.findById(lessonId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Bài học không tồn tại."));
+            
+            initializeMedia(lesson);
+            // Return response with null assignment (Student sees lesson content but no homework status)
+            return LessonResponse.fromEntity(lesson, null);
+        }
+
+        throw new ResourceNotFoundException("Bài học không tồn tại hoặc chưa được giao cho bạn.");
     }
 
     /**

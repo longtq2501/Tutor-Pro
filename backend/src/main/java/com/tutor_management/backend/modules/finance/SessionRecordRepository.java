@@ -178,4 +178,10 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, Lo
            "AND (sr.status IS NULL OR sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR)) " +
            "GROUP BY sr.student.id")
     List<Object[]> sumTotalUnpaidByStudentIdIn(@Param("studentIds") List<Long> studentIds);
+
+    /**
+     * Checks if a student has access to a lesson via any session record.
+     */
+    @Query("SELECT COUNT(sr) > 0 FROM SessionRecord sr JOIN sr.lessons l WHERE sr.student.id = :studentId AND l.id = :lessonId")
+    boolean existsByStudentIdAndLessonId(@Param("studentId") Long studentId, @Param("lessonId") Long lessonId);
 }

@@ -56,8 +56,12 @@ public class LessonResponse {
     /**
      * Maps lesson and assignment entities to a student-specific response.
      */
+    /**
+     * Maps lesson and assignment entities to a student-specific response.
+     * Handles cases where assignment doesn't exist (viewing via SessionRecord).
+     */
     public static LessonResponse fromEntity(Lesson lesson, LessonAssignment assignment) {
-        return LessonResponse.builder()
+        LessonResponseBuilder builder = LessonResponse.builder()
                 .id(lesson.getId())
                 .tutorName(lesson.getTutorName())
                 .title(lesson.getTitle())
@@ -76,17 +80,25 @@ public class LessonResponse {
                 .totalEnrollments(lesson.getTotalEnrollments())
                 .difficultyLevel(lesson.getDifficultyLevel())
                 .durationMinutes(lesson.getDurationMinutes())
-                .studentId(assignment.getStudent().getId())
-                .studentName(assignment.getStudent().getName())
-                .isCompleted(assignment.getIsCompleted())
-                .completedAt(assignment.getCompletedAt())
-                .viewCount(assignment.getViewCount())
-                .lastViewedAt(assignment.getLastViewedAt())
                 .images(lesson.getImages().stream().map(LessonImageDTO::fromEntity).collect(Collectors.toList()))
                 .resources(lesson.getResources().stream().map(LessonResourceDTO::fromEntity).collect(Collectors.toList()))
                 .category(lesson.getCategory() != null ? LessonCategoryResponse.fromEntity(lesson.getCategory()) : null)
                 .createdAt(lesson.getCreatedAt())
-                .updatedAt(lesson.getUpdatedAt())
-                .build();
+                .updatedAt(lesson.getUpdatedAt());
+
+        if (assignment != null) {
+            builder.studentId(assignment.getStudent().getId())
+                   .studentName(assignment.getStudent().getName())
+                   .isCompleted(assignment.getIsCompleted())
+                   .completedAt(assignment.getCompletedAt())
+                   .viewCount(assignment.getViewCount())
+                   .lastViewedAt(assignment.getLastViewedAt());
+        } else {
+            // Default values for access via SessionRecord (no formal assignment)
+            builder.isCompleted(false)
+                   .viewCount(0);
+        }
+        
+        return builder.build();
     }
 }

@@ -175,7 +175,7 @@ public class Lesson {
     @OrderBy("displayOrder ASC")
     @Fetch(FetchMode.SUBSELECT)
     @Builder.Default
-    private List<LessonImage> images = new ArrayList<>();
+    private Set<LessonImage> images = new HashSet<>();
 
     /**
      * Downloadable files or external links relevant to the lesson.
@@ -184,7 +184,7 @@ public class Lesson {
     @OrderBy("displayOrder ASC")
     @Fetch(FetchMode.SUBSELECT)
     @Builder.Default
-    private List<LessonResource> resources = new ArrayList<>();
+    private Set<LessonResource> resources = new HashSet<>();
 
     @CreationTimestamp
     @Column(updatable = false)

@@ -43,3 +43,4 @@ backend/data/
 # Uploads
 uploads/*
 !uploads/.gitkeep
+backend/src/main/resources/application.yaml

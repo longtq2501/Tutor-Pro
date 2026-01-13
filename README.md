@@ -22,6 +22,7 @@
 * **Technical Solution:** Built Natural Language Generation engine (**Rule-Based Template Composition**) based on expert knowledge from structured data.
 * **Engineering Impact:** Generates thousands of personalized comment variations based on criteria (Attendance, Comprehension, Attitude) **without API costs (GPT-4)**.
 * **Deep Dive:** Uses *Stochastic Variation* algorithm (weighted random variations) and *Context-Aware String Interpolation* for natural human-like writing style.
+* ![comment-generator-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/3e8e46d3-62d2-4d08-8d7a-d3667a58559c)
 
 ### 4. Financial-Grade Payment Integration (VietQR)
 * **Technical Solution:** Integrated dynamic payment flow adhering to **NAPAS-247** standard.
@@ -46,11 +47,15 @@
 * **Technical Solution:** Learning path management system with **Prerequisite Dependency Resolution**.
 * **Engineering Impact:** Ensures pedagogical integrity by locking/unlocking lessons based on knowledge sequence.
 * **Deep Dive:** Access control at **Service Layer & Database Level**, completely prevents client-side bypass of learning paths.
+* <img width="2552" height="1311" alt="Screenshot 2026-01-12 233849" src="https://github.com/user-attachments/assets/61d815e0-a6df-4f0b-84da-5f57e915f919" />
+
 
 ### 8. Resizable Dual-Pane Architecture (UX Customization)
 * **Technical Solution:** Intelligent split-screen layout (**Split-view**) between Video and Lesson Materials.
 * **Engineering Impact:** Optimizes focus by allowing learning space personalization (70/30, 50/50 ratios).
 * **Deep Dive:** Uses **CSS Grid dynamic columns** combined with **State Persistence (LocalStorage)** to remember user's layout configuration.
+* <img width="2555" height="1313" alt="image" src="https://github.com/user-attachments/assets/4da822b6-5f0f-4fbb-8bc4-1ab379f558c3" />
+
 
 ### 9. Advanced Drag-and-Drop Calendar System
 * **Technical Solution:** Integrated **@dnd-kit** with **Optimistic Rollback** mechanism.

@@ -101,9 +101,19 @@ export function useFinanceActions() {
       window.URL.revokeObjectURL(url);
 
       toast.success('Đã tải xuống báo giá!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Invoice error:', error);
-      toast.error('Không thể tạo báo giá.');
+      let message = 'Không thể tạo báo giá.';
+
+      if (error.response?.data instanceof Blob) {
+        try {
+          const text = await error.response.data.text();
+          if (text) message = text;
+        } catch (e) {
+          // Fallback to generic
+        }
+      }
+      toast.error(message);
     } finally {
       setGeneratingInvoice(false);
     }

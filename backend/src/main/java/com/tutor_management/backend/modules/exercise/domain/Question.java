@@ -31,7 +31,8 @@ public class Question implements Persistable<String> {
     @Id
     @EqualsAndHashCode.Include
     @Column(length = 36)
-    private String id;
+    @Builder.Default
+    private String id = java.util.UUID.randomUUID().toString();
     
     @Transient
     @Builder.Default
@@ -108,13 +109,6 @@ public class Question implements Persistable<String> {
         option.setQuestion(null);
     }
     
-    @PrePersist
-    protected void onCreate() {
-        if (id == null) {
-            id = java.util.UUID.randomUUID().toString();
-        }
-    }
-
     @PostPersist
     @PostLoad
     protected void markNotNew() {

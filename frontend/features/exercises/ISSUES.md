@@ -11,6 +11,10 @@
 - [x] **Pagination for Assigned Exercises**: Implemented `Pageable` in `ExerciseController` and `ExerciseService`.
 - [x] **Pagination for Tutor Dashboard**: Student summaries are now paginated to ensure dashboard performance on large datasets.
 - [x] **Batch Student Counting**: Optimized student performance aggregation using batch IDs to avoid N+1 queries.
+- [x] **Missing Student List Fix**: Updated `StudentSummaryResponse` to include `accountId` and `accountEmail`, enabling proper student filtering in "Assign Exercise" modal.
+- [x] **Exercise Completion Logic Fix**: Corrected `ExercisePlayer` to only show completion screen for SUBMITTED/GRADED status, resolving premature completion issue for PENDING exercises.
+- [x] **Question Display Fix**: Added missing `answers` prop to `SidebarContent`, fixing issue where exercises showed "0/1" instead of actual question count (e.g., "0/50").
+- [x] **Critical: Question Set Duplication Bug**: Fixed UUID generation in `Question` and `Option` entities - moved from `@PrePersist` to `@Builder.Default` to ensure Set uniqueness before persistence. This resolved the bug where only 1 of 50 questions was saved.
 
 ### UX Improvements
 - [x] **Overdue Status Tracking**: Introduced "OVERDUE" virtual status by comparing deadlines with current time for pending assignments.

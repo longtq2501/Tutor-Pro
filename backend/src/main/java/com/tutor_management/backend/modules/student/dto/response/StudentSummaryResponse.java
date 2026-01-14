@@ -37,4 +37,7 @@ public class StudentSummaryResponse {
      * Human-readable duration summary (e.g., "Bắt đầu: 01/2024 • 12 tháng").
      */
     private String learningDuration;
+
+    private String accountId;
+    private String accountEmail;
 }

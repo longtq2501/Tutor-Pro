@@ -65,6 +65,7 @@ public class ExerciseServiceImpl implements ExerciseService {
     @Transactional
     public ExerciseResponse createExercise(CreateExerciseRequest request, String teacherId) {
         log.info("Starting creation of exercise '{}' by teacher {}", request.getTitle(), teacherId);
+        log.info("Received {} questions in request", request.getQuestions() != null ? request.getQuestions().size() : 0);
 
         Exercise exercise = Exercise.builder()
                 .title(request.getTitle())
@@ -79,9 +80,10 @@ public class ExerciseServiceImpl implements ExerciseService {
                 .build();
 
         processQuestionsFromRequest(request.getQuestions(), exercise);
+        log.info("After processing, exercise has {} questions", exercise.getQuestions().size());
 
         Exercise savedExercise = exerciseRepository.save(exercise);
-        log.info("Exercise created successfully. Generated UUID: {}", savedExercise.getId());
+        log.info("Exercise created successfully. Generated UUID: {}, Final question count: {}", savedExercise.getId(), savedExercise.getQuestions().size());
         
         return mapToExerciseResponse(savedExercise);
     }
@@ -277,9 +279,16 @@ public class ExerciseServiceImpl implements ExerciseService {
     }
 
     private void processQuestionsFromRequest(List<QuestionRequest> questionRequests, Exercise exercise) {
-        if (questionRequests == null) return;
+        if (questionRequests == null) {
+            log.warn("Question requests list is null");
+            return;
+        }
+        
+        log.info("Processing {} question requests", questionRequests.size());
         
         for (QuestionRequest qReq : questionRequests) {
+            log.debug("Processing question at index {}: type={}, text={}", qReq.getOrderIndex(), qReq.getType(), qReq.getQuestionText().substring(0, Math.min(50, qReq.getQuestionText().length())));
+            
             Question question = Question.builder()
                     .exercise(exercise)
                     .type(qReq.getType())
@@ -296,6 +305,8 @@ public class ExerciseServiceImpl implements ExerciseService {
             
             exercise.addQuestion(question);
         }
+        
+        log.info("Finished processing questions. Total added to exercise: {}", exercise.getQuestions().size());
     }
 
     private void processOptionsForQuestion(QuestionRequest qReq, Question question) {

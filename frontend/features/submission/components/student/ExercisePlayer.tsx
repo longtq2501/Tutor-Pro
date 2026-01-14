@@ -62,7 +62,7 @@ export const ExercisePlayer: React.FC<ExercisePlayerProps> = ({ exerciseId, stud
                                 });
                             });
                             setAnswers(answerMap);
-                            if (submission.status !== 'DRAFT') {
+                            if (submission.status === 'SUBMITTED' || submission.status === 'GRADED') {
                                 setSubmissionResult(submission);
                             }
                         }
@@ -108,7 +108,7 @@ export const ExercisePlayer: React.FC<ExercisePlayerProps> = ({ exerciseId, stud
         }
     }, [timeLeft, submissionResult, isSubmitting]);
 
-    const handleAnswerChange = (questionId: string, value: any) => {
+    const handleAnswerChange = (questionId: string, value: { selectedOption?: string; essayText?: string }) => {
         const newAnswers = new Map(answers);
         const current = newAnswers.get(questionId) || {};
         newAnswers.set(questionId, { ...current, ...value });
@@ -250,6 +250,7 @@ export const ExercisePlayer: React.FC<ExercisePlayerProps> = ({ exerciseId, stud
                                     onSaveDraft={() => { handleSaveDraft(); setIsMobileNavOpen(false); }}
                                     onSubmit={() => { handleSubmit(); setIsMobileNavOpen(false); }}
                                     isSubmitting={isSubmitting}
+                                    answers={answers}
                                 />
                             </div>
                         </SheetContent>
@@ -281,6 +282,7 @@ export const ExercisePlayer: React.FC<ExercisePlayerProps> = ({ exerciseId, stud
                     onSaveDraft={handleSaveDraft}
                     onSubmit={handleSubmit}
                     isSubmitting={isSubmitting}
+                    answers={answers}
                 />
             </div>
 
@@ -385,7 +387,18 @@ export const ExercisePlayer: React.FC<ExercisePlayerProps> = ({ exerciseId, stud
     );
 };
 
-// Sub-component for Sidebar Content
+interface SidebarContentProps {
+    exercise: Exercise;
+    currentQuestionIndex: number;
+    setCurrentQuestionIndex: (idx: number) => void;
+    timeLeft: number | null;
+    isSaving: boolean;
+    onSaveDraft: () => void;
+    onSubmit: () => void;
+    isSubmitting: boolean;
+    answers: Map<string, { selectedOption?: string; essayText?: string }>;
+}
+
 const SidebarContent = ({
     exercise,
     currentQuestionIndex,
@@ -396,7 +409,7 @@ const SidebarContent = ({
     onSubmit,
     isSubmitting,
     answers
-}: any) => {
+}: SidebarContentProps) => {
     return (
         <div className="flex flex-col h-full">
             <div className="p-6 border-b flex-shrink-0">

@@ -65,6 +65,9 @@ public class InvoiceController {
                     .contentType(MediaType.APPLICATION_PDF)
                     .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(filename).build().toString())
                     .body(pdfBytes);
+        } catch (RuntimeException e) {
+            log.error("Invalid invoice request: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage().getBytes(java.nio.charset.StandardCharsets.UTF_8));
         } catch (Exception e) {
             log.error("Failed to generate invoice PDF", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

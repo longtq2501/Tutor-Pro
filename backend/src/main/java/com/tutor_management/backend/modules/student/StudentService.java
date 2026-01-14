@@ -90,7 +90,10 @@ public class StudentService {
                         row -> (Long) row[1]
                 ));
 
-        return studentPage.map(student -> convertToSummaryResponse(student, unpaidMap.getOrDefault(student.getId(), 0L)));
+        Map<Long, User> usersMap = userRepository.findByStudentIdIn(studentIds)
+                .stream().collect(Collectors.toMap(User::getStudentId, u -> u, (u1, u2) -> u1));
+
+        return studentPage.map(student -> convertToSummaryResponse(student, unpaidMap.getOrDefault(student.getId(), 0L), usersMap.get(student.getId())));
     }
 
     /**
@@ -326,7 +329,7 @@ public class StudentService {
         return response;
     }
 
-    private StudentSummaryResponse convertToSummaryResponse(Student student, Long totalUnpaid) {
+    private StudentSummaryResponse convertToSummaryResponse(Student student, Long totalUnpaid, User user) {
         String lastActiveMonth = student.getLastActiveMonth();
         Integer monthsLearned = calculateMonthsLearned(student.getStartMonth(), lastActiveMonth);
 
@@ -340,6 +343,8 @@ public class StudentService {
                 .totalUnpaid(totalUnpaid)
                 .startMonth(student.getStartMonth())
                 .learningDuration(buildLearningDuration(student.getStartMonth(), monthsLearned))
+                .accountId(user != null ? user.getId().toString() : null)
+                .accountEmail(user != null ? user.getEmail() : null)
                 .build();
     }
 

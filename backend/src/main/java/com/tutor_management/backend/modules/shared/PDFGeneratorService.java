@@ -35,8 +35,7 @@ import java.util.Locale;
 @Slf4j
 public class PDFGeneratorService {
 
-    private PdfFont vietnameseFont;
-    private PdfFont vietnameseFontBold;
+
 
     /**
      * Generates a PDF report for the system dashboard.
@@ -55,7 +54,7 @@ public class PDFGeneratorService {
 
         loadVietnameseFonts();
         document.setMargins(30, 40, 30, 40);
-        document.setFont(vietnameseFont);
+        document.setFont(getRegularFont());
 
         addDashboardHeader(document);
         addDashboardSummary(document, stats);
@@ -83,7 +82,7 @@ public class PDFGeneratorService {
 
         loadVietnameseFonts();
         document.setMargins(30, 40, 30, 40);
-        document.setFont(vietnameseFont);
+        document.setFont(getRegularFont());
 
         addInvoiceHeader(document, invoice);
         addInvoiceRecipientInfo(document, invoice);
@@ -100,7 +99,7 @@ public class PDFGeneratorService {
 
     private void addDashboardHeader(Document document) {
         Paragraph title = new Paragraph("BÁO CÁO TỔNG QUAN HỆ THỐNG")
-                .setFont(vietnameseFontBold)
+                .setFont(getBoldFont())
                 .setFontSize(24)
                 .setTextAlignment(TextAlignment.CENTER)
                 .setMarginBottom(5);
@@ -108,7 +107,7 @@ public class PDFGeneratorService {
 
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
         Paragraph date = new Paragraph("Ngày xuất báo cáo: " + timestamp)
-                .setFont(vietnameseFont)
+                .setFont(getRegularFont())
                 .setFontSize(9)
                 .setTextAlignment(TextAlignment.CENTER)
                 .setMarginBottom(15)
@@ -137,13 +136,13 @@ public class PDFGeneratorService {
                 .setMargin(2);
 
         cell.add(new Paragraph(label)
-                .setFont(vietnameseFontBold)
+                .setFont(getBoldFont())
                 .setFontSize(10)
                 .setFontColor(new DeviceRgb(107, 114, 128))
                 .setMarginBottom(5));
         
         cell.add(new Paragraph(value)
-                .setFont(vietnameseFontBold)
+                .setFont(getBoldFont())
                 .setFontSize(14)
                 .setFontColor(color));
 
@@ -152,7 +151,7 @@ public class PDFGeneratorService {
 
     private void addMonthlyStatsTable(Document document, List<MonthlyStats> monthlyStats) {
         document.add(new Paragraph("CHI TIẾT DOANH THU THEO THÁNG")
-                .setFont(vietnameseFontBold)
+                .setFont(getBoldFont())
                 .setFontSize(14)
                 .setMarginBottom(10));
 
@@ -161,7 +160,7 @@ public class PDFGeneratorService {
         String[] headers = {"Tháng", "Đã Thu", "Chưa Thu", "Số Buổi"};
         for (String header : headers) {
             table.addHeaderCell(new Cell()
-                    .add(new Paragraph(header).setFont(vietnameseFontBold).setFontSize(10).setFontColor(ColorConstants.WHITE))
+                    .add(new Paragraph(header).setFont(getBoldFont()).setFontSize(10).setFontColor(ColorConstants.WHITE))
                     .setBackgroundColor(new DeviceRgb(75, 85, 99))
                     .setTextAlignment(TextAlignment.CENTER)
                     .setPadding(8));
@@ -179,7 +178,7 @@ public class PDFGeneratorService {
 
     private void addDashboardFooter(Document document) {
         document.add(new Paragraph("\nTutor Pro Management System - Báo cáo tự động")
-                .setFont(vietnameseFont)
+                .setFont(getRegularFont())
                 .setFontSize(8)
                 .setFontColor(new DeviceRgb(156, 163, 175))
                 .setTextAlignment(TextAlignment.CENTER)
@@ -190,13 +189,13 @@ public class PDFGeneratorService {
 
     private void addInvoiceHeader(Document document, InvoiceResponse invoice) {
         document.add(new Paragraph("BÁO GIÁ HỌC PHÍ")
-                .setFont(vietnameseFontBold)
+                .setFont(getBoldFont())
                 .setFontSize(28)
                 .setTextAlignment(TextAlignment.CENTER)
                 .setMarginBottom(5));
 
         document.add(new Paragraph("ENGLISH TUTORING")
-                .setFont(vietnameseFont)
+                .setFont(getRegularFont())
                 .setFontSize(16)
                 .setTextAlignment(TextAlignment.CENTER)
                 .setMarginBottom(30)
@@ -207,10 +206,10 @@ public class PDFGeneratorService {
         headerTable.addCell(new Cell().setBorder(null)); // Left padding
 
         Paragraph invoiceInfo = new Paragraph()
-                .setFont(vietnameseFont)
+                .setFont(getRegularFont())
                 .setTextAlignment(TextAlignment.RIGHT);
-        invoiceInfo.add(new Text("Số: ").setFont(vietnameseFontBold)).add(invoice.getInvoiceNumber() + "\n");
-        invoiceInfo.add(new Text("Ngày: ").setFont(vietnameseFontBold)).add(invoice.getCreatedDate());
+        invoiceInfo.add(new Text("Số: ").setFont(getBoldFont())).add(invoice.getInvoiceNumber() + "\n");
+        invoiceInfo.add(new Text("Ngày: ").setFont(getBoldFont())).add(invoice.getCreatedDate());
 
         headerTable.addCell(new Cell().add(invoiceInfo).setBorder(null).setTextAlignment(TextAlignment.RIGHT));
         document.add(headerTable);
@@ -220,10 +219,10 @@ public class PDFGeneratorService {
     private void addInvoiceRecipientInfo(Document document, InvoiceResponse invoice) {
         Table infoTable = new Table(1).useAllAvailableWidth().setMarginBottom(10);
         Paragraph studentInfo = new Paragraph()
-                .setFont(vietnameseFont)
-                .add(new Text("Học sinh: ").setFont(vietnameseFontBold))
+                .setFont(getRegularFont())
+                .add(new Text("Học sinh: ").setFont(getBoldFont()))
                 .add(invoice.getStudentName() + "\n")
-                .add(new Text("Thời gian: ").setFont(vietnameseFontBold))
+                .add(new Text("Thời gian: ").setFont(getBoldFont()))
                 .add(invoice.getMonth());
 
         infoTable.addCell(new Cell().add(studentInfo).setBorder(null));
@@ -236,7 +235,7 @@ public class PDFGeneratorService {
         String[] headers = { "Ngày", "Nội dung", "Buổi", "Giờ", "Đơn giá", "Thành tiền" };
         for (String header : headers) {
             table.addHeaderCell(new Cell()
-                    .add(new Paragraph(header).setFont(vietnameseFontBold).setFontSize(10))
+                    .add(new Paragraph(header).setFont(getBoldFont()).setFontSize(10))
                     .setBackgroundColor(new DeviceRgb(59, 130, 246))
                     .setFontColor(ColorConstants.WHITE)
                     .setTextAlignment(TextAlignment.CENTER)
@@ -252,9 +251,9 @@ public class PDFGeneratorService {
             table.addCell(createTableCellRight(formatCurrency(item.getAmount())));
         }
 
-        table.addCell(new Cell(1, 5).add(new Paragraph("TỔNG CỘNG").setFont(vietnameseFontBold).setFontSize(11))
+        table.addCell(new Cell(1, 5).add(new Paragraph("TỔNG CỘNG").setFont(getBoldFont()).setFontSize(11))
                 .setTextAlignment(TextAlignment.RIGHT).setBackgroundColor(new DeviceRgb(243, 244, 246)).setPadding(10));
-        table.addCell(new Cell().add(new Paragraph(formatCurrency(invoice.getTotalAmount())).setFont(vietnameseFontBold).setFontSize(11))
+        table.addCell(new Cell().add(new Paragraph(formatCurrency(invoice.getTotalAmount())).setFont(getBoldFont()).setFontSize(11))
                 .setBackgroundColor(new DeviceRgb(243, 244, 246)).setTextAlignment(TextAlignment.RIGHT).setPadding(10));
 
         document.add(table);
@@ -271,8 +270,8 @@ public class PDFGeneratorService {
             bankTable = new Table(new float[]{1f, 1.1f}).useAllAvailableWidth();
         }
 
-        Paragraph bankDetails = new Paragraph().setFont(vietnameseFont).setFontSize(10)
-                .add(new Text("THÔNG TIN CHUYỂN KHOẢN\n").setFont(vietnameseFontBold).setFontSize(12))
+        Paragraph bankDetails = new Paragraph().setFont(getRegularFont()).setFontSize(10)
+                .add(new Text("THÔNG TIN CHUYỂN KHOẢN\n").setFont(getBoldFont()).setFontSize(12))
                 .add("Ngân hàng: " + invoice.getBankInfo().getBankName() + "\n")
                 .add("Số tài khoản: 1041819355\n")
                 .add("Tên tài khoản: " + invoice.getBankInfo().getAccountName() + "\n")
@@ -286,7 +285,7 @@ public class PDFGeneratorService {
             qrImage.setWidth(isCompact ? 160 : 211).setHeight(isCompact ? 160 : 243).setHorizontalAlignment(HorizontalAlignment.RIGHT);
             qrCell.add(qrImage);
         } catch (Exception e) {
-            qrCell.add(new Paragraph("QR Code không khả dụng").setFont(vietnameseFont).setFontSize(9));
+            qrCell.add(new Paragraph("QR Code không khả dụng").setFont(getRegularFont()).setFontSize(9));
         }
 
         if (isCompact) {
@@ -303,38 +302,67 @@ public class PDFGeneratorService {
 
     private void addInvoiceFooter(Document document) {
         document.add(new Paragraph("Lưu ý: Vui lòng chuyển khoản đúng nội dung để xác nhận thanh toán nhanh chóng.")
-                .setFont(vietnameseFont).setFontSize(9).setFontColor(new DeviceRgb(107, 114, 128))
+                .setFont(getRegularFont()).setFontSize(9).setFontColor(new DeviceRgb(107, 114, 128))
                 .setTextAlignment(TextAlignment.CENTER).setMarginTop(20));
 
         document.add(new Paragraph("Cảm ơn quý phụ huynh đã tin tưởng!")
-                .setFont(vietnameseFontBold).setFontSize(11)
+                .setFont(getBoldFont()).setFontSize(11)
                 .setTextAlignment(TextAlignment.CENTER).setMarginTop(5));
     }
 
     // --- Internal Helpers ---
 
+    private byte[] regularFontBytes;
+    private byte[] boldFontBytes;
+
     private void loadVietnameseFonts() throws Exception {
-        if (vietnameseFont != null) return;
+        if (regularFontBytes != null) return;
         try {
             ClassPathResource regularFont = new ClassPathResource("fonts/DejaVuSans.ttf");
             ClassPathResource boldFont = new ClassPathResource("fonts/DejaVuSans-Bold.ttf");
+            
             if (regularFont.exists() && boldFont.exists()) {
-                vietnameseFont = PdfFontFactory.createFont(regularFont.getInputStream().readAllBytes(), PdfEncodings.IDENTITY_H);
-                vietnameseFontBold = PdfFontFactory.createFont(boldFont.getInputStream().readAllBytes(), PdfEncodings.IDENTITY_H);
+                regularFontBytes = regularFont.getInputStream().readAllBytes();
+                boldFontBytes = boldFont.getInputStream().readAllBytes();
             } else {
-                log.warn("Unicode fonts not found, falling back to standard fonts (Vietnamese characters may break)");
-                vietnameseFont = PdfFontFactory.createFont(com.itextpdf.io.font.constants.StandardFonts.TIMES_ROMAN);
-                vietnameseFontBold = PdfFontFactory.createFont(com.itextpdf.io.font.constants.StandardFonts.TIMES_BOLD);
+                log.warn("Unicode fonts not found");
+                // Fallback handled in getters
             }
         } catch (Exception e) {
             log.error("Failed to load fonts", e);
-            vietnameseFont = PdfFontFactory.createFont();
-            vietnameseFontBold = PdfFontFactory.createFont();
+        }
+    }
+
+    private PdfFont getRegularFont() {
+        try {
+            if (regularFontBytes != null) {
+                return PdfFontFactory.createFont(regularFontBytes, PdfEncodings.IDENTITY_H);
+            }
+            return PdfFontFactory.createFont(com.itextpdf.io.font.constants.StandardFonts.TIMES_ROMAN);
+        } catch (Exception e) {
+            log.error("Error creating regular font", e);
+            try {
+                return PdfFontFactory.createFont(com.itextpdf.io.font.constants.StandardFonts.TIMES_ROMAN);
+            } catch (Exception ex) { return null; }
+        }
+    }
+
+    private PdfFont getBoldFont() {
+        try {
+            if (boldFontBytes != null) {
+                return PdfFontFactory.createFont(boldFontBytes, PdfEncodings.IDENTITY_H);
+            }
+            return PdfFontFactory.createFont(com.itextpdf.io.font.constants.StandardFonts.TIMES_BOLD);
+        } catch (Exception e) {
+            log.error("Error creating bold font", e);
+            try {
+                return PdfFontFactory.createFont(com.itextpdf.io.font.constants.StandardFonts.TIMES_BOLD);
+            } catch (Exception ex) { return null; }
         }
     }
 
     private Cell createTableCell(String text) {
-        return new Cell().add(new Paragraph(text != null ? text : "").setFont(vietnameseFont).setFontSize(10)).setPadding(4);
+        return new Cell().add(new Paragraph(text != null ? text : "").setFont(getRegularFont()).setFontSize(10)).setPadding(4);
     }
 
     private Cell createTableCellCenter(String text) {

@@ -83,6 +83,7 @@ Optimize existing TMS from "functional" to "production-ready":
 
 ### Now:
 - 🔄 **Learning Module Upgrade**: Improving UI, UX, and performance.
+- ✅ **Exercise Module Fixes**: Resolved critical "Assign Exercise" student list missing and "Premature Completion" bugs.
 
 ### Next:
 - 🔄 **Exercise Module Upgrade**: Implementing pagination, Pending status tracking.

@@ -17,11 +17,11 @@ import com.tutor_management.backend.modules.exercise.repository.ExerciseAssignme
 import com.tutor_management.backend.modules.exercise.repository.ExerciseRepository;
 import com.tutor_management.backend.modules.exercise.repository.OptionRepository;
 import com.tutor_management.backend.modules.exercise.repository.QuestionRepository;
-import com.tutor_management.backend.modules.student.StudentRepository;
+import com.tutor_management.backend.modules.student.repository.StudentRepository;
 import com.tutor_management.backend.modules.notification.event.ExerciseAssignedEvent;
 import com.tutor_management.backend.modules.notification.event.ExerciseUpdatedEvent;
-import com.tutor_management.backend.modules.submission.domain.Submission;
-import com.tutor_management.backend.modules.submission.domain.SubmissionStatus;
+import com.tutor_management.backend.modules.submission.entity.Submission;
+import com.tutor_management.backend.modules.submission.entity.SubmissionStatus;
 import com.tutor_management.backend.modules.submission.repository.SubmissionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -339,7 +339,7 @@ public class ExerciseServiceImpl implements ExerciseService {
         log.info("Enriching {} exercises for student {}. Found {} submissions in DB.", responses.size(), studentId, submissions.size());
 
         var subMap = submissions.stream()
-                .collect(Collectors.toMap(com.tutor_management.backend.modules.submission.domain.Submission::getExerciseId, s -> s, (s1, s2) -> s1));
+                .collect(Collectors.toMap(com.tutor_management.backend.modules.submission.entity.Submission::getExerciseId, s -> s, (s1, s2) -> s1));
 
         var deadlineMap = assignments.stream()
                 .collect(Collectors.toMap(ExerciseAssignment::getExerciseId, 

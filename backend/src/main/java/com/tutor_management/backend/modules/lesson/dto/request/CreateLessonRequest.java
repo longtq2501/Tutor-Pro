@@ -2,6 +2,8 @@ package com.tutor_management.backend.modules.lesson.dto.request;
 
 import com.tutor_management.backend.modules.lesson.dto.response.LessonImageDTO;
 import com.tutor_management.backend.modules.lesson.dto.response.LessonResourceDTO;
+import com.tutor_management.backend.modules.lesson.entity.Lesson;
+import com.tutor_management.backend.modules.lesson.entity.LessonCategory;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -13,7 +15,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Payload for creating a new {@link com.tutor_management.backend.modules.lesson.Lesson}.
+ * Payload for creating a new {@link Lesson}.
  * Supports both standalone library lessons and lessons with immediate student assignments.
  */
 @Data
@@ -73,7 +75,7 @@ public class CreateLessonRequest {
     private Boolean isPublished = false;
 
     /**
-     * ID of the associated {@link com.tutor_management.backend.modules.lesson.LessonCategory}.
+     * ID of the associated {@link LessonCategory}.
      */
     private Long categoryId;
 

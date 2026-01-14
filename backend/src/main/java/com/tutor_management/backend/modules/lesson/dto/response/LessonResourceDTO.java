@@ -1,6 +1,6 @@
 package com.tutor_management.backend.modules.lesson.dto.response;
 
-import com.tutor_management.backend.modules.lesson.LessonResource;
+import com.tutor_management.backend.modules.lesson.entity.LessonResource;
 import lombok.*;
 
 @Data

@@ -1,12 +1,13 @@
 package com.tutor_management.backend.modules.schedule.dto.response;
 
+import com.tutor_management.backend.modules.schedule.entity.RecurringSchedule;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Data response object for {@link com.tutor_management.backend.modules.schedule.RecurringSchedule} details.
+ * Data response object for {@link RecurringSchedule} details.
  */
 @Data
 @Builder

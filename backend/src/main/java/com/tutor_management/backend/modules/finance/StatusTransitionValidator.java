@@ -1,5 +1,6 @@
 package com.tutor_management.backend.modules.finance;
 
+import com.tutor_management.backend.modules.finance.entity.SessionRecord;
 import org.springframework.stereotype.Component;
 import lombok.extern.slf4j.Slf4j;
 

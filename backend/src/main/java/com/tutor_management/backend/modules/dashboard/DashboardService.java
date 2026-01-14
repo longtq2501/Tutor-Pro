@@ -11,10 +11,10 @@ import org.springframework.cache.annotation.Cacheable;
 
 import com.tutor_management.backend.modules.dashboard.dto.response.DashboardStats;
 import com.tutor_management.backend.modules.finance.LessonStatus;
-import com.tutor_management.backend.modules.finance.SessionRecordRepository;
+import com.tutor_management.backend.modules.finance.repository.SessionRecordRepository;
 import com.tutor_management.backend.modules.finance.dto.response.MonthlyStats;
-import com.tutor_management.backend.modules.student.StudentRepository;
-import com.tutor_management.backend.modules.document.DocumentRepository;
+import com.tutor_management.backend.modules.student.repository.StudentRepository;
+import com.tutor_management.backend.modules.document.repository.DocumentRepository;
 import com.tutor_management.backend.util.FormatterUtils;
 
 import lombok.RequiredArgsConstructor;

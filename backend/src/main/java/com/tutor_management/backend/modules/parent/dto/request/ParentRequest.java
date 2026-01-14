@@ -1,5 +1,6 @@
 package com.tutor_management.backend.modules.parent.dto.request;
 
+import com.tutor_management.backend.modules.parent.entity.Parent;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -8,7 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Payload for creating or updating a {@link com.tutor_management.backend.modules.parent.Parent} record.
+ * Payload for creating or updating a {@link Parent} record.
  */
 @Data
 @Builder

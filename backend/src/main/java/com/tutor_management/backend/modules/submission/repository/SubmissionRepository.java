@@ -1,7 +1,7 @@
 package com.tutor_management.backend.modules.submission.repository;
 
-import com.tutor_management.backend.modules.submission.domain.Submission;
-import com.tutor_management.backend.modules.submission.domain.SubmissionStatus;
+import com.tutor_management.backend.modules.submission.entity.Submission;
+import com.tutor_management.backend.modules.submission.entity.SubmissionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -31,15 +31,6 @@ public interface SubmissionRepository extends JpaRepository<Submission, String> 
      * Finds a specific submission attempt by student-exercise pair.
      */
     Optional<Submission> findByExerciseIdAndStudentId(String exerciseId, String studentId);
-    
-    /**
-     * Retrieves submissions filtered by exercise and status.
-     */
-    List<Submission> findByExerciseIdAndStatus(String exerciseId, SubmissionStatus status);
-    
-    long countByExerciseId(String exerciseId);
-    
-    long countByExerciseIdAndStatus(String exerciseId, SubmissionStatus status);
 
     /**
      * Eagerly fetches a submission with its associated detail records.

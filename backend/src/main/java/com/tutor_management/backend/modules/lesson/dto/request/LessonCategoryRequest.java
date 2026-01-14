@@ -1,5 +1,6 @@
 package com.tutor_management.backend.modules.lesson.dto.request;
 
+import com.tutor_management.backend.modules.lesson.entity.LessonCategory;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Payload for creating or updating a {@link com.tutor_management.backend.modules.lesson.LessonCategory}.
+ * Payload for creating or updating a {@link LessonCategory}.
  */
 @Data
 @Builder

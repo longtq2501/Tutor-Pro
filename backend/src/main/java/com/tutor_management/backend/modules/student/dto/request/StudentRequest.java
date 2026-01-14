@@ -1,5 +1,6 @@
 package com.tutor_management.backend.modules.student.dto.request;
 
+import com.tutor_management.backend.modules.student.entity.Student;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -9,7 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Payload for creating or updating a {@link com.tutor_management.backend.modules.student.Student} record.
+ * Payload for creating or updating a {@link Student} record.
  * Includes optional fields for parent association and automated account creation.
  */
 @Data

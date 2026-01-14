@@ -1,7 +1,7 @@
 package com.tutor_management.backend.modules.submission.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tutor_management.backend.modules.submission.domain.SubmissionStatus;
+import com.tutor_management.backend.modules.submission.entity.SubmissionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

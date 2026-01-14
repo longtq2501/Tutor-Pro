@@ -1,0 +1,142 @@
+package com.tutor_management.backend.modules.lesson.service;
+
+import com.tutor_management.backend.modules.lesson.dto.request.CreateLessonRequest;
+import com.tutor_management.backend.modules.lesson.dto.response.LibraryLessonResponse;
+import com.tutor_management.backend.modules.lesson.entity.Lesson;
+import com.tutor_management.backend.modules.lesson.entity.LessonAssignment;
+import com.tutor_management.backend.modules.lesson.repository.LessonAssignmentRepository;
+import com.tutor_management.backend.modules.lesson.repository.LessonCategoryRepository;
+import com.tutor_management.backend.modules.lesson.repository.LessonRepository;
+import com.tutor_management.backend.modules.student.entity.Student;
+import com.tutor_management.backend.exception.ResourceNotFoundException;
+import com.tutor_management.backend.modules.student.repository.StudentRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+/**
+ * Service for managing the lesson library and student assignments.
+ * Handles bulk assigning and listing of re-usable content.
+ */
+@Service
+@RequiredArgsConstructor
+@Slf4j
+@Transactional
+public class LessonLibraryService {
+
+    private final LessonRepository lessonRepository;
+    private final LessonAssignmentRepository assignmentRepository;
+    private final StudentRepository studentRepository;
+    private final LessonCategoryRepository categoryRepository;
+
+    /**
+     * Retrieves all lessons in the library, including assignment metrics.
+     */
+    @Transactional(readOnly = true)
+    public Page<LibraryLessonResponse> getAllLibraryLessons(Pageable pageable) {
+        return lessonRepository.findAll(pageable)
+                .map(LibraryLessonResponse::fromEntity);
+    }
+
+    /**
+     * Retrieves only lessons that have not been assigned to any students (pure library items).
+     */
+    @Transactional(readOnly = true)
+    public Page<LibraryLessonResponse> getUnassignedLessons(Pageable pageable) {
+        return lessonRepository.findByIsLibraryTrueOrderByCreatedAtDesc(pageable)
+                .map(LibraryLessonResponse::fromEntity);
+    }
+
+    /**
+     * Creates a new lesson record directly into the library.
+     */
+    @CacheEvict(value = "lessons", allEntries = true)
+    public LibraryLessonResponse createLibraryLesson(CreateLessonRequest request) {
+        Lesson lesson = Lesson.builder()
+                .tutorName(request.getTutorName()).title(request.getTitle())
+                .summary(request.getSummary()).content(request.getContent())
+                .lessonDate(request.getLessonDate()).videoUrl(request.getVideoUrl())
+                .thumbnailUrl(request.getThumbnailUrl()).isLibrary(true)
+                .isPublished(request.getIsPublished())
+                .category(request.getCategoryId() != null ? categoryRepository.findById(request.getCategoryId()).orElse(null) : null)
+                .build();
+
+        return LibraryLessonResponse.fromEntity(lessonRepository.save(lesson));
+    }
+
+    /**
+     * Assigns an existing library lesson to a list of students.
+     * Prevents duplicate assignments.
+     */
+    @CacheEvict(value = "lessons", allEntries = true)
+    public void assignLessonToStudents(Long lessonId, List<Long> studentIds, String assignedBy) {
+        Lesson lesson = lessonRepository.findByIdWithDetails(lessonId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài giảng."));
+
+        List<Student> students = studentRepository.findAllById(studentIds);
+        if (students.size() != studentIds.size()) {
+            throw new ResourceNotFoundException("Một số học sinh được chọn không tồn tại.");
+        }
+
+        List<LessonAssignment> assignments = students.stream()
+                .filter(s -> !assignmentRepository.existsByLessonIdAndStudentId(lessonId, s.getId()))
+                .map(s -> LessonAssignment.builder().lesson(lesson).student(s)
+                        .assignedDate(LocalDate.now()).assignedBy(assignedBy).build())
+                .collect(Collectors.toList());
+
+        if (!assignments.isEmpty()) {
+            assignmentRepository.saveAll(assignments);
+            if (lesson.getIsLibrary()) {
+                lesson.markAsAssigned();
+                lessonRepository.save(lesson);
+            }
+        }
+    }
+
+    /**
+     * Revokes lesson access from specific students.
+     * Reverts lesson to 'Library' status if no students remain assigned.
+     */
+    @CacheEvict(value = "lessons", allEntries = true)
+    public void unassignLessonFromStudents(Long lessonId, List<Long> studentIds) {
+        for (Long id : studentIds) {
+            assignmentRepository.deleteByLessonIdAndStudentId(lessonId, id);
+        }
+
+        if (assignmentRepository.countByLessonId(lessonId) == 0) {
+            Lesson lesson = lessonRepository.findByIdWithDetails(lessonId).orElse(null);
+            if (lesson != null) {
+                lesson.markAsLibrary();
+                lessonRepository.save(lesson);
+            }
+        }
+    }
+
+    /**
+     * Fetches students officially assigned to a specific lesson.
+     */
+    @Transactional(readOnly = true)
+    public List<Student> getAssignedStudents(Long lessonId) {
+        return assignmentRepository.findByLessonIdWithDetails(lessonId).stream()
+                .map(LessonAssignment::getStudent)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Deletes a lesson from the library and all its historical assignments.
+     */
+    @CacheEvict(value = "lessons", allEntries = true)
+    public void deleteLibraryLesson(Long lessonId) {
+        Lesson lesson = lessonRepository.findByIdWithDetails(lessonId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài giảng."));
+        lessonRepository.delete(lesson);
+    }
+}

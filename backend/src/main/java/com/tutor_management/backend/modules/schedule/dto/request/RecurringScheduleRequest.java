@@ -1,5 +1,6 @@
 package com.tutor_management.backend.modules.schedule.dto.request;
 
+import com.tutor_management.backend.modules.schedule.entity.RecurringSchedule;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Payload for creating or updating a {@link com.tutor_management.backend.modules.schedule.RecurringSchedule}.
+ * Payload for creating or updating a {@link RecurringSchedule}.
  * Defines a weekly learning plan for a specific student.
  */
 @Data

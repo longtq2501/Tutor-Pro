@@ -8,12 +8,16 @@ import type {
     AssignCourseRequest,
 } from '@/features/learning/courses/types';
 
+
+/**
+ * API cho admin và tutor (Latest update: 2024-01-14)
+ */
 export const courseAdminApi = {
     /**
      * Lấy danh sách tất cả khóa học
      */
     getAll: async (): Promise<CourseDTO[]> => {
-        const response = await api.get<ApiResponse<CourseDTO[]>>('/admin/courses');
+        const response = await api.get<ApiResponse<CourseDTO[]>>('/courses');
         return response.data.data;
     },
 
@@ -21,7 +25,7 @@ export const courseAdminApi = {
      * Lấy chi tiết khóa học (bao gồm bài giảng)
      */
     getById: async (id: number): Promise<CourseDetailDTO> => {
-        const response = await api.get<ApiResponse<CourseDetailDTO>>(`/admin/courses/${id}`);
+        const response = await api.get<ApiResponse<CourseDetailDTO>>(`/courses/${id}`);
         return response.data.data;
     },
 
@@ -29,7 +33,7 @@ export const courseAdminApi = {
      * Tạo khóa học mới
      */
     create: async (data: CourseRequest): Promise<CourseDTO> => {
-        const response = await api.post<ApiResponse<CourseDTO>>('/admin/courses', data);
+        const response = await api.post<ApiResponse<CourseDTO>>('/courses', data);
         return response.data.data;
     },
 
@@ -37,7 +41,7 @@ export const courseAdminApi = {
      * Cập nhật khóa học
      */
     update: async (id: number, data: CourseRequest): Promise<CourseDTO> => {
-        const response = await api.put<ApiResponse<CourseDTO>>(`/admin/courses/${id}`, data);
+        const response = await api.put<ApiResponse<CourseDTO>>(`/courses/${id}`, data);
         return response.data.data;
     },
 
@@ -45,7 +49,7 @@ export const courseAdminApi = {
      * Xóa khóa học
      */
     delete: async (id: number): Promise<void> => {
-        const response = await api.delete<ApiResponse<void>>(`/admin/courses/${id}`);
+        const response = await api.delete<ApiResponse<void>>(`/courses/${id}`);
         return response.data.data;
     },
 
@@ -53,7 +57,7 @@ export const courseAdminApi = {
      * Thêm bài giảng vào khóa học
      */
     addLessons: async (id: number, lessonIds: number[]): Promise<void> => {
-        const response = await api.post<ApiResponse<void>>(`/admin/courses/${id}/lessons`, lessonIds);
+        const response = await api.post<ApiResponse<void>>(`/courses/${id}/lessons`, lessonIds);
         return response.data.data;
     },
 
@@ -61,7 +65,7 @@ export const courseAdminApi = {
      * Xóa bài giảng khỏi khóa học
      */
     removeLesson: async (id: number, lessonId: number): Promise<void> => {
-        const response = await api.delete<ApiResponse<void>>(`/admin/courses/${id}/lessons/${lessonId}`);
+        const response = await api.delete<ApiResponse<void>>(`/courses/${id}/lessons/${lessonId}`);
         return response.data.data;
     },
 
@@ -69,7 +73,7 @@ export const courseAdminApi = {
      * Giao khóa học cho học sinh
      */
     assign: async (id: number, data: AssignCourseRequest): Promise<CourseAssignmentDTO[]> => {
-        const response = await api.post<ApiResponse<CourseAssignmentDTO[]>>(`/admin/courses/${id}/assign`, data);
+        const response = await api.post<ApiResponse<CourseAssignmentDTO[]>>(`/courses/${id}/assign`, data);
         return response.data.data;
     },
 
@@ -77,7 +81,7 @@ export const courseAdminApi = {
      * Lấy danh sách học sinh đã được giao khóa học
      */
     getAssignments: async (id: number): Promise<CourseAssignmentDTO[]> => {
-        const response = await api.get<ApiResponse<CourseAssignmentDTO[]>>(`/admin/courses/${id}/assignments`);
+        const response = await api.get<ApiResponse<CourseAssignmentDTO[]>>(`/courses/${id}/assignments`);
         return response.data.data;
     },
 
@@ -85,7 +89,7 @@ export const courseAdminApi = {
      * Thu hồi khóa học từ học sinh
      */
     unassign: async (id: number, studentId: number): Promise<void> => {
-        const response = await api.delete<ApiResponse<void>>(`/admin/courses/${id}/students/${studentId}`);
+        const response = await api.delete<ApiResponse<void>>(`/courses/${id}/students/${studentId}`);
         return response.data.data;
     },
 };

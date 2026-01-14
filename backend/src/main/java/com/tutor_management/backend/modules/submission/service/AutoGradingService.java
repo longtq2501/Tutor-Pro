@@ -1,6 +1,6 @@
 package com.tutor_management.backend.modules.submission.service;
 
-import com.tutor_management.backend.modules.submission.domain.Submission;
+import com.tutor_management.backend.modules.submission.entity.Submission;
 
 /**
  * Service for automated evaluation of student attempts.

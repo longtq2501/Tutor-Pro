@@ -1,6 +1,6 @@
 package com.tutor_management.backend.modules.submission.repository;
 
-import com.tutor_management.backend.modules.submission.domain.StudentAnswer;
+import com.tutor_management.backend.modules.submission.entity.StudentAnswer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

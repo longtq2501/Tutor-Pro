@@ -129,7 +129,10 @@ public class ExerciseController {
         exerciseService.assignToStudent(id, request.getStudentId(), user.getId().toString(), request.getDeadline());
         return ResponseEntity.ok(ApiResponse.success("Đã giao bài tập cho học sinh thành công", null));
     }
-    
+
+    /**
+     * Showing list of assigned exercises to students
+     */
     @GetMapping("/assigned")
     @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN', 'TUTOR')")
     public ResponseEntity<ApiResponse<Page<ExerciseListItemResponse>>> listAssignedExercises(
@@ -139,6 +142,7 @@ public class ExerciseController {
         Page<ExerciseListItemResponse> exercises = exerciseService.listAssignedExercises(user.getId().toString(), pageable);
         return ResponseEntity.ok(ApiResponse.success(exercises));
     }
+
     /**
      * Staff/Admin view for a specific student's assigned assessments.
      */

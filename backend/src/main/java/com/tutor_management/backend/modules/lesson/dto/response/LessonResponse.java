@@ -1,7 +1,7 @@
 package com.tutor_management.backend.modules.lesson.dto.response;
 
-import com.tutor_management.backend.modules.lesson.Lesson;
-import com.tutor_management.backend.modules.lesson.LessonAssignment;
+import com.tutor_management.backend.modules.lesson.entity.Lesson;
+import com.tutor_management.backend.modules.lesson.entity.LessonAssignment;
 import lombok.*;
 
 import java.time.LocalDate;

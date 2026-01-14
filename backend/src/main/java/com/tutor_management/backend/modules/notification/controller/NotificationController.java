@@ -6,12 +6,10 @@ import com.tutor_management.backend.modules.notification.service.NotificationSer
 import com.tutor_management.backend.modules.shared.dto.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.context.ApplicationEventPublisher;
 import com.tutor_management.backend.modules.notification.event.ExamSubmittedEvent;
-import com.tutor_management.backend.modules.notification.event.ExamGradedEvent;
 
 import java.util.List;
 

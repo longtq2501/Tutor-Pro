@@ -1,6 +1,6 @@
 package com.tutor_management.backend.modules.course.dto.response;
 
-import com.tutor_management.backend.modules.course.Course;
+import com.tutor_management.backend.modules.course.entity.Course;
 import com.tutor_management.backend.modules.course.enums.DifficultyLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

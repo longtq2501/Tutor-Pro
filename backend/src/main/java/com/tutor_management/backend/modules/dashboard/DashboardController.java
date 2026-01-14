@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tutor_management.backend.modules.dashboard.dto.response.DashboardStats;
 import com.tutor_management.backend.modules.dashboard.dto.response.StudentDashboardStats;
 import com.tutor_management.backend.modules.finance.dto.response.MonthlyStats;
-import com.tutor_management.backend.modules.shared.PDFGeneratorService;
+import com.tutor_management.backend.modules.shared.service.PDFGeneratorService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

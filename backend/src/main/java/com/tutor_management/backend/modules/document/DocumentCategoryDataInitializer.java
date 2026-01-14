@@ -1,5 +1,9 @@
 package com.tutor_management.backend.modules.document;
 
+import com.tutor_management.backend.modules.document.entity.Document;
+import com.tutor_management.backend.modules.document.entity.DocumentCategory;
+import com.tutor_management.backend.modules.document.repository.DocumentCategoryRepository;
+import com.tutor_management.backend.modules.document.repository.DocumentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;

@@ -1,5 +1,6 @@
 package com.tutor_management.backend.modules.parent.dto.response;
 
+import com.tutor_management.backend.modules.parent.entity.Parent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,7 +9,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * Data response object for {@link com.tutor_management.backend.modules.parent.Parent} information.
+ * Data response object for {@link Parent} information.
  */
 @Data
 @Builder

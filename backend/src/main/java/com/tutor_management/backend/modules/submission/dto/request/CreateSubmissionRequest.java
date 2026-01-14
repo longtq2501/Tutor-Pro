@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * Payload for creating a new student {@link com.tutor_management.backend.modules.submission.domain.Submission}.
+ * Payload for creating a new student {@link com.tutor_management.backend.modules.submission.entity.Submission}.
  */
 @Data
 @Builder

@@ -1,5 +1,6 @@
 package com.tutor_management.backend.modules.lesson.dto.request;
 
+import com.tutor_management.backend.modules.lesson.entity.Lesson;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,7 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Payload for updating an existing {@link com.tutor_management.backend.modules.lesson.Lesson}.
+ * Payload for updating an existing {@link Lesson}.
  * Only non-null fields will be updated in the entity.
  */
 @Data

@@ -16,7 +16,6 @@ import React, { useCallback, useMemo, useState } from 'react';
 // FEATURE-BASED IMPORTS (All refactored)
 // ============================================================================
 import AdminDashboard from '@/features/dashboard/admin-dashboard';
-import { LoadingState } from '@/features/dashboard/admin-dashboard/components/LoadingState';
 import { StudentViewSkeleton } from '@/features/students/unified-view/components/StudentViewSkeleton';
 import { FinanceViewSkeleton } from '@/features/finance/management/components/FinanceViewSkeleton';
 import { AnimatePresence, motion } from 'framer-motion';

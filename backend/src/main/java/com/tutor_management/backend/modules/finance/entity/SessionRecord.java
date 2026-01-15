@@ -39,6 +39,12 @@ public class SessionRecord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * Foreign key to owning Tutor (multi-tenancy).
+     */
+    @Column(name = "tutor_id", nullable = false)
+    private Long tutorId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
     private Student student;

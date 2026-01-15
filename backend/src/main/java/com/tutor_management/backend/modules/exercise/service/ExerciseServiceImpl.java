@@ -1,6 +1,7 @@
 package com.tutor_management.backend.modules.exercise.service;
 
 import com.tutor_management.backend.exception.ResourceNotFoundException;
+import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.auth.UserRepository;
 import com.tutor_management.backend.modules.exercise.domain.*;
 import com.tutor_management.backend.modules.exercise.dto.request.CreateExerciseRequest;
@@ -53,7 +54,21 @@ public class ExerciseServiceImpl implements ExerciseService {
     private final SubmissionRepository submissionRepository;
     private final StudentRepository studentRepository;
     private final UserRepository userRepository;
+    private final com.tutor_management.backend.modules.tutor.repository.TutorRepository tutorRepository;
     private final ApplicationEventPublisher eventPublisher;
+
+    private Long getTutorId(String teacherId) {
+        if (teacherId == null) return null;
+        try {
+            Long userId = Long.parseLong(teacherId);
+            return tutorRepository.findByUserId(userId)
+                    .map(com.tutor_management.backend.modules.tutor.entity.Tutor::getId)
+                    .orElse(null);
+        } catch (NumberFormatException e) {
+            log.warn("Invalid teacherId format: {}", teacherId);
+            return null;
+        }
+    }
 
     @Override
     public ImportPreviewResponse previewImport(ImportExerciseRequest request) {
@@ -66,6 +81,11 @@ public class ExerciseServiceImpl implements ExerciseService {
     public ExerciseResponse createExercise(CreateExerciseRequest request, String teacherId) {
         log.info("Starting creation of exercise '{}' by teacher {}", request.getTitle(), teacherId);
         log.info("Received {} questions in request", request.getQuestions() != null ? request.getQuestions().size() : 0);
+        
+        Long tutorId = getTutorId(teacherId);
+        if (tutorId == null) {
+            throw new RuntimeException("Tutor profile not found for user ID: " + teacherId);
+        }
 
         Exercise exercise = Exercise.builder()
                 .title(request.getTitle())
@@ -76,6 +96,7 @@ public class ExerciseServiceImpl implements ExerciseService {
                 .status(request.getStatus() != null ? request.getStatus() : ExerciseStatus.DRAFT)
                 .classId(request.getClassId())
                 .createdBy(teacherId)
+                .tutorId(tutorId)
                 .questions(new LinkedHashSet<>())
                 .build();
 
@@ -125,8 +146,13 @@ public class ExerciseServiceImpl implements ExerciseService {
     @Override
     @Transactional(readOnly = true)
     public Page<ExerciseListItemResponse> listExercises(String classId, ExerciseStatus status, String search, Pageable pageable) {
-        log.debug("Listing exercises (Filter: class={}, status={}, search={}, page={})", classId, status, search, pageable.getPageNumber());
-        return exerciseRepository.findByFiltersOptimized(classId, status, search, pageable);
+        // Assume context user is the teacher calling this
+        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email).orElseThrow();
+        Long tutorId = getTutorId(user.getId().toString());
+        
+        log.debug("Listing exercises (TutorID={}, Filter: class={}, status={}, search={}, page={})", tutorId, classId, status, search, pageable.getPageNumber());
+        return exerciseRepository.findByFiltersOptimized(classId, status, search, tutorId, pageable);
     }
 
     @Override
@@ -211,10 +237,17 @@ public class ExerciseServiceImpl implements ExerciseService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<TutorStudentSummaryResponse> getStudentSummaries(Pageable pageable) {
-        log.info("Aggregating student performance summaries for tutor dashboard (page: {})", pageable.getPageNumber());
+    public Page<TutorStudentSummaryResponse> getStudentSummaries(Long tutorId, Pageable pageable) {
+        log.info("Aggregating student performance summaries for tutor dashboard (tutorId: {}, page: {})", tutorId, pageable.getPageNumber());
         
-        var studentsPage = studentRepository.findByActiveTrueWithParent(pageable);
+        Page<com.tutor_management.backend.modules.student.entity.Student> studentsPage;
+        if (tutorId != null) {
+            studentsPage = studentRepository.findByTutorIdAndActiveTrueWithParent(tutorId, pageable);
+        } else {
+            // Admin sees all
+            studentsPage = studentRepository.findByActiveTrueWithParent(pageable);
+        }
+        
         if (studentsPage.isEmpty()) return Page.empty();
 
         List<String> studentIds = studentsPage.getContent().stream()

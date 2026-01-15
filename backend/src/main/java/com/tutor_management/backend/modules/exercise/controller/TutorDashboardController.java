@@ -29,6 +29,8 @@ import org.springframework.data.web.PageableDefault;
 public class TutorDashboardController {
 
     private final ExerciseService exerciseService;
+    private final com.tutor_management.backend.modules.auth.UserRepository userRepository;
+    private final com.tutor_management.backend.modules.tutor.repository.TutorRepository tutorRepository;
 
     /**
      * Retrieves a student-centric summary of exercise completion statuses with pagination.
@@ -37,6 +39,26 @@ public class TutorDashboardController {
     public ResponseEntity<ApiResponse<Page<TutorStudentSummaryResponse>>> getStudentSummaries(
             @PageableDefault(size = 10) Pageable pageable) {
         log.info("Fetching student exercise summaries for tutor dashboard (page: {})", pageable.getPageNumber());
-        return ResponseEntity.ok(ApiResponse.success(exerciseService.getStudentSummaries(pageable)));
+        
+        Long tutorId = getCurrentTutorId();
+        return ResponseEntity.ok(ApiResponse.success(exerciseService.getStudentSummaries(tutorId, pageable)));
+    }
+
+    private Long getCurrentTutorId() {
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return null;
+        }
+        
+        String email = auth.getName();
+        com.tutor_management.backend.modules.auth.User user = userRepository.findByEmail(email).orElse(null);
+        
+        if (user == null || user.getRole() == com.tutor_management.backend.modules.auth.Role.ADMIN) {
+            return null;
+        }
+        
+        return tutorRepository.findByUserId(user.getId())
+                .map(com.tutor_management.backend.modules.tutor.entity.Tutor::getId)
+                .orElse(null);
     }
 }

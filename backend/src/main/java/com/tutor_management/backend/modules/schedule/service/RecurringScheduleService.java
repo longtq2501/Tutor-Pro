@@ -1,6 +1,8 @@
 package com.tutor_management.backend.modules.schedule.service;
 
 import com.tutor_management.backend.exception.ResourceNotFoundException;
+import com.tutor_management.backend.modules.auth.Role;
+import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.finance.entity.SessionRecord;
 import com.tutor_management.backend.modules.finance.repository.SessionRecordRepository;
 import com.tutor_management.backend.modules.notification.event.ScheduleCreatedEvent;
@@ -43,12 +45,22 @@ public class RecurringScheduleService {
     private final StudentRepository studentRepository;
     private final SessionRecordRepository sessionRecordRepository;
     private final ApplicationEventPublisher eventPublisher;
+    
+    // Dependencies for isolation
+    private final com.tutor_management.backend.modules.auth.UserRepository userRepository;
+    private final com.tutor_management.backend.modules.tutor.repository.TutorRepository tutorRepository;
 
     /**
      * Retrieves all recurring schedules.
      */
     @Transactional(readOnly = true)
     public List<RecurringScheduleResponse> getAllSchedules() {
+        Long tutorId = getCurrentTutorId();
+        if (tutorId != null) {
+            return recurringScheduleRepository.findAllByTutorIdOrderByCreatedAtDesc(tutorId).stream()
+                    .map(this::convertToResponse)
+                    .collect(Collectors.toList());
+        }
         return recurringScheduleRepository.findAllByOrderByCreatedAtDesc().stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
@@ -59,6 +71,12 @@ public class RecurringScheduleService {
      */
     @Transactional(readOnly = true)
     public List<RecurringScheduleResponse> getActiveSchedules() {
+        Long tutorId = getCurrentTutorId();
+        if (tutorId != null) {
+            return recurringScheduleRepository.findAllActiveByTutorIdWithStudent(tutorId).stream()
+                    .map(this::convertToResponse)
+                    .collect(Collectors.toList());
+        }
         return recurringScheduleRepository.findAllActiveWithStudent().stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
@@ -69,6 +87,12 @@ public class RecurringScheduleService {
      */
     @Transactional(readOnly = true)
     public RecurringScheduleResponse getScheduleById(Long id) {
+        Long tutorId = getCurrentTutorId();
+        if (tutorId != null) {
+            return recurringScheduleRepository.findByIdAndTutorIdWithStudent(id, tutorId)
+                    .map(this::convertToResponse)
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lịch học với ID: " + id));
+        }
         return recurringScheduleRepository.findByIdWithStudent(id)
                 .map(this::convertToResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lịch học với ID: " + id));
@@ -79,6 +103,12 @@ public class RecurringScheduleService {
      */
     @Transactional(readOnly = true)
     public RecurringScheduleResponse getScheduleByStudentId(Long studentId) {
+        Long tutorId = getCurrentTutorId();
+        if (tutorId != null) {
+            return recurringScheduleRepository.findByStudentIdAndTutorIdAndActiveTrueOrderByCreatedAtDesc(studentId, tutorId)
+                    .map(this::convertToResponse)
+                    .orElseThrow(() -> new ResourceNotFoundException("Học sinh chưa có lịch học cố định hoặc bạn không có quyền truy cập."));
+        }
         return recurringScheduleRepository.findByStudentIdAndActiveTrueOrderByCreatedAtDesc(studentId)
                 .map(this::convertToResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("Học sinh chưa có lịch học cố định."));
@@ -93,6 +123,11 @@ public class RecurringScheduleService {
         
         Student student = studentRepository.findById(request.getStudentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy học sinh"));
+        
+        Long tutorId = getCurrentTutorId();
+        if (tutorId != null && !student.getTutorId().equals(tutorId)) {
+             throw new RuntimeException("Không có quyền tạo lịch học cho học sinh này");
+        }
 
         deactivateExistingSchedules(request.getStudentId());
 
@@ -142,10 +177,21 @@ public class RecurringScheduleService {
      */
     @Transactional
     public void deleteSchedule(Long id) {
-        if (!recurringScheduleRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Không tìm thấy lịch học cần xóa");
+        Long tutorId = getCurrentTutorId();
+        RecurringSchedule schedule;
+        
+        if (tutorId != null) {
+            schedule = recurringScheduleRepository.findByIdAndTutorIdWithStudent(id, tutorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lịch học hoặc bạn không có quyền truy cập"));
+        } else {
+            if (!recurringScheduleRepository.existsById(id)) {
+                throw new ResourceNotFoundException("Không tìm thấy lịch học cần xóa");
+            }
+            // Need to fetch entity to delete properly if passing object, or just invoke deleteById
+            // For consistency with other methods and cascading if any, fetch first
+            schedule = recurringScheduleRepository.findById(id).orElseThrow();
         }
-        recurringScheduleRepository.deleteById(id);
+        recurringScheduleRepository.delete(schedule);
     }
 
     /**
@@ -153,8 +199,16 @@ public class RecurringScheduleService {
      */
     @Transactional
     public RecurringScheduleResponse toggleActive(Long id) {
-        RecurringSchedule schedule = recurringScheduleRepository.findById(id)
+        Long tutorId = getCurrentTutorId();
+        RecurringSchedule schedule;
+        
+        if (tutorId != null) {
+            schedule = recurringScheduleRepository.findByIdAndTutorIdWithStudent(id, tutorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lịch học hoặc bạn không có quyền truy cập"));
+        } else {
+            schedule = recurringScheduleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lịch học"));
+        }
         schedule.setActive(!schedule.getActive());
         return convertToResponse(recurringScheduleRepository.save(schedule));
     }
@@ -188,8 +242,8 @@ public class RecurringScheduleService {
 
     @Transactional(readOnly = true)
     public boolean hasSessionsForMonth(String month, Long studentId) {
-        return sessionRecordRepository.findByMonthAndStudentIdIn(month, 
-                studentId != null ? List.of(studentId) : Collections.emptyList()).size() > 0;
+        return !sessionRecordRepository.findByMonthAndStudentIdIn(month,
+                studentId != null ? List.of(studentId) : Collections.emptyList()).isEmpty();
     }
 
     @Transactional(readOnly = true)
@@ -202,8 +256,38 @@ public class RecurringScheduleService {
 
     // --- Internal Helpers ---
 
+
+
+    private Long getCurrentTutorId() {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return null;
+        }
+        String email = auth.getName();
+        
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        if (user.getRole() == Role.ADMIN) {
+            return null;
+        }
+        
+        com.tutor_management.backend.modules.tutor.entity.Tutor tutor = tutorRepository.findByUserId(user.getId())
+            .orElseThrow(() -> new RuntimeException("Tutor profile not found for user: " + user.getId()));
+        
+        return tutor.getId();
+    }
+
     private void deactivateExistingSchedules(Long studentId) {
-        List<RecurringSchedule> active = recurringScheduleRepository.findByStudentIdAndActiveTrue(studentId);
+        Long tutorId = getCurrentTutorId();
+        List<RecurringSchedule> active;
+        
+        if (tutorId != null) {
+             active = recurringScheduleRepository.findByStudentIdAndTutorIdAndActiveTrue(studentId, tutorId);
+        } else {
+             active = recurringScheduleRepository.findByStudentIdAndActiveTrue(studentId);
+        }
+        
         active.forEach(s -> s.setActive(false));
         recurringScheduleRepository.saveAll(active);
     }
@@ -221,7 +305,15 @@ public class RecurringScheduleService {
     }
 
     private List<RecurringSchedule> getTargetSchedules(List<Long> studentIds) {
-        List<RecurringSchedule> allActive = recurringScheduleRepository.findAllActiveWithStudent();
+        Long tutorId = getCurrentTutorId();
+        List<RecurringSchedule> allActive;
+        
+        if (tutorId != null) {
+            allActive = recurringScheduleRepository.findAllActiveByTutorIdWithStudent(tutorId);
+        } else {
+            allActive = recurringScheduleRepository.findAllActiveWithStudent();
+        }
+        
         if (studentIds == null || studentIds.isEmpty()) return allActive;
         return allActive.stream().filter(s -> studentIds.contains(s.getStudent().getId())).toList();
     }
@@ -254,7 +346,7 @@ public class RecurringScheduleService {
     private SessionRecord createSessionRecord(RecurringSchedule s, LocalDate date, String month) {
         Student std = s.getStudent();
         return SessionRecord.builder()
-                .student(std).month(month).sessions(1).hours(s.getHoursPerSession())
+                .student(std).tutorId(std.getTutorId()).month(month).sessions(1).hours(s.getHoursPerSession())
                 .pricePerHour(std.getPricePerHour()).totalAmount((long)(std.getPricePerHour() * s.getHoursPerSession()))
                 .paid(false).sessionDate(date).startTime(s.getStartTime()).endTime(s.getEndTime())
                 .subject(s.getSubject()).status(com.tutor_management.backend.modules.finance.LessonStatus.SCHEDULED)

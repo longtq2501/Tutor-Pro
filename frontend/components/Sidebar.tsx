@@ -7,7 +7,7 @@ import { ChevronLeft, GraduationCap } from 'lucide-react';
 import React, { memo, useEffect, useState } from 'react';
 
 // Types (Giữ nguyên)
-export type View = 'dashboard' | 'students' | 'monthly' | 'documents' | 'parents' | 'unpaid' | 'calendar' | 'homework' | 'lessons' | 'exercises' | 'finance';
+export type View = 'dashboard' | 'students' | 'monthly' | 'documents' | 'parents' | 'unpaid' | 'calendar' | 'homework' | 'lessons' | 'exercises' | 'finance' | 'tutors';
 export type NavItem = { id: View; label: string; icon: React.ElementType };
 
 interface SidebarProps {

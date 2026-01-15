@@ -8,7 +8,8 @@ import {
     GraduationCap, LayoutDashboard,
     LogOut,
     Menu,
-    TrendingUp
+    TrendingUp,
+    Users
 } from 'lucide-react';
 import React, { useCallback, useMemo, useState } from 'react';
 
@@ -41,6 +42,7 @@ const CalendarView = dynamic(() => import('@/features/calendar/calendar-view'));
 // Lesson Views - Different components for different roles
 const LessonViewWrapper = dynamic(() => import('@/features/learning/lesson-view-wrapper'));
 const AdminLessonManager = dynamic(() => import('@/features/learning/lessons'));
+const TutorsFeature = dynamic(() => import('@/features/tutors'));
 
 // ============================================================================
 // UI COMPONENTS (Keep in /components - not feature-specific)
@@ -168,6 +170,9 @@ const MainContentSwitcher = React.memo(({ currentView, hasAnyRole }: {
 
                 {/* Admin/Tutor Lesson Manager */}
                 {currentView === 'lessons' && hasAnyRole(['ADMIN', 'TUTOR']) && <AdminLessonManager />}
+                {/* Tutor Management */}
+                {currentView === 'tutors' && hasAnyRole(['ADMIN']) && <TutorsFeature />}
+
                 {/* Student Lesson View */}
                 {currentView === 'lessons' && hasAnyRole(['STUDENT']) && <LessonViewWrapper />}
 
@@ -240,6 +245,7 @@ function AppContent() {
     const navItems: NavItem[] = useMemo(() => {
         const allItems: NavItem[] = [
             { id: 'dashboard', label: 'Tổng Quan', icon: LayoutDashboard },
+            { id: 'tutors', label: 'Gia Sư', icon: Users },
             { id: 'students', label: 'Học Sinh & PH', icon: GraduationCap },
             { id: 'finance', label: 'Tài Chính', icon: TrendingUp }, // Unified View
             { id: 'calendar', label: 'Lịch Dạy', icon: CalendarDays },
@@ -254,6 +260,7 @@ function AppContent() {
             if (item.id === 'monthly' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
             if (item.id === 'unpaid' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
             if (item.id === 'calendar' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
+            if (item.id === 'tutors' && !hasAnyRole(['ADMIN'])) return false;
             return true;
         });
     }, [hasAnyRole]);

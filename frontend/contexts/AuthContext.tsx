@@ -4,6 +4,7 @@
 import { authService, type UserInfo } from '@/lib/services';
 import { useRouter } from 'next/navigation';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface AuthContextType {
   user: UserInfo | null;
@@ -21,6 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   // Load user from localStorage on mount
   useEffect(() => {
@@ -87,10 +89,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await authService.logout();
     } finally {
+      // Clear all React Query cache to prevent stale data between sessions
+      queryClient.clear();
+
       setUser(null);
       router.push('/login');
     }
-  }, [router]);
+  }, [router, queryClient]);
 
   const hasRole = useCallback((role: 'ADMIN' | 'TUTOR' | 'STUDENT'): boolean => {
     return user?.role === role;

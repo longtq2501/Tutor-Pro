@@ -4,16 +4,18 @@ import java.util.List;
 import java.time.YearMonth;
 import java.time.LocalDateTime;
 
+import com.tutor_management.backend.modules.auth.Role;
+import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.dashboard.dto.response.StudentDashboardStats;
+import com.tutor_management.backend.modules.finance.repository.SessionRecordRepository;
+import com.tutor_management.backend.modules.student.repository.StudentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.cache.annotation.Cacheable;
 
 import com.tutor_management.backend.modules.dashboard.dto.response.DashboardStats;
 import com.tutor_management.backend.modules.finance.LessonStatus;
-import com.tutor_management.backend.modules.finance.repository.SessionRecordRepository;
 import com.tutor_management.backend.modules.finance.dto.response.MonthlyStats;
-import com.tutor_management.backend.modules.student.repository.StudentRepository;
 import com.tutor_management.backend.modules.document.repository.DocumentRepository;
 import com.tutor_management.backend.util.FormatterUtils;
 
@@ -31,6 +33,8 @@ public class DashboardService {
     private final StudentRepository studentRepository;
     private final SessionRecordRepository sessionRecordRepository;
     private final DocumentRepository documentRepository;
+    private final com.tutor_management.backend.modules.auth.UserRepository userRepository;
+    private final com.tutor_management.backend.modules.tutor.repository.TutorRepository tutorRepository;
 
     /**
      * Retrieves overall system statistics for a specific month.
@@ -39,10 +43,18 @@ public class DashboardService {
      * @param currentMonth The month to query (YYYY-MM format)
      * @return DashboardStats containing aggregated metrics
      */
-    @Cacheable(value = "dashboardStats", key = "#currentMonth")
+    @Cacheable(value = "dashboardStats", key = "{#currentMonth, T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().getName()}")
     public DashboardStats getDashboardStats(String currentMonth) {
+        Long tutorId = getCurrentTutorId();
+        
         // 1. Fetch raw financial summary from repository
-        DashboardStats stats = sessionRecordRepository.getFinanceSummary(currentMonth);
+        DashboardStats stats;
+        if (tutorId != null) {
+            stats = sessionRecordRepository.getFinanceSummaryByTutorId(currentMonth, tutorId);
+        } else {
+            stats = sessionRecordRepository.getFinanceSummary(currentMonth);
+        }
+
         if (stats == null) {
             stats = new DashboardStats(0, 0L, 0L, 0L, 0L);
         }
@@ -53,16 +65,22 @@ public class DashboardService {
         stats.setCurrentMonthTotal(FormatterUtils.formatCurrency(stats.getCurrentMonthTotalRaw()));
 
         // 3. Calculate revenue growth trend compared to previous month
-        calculateRevenueTrend(stats);
+        calculateRevenueTrend(stats, tutorId);
 
         // 4. Calculate new student signups for the current month
-        calculateNewStudentGrowth(stats, currentMonth);
+        calculateNewStudentGrowth(stats, currentMonth, tutorId);
 
         return stats;
     }
 
-    private void calculateRevenueTrend(DashboardStats stats) {
-        List<MonthlyStats> monthlyList = sessionRecordRepository.findAllMonthlyStatsAggregated();
+    private void calculateRevenueTrend(DashboardStats stats, Long tutorId) {
+        List<MonthlyStats> monthlyList;
+        if (tutorId != null) {
+            monthlyList = sessionRecordRepository.findMonthlyStatsAggregatedByTutorId(tutorId);
+        } else {
+            monthlyList = sessionRecordRepository.findAllMonthlyStatsAggregated();
+        }
+        
         if (monthlyList.size() >= 2) {
             long currentRevenue = monthlyList.get(0).getTotalPaid() + monthlyList.get(0).getTotalUnpaid();
             long previousRevenue = monthlyList.get(1).getTotalPaid() + monthlyList.get(1).getTotalUnpaid();
@@ -75,12 +93,17 @@ public class DashboardService {
         }
     }
 
-    private void calculateNewStudentGrowth(DashboardStats stats, String monthStr) {
+    private void calculateNewStudentGrowth(DashboardStats stats, String monthStr, Long tutorId) {
         try {
             YearMonth yearMonth = YearMonth.parse(monthStr);
             LocalDateTime monthStart = yearMonth.atDay(1).atStartOfDay();
             LocalDateTime monthEnd = yearMonth.atEndOfMonth().atTime(23, 59, 59);
-            stats.setNewStudentsCurrentMonth((int) studentRepository.countByCreatedAtBetween(monthStart, monthEnd));
+            
+            if (tutorId != null) {
+                stats.setNewStudentsCurrentMonth((int) studentRepository.countByCreatedAtBetweenAndTutorId(monthStart, monthEnd, tutorId));
+            } else {
+                stats.setNewStudentsCurrentMonth((int) studentRepository.countByCreatedAtBetween(monthStart, monthEnd));
+            }
         } catch (Exception e) {
             stats.setNewStudentsCurrentMonth(0);
         }
@@ -186,8 +209,37 @@ public class DashboardService {
      * 
      * @return List of MonthlyStats records
      */
-    @Cacheable(value = "monthlyStats")
+    @Cacheable(value = "monthlyStats", key = "T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().getName()")
     public List<MonthlyStats> getMonthlyStats() {
+        Long tutorId = getCurrentTutorId();
+        if (tutorId != null) {
+            return sessionRecordRepository.findMonthlyStatsAggregatedByTutorId(tutorId);
+        }
         return sessionRecordRepository.findAllMonthlyStatsAggregated();
+    }
+    
+    // --- Helper ---
+    
+    private Long getCurrentTutorId() {
+        try {
+            org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || !auth.isAuthenticated()) {
+                return null;
+            }
+            String email = auth.getName();
+            
+            User user = userRepository.findByEmail(email)
+                .orElse(null);
+            
+            if (user == null || user.getRole() == Role.ADMIN) {
+                return null;
+            }
+            
+            return tutorRepository.findByUserId(user.getId())
+                .map(com.tutor_management.backend.modules.tutor.entity.Tutor::getId)
+                .orElse(null);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

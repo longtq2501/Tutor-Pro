@@ -45,7 +45,13 @@ public class Exercise implements Persistable<String> {
     public boolean isNew() {
         return isNew;
     }
-    
+
+    /**
+     * Foreign key to owning Tutor (multi-tenancy).
+     */
+    @Column(name = "tutor_id", nullable = false)
+    private Long tutorId;
+
     /**
      * Primary name/header for the exercise.
      */

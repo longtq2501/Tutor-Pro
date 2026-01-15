@@ -86,6 +86,9 @@ public interface ExerciseService {
 
     /**
      * Aggregates completion statistics for students with pagination support.
+     * 
+     * @param tutorId Optional filter for tutor-specific isolation. Null for ADMIN.
+     * @param pageable Pagination metadata.
      */
-    Page<TutorStudentSummaryResponse> getStudentSummaries(Pageable pageable);
+    Page<TutorStudentSummaryResponse> getStudentSummaries(Long tutorId, Pageable pageable);
 }

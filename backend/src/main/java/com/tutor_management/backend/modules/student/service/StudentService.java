@@ -8,7 +8,12 @@ import java.util.stream.Collectors;
 
 import com.tutor_management.backend.exception.ResourceNotFoundException;
 import com.tutor_management.backend.modules.student.entity.Student;
+import com.tutor_management.backend.modules.student.entity.Student;
 import com.tutor_management.backend.modules.student.repository.StudentRepository;
+import com.tutor_management.backend.modules.tutor.entity.Tutor;
+import com.tutor_management.backend.modules.tutor.repository.TutorRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 public class StudentService {
 
     private final StudentRepository studentRepository;
+    private final TutorRepository tutorRepository;
     private final SessionRecordRepository sessionRecordRepository;
     private final ParentRepository parentRepository;
     private final UserRepository userRepository;
@@ -48,13 +54,41 @@ public class StudentService {
     private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
     private static final String DEFAULT_PASSWORD = "student123";
 
+    private Long getCurrentTutorId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return null; // Should ideally throw specific exception or handle anonymous
+        }
+        String email = auth.getName();
+        
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        if (user.getRole() == Role.ADMIN) {
+            return null;
+        }
+        
+        Tutor tutor = tutorRepository.findByUserId(user.getId())
+            .orElseThrow(() -> new RuntimeException("Tutor profile not found for user: " + user.getId()));
+        
+        return tutor.getId();
+    }
+
     /**
      * Retrieves all students with pre-calculated billing summaries and account links.
      * Uses batch queries to solve N+1 problems.
      */
     @Transactional(readOnly = true)
     public List<StudentResponse> getAllStudents() {
-        List<Student> students = studentRepository.findAllWithParentOrderByCreatedAtDesc();
+        Long tutorId = getCurrentTutorId();
+        List<Student> students;
+        
+        if (tutorId == null) {
+            students = studentRepository.findAllWithParentOrderByCreatedAtDesc();
+        } else {
+            students = studentRepository.findAllByTutorIdWithParentOrderByCreatedAtDesc(tutorId);
+        }
+
         if (students.isEmpty()) return Collections.emptyList();
 
         List<Long> studentIds = students.stream().map(Student::getId).toList();
@@ -80,7 +114,15 @@ public class StudentService {
      */
     @Transactional(readOnly = true)
     public Page<StudentSummaryResponse> getStudentsPaginated(Pageable pageable) {
-        Page<Student> studentPage = studentRepository.findAllWithParent(pageable);
+        Long tutorId = getCurrentTutorId();
+        Page<Student> studentPage;
+
+        if (tutorId == null) {
+            studentPage = studentRepository.findAllWithParent(pageable);
+        } else {
+            studentPage = studentRepository.findAllByTutorIdWithParent(tutorId, pageable);
+        }
+
         if (studentPage.isEmpty()) return Page.empty();
 
         List<Long> studentIds = studentPage.getContent().stream().map(Student::getId).toList();
@@ -103,8 +145,16 @@ public class StudentService {
      */
     @Transactional(readOnly = true)
     public StudentResponse getStudentById(Long id) {
-        Student student = studentRepository.findById(id)
+        Long tutorId = getCurrentTutorId();
+        Student student;
+        
+        if (tutorId == null) {
+             student = studentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy học sinh với ID: " + id));
+        } else {
+             student = studentRepository.findByIdAndTutorId(id, tutorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy học sinh với ID: " + id + " hoặc bạn không có quyền truy cập"));
+        }
         return convertToResponse(student);
     }
 
@@ -113,9 +163,15 @@ public class StudentService {
      */
     @Transactional
     public StudentResponse createStudent(StudentRequest request) {
+        Long tutorId = getCurrentTutorId();
+        if (tutorId == null) {
+            throw new RuntimeException("Admin cannot create students directly. Please sign in as a Tutor.");
+        }
+
         log.info("Creating student: {}", request.getName());
         
         Student student = Student.builder()
+                .tutorId(tutorId)
                 .name(request.getName())
                 .phone(request.getPhone())
                 .schedule(request.getSchedule())
@@ -140,9 +196,17 @@ public class StudentService {
      */
     @Transactional
     public StudentResponse updateStudent(Long id, StudentRequest request) {
+        Long tutorId = getCurrentTutorId();
         log.info("Updating student ID: {}", id);
-        Student student = studentRepository.findById(id)
+        
+        Student student;
+        if (tutorId == null) {
+            student = studentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy học sinh với ID: " + id));
+        } else {
+             student = studentRepository.findByIdAndTutorId(id, tutorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy học sinh với ID: " + id + " hoặc bạn không có quyền truy cập"));
+        }
 
         updateStudentFields(student, request);
         associateParent(student, request.getParentId());
@@ -157,9 +221,17 @@ public class StudentService {
      */
     @Transactional
     public void deleteStudent(Long id) {
+        Long tutorId = getCurrentTutorId();
         log.warn("Deleting student ID: {}", id);
-        Student student = studentRepository.findById(id)
+        
+        Student student;
+        if (tutorId == null) {
+            student = studentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy học sinh với ID: " + id));
+        } else {
+             student = studentRepository.findByIdAndTutorId(id, tutorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy học sinh với ID: " + id + " hoặc bạn không có quyền truy cập"));
+        }
 
         sessionRecordRepository.deleteAll(sessionRecordRepository.findByStudentId(id));
         userRepository.deleteAll(userRepository.findByStudentId(id));

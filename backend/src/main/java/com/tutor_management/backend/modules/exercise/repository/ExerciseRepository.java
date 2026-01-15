@@ -99,17 +99,20 @@ public interface ExerciseRepository extends JpaRepository<Exercise, String> {
            "CAST(SIZE(e.questions) AS integer), CAST(0 AS integer), e.createdAt) " +
            "FROM Exercise e " +
            "WHERE (:classId IS NULL OR e.classId = :classId) " +
-           "AND (:status IS NULL OR e.status = :status) " +
-           "AND (:search IS NULL OR LOWER(e.title) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-           "ORDER BY e.createdAt DESC",
-           countQuery = "SELECT COUNT(e) FROM Exercise e " +
-           "WHERE (:classId IS NULL OR e.classId = :classId) " +
-           "AND (:status IS NULL OR e.status = :status) " +
-           "AND (:search IS NULL OR LOWER(e.title) LIKE LOWER(CONCAT('%', :search, '%')))")
+            "AND (:status IS NULL OR e.status = :status) " +
+            "AND (:search IS NULL OR LOWER(e.title) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+            "AND e.tutorId = :tutorId " +
+            "ORDER BY e.createdAt DESC",
+            countQuery = "SELECT COUNT(e) FROM Exercise e " +
+            "WHERE (:classId IS NULL OR e.classId = :classId) " +
+            "AND (:status IS NULL OR e.status = :status) " +
+            "AND (:search IS NULL OR LOWER(e.title) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+            "AND e.tutorId = :tutorId")
     Page<ExerciseListItemResponse> findByFiltersOptimized(
             @Param("classId") String classId,
             @Param("status") ExerciseStatus status,
             @Param("search") String search,
+            @Param("tutorId") Long tutorId,
             Pageable pageable);
 
     /**

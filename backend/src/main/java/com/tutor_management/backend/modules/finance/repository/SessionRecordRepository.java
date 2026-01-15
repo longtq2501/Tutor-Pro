@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.tutor_management.backend.modules.finance.entity.SessionRecord;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -25,7 +26,13 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, Lo
            "LEFT JOIN FETCH sr.student " +
            "WHERE sr.student.id = :studentId " +
            "ORDER BY sr.createdAt DESC")
-    org.springframework.data.domain.Page<SessionRecord> findByStudentIdOrderByCreatedAtDesc(@Param("studentId") Long studentId, org.springframework.data.domain.Pageable pageable);
+    Page<SessionRecord> findByStudentIdOrderByCreatedAtDesc(@Param("studentId") Long studentId, org.springframework.data.domain.Pageable pageable);
+
+    @Query("SELECT sr FROM SessionRecord sr " +
+           "LEFT JOIN FETCH sr.student " +
+           "WHERE sr.student.id = :studentId AND sr.tutorId = :tutorId " +
+           "ORDER BY sr.createdAt DESC")
+    Page<SessionRecord> findByStudentIdAndTutorIdOrderByCreatedAtDesc(@Param("studentId") Long studentId, @Param("tutorId") Long tutorId, org.springframework.data.domain.Pageable pageable);
 
     /**
      * Retrieves all session records for a specific student.
@@ -33,19 +40,36 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, Lo
      */
     List<SessionRecord> findByStudentId(Long studentId);
 
+    List<SessionRecord> findByTutorId(Long tutorId);
+
+    @Query("SELECT sr FROM SessionRecord sr " +
+           "LEFT JOIN FETCH sr.student " +
+           "WHERE sr.tutorId = :tutorId " +
+           "ORDER BY sr.createdAt DESC")
+    Page<SessionRecord> findAllByTutorIdOrderByCreatedAtDesc(@Param("tutorId") Long tutorId, org.springframework.data.domain.Pageable pageable);
+
     @Query("SELECT sr FROM SessionRecord sr " +
            "LEFT JOIN FETCH sr.student " +
            "ORDER BY sr.createdAt DESC")
-    org.springframework.data.domain.Page<SessionRecord> findAllByOrderByCreatedAtDesc(org.springframework.data.domain.Pageable pageable);
+    Page<SessionRecord> findAllByOrderByCreatedAtDesc(org.springframework.data.domain.Pageable pageable);
 
     @Query("SELECT sr FROM SessionRecord sr " +
            "LEFT JOIN FETCH sr.student " +
            "WHERE sr.month = :month " +
            "ORDER BY sr.createdAt DESC")
-    org.springframework.data.domain.Page<SessionRecord> findByMonthOrderByCreatedAtDesc(@Param("month") String month, org.springframework.data.domain.Pageable pageable);
+    Page<SessionRecord> findByMonthOrderByCreatedAtDesc(@Param("month") String month, org.springframework.data.domain.Pageable pageable);
+
+    @Query("SELECT sr FROM SessionRecord sr " +
+           "LEFT JOIN FETCH sr.student " +
+           "WHERE sr.month = :month AND sr.tutorId = :tutorId " +
+           "ORDER BY sr.createdAt DESC")
+    Page<SessionRecord> findByMonthAndTutorIdOrderByCreatedAtDesc(@Param("month") String month, @Param("tutorId") Long tutorId, org.springframework.data.domain.Pageable pageable);
 
     @Query("SELECT DISTINCT sr.month FROM SessionRecord sr ORDER BY sr.month DESC")
     List<String> findDistinctMonths();
+
+    @Query("SELECT DISTINCT sr.month FROM SessionRecord sr WHERE sr.tutorId = :tutorId ORDER BY sr.month DESC")
+    List<String> findDistinctMonthsByTutorId(@Param("tutorId") Long tutorId);
 
     /**
      * Aggregates revenue and session counts grouped by month.
@@ -61,6 +85,17 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, Lo
            "ORDER BY sr.month DESC")
     List<MonthlyStats> findAllMonthlyStatsAggregated();
 
+    @Query("SELECT new com.tutor_management.backend.modules.finance.dto.response.MonthlyStats(" +
+           "sr.month, " +
+           "SUM(CASE WHEN sr.paid = true AND (sr.status IS NULL OR sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR)) THEN sr.totalAmount ELSE 0L END), " +
+           "SUM(CASE WHEN sr.paid = false AND (sr.status IS NULL OR sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR)) THEN sr.totalAmount ELSE 0L END), " +
+           "CAST(SUM(CASE WHEN (sr.status IS NULL OR sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR)) THEN sr.sessions ELSE 0 END) AS integer)) " +
+           "FROM SessionRecord sr " +
+           "WHERE sr.tutorId = :tutorId " +
+           "GROUP BY sr.month " +
+           "ORDER BY sr.month DESC")
+    List<MonthlyStats> findMonthlyStatsAggregatedByTutorId(@Param("tutorId") Long tutorId);
+
     /**
      * Calculates global dashboard metrics for the financial module.
      */
@@ -73,7 +108,20 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, Lo
            "FROM SessionRecord sr")
     DashboardStats getFinanceSummary(@Param("currentMonth") String currentMonth);
 
+    @Query("SELECT new com.tutor_management.backend.modules.dashboard.dto.response.DashboardStats(" +
+           "CAST(COUNT(DISTINCT sr.student.id) AS integer), " +
+           "SUM(CASE WHEN sr.paid = true AND (sr.status IS NULL OR sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR)) THEN sr.totalAmount ELSE 0L END), " +
+           "SUM(CASE WHEN sr.paid = false AND (sr.status IS NULL OR sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR)) THEN sr.totalAmount ELSE 0L END), " +
+           "SUM(CASE WHEN sr.month = :currentMonth AND (sr.status IS NULL OR sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR)) THEN sr.totalAmount ELSE 0L END), " +
+           "SUM(CASE WHEN sr.month = :currentMonth AND sr.paid = false AND (sr.status IS NULL OR sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR)) THEN sr.totalAmount ELSE 0L END)) " +
+           "FROM SessionRecord sr WHERE sr.tutorId = :tutorId")
+    DashboardStats getFinanceSummaryByTutorId(@Param("currentMonth") String currentMonth, @Param("tutorId") Long tutorId);
+
     void deleteByMonth(String month);
+
+    void deleteByMonthAndTutorId(String month, Long tutorId);
+
+    Optional<SessionRecord> findByIdAndTutorId(Long id, Long tutorId);
 
     @Query("SELECT COALESCE(SUM(sr.totalAmount), 0) FROM SessionRecord sr WHERE sr.paid = true AND (sr.status IS NULL OR sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR))")
     Long sumTotalPaid();
@@ -90,11 +138,20 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, Lo
     @Query("SELECT COALESCE(SUM(sr.sessions), 0) FROM SessionRecord sr WHERE sr.month = :month AND (sr.status IS NULL OR sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR))")
     Integer sumSessionsByMonth(@Param("month") String month);
 
+    @Query("SELECT COALESCE(SUM(sr.sessions), 0) FROM SessionRecord sr WHERE sr.month = :month AND sr.tutorId = :tutorId AND (sr.status IS NULL OR sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR))")
+    Integer sumSessionsByMonthAndTutorId(@Param("month") String month, @Param("tutorId") Long tutorId);
+
     @Query("SELECT sr FROM SessionRecord sr " +
            "LEFT JOIN FETCH sr.student " +
            "WHERE sr.paid = false " +
            "ORDER BY sr.sessionDate DESC")
-    org.springframework.data.domain.Page<SessionRecord> findByPaidFalseOrderBySessionDateDesc(org.springframework.data.domain.Pageable pageable);
+    Page<SessionRecord> findByPaidFalseOrderBySessionDateDesc(org.springframework.data.domain.Pageable pageable);
+
+    @Query("SELECT sr FROM SessionRecord sr " +
+           "LEFT JOIN FETCH sr.student " +
+           "WHERE sr.paid = false AND sr.tutorId = :tutorId " +
+           "ORDER BY sr.sessionDate DESC")
+    Page<SessionRecord> findByPaidFalseAndTutorIdOrderBySessionDateDesc(@Param("tutorId") Long tutorId, org.springframework.data.domain.Pageable pageable);
 
     @Query("SELECT sr FROM SessionRecord sr " +
            "LEFT JOIN FETCH sr.student s " +
@@ -156,6 +213,13 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, Lo
            "LEFT JOIN FETCH sr.lessons " +
            "WHERE sr.id = :id")
     Optional<SessionRecord> findByIdWithAttachments(@Param("id") Long id);
+
+    @Query("SELECT sr FROM SessionRecord sr " +
+           "LEFT JOIN FETCH sr.student " +
+           "LEFT JOIN FETCH sr.documents " +
+           "LEFT JOIN FETCH sr.lessons " +
+           "WHERE sr.id = :id AND sr.tutorId = :tutorId")
+    Optional<SessionRecord> findByIdAndTutorIdWithAttachments(@Param("id") Long id, @Param("tutorId") Long tutorId);
 
     @Query("SELECT sr FROM SessionRecord sr " +
            "LEFT JOIN FETCH sr.student " +

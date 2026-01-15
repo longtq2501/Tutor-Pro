@@ -29,6 +29,14 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     @Query("SELECT s FROM Student s LEFT JOIN FETCH s.parent WHERE s.id = :id")
     Optional<Student> findByIdWithParent(@Param("id") Long id);
 
+    @Query("SELECT s FROM Student s LEFT JOIN FETCH s.parent WHERE s.id = :id AND s.tutorId = :tutorId")
+    Optional<Student> findByIdAndTutorIdWithParent(@Param("id") Long id, @Param("tutorId") Long tutorId);
+
+    Optional<Student> findByIdAndTutorId(Long id, Long tutorId);
+
+    boolean existsByIdAndTutorId(Long id, Long tutorId);
+
+
     /**
      * Retrieves students by IDs with their associated parents eagerly fetched.
      */
@@ -56,6 +64,13 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
             "ORDER BY s.createdAt DESC")
     List<Student> findAllWithParentOrderByCreatedAtDesc();
 
+    @Query("SELECT DISTINCT s FROM Student s " +
+            "LEFT JOIN FETCH s.parent " +
+            "WHERE s.tutorId = :tutorId " +
+            "ORDER BY s.createdAt DESC")
+    List<Student> findAllByTutorIdWithParentOrderByCreatedAtDesc(@Param("tutorId") Long tutorId);
+
+
     /**
      * Paginated version of student retrieval with parent fetching.
      */
@@ -63,9 +78,23 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
            countQuery = "SELECT COUNT(s) FROM Student s")
     Page<Student> findAllWithParent(Pageable pageable);
 
+    @Query(value = "SELECT s FROM Student s LEFT JOIN FETCH s.parent WHERE s.tutorId = :tutorId ORDER BY s.createdAt DESC",
+           countQuery = "SELECT COUNT(s) FROM Student s WHERE s.tutorId = :tutorId")
+    Page<Student> findAllByTutorIdWithParent(@Param("tutorId") Long tutorId, Pageable pageable);
+
+    @Query(value = "SELECT s FROM Student s LEFT JOIN FETCH s.parent WHERE s.tutorId = :tutorId AND s.active = true ORDER BY s.createdAt DESC",
+           countQuery = "SELECT COUNT(s) FROM Student s WHERE s.tutorId = :tutorId AND s.active = true")
+    Page<Student> findByTutorIdAndActiveTrueWithParent(@Param("tutorId") Long tutorId, Pageable pageable);
+
+
     /**
      * Counts the number of students enrolled within a specific time frame.
      */
     @Query("SELECT COUNT(s) FROM Student s WHERE s.createdAt >= :start AND s.createdAt <= :end")
     long countByCreatedAtBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    @Query("SELECT COUNT(s) FROM Student s WHERE s.createdAt >= :start AND s.createdAt <= :end AND s.tutorId = :tutorId")
+    long countByCreatedAtBetweenAndTutorId(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end, @Param("tutorId") Long tutorId);
+
+    long countByTutorIdAndActiveTrue(Long tutorId);
 }

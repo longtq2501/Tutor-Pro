@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.tutor_management.backend.modules.auth.Role;
+import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.document.repository.DocumentRepository;
 import com.tutor_management.backend.modules.document.entity.Document;
 import com.tutor_management.backend.modules.finance.LessonStatus;
@@ -19,6 +21,8 @@ import com.tutor_management.backend.modules.finance.StatusTransitionValidator;
 import com.tutor_management.backend.modules.lesson.repository.LessonRepository;
 import com.tutor_management.backend.modules.lesson.entity.Lesson;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,8 +58,32 @@ public class SessionRecordService {
     private final StatusTransitionValidator statusTransitionValidator;
     private final ApplicationEventPublisher eventPublisher;
     
+    // Dependencies for isolation
+    private final com.tutor_management.backend.modules.auth.UserRepository userRepository;
+    private final com.tutor_management.backend.modules.tutor.repository.TutorRepository tutorRepository;
+
     private final DateTimeFormatter isoFormatter = DateTimeFormatter.ISO_DATE_TIME;
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+
+    private Long getCurrentTutorId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return null;
+        }
+        String email = auth.getName();
+        
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        if (user.getRole() == Role.ADMIN) {
+            return null;
+        }
+        
+        com.tutor_management.backend.modules.tutor.entity.Tutor tutor = tutorRepository.findByUserId(user.getId())
+            .orElseThrow(() -> new RuntimeException("Tutor profile not found for user: " + user.getId()));
+        
+        return tutor.getId();
+    }
 
     /**
      * Retrieves all session records ordered by creation date (newest first).
@@ -64,6 +92,11 @@ public class SessionRecordService {
      */
     @Transactional(readOnly = true)
     public Page<SessionRecordResponse> getAllRecords(Pageable pageable) {
+        Long tutorId = getCurrentTutorId();
+        if (tutorId != null) {
+            return sessionRecordRepository.findAllByTutorIdOrderByCreatedAtDesc(tutorId, pageable)
+                    .map(this::mapToListResponse);
+        }
         return sessionRecordRepository.findAllByOrderByCreatedAtDesc(pageable)
                 .map(this::mapToListResponse);
     }
@@ -76,6 +109,11 @@ public class SessionRecordService {
      */
     @Transactional(readOnly = true)
     public Page<SessionRecordResponse> getRecordsByMonth(String month, Pageable pageable) {
+        Long tutorId = getCurrentTutorId();
+        if (tutorId != null) {
+            return sessionRecordRepository.findByMonthAndTutorIdOrderByCreatedAtDesc(month, tutorId, pageable)
+                    .map(this::mapToListResponse);
+        }
         return sessionRecordRepository.findByMonthOrderByCreatedAtDesc(month, pageable)
                 .map(this::mapToListResponse);
     }
@@ -88,6 +126,10 @@ public class SessionRecordService {
      */
     @Transactional(readOnly = true)
     public List<String> getDistinctMonths() {
+        Long tutorId = getCurrentTutorId();
+        if (tutorId != null) {
+            return sessionRecordRepository.findDistinctMonthsByTutorId(tutorId);
+        }
         return sessionRecordRepository.findDistinctMonths();
     }
 
@@ -105,12 +147,21 @@ public class SessionRecordService {
         
         Student student = studentRepository.findById(r.getStudentId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy học sinh"));
+        
+        Long currentTutorId = getCurrentTutorId();
+        if (currentTutorId != null) {
+            // Verify student belongs to this tutor
+            if (!student.getTutorId().equals(currentTutorId)) {
+                 throw new RuntimeException("Không có quyền tạo buổi học cho học sinh này");
+            }
+        }
 
         double hours = r.getHoursPerSession() * r.getSessions();
         long amount = (long) (hours * student.getPricePerHour());
 
         SessionRecord record = SessionRecord.builder()
                 .student(student)
+                .tutorId(student.getTutorId()) // Explicitly set tutorId from student
                 .month(r.getMonth())
                 .sessions(r.getSessions())
                 .hours(hours)
@@ -146,8 +197,16 @@ public class SessionRecordService {
     public SessionRecordResponse updateRecord(Long id, SessionRecordUpdateRequest r) {
         log.info("📝 Updating session record: {}", id);
         
-        SessionRecord record = sessionRecordRepository.findById(id)
+        SessionRecord record;
+        Long tutorId = getCurrentTutorId();
+        
+        if (tutorId != null) {
+            record = sessionRecordRepository.findByIdAndTutorId(id, tutorId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi buổi học hoặc bạn không có quyền truy cập"));
+        } else {
+             record = sessionRecordRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi buổi học"));
+        }
 
         log.info("Checking version for Session {}: DB={}, Request={}", id, record.getVersion(), r.getVersion());
         checkVersion(record, r.getVersion());
@@ -187,8 +246,16 @@ public class SessionRecordService {
      */
     @CacheEvict(value = {"dashboardStats", "monthlyStats"}, allEntries = true)
     public void deleteRecord(Long id) {
-        SessionRecord record = sessionRecordRepository.findById(id)
+        Long tutorId = getCurrentTutorId();
+        SessionRecord record;
+        
+        if (tutorId != null) {
+             record = sessionRecordRepository.findByIdAndTutorId(id, tutorId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi buổi học hoặc bạn không có quyền truy cập"));
+        } else {
+             record = sessionRecordRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi buổi học"));
+        }
         sessionRecordRepository.delete(record);
     }
 
@@ -200,8 +267,14 @@ public class SessionRecordService {
      */
     @CacheEvict(value = {"dashboardStats", "monthlyStats"}, allEntries = true)
     public void deleteSessionsByMonth(String month) {
-        log.warn("⚠️ Deleting all sessions for month: {}", month);
-        sessionRecordRepository.deleteByMonth(month);
+        Long tutorId = getCurrentTutorId();
+        if (tutorId != null) {
+            log.warn("⚠️ Deleting sessions for month: {} for tutor: {}", month, tutorId);
+            sessionRecordRepository.deleteByMonthAndTutorId(month, tutorId);
+        } else {
+            log.warn("⚠️ Deleting all sessions for month: {} (ADMIN)", month);
+            sessionRecordRepository.deleteByMonth(month);
+        }
     }
 
     /**
@@ -212,6 +285,11 @@ public class SessionRecordService {
      */
     @Transactional(readOnly = true)
     public Page<SessionRecordResponse> getAllUnpaidSessions(Pageable pageable) {
+        Long tutorId = getCurrentTutorId();
+        if (tutorId != null) {
+            return sessionRecordRepository.findByPaidFalseAndTutorIdOrderBySessionDateDesc(tutorId, pageable)
+                    .map(this::mapToListResponse);
+        }
         return sessionRecordRepository.findByPaidFalseOrderBySessionDateDesc(pageable)
                 .map(this::mapToListResponse);
     }
@@ -227,8 +305,16 @@ public class SessionRecordService {
      */
     @CacheEvict(value = {"dashboardStats", "monthlyStats"}, allEntries = true)
     public SessionRecordResponse togglePayment(Long id, Integer version) {
-        SessionRecord record = sessionRecordRepository.findById(id)
+        Long tutorId = getCurrentTutorId();
+        SessionRecord record;
+        
+        if (tutorId != null) {
+             record = sessionRecordRepository.findByIdAndTutorId(id, tutorId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi buổi học hoặc bạn không có quyền truy cập"));
+        } else {
+             record = sessionRecordRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi buổi học"));
+        }
         checkVersion(record, version);
 
         if (!record.getPaid()) {
@@ -254,13 +340,22 @@ public class SessionRecordService {
     @CacheEvict(value = {"dashboardStats", "monthlyStats"}, allEntries = true)
     public SessionRecordResponse duplicateSession(Long id) {
         log.info("📋 Duplicating session record: {}", id);
-        
-        SessionRecord original = sessionRecordRepository.findByIdWithAttachments(id)
+
+        Long tutorId = getCurrentTutorId();
+        SessionRecord original;
+
+        if (tutorId != null) {
+             original = sessionRecordRepository.findByIdAndTutorIdWithAttachments(id, tutorId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy buổi học với ID: " + id));
+        } else {
+             original = sessionRecordRepository.findByIdWithAttachments(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy buổi học với ID: " + id));
+        }
 
         // Create a new session with the same data
         SessionRecord duplicate = SessionRecord.builder()
                 .student(original.getStudent())
+                .tutorId(original.getTutorId()) // Copy tutorId
                 .month(original.getMonth())
                 .sessions(original.getSessions())
                 .hours(original.getHours())
@@ -306,6 +401,11 @@ public class SessionRecordService {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy học sinh"));
 
+        Long tutorId = getCurrentTutorId();
+        if (tutorId != null && !student.getTutorId().equals(tutorId)) {
+             throw new RuntimeException("Không có quyền truy cập dữ liệu của học sinh này");
+        }
+
         return sessionRecordRepository.findByStudentAndMonthFilteredOrderByDateAsc(student, month).stream()
                 .map(this::mapToListResponse)
                 .collect(Collectors.toList());
@@ -320,8 +420,16 @@ public class SessionRecordService {
      */
     @Transactional(readOnly = true)
     public SessionRecordResponse getSessionById(Long id) {
-        SessionRecord record = sessionRecordRepository.findByIdWithAttachments(id)
+        Long tutorId = getCurrentTutorId();
+        SessionRecord record;
+
+        if (tutorId != null) {
+             record = sessionRecordRepository.findByIdAndTutorIdWithAttachments(id, tutorId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy buổi học với ID: " + id));
+        } else {
+             record = sessionRecordRepository.findByIdWithAttachments(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy buổi học với ID: " + id));
+        }
         return mapToFullResponse(record);
     }
 
@@ -330,8 +438,16 @@ public class SessionRecordService {
      */
     @CacheEvict(value = {"dashboardStats", "monthlyStats"}, allEntries = true)
     public SessionRecordResponse updateStatus(Long id, LessonStatus next, Integer version) {
-        SessionRecord record = sessionRecordRepository.findById(id)
+        Long tutorId = getCurrentTutorId();
+        SessionRecord record;
+        
+        if (tutorId != null) {
+             record = sessionRecordRepository.findByIdAndTutorId(id, tutorId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy buổi học với ID: " + id));
+        } else {
+             record = sessionRecordRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy buổi học với ID: " + id));
+        }
 
         checkVersion(record, version);
         statusTransitionValidator.validate(record.getStatus(), next);

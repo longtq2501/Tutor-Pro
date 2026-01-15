@@ -82,18 +82,17 @@ Optimize existing TMS from "functional" to "production-ready":
         - **Documentation:** Detailed `ISSUES.md` audit trail and `walkthrough.md` implementation guide.
 
 ### Now:
-- 🔄 **Learning Module Upgrade**: Improving UI, UX, and performance.
-- ✅ **Exercise Module Fixes**: Resolved critical "Assign Exercise" student list missing and "Premature Completion" bugs.
+- 🔄 **Exercise Module Upgrade**
+  - Goal: Implement pagination, "Pending" status tracking, and "Teacher-only" view.
+  - Context: Currently exercises are global or unoptimized.
+  - Priority: P1
 
 ### Next:
-- 🔄 **Exercise Module Upgrade**: Implementing pagination, Pending status tracking.
 - 🔄 **Optimization Phase Finalization**: Preparing for repository synchronization.
 
 ## Open Questions
 
 ### Working Set:
-Current module: 
-Active files or folders: 
-- frontend\features\learning
-- backend\src\main\java\com\tutor_management\backend\modules\lesson
-Focus: Performance optimization + error handling
+Current module: None (Transitioning to Exercise)
+Active files or folders: []
+Focus: Planning Exercise Module Upgrade

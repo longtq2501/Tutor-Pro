@@ -11,9 +11,15 @@ import java.time.LocalDateTime;
  * Domain entity representing a Student in the system.
  * Contains demographic information, billing rates, and academic schedules.
  * Students can be linked to a {@link Parent} for administrative purposes.
+ * 
+ * Multi-tenancy: Each student belongs to exactly one Tutor (tutor_id).
  */
 @Entity
-@Table(name = "students")
+@Table(name = "students", indexes = {
+    @Index(name = "idx_student_tutor_id", columnList = "tutor_id"),
+    @Index(name = "idx_student_parent_id", columnList = "parent_id"),
+    @Index(name = "idx_student_active", columnList = "active")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,6 +31,13 @@ public class Student {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /**
+     * Foreign key to the owning Tutor.
+     * Every student MUST belong to a tutor (multi-tenancy isolation).
+     */
+    @Column(name = "tutor_id", nullable = false)
+    private Long tutorId;
 
     /**
      * Full name of the student.

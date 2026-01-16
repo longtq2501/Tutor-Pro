@@ -82,12 +82,18 @@ Optimize existing TMS from "functional" to "production-ready":
         - **Documentation:** Detailed `ISSUES.md` audit trail and `walkthrough.md` implementation guide.
 
 ### Now:
-- 🔄 **Exercise Module Upgrade**
+- 🔄 **Live Teaching Feature**
+  - Goal: Real-time video/whiteboard/chat for online sessions.
+  - Status: Planning Complete, Implementation Starts Tomorrow.
+  - Priority: P1
+  - Reference: [Architecture Doc](file:///d:/long-personal-project/Tutor-Management/%F0%9F%8E%AF%20LIVE%20TEACHING%20FEATURE%20-%20COMPLETE%20WORKFLOW%20&%20ARCH%202e92eb5a2ba3803782d4ddabb46d99ed.md)
+
+### Next:
+- 🔄 **Exercise Module Upgrade** (Paused)
   - Goal: Implement pagination, "Pending" status tracking, and "Teacher-only" view.
   - Context: Currently exercises are global or unoptimized.
   - Priority: P1
 
-### Next:
 - 🔄 **Optimization Phase Finalization**: Preparing for repository synchronization.
 
 ## Open Questions

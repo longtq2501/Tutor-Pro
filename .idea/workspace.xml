@@ -8,24 +8,8 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CONTINUITY.md" beforeDir="false" afterPath="$PROJECT_DIR$/CONTINUITY.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/exception/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/exception/GlobalExceptionHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/exercise/controller/TutorDashboardController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/exercise/controller/TutorDashboardController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/exercise/domain/Exercise.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/exercise/domain/Exercise.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/exercise/repository/ExerciseRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/exercise/repository/ExerciseRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/exercise/service/ExerciseService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/exercise/service/ExerciseService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/exercise/service/ExerciseServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/exercise/service/ExerciseServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/finance/entity/SessionRecord.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/finance/entity/SessionRecord.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/finance/repository/SessionRecordRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/finance/repository/SessionRecordRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/finance/service/SessionRecordService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/finance/service/SessionRecordService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/schedule/repository/RecurringScheduleRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/schedule/repository/RecurringScheduleRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/schedule/service/RecurringScheduleService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/schedule/service/RecurringScheduleService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/student/entity/Student.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/student/entity/Student.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/student/repository/StudentRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/student/repository/StudentRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/student/service/StudentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/student/service/StudentService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/app/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/dashboard/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/components/Sidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/Sidebar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/contexts/AuthContext.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/contexts/AuthContext.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/exercises/components/TutorStudentGrid.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/exercises/components/TutorStudentGrid.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/notification/enums/NotificationType.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/notification/enums/NotificationType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/notification/listener/NotificationListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/notification/listener/NotificationListener.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,11 +19,12 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Enum" />
         <option value="Dockerfile" />
         <option value="Interface" />
-        <option value="Class" />
         <option value="Exception" />
+        <option value="AnnotationType" />
+        <option value="Enum" />
+        <option value="Class" />
       </list>
     </option>
   </component>
@@ -84,6 +69,14 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.BackendApplication.executor": "Run",
+    "JUnit.GlobalExceptionHandlerTest.executor": "Run",
+    "JUnit.GlobalExceptionHandlerTest.handleRoomNotFoundException_ShouldReturn404.executor": "Run",
+    "JUnit.OnlineSessionServiceTest.executor": "Run",
+    "JUnit.RoomAccessValidatorTest.executor": "Run",
+    "JUnit.RoomAccessValidatorTest.validateAccess_PerformanceTest.executor": "Run",
+    "JUnit.RoomTokenServiceTest.executor": "Run",
+    "JUnit.RoomTokenServiceTest.isTokenExpired_ExpiredToken.executor": "Run",
+    "JUnit.RoomTokenServiceTest.validateToken_ExpiredToken.executor": "Run",
     "JUnit.TutorServiceTest (1).executor": "Run",
     "JUnit.TutorServiceTest.executor": "Run",
     "Maven.backend [clean].executor": "Run",
@@ -133,60 +126,78 @@
       <recent name="com.tutor_management.backend.exception" />
     </key>
   </component>
-  <component name="RunManager" selected="Spring Boot.BackendApplication">
-    <configuration name="BackendApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="com.tutor_management.backend.BackendApplication" />
+  <component name="RunManager" selected="JUnit.OnlineSessionServiceTest">
+    <configuration name="GlobalExceptionHandlerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="backend" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.tutor_management.backend.*" />
+          <option name="PATTERN" value="com.tutor_management.backend.exception.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="AdminLessonServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="backend" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.tutor_management.backend.modules.lesson.controller.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.tutor_management.backend.modules.lesson" />
-      <option name="MAIN_CLASS_NAME" value="com.tutor_management.backend.modules.lesson.AdminLessonServiceTest" />
+      <option name="PACKAGE_NAME" value="com.tutor_management.backend.exception" />
+      <option name="MAIN_CLASS_NAME" value="com.tutor_management.backend.exception.GlobalExceptionHandlerTest" />
       <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="TutorServiceTest (1)" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="GlobalExceptionHandlerTest.handleRoomNotFoundException_ShouldReturn404" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="backend" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.tutor_management.backend.modules.tutor.repository.*" />
+          <option name="PATTERN" value="com.tutor_management.backend.exception.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.tutor_management.backend.modules.tutor.repository" />
-      <option name="MAIN_CLASS_NAME" value="com.tutor_management.backend.modules.tutor.repository.TutorServiceTest" />
+      <option name="PACKAGE_NAME" value="com.tutor_management.backend.exception" />
+      <option name="MAIN_CLASS_NAME" value="com.tutor_management.backend.exception.GlobalExceptionHandlerTest" />
+      <option name="METHOD_NAME" value="handleRoomNotFoundException_ShouldReturn404" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="OnlineSessionServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="backend" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.tutor_management.backend.modules.onlinesession.service.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.tutor_management.backend.modules.onlinesession.service" />
+      <option name="MAIN_CLASS_NAME" value="com.tutor_management.backend.modules.onlinesession.service.OnlineSessionServiceTest" />
       <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="TutorServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="RoomAccessValidatorTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="backend" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.tutor_management.backend.modules.tutor.service.*" />
+          <option name="PATTERN" value="com.tutor_management.backend.modules.onlinesession.security.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.tutor_management.backend.modules.tutor.service" />
-      <option name="MAIN_CLASS_NAME" value="com.tutor_management.backend.modules.tutor.service.TutorServiceTest" />
+      <option name="PACKAGE_NAME" value="com.tutor_management.backend.modules.onlinesession.security" />
+      <option name="MAIN_CLASS_NAME" value="com.tutor_management.backend.modules.onlinesession.security.RoomAccessValidatorTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="RoomTokenServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="backend" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.tutor_management.backend.modules.onlinesession.security.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.tutor_management.backend.modules.onlinesession.security" />
+      <option name="MAIN_CLASS_NAME" value="com.tutor_management.backend.modules.onlinesession.security.RoomTokenServiceTest" />
       <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -202,10 +213,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.TutorServiceTest (1)" />
-        <item itemvalue="JUnit.TutorServiceTest" />
-        <item itemvalue="JUnit.AdminLessonServiceTest" />
-        <item itemvalue="Application.BackendApplication" />
+        <item itemvalue="JUnit.OnlineSessionServiceTest" />
+        <item itemvalue="JUnit.GlobalExceptionHandlerTest" />
+        <item itemvalue="JUnit.GlobalExceptionHandlerTest.handleRoomNotFoundException_ShouldReturn404" />
+        <item itemvalue="JUnit.RoomTokenServiceTest" />
+        <item itemvalue="JUnit.RoomAccessValidatorTest" />
       </list>
     </recent_temporary>
   </component>
@@ -289,6 +301,7 @@
       <workItem from="1768366661164" duration="2309000" />
       <workItem from="1768388492126" duration="12813000" />
       <workItem from="1768447241441" duration="10826000" />
+      <workItem from="1768564804012" duration="7103000" />
     </task>
     <servers />
   </component>

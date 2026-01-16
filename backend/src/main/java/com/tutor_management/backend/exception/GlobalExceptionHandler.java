@@ -1,5 +1,9 @@
 package com.tutor_management.backend.exception;
 
+import com.tutor_management.backend.modules.onlinesession.exception.InvalidTokenException;
+import com.tutor_management.backend.modules.onlinesession.exception.RoomAccessDeniedException;
+import com.tutor_management.backend.modules.onlinesession.exception.RoomAlreadyEndedException;
+import com.tutor_management.backend.modules.onlinesession.exception.RoomNotFoundException;
 import com.tutor_management.backend.modules.shared.dto.response.ApiResponse;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
@@ -105,6 +109,30 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TokenRefreshException.class)
     public ResponseEntity<ApiResponse<Void>> handleTokenRefreshException(TokenRefreshException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(RoomNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRoomNotFoundException(RoomNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(RoomAccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRoomAccessDeniedException(RoomAccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(RoomAlreadyEndedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRoomAlreadyEndedException(RoomAlreadyEndedException ex) {
+        return ResponseEntity.status(HttpStatus.GONE)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidTokenException(InvalidTokenException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.error(ex.getMessage()));
     }
 

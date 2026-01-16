@@ -27,6 +27,12 @@ public enum NotificationType {
     
     /** Individual lesson session moved or time changed */
     SESSION_RESCHEDULED,
+
+    /** Online live teaching session created */
+    ONLINE_SESSION_CREATED,
+
+    /** Online live teaching session ended */
+    ONLINE_SESSION_ENDED,
     
     /** Critical system or security alerts */
     SYSTEM,

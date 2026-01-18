@@ -44,6 +44,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/actuator/**").permitAll() // Thêm dòng này để UptimeRobot truy cập được
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/api/notifications/**").permitAll()
+                        .requestMatchers("/ws/room/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
                         .requestMatchers("/error").permitAll()

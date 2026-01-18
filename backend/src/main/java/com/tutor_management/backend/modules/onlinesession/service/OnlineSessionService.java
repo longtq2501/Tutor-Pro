@@ -54,4 +54,19 @@ public interface OnlineSessionService {
      * @return The updated session details.
      */
     OnlineSessionResponse endSession(String roomId, Long userId);
+
+    /**
+     * Updates the last activity timestamp for a room.
+     * Called periodically via WebSocket heartbeat.
+     * 
+     * @param roomId The unique room identifier.
+     * @param userId The ID of the user sending the heartbeat.
+     */
+    void updateHeartbeat(String roomId, Long userId);
+
+    /**
+     * Detects and handles inactive participants in active rooms.
+     * Should be called periodically by a scheduler.
+     */
+    void detectInactiveParticipants();
 }

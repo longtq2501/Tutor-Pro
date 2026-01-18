@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +49,7 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
     private final ApplicationEventPublisher eventPublisher;
     private final Clock clock;
     private final RoomTokenService roomTokenService;
+    private final PresenceService presenceService;
 
     @Value("${app.online-session.turn.servers}")
     private List<Map<String, Object>> turnServers;
@@ -271,6 +273,89 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
                 .build());
 
         return mapToResponse(saved);
+    }
+
+    @Override
+    @Transactional
+    public void updateHeartbeat(String roomId, Long userId) {
+        OnlineSession session = onlineSessionRepository.findByRoomId(roomId)
+                .orElseThrow(() -> new RoomNotFoundException("Room not found: " + roomId));
+
+        // Only process for ACTIVE rooms
+        if (session.getRoomStatus() != RoomStatus.ACTIVE) {
+            return;
+        }
+
+        // ✅ FIX: Check participant correctly to avoid NPE
+        boolean isParticipant = false;
+        
+        // Check if tutor
+        if (session.getTutor().getUser() != null && 
+            session.getTutor().getUser().getId().equals(userId)) {
+            isParticipant = true;
+        }
+        
+        // ✅ Check if student (via User.studentId)
+        if (!isParticipant) {
+            User user = userRepository.findById(userId).orElse(null);
+            if (user != null && user.getStudentId() != null) {
+                isParticipant = user.getStudentId().equals(session.getStudent().getId());
+            }
+        }
+
+        if (isParticipant) {
+            // ✅ Update in-memory presence (fast) - avoiding constant DB writes
+            presenceService.updateHeartbeat(roomId, userId);
+            log.trace("Heartbeat updated for room {} by user {}", roomId, userId);
+        } else {
+            log.warn("Heartbeat rejected: user {} not in room {}", userId, roomId);
+        }
+    }
+
+    @Override
+    @Transactional
+    @Scheduled(fixedRate = 60000) // Every 60 seconds
+    public void detectInactiveParticipants() {
+        // Get all ACTIVE rooms
+        List<OnlineSession> activeSessions = onlineSessionRepository
+                .findByRoomStatus(RoomStatus.ACTIVE);
+        
+        for (OnlineSession session : activeSessions) {
+            boolean tutorActive = presenceService.isUserActive(
+                session.getRoomId(), 
+                session.getTutor().getUser().getId(),
+                65 // 30s heartbeat + 35s grace period
+            );
+            
+            // Check student
+            User studentUser = userRepository.findByStudentId(session.getStudent().getId())
+                .stream().findFirst().orElse(null);
+            
+            boolean studentActive = false;
+            if (studentUser != null) {
+                studentActive = presenceService.isUserActive(
+                    session.getRoomId(),
+                    studentUser.getId(),
+                    65
+                );
+            }
+            
+            // If both inactive for 60+ seconds
+            if (!tutorActive && !studentActive) {
+                log.warn("Room {} completely inactive for 60s. Last heartbeat missed.", session.getRoomId());
+                // Future: Implement auto-end or notification logic here
+            } else if (!tutorActive) {
+                log.info("Tutor disconnected from room {}", session.getRoomId());
+            } else if (!studentActive) {
+                log.info("Student disconnected from room {}", session.getRoomId());
+            }
+
+            // Sync presence to DB occasionally (Optional, but helps for visual stats)
+            if (tutorActive || studentActive) {
+                session.setLastActivityAt(LocalDateTime.now(clock));
+                onlineSessionRepository.save(session);
+            }
+        }
     }
 
     private OnlineSessionResponse mapToResponse(OnlineSession session) {

@@ -29,7 +29,8 @@ import java.time.LocalDateTime;
         @Index(name = "idx_tutor_id", columnList = "tutor_id"),
         @Index(name = "idx_student_id", columnList = "student_id"),
         @Index(name = "idx_tutor_student", columnList = "tutor_id, student_id"),
-        @Index(name = "idx_scheduled_start", columnList = "scheduled_start")
+        @Index(name = "idx_scheduled_start", columnList = "scheduled_start"),
+        @Index(name = "idx_last_activity_at", columnList = "last_activity_at")
     }
 )
 @Data
@@ -157,6 +158,12 @@ public class OnlineSession {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "session_record_id", foreignKey = @ForeignKey(name = "fk_online_sessions_session_record"))
     private SessionRecord sessionRecord;
+    
+    /**
+     * Last detected activity from any participant (heartbeat).
+     */
+    @Column(name = "last_activity_at")
+    private LocalDateTime lastActivityAt;
     
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

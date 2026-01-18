@@ -42,12 +42,12 @@
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>  <!-- ✅ ĐÚNG -->
+            <artifactId>spring-boot-starter-web</artifactId> 
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>  <!-- ✅ ĐÚNG -->
+            <artifactId>spring-boot-starter-test</artifactId> 
             <scope>test</scope>
         </dependency>
 
@@ -56,10 +56,15 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        <!-- AOP for Rate Limiting -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
+        <!-- WebSocket -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
 
         <!-- JWT -->

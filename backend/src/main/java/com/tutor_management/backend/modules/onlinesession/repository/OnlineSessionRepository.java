@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -24,6 +25,9 @@ public interface OnlineSessionRepository extends JpaRepository<OnlineSession, Lo
      */
     @EntityGraph(attributePaths = {"tutor", "student"})
     Optional<OnlineSession> findByRoomId(String roomId);
+
+    @EntityGraph(attributePaths = {"tutor", "student"})
+    List<OnlineSession> findByRoomStatus(RoomStatus status);
 
     long countByRoomStatus(RoomStatus status);
 

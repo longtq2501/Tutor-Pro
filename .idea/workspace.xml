@@ -7,15 +7,12 @@
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/exception/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/exception/GlobalExceptionHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/controller/OnlineSessionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/controller/OnlineSessionController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/dto/response/RoomStatsDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/config/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/config/SecurityConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/entity/OnlineSession.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/entity/OnlineSession.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/repository/OnlineSessionRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/repository/OnlineSessionRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/security/RoomAccessValidator.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/security/RoomAccessValidator.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/test/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/test/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionServiceTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/test/java/com/tutor_management/backend/modules/tutor/repository/TutorRepositoryTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/test/java/com/tutor_management/backend/modules/tutor/repository/TutorRepositoryTest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/live-room/ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/ISSUES.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -133,7 +130,7 @@
       <recent name="com.tutor_management.backend.exception" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.OnlineSessionServiceTest">
+  <component name="RunManager" selected="JUnit.TutorServiceTest">
     <configuration name="GlobalExceptionHandlerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="backend" />
       <extension name="coverage">
@@ -161,21 +158,6 @@
       <option name="MAIN_CLASS_NAME" value="com.tutor_management.backend.exception.GlobalExceptionHandlerTest" />
       <option name="METHOD_NAME" value="handleRoomNotFoundException_ShouldReturn404" />
       <option name="TEST_OBJECT" value="method" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="OnlineSessionServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="backend" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.tutor_management.backend.modules.onlinesession.service.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.tutor_management.backend.modules.onlinesession.service" />
-      <option name="MAIN_CLASS_NAME" value="com.tutor_management.backend.modules.onlinesession.service.OnlineSessionServiceTest" />
-      <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -210,6 +192,21 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="TutorServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="backend" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.tutor_management.backend.modules.tutor.repository.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.tutor_management.backend.modules.tutor.repository" />
+      <option name="MAIN_CLASS_NAME" value="com.tutor_management.backend.modules.tutor.repository.TutorServiceTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="BackendApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
       <module name="backend" />
@@ -220,11 +217,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.OnlineSessionServiceTest" />
-        <item itemvalue="JUnit.GlobalExceptionHandlerTest" />
-        <item itemvalue="JUnit.GlobalExceptionHandlerTest.handleRoomNotFoundException_ShouldReturn404" />
-        <item itemvalue="JUnit.RoomTokenServiceTest" />
+        <item itemvalue="JUnit.TutorServiceTest" />
         <item itemvalue="JUnit.RoomAccessValidatorTest" />
+        <item itemvalue="JUnit.GlobalExceptionHandlerTest.handleRoomNotFoundException_ShouldReturn404" />
+        <item itemvalue="JUnit.GlobalExceptionHandlerTest" />
+        <item itemvalue="JUnit.RoomTokenServiceTest" />
       </list>
     </recent_temporary>
   </component>
@@ -309,12 +306,29 @@
       <workItem from="1768388492126" duration="12813000" />
       <workItem from="1768447241441" duration="10826000" />
       <workItem from="1768564804012" duration="7103000" />
-      <workItem from="1768706612832" duration="1520000" />
+      <workItem from="1768706612832" duration="2873000" />
+      <workItem from="1768736426020" duration="1303000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="dependencySupport" implementationName="java:org.springframework.security:spring-security-core" />
+    <option featureType="dependencySupport" implementationName="java:org.springframework:spring-core" />
+    <option featureType="dependencySupport" implementationName="javascript:npm:react" />
+    <option featureType="dependencySupport" implementationName="java:jakarta.validation:jakarta.validation-api" />
+    <option featureType="dependencySupport" implementationName="javascript:npm:tailwindcss" />
+    <option featureType="dependencySupport" implementationName="java:org.springframework.data:spring-data-commons" />
+    <option featureType="dependencySupport" implementationName="executable:kubectl" />
+    <option featureType="dependencySupport" implementationName="java:org.hibernate.validator:hibernate-validator" />
+    <option featureType="dependencySupport" implementationName="java:org.springframework:spring-webmvc" />
+    <option featureType="dependencySupport" implementationName="java:org.projectlombok:lombok" />
+    <option featureType="dependencySupport" implementationName="executable:docker" />
+    <option featureType="dependencySupport" implementationName="java:jakarta.persistence:jakarta.persistence-api" />
+    <option featureType="dependencySupport" implementationName="javascript:npm:next" />
+    <option featureType="dependencySupport" implementationName="java:org.springframework.boot:spring-boot" />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">

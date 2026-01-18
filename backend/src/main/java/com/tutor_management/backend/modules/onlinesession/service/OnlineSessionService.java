@@ -1,7 +1,10 @@
 package com.tutor_management.backend.modules.onlinesession.service;
 
 import com.tutor_management.backend.modules.onlinesession.dto.request.CreateOnlineSessionRequest;
+import com.tutor_management.backend.modules.onlinesession.dto.response.GlobalStatsResponse;
+import com.tutor_management.backend.modules.onlinesession.dto.response.JoinRoomResponse;
 import com.tutor_management.backend.modules.onlinesession.dto.response.OnlineSessionResponse;
+import com.tutor_management.backend.modules.onlinesession.dto.response.RoomStatsResponse;
 
 /**
  * Service interface for managing online live teaching sessions.
@@ -18,7 +21,33 @@ public interface OnlineSessionService {
     OnlineSessionResponse createSession(CreateOnlineSessionRequest request, Long userId);
 
     /**
-     * Ends an online session, calculates duration, and publishes a notification event.
+     * Joins an existing online session, generating a JWT token for the participant.
+     * 
+     * @param roomId The unique room identifier.
+     * @param userId The ID of the user requesting to join.
+     * @return Join details including token and TURN configs.
+     */
+    JoinRoomResponse joinRoom(String roomId, Long userId);
+
+    /**
+     * Retrieves statistics for a specific room.
+     * 
+     * @param roomId The unique room identifier.
+     * @param userId The ID of the user requesting stats.
+     * @return Statistics for the specific room.
+     */
+    RoomStatsResponse getRoomStats(String roomId, Long userId);
+
+    /**
+     * Get global statistics for all online sessions.
+     * 
+     * @return GlobalStatsResponse containing aggregated data.
+     */
+    GlobalStatsResponse getGlobalStats();
+
+    /**
+     * Ends an online session.
+, calculates duration, and publishes a notification event.
      * 
      * @param roomId The unique room identifier.
      * @param userId The ID of the user requesting to end the session.

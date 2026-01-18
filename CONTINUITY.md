@@ -72,19 +72,17 @@ Optimize existing TMS from "functional" to "production-ready":
   - Persistence: Implemented URL-synced search and status filters.
   - Quality: Added backend unit tests and verified responsive design.
 - ✅ **Document Module Refinement**: Implemented role-based permissions (Student view) and fixed iPhone 16 preview zoom issues.
-- ✅ **Student Module Optimization:** Performance audit and production-readiness overhaul.
-    - **Achievements:**
-        - **Backend Performance:** Reduced API payload by > 60% using `StudentSummaryResponse`.
-        - **Scalability:** Implemented Spring Data pagination and optimized "Total Unpaid" queries using batch projections.
-        - **Mobile-First UX:** Optimized Header actions and Stats Cards for seamless mobile usage (iPhone SE/16 Optimized).
-        - **Code Quality:** 100% SOP Compliance (components < 50 lines), refactored ~250 lines of legacy monolithic code into modular sub-components (including `AddSessionModal`).
-        - **Build Reliability:** Resolved critical type regressions in `Calendar` and `Finance` modules caused by backend pagination.
-        - **Documentation:** Detailed `ISSUES.md` audit trail and `walkthrough.md` implementation guide.
+- ✅ **Live Teaching Infrastructure (Production-Ready):**
+    - **Security:** Implemented `@RateLimiter` AOP (Caffeine), refined `@PreAuthorize` with `RoomAccessValidator`, and added room status validation.
+    - **Architecture:** Redesigned statistics with separate `RoomStatsResponse` and `GlobalStatsResponse` DTOs.
+    - **Tracking:** Automated join time recording (`tutorJoinedAt`/`studentJoinedAt`) and room state transition to `ACTIVE`.
+    - **Config:** Dynamic TURN server injection from `application.yaml`.
+    - **Quality:** 100% logic coverage for join/stats flows in `OnlineSessionServiceTest`.
 
 ### Now:
-- 🔄 **Live Teaching Feature**
+- 🔄 **Live Teaching Feature** (Phase 2 & 3)
   - Goal: Real-time video/whiteboard/chat for online sessions.
-  - Status: Planning Complete, Implementation Starts Tomorrow.
+  - Status: Backend Infrastructure & Production Fixes Done. Moving to WebSocket integration.
   - Priority: P1
   - Reference: [Architecture Doc](file:///d:/long-personal-project/Tutor-Management/%F0%9F%8E%AF%20LIVE%20TEACHING%20FEATURE%20-%20COMPLETE%20WORKFLOW%20&%20ARCH%202e92eb5a2ba3803782d4ddabb46d99ed.md)
 
@@ -99,6 +97,6 @@ Optimize existing TMS from "functional" to "production-ready":
 ## Open Questions
 
 ### Working Set:
-Current module: None (Transitioning to Exercise)
-Active files or folders: []
-Focus: Planning Exercise Module Upgrade
+Current module: Live Teaching (Backend Infrastructure)
+Active files or folders: [backend/modules/onlinesession]
+Focus: WebSocket Integration & Frontend Live Room

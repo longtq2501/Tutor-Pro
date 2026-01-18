@@ -4,12 +4,14 @@ import com.tutor_management.backend.modules.auth.Role;
 import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.auth.UserRepository;
 import com.tutor_management.backend.modules.onlinesession.entity.OnlineSession;
+import com.tutor_management.backend.modules.onlinesession.enums.RoomStatus;
 import com.tutor_management.backend.modules.onlinesession.exception.RoomAccessDeniedException;
 import com.tutor_management.backend.modules.onlinesession.exception.RoomNotFoundException;
 import com.tutor_management.backend.modules.onlinesession.repository.OnlineSessionRepository;
 import com.tutor_management.backend.modules.tutor.entity.Tutor;
 import com.tutor_management.backend.modules.tutor.repository.TutorRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
@@ -21,11 +23,51 @@ import java.util.Objects;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class RoomAccessValidator {
 
     private final OnlineSessionRepository onlineSessionRepository;
     private final UserRepository userRepository;
     private final TutorRepository tutorRepository;
+
+    /**
+     * Validates if a user has permission to access a specific room.
+     * 
+     * @param roomId The unique room identifier.
+     * @param userId The ID of the user requesting access.
+     * @return true if access is granted, false otherwise.
+     */
+    public boolean hasAccess(String roomId, Long userId) {
+        try {
+            validateAccess(roomId, userId);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Checks if a user can join a room (has access AND room is not ended).
+     */
+    public boolean canJoin(String roomId, Long userId) {
+        try {
+            // 1. Check basic access
+            validateAccess(roomId, userId);
+
+            // 2. Check room status
+            var session = onlineSessionRepository.findByRoomId(roomId)
+                    .orElseThrow(() -> new RoomNotFoundException(roomId));
+
+            if (session.getRoomStatus() == RoomStatus.ENDED) {
+                log.warn("Access denied: User {} tried to join ended room {}", userId, roomId);
+                return false;
+            }
+
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
     /**
      * Validates if a user has permission to access a specific room.

@@ -74,12 +74,19 @@
   - Files: `backend/.../modules/onlinesession/service/OnlineSessionServiceImpl.java`
 
 ### Technical Debt
-- [ ] [P0-Critical] Missing @PreAuthorize annotations on controller methods
+- [x] [P0-Critical] Missing @PreAuthorize annotations on controller methods
   - Target: Add role checks (TUTOR can create, participants can join, ADMIN can view all)
+  - Solution: Implemented detailed `@PreAuthorize` rules on all endpoints using the new `@roomAccessValidator.hasAccess` method.
   - Files: `OnlineSessionController.java`
 
-- [ ] [P2-Medium] No API rate limiting for session creation
-  - Target: Add @RateLimiter annotation (max 10 sessions per hour per tutor)
+- [x] [P2-Medium] No API rate limiting for session creation (Fixed with `@RateLimiter` AOP)
+- [x] [P0-Critical] Hardcoded TURN servers (Fixed with dynamic config injection)
+- [x] [P0-Critical] Join times not recorded (Fixed in `joinRoom` logic)
+- [x] [P1-High] Can join ended rooms (Fixed with `canJoin` status check)
+- [x] [P1-High] Mixed DTO design for stats (Fixed with standalone response objects)
+  - Target: Add rate limiting to prevent spamming session creation
+  - Solution: Implemented `@RateLimiter` annotation and `RateLimiterAspect` using Caffeine (10 sessions/hour).
+  - Files: `OnlineSessionController.java`, `RateLimiterAspect.java`
 
 ---
 

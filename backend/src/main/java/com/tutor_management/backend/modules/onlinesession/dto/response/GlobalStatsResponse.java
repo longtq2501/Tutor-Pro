@@ -6,26 +6,20 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO representing statistical data for online sessions.
+ * Global statistics across all online sessions.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoomStatsDTO {
-
-    /**
-     * Total number of online sessions.
-     */
+public class GlobalStatsResponse {
     private Long totalSessions;
-
-    /**
-     * Number of currently active sessions.
-     */
     private Long activeSessions;
-
-    /**
-     * Total billable duration across all sessions in minutes.
-     */
+    private Long waitingSessions;
+    private Long endedSessions;
+    
     private Long totalDurationMinutes;
+    private Long sessionsToday;
+    
+    private Double averageSessionDuration;
 }

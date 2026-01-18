@@ -1,8 +1,12 @@
 package com.tutor_management.backend.modules.onlinesession.controller;
 
+import com.tutor_management.backend.infrastructure.security.RateLimiter;
 import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.onlinesession.dto.request.CreateOnlineSessionRequest;
+import com.tutor_management.backend.modules.onlinesession.dto.response.GlobalStatsResponse;
+import com.tutor_management.backend.modules.onlinesession.dto.response.JoinRoomResponse;
 import com.tutor_management.backend.modules.onlinesession.dto.response.OnlineSessionResponse;
+import com.tutor_management.backend.modules.onlinesession.dto.response.RoomStatsResponse;
 import com.tutor_management.backend.modules.onlinesession.service.OnlineSessionService;
 import com.tutor_management.backend.modules.shared.dto.response.ApiResponse;
 import jakarta.validation.Valid;
@@ -25,6 +29,7 @@ public class OnlineSessionController {
     /**
      * Endpoint to create a new online session.
      * Accessible by TUTOR and ADMIN roles.
+     * Rate limited to 10 sessions per hour per tutor.
      * 
      * @param request The session creation details.
      * @param user The currently authenticated user.
@@ -32,6 +37,7 @@ public class OnlineSessionController {
      */
     @PostMapping
     @PreAuthorize("hasAnyRole('TUTOR', 'ADMIN')")
+    @RateLimiter(limit = 10, period = 3600)
     public ResponseEntity<ApiResponse<OnlineSessionResponse>> createSession(
             @Valid @RequestBody CreateOnlineSessionRequest request,
             @AuthenticationPrincipal User user) {
@@ -45,6 +51,63 @@ public class OnlineSessionController {
     }
 
     /**
+     * Endpoint to join an online session.
+     * @return ResponseEntity containing the join room details.
+     */
+    @PostMapping("/{roomId}/join")
+    @PreAuthorize("hasRole('ADMIN') or @roomAccessValidator.canJoin(#roomId, #user.id)")
+    public ResponseEntity<ApiResponse<JoinRoomResponse>> joinRoom(
+            @PathVariable String roomId,
+            @AuthenticationPrincipal User user) {
+        
+        JoinRoomResponse response = onlineSessionService.joinRoom(roomId, user.getId());
+        
+        return ResponseEntity.ok(ApiResponse.success(
+                "Đã lấy token tham gia phòng thành công.", 
+                response
+        ));
+    }
+
+    /**
+     * Endpoint to retrieve statistics for a specific session.
+     * Accessible by admins or the assigned tutor.
+     * 
+     * @param roomId The unique room identifier.
+     * @param user The currently authenticated user.
+     * @return ResponseEntity containing the room statistics.
+     */
+    @GetMapping("/{roomId}/stats")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('TUTOR') and @roomAccessValidator.hasAccess(#roomId, #user.id))")
+    public ResponseEntity<ApiResponse<RoomStatsResponse>> getRoomStats(
+            @PathVariable String roomId,
+            @AuthenticationPrincipal User user) {
+        
+        RoomStatsResponse response = onlineSessionService.getRoomStats(roomId, user.getId());
+        
+        return ResponseEntity.ok(ApiResponse.success(
+                "Đã lấy thống kê phòng thành công.", 
+                response
+        ));
+    }
+
+    /**
+     * Endpoint to retrieve global statistics across all sessions.
+     * Accessible by ADMIN role only.
+     * 
+     * @return ResponseEntity containing global statistics.
+     */
+    @GetMapping("/stats")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<GlobalStatsResponse>> getGlobalStats() {
+        GlobalStatsResponse response = onlineSessionService.getGlobalStats();
+        
+        return ResponseEntity.ok(ApiResponse.success(
+                "Đã lấy thống kê tổng quát thành công.", 
+                response
+        ));
+    }
+
+    /**
      * Endpoint to end an online session manually.
      * Accessible by direct participants (TUTOR/STUDENT) or ADMIN.
      * 
@@ -53,7 +116,7 @@ public class OnlineSessionController {
      * @return ResponseEntity with updated session details.
      */
     @PostMapping("/{roomId}/end")
-    @PreAuthorize("hasAnyRole('TUTOR', 'ADMIN') or @roomAccessValidator.validateAccess(#roomId, #user.id)")
+    @PreAuthorize("hasRole('ADMIN') or @roomAccessValidator.hasAccess(#roomId, #user.id)")
     public ResponseEntity<ApiResponse<OnlineSessionResponse>> endSession(
             @PathVariable String roomId,
             @AuthenticationPrincipal User user) {

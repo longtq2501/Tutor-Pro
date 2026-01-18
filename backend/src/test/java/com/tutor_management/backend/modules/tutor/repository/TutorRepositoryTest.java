@@ -10,6 +10,9 @@ import com.tutor_management.backend.modules.tutor.dto.request.TutorRequest;
 import com.tutor_management.backend.modules.tutor.dto.response.TutorResponse;
 import com.tutor_management.backend.modules.tutor.entity.Tutor;
 import com.tutor_management.backend.modules.tutor.service.TutorService;
+import com.tutor_management.backend.modules.student.repository.StudentRepository;
+import com.tutor_management.backend.modules.finance.repository.SessionRecordRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +42,15 @@ class TutorServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private StudentRepository studentRepository;
+
+    @Mock
+    private SessionRecordRepository sessionRecordRepository;
 
     @InjectMocks
     private TutorService tutorService;
@@ -200,8 +212,8 @@ class TutorServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> tutorService.createTutor(tutorRequest))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Email already exists");
+                .isInstanceOf(com.tutor_management.backend.exception.AlreadyExistsException.class)
+                .hasMessageContaining("email already exists");
         verify(tutorRepository).findByEmail(tutorRequest.getEmail());
         verify(tutorRepository, never()).save(any());
     }
@@ -283,16 +295,26 @@ class TutorServiceTest {
     void getTutorStats_WhenExists_ShouldReturnStats() {
         // Given
         when(tutorRepository.existsById(1L)).thenReturn(true);
+        when(studentRepository.countByTutorIdAndActiveTrue(1L)).thenReturn(5L);
+        
+        String currentMonth = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("MM/yyyy"));
+        when(sessionRecordRepository.sumSessionsByMonthAndTutorId(eq(currentMonth), eq(1L)))
+                .thenReturn(10);
+        when(sessionRecordRepository.getFinanceSummaryByTutorId(eq(currentMonth), eq(1L)))
+                .thenReturn(null); // Simple case for revenue
 
         // When
         TutorStatsDTO result = tutorService.getTutorStats(1L);
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result.getStudentCount()).isEqualTo(0);
-        assertThat(result.getSessionCount()).isEqualTo(0);
+        assertThat(result.getStudentCount()).isEqualTo(5);
+        assertThat(result.getSessionCount()).isEqualTo(10);
         assertThat(result.getTotalRevenue()).isEqualTo(0.0);
+        
         verify(tutorRepository).existsById(1L);
+        verify(studentRepository).countByTutorIdAndActiveTrue(1L);
+        verify(sessionRecordRepository).sumSessionsByMonthAndTutorId(anyString(), eq(1L));
     }
 
     @Test

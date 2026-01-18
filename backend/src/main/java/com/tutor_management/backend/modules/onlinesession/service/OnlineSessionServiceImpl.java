@@ -5,17 +5,24 @@ import com.tutor_management.backend.modules.auth.UserRepository;
 import com.tutor_management.backend.modules.notification.event.OnlineSessionCreatedEvent;
 import com.tutor_management.backend.modules.notification.event.OnlineSessionEndedEvent;
 import com.tutor_management.backend.modules.onlinesession.dto.request.CreateOnlineSessionRequest;
+import com.tutor_management.backend.modules.onlinesession.dto.response.JoinRoomResponse;
 import com.tutor_management.backend.modules.onlinesession.dto.response.OnlineSessionResponse;
+import com.tutor_management.backend.modules.onlinesession.dto.response.RoomStatsResponse;
+import com.tutor_management.backend.modules.onlinesession.dto.response.GlobalStatsResponse;
 import com.tutor_management.backend.modules.onlinesession.entity.OnlineSession;
 import com.tutor_management.backend.modules.onlinesession.enums.RoomStatus;
 import com.tutor_management.backend.modules.onlinesession.exception.RoomNotFoundException;
+import com.tutor_management.backend.modules.onlinesession.exception.RoomAlreadyEndedException;
 import com.tutor_management.backend.modules.onlinesession.repository.OnlineSessionRepository;
+import com.tutor_management.backend.modules.onlinesession.security.RoomTokenService;
+import com.tutor_management.backend.modules.auth.Role;
 import com.tutor_management.backend.modules.student.entity.Student;
 import com.tutor_management.backend.modules.student.repository.StudentRepository;
 import com.tutor_management.backend.modules.tutor.entity.Tutor;
 import com.tutor_management.backend.modules.tutor.repository.TutorRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -23,6 +30,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -35,7 +46,11 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
     private final StudentRepository studentRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
-    private final Clock clock; // ✅ ADD Clock injection
+    private final Clock clock;
+    private final RoomTokenService roomTokenService;
+
+    @Value("${app.online-session.turn.servers}")
+    private List<Map<String, Object>> turnServers;
 
     @Override
     @Transactional
@@ -82,6 +97,124 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
                 .build());
 
         return mapToResponse(saved);
+    }
+
+
+    @Override
+    @Transactional
+    public JoinRoomResponse joinRoom(String roomId, Long userId) {
+        log.info("User {} joining room {}", userId, roomId);
+        
+        OnlineSession session = onlineSessionRepository.findByRoomId(roomId)
+                .orElseThrow(() -> new RoomNotFoundException("Room not found: " + roomId));
+
+        // ✅ Check room status
+        if (session.getRoomStatus() == RoomStatus.ENDED) {
+            throw new RoomAlreadyEndedException("Cannot join: session has ended");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        // ✅ Record join time
+        LocalDateTime now = LocalDateTime.now(clock);
+        
+        if (user.getRole() == Role.TUTOR && session.getTutorJoinedAt() == null) {
+            session.setTutorJoinedAt(now);
+            log.info("Tutor {} joined room {}", userId, roomId);
+        } else if (user.getRole() == Role.STUDENT) {
+            if (user.getStudentId() != null && user.getStudentId().equals(session.getStudent().getId())) {
+                if (session.getStudentJoinedAt() == null) {
+                    session.setStudentJoinedAt(now);
+                    log.info("Student {} joined room {}", userId, roomId);
+                }
+            }
+        }
+        
+        // ✅ Activate room if still waiting
+        if (session.getRoomStatus() == RoomStatus.WAITING) {
+            session.setRoomStatus(RoomStatus.ACTIVE);
+            session.setActualStart(now);
+            log.info("Room {} activated", roomId);
+        }
+        
+        onlineSessionRepository.save(session);
+
+        String token = roomTokenService.generateToken(roomId, userId, user.getRole());
+
+        return JoinRoomResponse.builder()
+                .token(token)
+                .session(mapToResponse(session))
+                .turnServers(turnServers)
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public RoomStatsResponse getRoomStats(String roomId, Long userId) {
+        log.info("Fetching stats for room {} by user {}", roomId, userId);
+        
+        OnlineSession session = onlineSessionRepository.findByRoomId(roomId)
+                .orElseThrow(() -> new RoomNotFoundException("Room not found: " + roomId));
+
+        return RoomStatsResponse.builder()
+                .roomId(roomId)
+                .roomStatus(session.getRoomStatus().name())
+                .tutorName(session.getTutor().getFullName())
+                .studentName(session.getStudent().getName())
+                .tutorPresent(session.getTutorJoinedAt() != null)
+                .studentPresent(session.getStudentJoinedAt() != null)
+                .participantCount(calculateParticipantCount(session))
+                .scheduledStart(session.getScheduledStart())
+                .scheduledEnd(session.getScheduledEnd())
+                .actualStart(session.getActualStart())
+                .actualEnd(session.getActualEnd())
+                .tutorJoinedAt(session.getTutorJoinedAt())
+                .studentJoinedAt(session.getStudentJoinedAt())
+                .durationMinutes(session.getTotalDurationMinutes())
+                .recordingEnabled(session.getRecordingEnabled())
+                .recordingDownloaded(session.getRecordingDownloaded())
+                .recordingDurationMinutes(session.getRecordingDurationMinutes())
+                .recordingFileSizeMb(session.getRecordingFileSizeMb() != null 
+                    ? session.getRecordingFileSizeMb().toString() : null)
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public GlobalStatsResponse getGlobalStats() {
+        long total = onlineSessionRepository.count();
+        long active = onlineSessionRepository.countByRoomStatus(RoomStatus.ACTIVE);
+        long waiting = onlineSessionRepository.countByRoomStatus(RoomStatus.WAITING);
+        long ended = onlineSessionRepository.countByRoomStatus(RoomStatus.ENDED);
+        
+        Long totalDuration = onlineSessionRepository.sumTotalDurationMinutes().orElse(0L);
+        
+        long today = onlineSessionRepository.countByScheduledStartBetween(
+                LocalDate.now(clock).atStartOfDay(),
+                LocalDate.now(clock).atStartOfDay().plusDays(1)
+        );
+        
+        return GlobalStatsResponse.builder()
+                .totalSessions(total)
+                .activeSessions(active)
+                .waitingSessions(waiting)
+                .endedSessions(ended)
+                .totalDurationMinutes(totalDuration)
+                .sessionsToday(today)
+                .averageSessionDuration(total > 0 ? (double) totalDuration / total : 0.0)
+                .build();
+    }
+
+    private Integer calculateParticipantCount(OnlineSession session) {
+        if (session.getRoomStatus() != RoomStatus.ACTIVE) {
+            return 0;
+        }
+        
+        int count = 0;
+        if (session.getTutorJoinedAt() != null) count++;
+        if (session.getStudentJoinedAt() != null) count++;
+        return count;
     }
 
     @Override

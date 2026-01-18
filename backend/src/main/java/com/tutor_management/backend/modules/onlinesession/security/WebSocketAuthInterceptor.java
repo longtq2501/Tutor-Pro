@@ -21,7 +21,6 @@ import java.util.Map;
  * Interceptor for WebSocket messages to handle authentication.
  * Extracts JWT from CONNECT headers and sets the SecurityContext Principal.
  */
-@Component
 @RequiredArgsConstructor
 @Slf4j
 public class WebSocketAuthInterceptor implements ChannelInterceptor {

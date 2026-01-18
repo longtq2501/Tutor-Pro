@@ -1,5 +1,6 @@
 package com.tutor_management.backend.modules.onlinesession.config;
 
+import com.tutor_management.backend.modules.onlinesession.security.RoomTokenService;
 import com.tutor_management.backend.modules.onlinesession.security.WebSocketAuthInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,7 +20,11 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    private final WebSocketAuthInterceptor webSocketAuthInterceptor;
+    private final RoomTokenService roomTokenService;
+
+    public WebSocketAuthInterceptor webSocketAuthInterceptor() {
+        return new WebSocketAuthInterceptor(roomTokenService);
+    }
 
     @Value("${app.online-session.websocket.allowed-origins}")
     private String allowedOrigins;
@@ -48,6 +53,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(webSocketAuthInterceptor);
+        registration.interceptors(webSocketAuthInterceptor());
     }
 }

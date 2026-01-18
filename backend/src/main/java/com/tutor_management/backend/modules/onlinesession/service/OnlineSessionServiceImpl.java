@@ -51,8 +51,12 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
     private final RoomTokenService roomTokenService;
     private final PresenceService presenceService;
 
-    @Value("${app.online-session.turn.servers}")
-    private List<Map<String, Object>> turnServers;
+    // Simplified TURN servers to avoid @Value list binding issues in YAML
+    private final List<Map<String, Object>> turnServers = List.of(
+            Map.of("urls", "stun:stun.l.google.com:19302"),
+            Map.of("urls", "stun:stun1.l.google.com:19302"),
+            Map.of("urls", "stun:stun2.l.google.com:19302")
+    );
 
     @Override
     @Transactional

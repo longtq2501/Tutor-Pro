@@ -4,6 +4,7 @@ import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.auth.UserRepository;
 import com.tutor_management.backend.modules.onlinesession.dto.request.ChatMessageRequest;
 import com.tutor_management.backend.modules.onlinesession.dto.response.ChatMessageResponse;
+import com.tutor_management.backend.modules.onlinesession.dto.response.TypingResponse;
 import com.tutor_management.backend.modules.onlinesession.entity.ChatMessage;
 import com.tutor_management.backend.modules.onlinesession.entity.OnlineSession;
 import com.tutor_management.backend.modules.onlinesession.exception.RoomNotFoundException;
@@ -11,6 +12,7 @@ import com.tutor_management.backend.modules.onlinesession.repository.ChatMessage
 import com.tutor_management.backend.modules.onlinesession.repository.OnlineSessionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -65,6 +67,25 @@ public class ChatServiceImpl implements ChatService {
 
         return chatMessageRepository.findByRoomIdOrderByTimestampDesc(roomId, pageable)
                 .map(this::mapToResponse);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public TypingResponse createTypingResponse(Long userId, boolean isTyping) {
+        String fullName = getUserFullName(userId);
+
+        return TypingResponse.builder()
+                .userId(userId)
+                .userName(fullName)
+                .typing(isTyping)
+                .build();
+    }
+
+    @Cacheable(value = "userNames", key = "#userId")
+    public String getUserFullName(Long userId) {
+        return userRepository.findById(userId)
+                .map(User::getFullName)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + userId));
     }
 
     private ChatMessageResponse mapToResponse(ChatMessage message) {

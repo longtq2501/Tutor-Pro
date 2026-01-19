@@ -171,4 +171,76 @@ describe('useWhiteboardSync - Throttling', () => {
         expect(result.current.strokes).toHaveLength(1);
         expect(result.current.strokes[0]).toEqual(remoteStroke);
     });
+
+    describe('Undo/Redo functionality', () => {
+        it('should undo the last stroke and send undo message', () => {
+            const { result } = renderHook(() =>
+                useWhiteboardSync('room-123', mockSendMessage as (destination: string, payload: unknown) => void)
+            );
+
+            act(() => {
+                result.current.startStroke({ x: 10, y: 10 });
+                result.current.endStroke();
+            });
+
+            expect(result.current.strokes).toHaveLength(1);
+
+            act(() => {
+                result.current.undoBoard();
+            });
+
+            expect(result.current.strokes).toHaveLength(0);
+            expect(result.current.redoStack).toHaveLength(1);
+            expect(mockSendMessage).toHaveBeenCalledWith(
+                '/app/room/room-123/whiteboard/undo',
+                { id: expect.any(String) }
+            );
+        });
+
+        it('should redo the last undone stroke', () => {
+            const { result } = renderHook(() =>
+                useWhiteboardSync('room-123', mockSendMessage as (destination: string, payload: unknown) => void)
+            );
+
+            act(() => {
+                result.current.startStroke({ x: 10, y: 10 });
+                result.current.endStroke();
+                result.current.undoBoard();
+            });
+
+            expect(result.current.strokes).toHaveLength(0);
+
+            act(() => {
+                result.current.redoBoard();
+            });
+
+            expect(result.current.strokes).toHaveLength(1);
+            expect(result.current.redoStack).toHaveLength(0);
+            // Redo sends the stroke back
+            expect(mockSendMessage).toHaveBeenLastCalledWith(
+                '/app/room/room-123/whiteboard',
+                expect.objectContaining({ points: [{ x: 10, y: 10 }] })
+            );
+        });
+
+        it('should clear redo stack when a new stroke starts', () => {
+            const { result } = renderHook(() =>
+                useWhiteboardSync('room-123', mockSendMessage as (destination: string, payload: unknown) => void)
+            );
+
+            act(() => {
+                result.current.startStroke({ x: 10, y: 10 });
+                result.current.endStroke();
+                result.current.undoBoard();
+            });
+
+            expect(result.current.redoStack).toHaveLength(1);
+
+            act(() => {
+                result.current.startStroke({ x: 20, y: 20 });
+            });
+
+            expect(result.current.redoStack).toHaveLength(0);
+        });
+    });
 });

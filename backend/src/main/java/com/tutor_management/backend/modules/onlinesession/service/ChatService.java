@@ -4,6 +4,7 @@ import com.tutor_management.backend.modules.onlinesession.dto.request.ChatMessag
 import com.tutor_management.backend.modules.onlinesession.dto.response.ChatMessageResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service interface for managing chat messages.
@@ -26,4 +27,7 @@ public interface ChatService {
      * @return A page of chat messages
      */
     Page<ChatMessageResponse> getMessages(String roomId, Pageable pageable);
+
+    @Transactional(readOnly = true)
+    com.tutor_management.backend.modules.onlinesession.dto.response.TypingResponse createTypingResponse(Long userId, boolean isTyping);
 }

@@ -11,6 +11,7 @@ import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import type { ChatMessageResponse } from '@/lib/types/chat';
+import { useChatTyping } from '../hooks/useChatTyping';
 
 interface ChatPanelProps {
     roomId: string;
@@ -29,6 +30,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ roomId, currentUserId }) =
         isLoadingInitial,
         addRealTimeMessage,
     } = useChatMessages(roomId);
+
+    const { typingUsers, setLocalTyping } = useChatTyping(roomId, currentUserId);
 
     const { isConnected, sendMessage, subscribe } = useWebSocket();
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -145,7 +148,21 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ roomId, currentUserId }) =
                 </div>
             </ScrollArea>
 
-            <ChatInput onSendMessage={handleSendMessage} disabled={!isConnected} />
+            {typingUsers.length > 0 && (
+                <div
+                    className="px-4 py-1 text-[10px] text-muted-foreground italic animate-pulse"
+                    role="status"
+                    aria-live="polite"
+                >
+                    {typingUsers.join(', ')} {typingUsers.length > 1 ? 'đang gõ...' : 'đang gõ...'}
+                </div>
+            )}
+
+            <ChatInput
+                onSendMessage={handleSendMessage}
+                onTyping={setLocalTyping}
+                disabled={!isConnected}
+            />
         </div>
     );
 };

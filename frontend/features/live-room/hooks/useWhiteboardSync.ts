@@ -4,9 +4,12 @@ import { useWhiteboardPersistence } from './useWhiteboardPersistence';
 /**
  * Message payload for whiteboard synchronization.
  */
+/**
+ * Message payload for whiteboard synchronization.
+ */
 interface SyncMessage {
-    type: 'STROKE' | 'CLEAR';
-    payload?: Stroke;
+    type: 'STROKE' | 'CLEAR' | 'UNDO';
+    payload?: Stroke | string; // Stroke for STROKE, string (id) for UNDO
 }
 
 /**
@@ -24,11 +27,13 @@ export interface Stroke {
     width: number;
     tool: 'pen' | 'eraser';
     timestamp: number;
+    userId?: string; // Track who made the stroke
 }
 
 export interface WhiteboardSyncState {
     strokes: Stroke[];
     currentStroke: Stroke | null;
+    redoStack: Stroke[]; // Stacks for undo/redo
     selectedColor: string;
     selectedWidth: number;
     selectedTool: 'pen' | 'eraser';
@@ -40,16 +45,19 @@ export interface WhiteboardSyncActions {
     addPoint: (point: StrokePoint) => void;
     endStroke: () => void;
     clearBoard: () => void;
+    undoBoard: () => void;
+    redoBoard: () => void;
     setColor: (color: string) => void;
     setWidth: (width: number) => void;
     setTool: (tool: 'pen' | 'eraser') => void;
     receiveRemoteStroke: (stroke: Stroke) => void;
+    receiveRemoteUndo: (strokeId: string) => void;
 }
 
 /**
  * Throttle function that limits execution to once per interval.
  */
-function throttle<T extends (...args: never[]) => void>(
+function throttle<T extends (...args: any[]) => void>(
     func: T,
     delay: number
 ): T {
@@ -89,6 +97,7 @@ export const useWhiteboardSync = (
     const [state, setState] = useState<WhiteboardSyncState>(() => ({
         strokes: savedStrokes,
         currentStroke: null,
+        redoStack: [],
         selectedColor: '#000000',
         selectedWidth: 2,
         selectedTool: 'pen',
@@ -123,6 +132,7 @@ export const useWhiteboardSync = (
                 ...prev,
                 currentStroke: newStroke,
                 isDrawing: true,
+                redoStack: [], // Clear redo stack on new action
             };
         });
     }, []);
@@ -165,6 +175,7 @@ export const useWhiteboardSync = (
             ...prev,
             strokes: [],
             currentStroke: null,
+            redoStack: [],
         }));
 
         clearStorage();
@@ -173,6 +184,48 @@ export const useWhiteboardSync = (
             sendMessage(`/app/room/${roomId}/whiteboard/clear`, {});
         }
     }, [roomId, sendMessage, clearStorage]);
+
+    const undoBoard = useCallback(() => {
+        setState(prev => {
+            if (prev.strokes.length === 0) return prev;
+
+            const newStrokes = [...prev.strokes];
+            const lastStroke = newStrokes.pop();
+
+            if (!lastStroke) return prev;
+
+            if (sendMessage) {
+                sendMessage(`/app/room/${roomId}/whiteboard/undo`, { id: lastStroke.id });
+            }
+
+            return {
+                ...prev,
+                strokes: newStrokes,
+                redoStack: [lastStroke, ...prev.redoStack],
+            };
+        });
+    }, [roomId, sendMessage]);
+
+    const redoBoard = useCallback(() => {
+        setState(prev => {
+            if (prev.redoStack.length === 0) return prev;
+
+            const newRedoStack = [...prev.redoStack];
+            const strokeToRestore = newRedoStack.shift();
+
+            if (!strokeToRestore) return prev;
+
+            if (sendMessage) {
+                sendMessage(`/app/room/${roomId}/whiteboard`, strokeToRestore);
+            }
+
+            return {
+                ...prev,
+                strokes: [...prev.strokes, strokeToRestore],
+                redoStack: newRedoStack,
+            };
+        });
+    }, [roomId, sendMessage]);
 
     const setColor = useCallback((color: string) => {
         setState(prev => ({ ...prev, selectedColor: color }));
@@ -187,9 +240,21 @@ export const useWhiteboardSync = (
     }, []);
 
     const receiveRemoteStroke = useCallback((stroke: Stroke) => {
+        setState(prev => {
+            // Check if stroke already exists (e.g. from redo sync)
+            if (prev.strokes.some(s => s.id === stroke.id)) return prev;
+
+            return {
+                ...prev,
+                strokes: [...prev.strokes, stroke],
+            };
+        });
+    }, []);
+
+    const receiveRemoteUndo = useCallback((strokeId: string) => {
         setState(prev => ({
             ...prev,
-            strokes: [...prev.strokes, stroke],
+            strokes: prev.strokes.filter(s => s.id !== strokeId),
         }));
     }, []);
 
@@ -199,9 +264,12 @@ export const useWhiteboardSync = (
         addPoint,
         endStroke,
         clearBoard,
+        undoBoard,
+        redoBoard,
         setColor,
         setWidth,
         setTool,
         receiveRemoteStroke,
+        receiveRemoteUndo,
     };
 };

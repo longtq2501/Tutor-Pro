@@ -1,11 +1,15 @@
 package com.tutor_management.backend.modules.onlinesession.controller;
 
-import com.tutor_management.backend.modules.onlinesession.service.OnlineSessionService;
+import com.tutor_management.backend.modules.onlinesession.dto.request.TypingRequest;
+import com.tutor_management.backend.modules.onlinesession.dto.response.ChatMessageResponse;
+import com.tutor_management.backend.modules.onlinesession.dto.response.TypingResponse;
 import com.tutor_management.backend.modules.onlinesession.service.ChatService;
+import com.tutor_management.backend.modules.onlinesession.service.OnlineSessionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
@@ -20,7 +24,7 @@ public class OnlineSessionWebSocketController {
 
     private final OnlineSessionService onlineSessionService;
     private final ChatService chatService;
-    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+    private final SimpMessagingTemplate messagingTemplate;
 
     /**
      * Handles heartbeat messages from clients to keep the session alive and detect disconnects.
@@ -70,7 +74,7 @@ public class OnlineSessionWebSocketController {
 
         try {
             Long userId = Long.parseLong(principal.getName());
-            com.tutor_management.backend.modules.onlinesession.dto.response.ChatMessageResponse response = 
+            ChatMessageResponse response =
                     chatService.saveMessage(roomId, userId, request);
             
             // Broadcast to the room topic
@@ -78,6 +82,33 @@ public class OnlineSessionWebSocketController {
             log.debug("Chat message from user {} broadcasted to room {}", userId, roomId);
         } catch (Exception e) {
             log.error("Error processing chat message for room {}: {}", roomId, e.getMessage());
+        }
+    }
+
+    /**
+     * Handles typing status notifications from participants.
+     * Broadcasts the "is typing" status to all room participants.
+     * 
+     * @param roomId The room ID
+     * @param request The typing status request
+     * @param principal The sender's principal
+     */
+    @MessageMapping("/room/{roomId}/typing")
+    public void handleTypingStatus(
+            @DestinationVariable String roomId,
+            TypingRequest request,
+            Principal principal) {
+        
+        if (principal == null) return;
+
+        try {
+            Long userId = Long.parseLong(principal.getName());
+            TypingResponse response =
+                    chatService.createTypingResponse(userId, request.isTyping());
+            
+            messagingTemplate.convertAndSend("/topic/room/" + roomId + "/typing", response);
+        } catch (Exception e) {
+            log.error("Error processing typing status for room {}: {}", roomId, e.getMessage());
         }
     }
 }

@@ -5,20 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/controller/OnlineSessionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/controller/OnlineSessionController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CONTINUITY.md" beforeDir="false" afterPath="$PROJECT_DIR$/CONTINUITY.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/controller/OnlineSessionWebSocketController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/controller/OnlineSessionWebSocketController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/entity/OnlineSession.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/entity/OnlineSession.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/repository/OnlineSessionRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/repository/OnlineSessionRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/test/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/test/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionServiceTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/ChatService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/ChatService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/ChatServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/ChatServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/live-room/ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/ISSUES.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/MediaControls.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/MediaControls.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/VideoPlayer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/VideoPlayer.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/services/onlineSession.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/onlineSession.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/ChatInput.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/ChatInput.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/ChatPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/ChatPanel.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/Whiteboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/Whiteboard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/WhiteboardToolbar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/WhiteboardToolbar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/hooks/__tests__/useWhiteboardSync.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/hooks/__tests__/useWhiteboardSync.test.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/hooks/useWhiteboardSync.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/hooks/useWhiteboardSync.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -75,56 +72,56 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.BackendApplication.executor": "Run",
-    "JUnit.ChatServiceTest.executor": "Run",
-    "JUnit.GlobalExceptionHandlerTest.executor": "Run",
-    "JUnit.GlobalExceptionHandlerTest.handleRoomNotFoundException_ShouldReturn404.executor": "Run",
-    "JUnit.OnlineSessionServiceTest.executor": "Run",
-    "JUnit.RoomAccessValidatorTest.executor": "Run",
-    "JUnit.RoomAccessValidatorTest.validateAccess_PerformanceTest.executor": "Run",
-    "JUnit.RoomTokenServiceTest.executor": "Run",
-    "JUnit.RoomTokenServiceTest.isTokenExpired_ExpiredToken.executor": "Run",
-    "JUnit.RoomTokenServiceTest.validateToken_ExpiredToken.executor": "Run",
-    "JUnit.TutorServiceTest (1).executor": "Run",
-    "JUnit.TutorServiceTest.executor": "Run",
-    "Maven.backend [clean].executor": "Run",
-    "Maven.backend [install].executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Notification.DisplayName-DoNotAsk-DatabaseConfigFileWatcher.found": "Database connection parameters found",
-    "Notification.DoNotAsk-DatabaseConfigFileWatcher.found": "true",
-    "RequestMappingsPanelOrder0": "0",
-    "RequestMappingsPanelOrder1": "1",
-    "RequestMappingsPanelWidth0": "75",
-    "RequestMappingsPanelWidth1": "75",
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "Spring Boot.BackendApplication.executor": "Run",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "extract.method.default.visibility": "private",
-    "git-widget-placeholder": "main",
-    "ignore.virus.scanning.warn.message": "true",
-    "junie.onboarding.icon.badge.shown": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "D:/long-personal-project/Tutor-Management",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "CodeWithMe",
-    "to.speed.mode.migration.done": "true",
-    "ts.external.directory.path": "D:\\long-personal-project\\Tutor-Management\\frontend\\node_modules\\typescript\\lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.BackendApplication.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.ChatServiceTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.GlobalExceptionHandlerTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.GlobalExceptionHandlerTest.handleRoomNotFoundException_ShouldReturn404.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.OnlineSessionServiceTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RoomAccessValidatorTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RoomAccessValidatorTest.validateAccess_PerformanceTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RoomTokenServiceTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RoomTokenServiceTest.isTokenExpired_ExpiredToken.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RoomTokenServiceTest.validateToken_ExpiredToken.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.TutorServiceTest (1).executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.TutorServiceTest.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.backend [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.backend [install].executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Notification.DisplayName-DoNotAsk-DatabaseConfigFileWatcher.found&quot;: &quot;Database connection parameters found&quot;,
+    &quot;Notification.DoNotAsk-DatabaseConfigFileWatcher.found&quot;: &quot;true&quot;,
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;Spring Boot.BackendApplication.executor&quot;: &quot;Run&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;extract.method.default.visibility&quot;: &quot;private&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/long-personal-project/Tutor-Management&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;CodeWithMe&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;D:\\long-personal-project\\Tutor-Management\\frontend\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="com.tutor_management.backend.exception" />
@@ -136,7 +133,7 @@
       <recent name="com.tutor_management.backend.exception" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.OnlineSessionServiceTest">
+  <component name="RunManager" selected="JUnit.ChatServiceTest">
     <configuration name="ChatServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="backend" />
       <extension name="coverage">
@@ -223,8 +220,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.OnlineSessionServiceTest" />
         <item itemvalue="JUnit.ChatServiceTest" />
+        <item itemvalue="JUnit.OnlineSessionServiceTest" />
         <item itemvalue="JUnit.TutorServiceTest" />
         <item itemvalue="JUnit.RoomAccessValidatorTest" />
         <item itemvalue="JUnit.GlobalExceptionHandlerTest.handleRoomNotFoundException_ShouldReturn404" />
@@ -315,6 +312,7 @@
       <workItem from="1768706612832" duration="2873000" />
       <workItem from="1768736426020" duration="3024000" />
       <workItem from="1768796463159" duration="1422000" />
+      <workItem from="1768807845575" duration="710000" />
     </task>
     <servers />
   </component>

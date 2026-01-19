@@ -18,7 +18,7 @@ export interface WhiteboardProps {
 export const Whiteboard: React.FC<WhiteboardProps> = ({
     roomId,
     sendMessage,
-    className = '',
+    className,
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -26,6 +26,7 @@ export const Whiteboard: React.FC<WhiteboardProps> = ({
     const {
         strokes,
         currentStroke,
+        redoStack,
         selectedColor,
         selectedWidth,
         selectedTool,
@@ -34,10 +35,32 @@ export const Whiteboard: React.FC<WhiteboardProps> = ({
         addPoint,
         endStroke,
         clearBoard,
+        undoBoard,
+        redoBoard,
         setColor,
         setWidth,
         setTool,
     } = useWhiteboardSync(roomId, sendMessage);
+
+    // Keyboard shortcuts for Undo/Redo
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (!e.ctrlKey && !e.metaKey) return;
+
+            if (e.key.toLowerCase() === 'z') {
+                if (e.shiftKey) {
+                    redoBoard();
+                } else {
+                    undoBoard();
+                }
+            } else if (e.key.toLowerCase() === 'y') {
+                redoBoard();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [undoBoard, redoBoard]);
 
     // Render all strokes to canvas
     const renderCanvas = useCallback(() => {
@@ -96,6 +119,18 @@ export const Whiteboard: React.FC<WhiteboardProps> = ({
         };
     }, []);
 
+    const getCanvasTouchPoint = useCallback((e: React.TouchEvent): StrokePoint | null => {
+        const canvas = canvasRef.current;
+        if (!canvas || e.touches.length === 0) return null;
+
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        return {
+            x: touch.clientX - rect.left,
+            y: touch.clientY - rect.top,
+        };
+    }, []);
+
     const handleMouseDown = useCallback(
         (e: React.MouseEvent) => {
             const point = getCanvasPoint(e);
@@ -117,8 +152,31 @@ export const Whiteboard: React.FC<WhiteboardProps> = ({
         if (isDrawing) endStroke();
     }, [isDrawing, endStroke]);
 
+    const handleTouchStart = useCallback(
+        (e: React.TouchEvent) => {
+            // Prevent scrolling while drawing
+            // Note: touch-action: none in CSS is also required for this to work reliably
+            const point = getCanvasTouchPoint(e);
+            if (point) startStroke(point);
+        },
+        [getCanvasTouchPoint, startStroke]
+    );
+
+    const handleTouchMove = useCallback(
+        (e: React.TouchEvent) => {
+            if (!isDrawing) return;
+            const point = getCanvasTouchPoint(e);
+            if (point) addPoint(point);
+        },
+        [isDrawing, getCanvasTouchPoint, addPoint]
+    );
+
+    const handleTouchEnd = useCallback(() => {
+        if (isDrawing) endStroke();
+    }, [isDrawing, endStroke]);
+
     return (
-        <div className={`flex flex-col gap-2 ${className}`}>
+        <div className={`flex flex-col gap-2 ${className || ''}`}>
             <WhiteboardToolbar
                 selectedColor={selectedColor}
                 selectedWidth={selectedWidth}
@@ -127,6 +185,10 @@ export const Whiteboard: React.FC<WhiteboardProps> = ({
                 onWidthChange={setWidth}
                 onToolChange={setTool}
                 onClear={clearBoard}
+                onUndo={undoBoard}
+                onRedo={redoBoard}
+                canUndo={strokes.length > 0}
+                canRedo={redoStack.length > 0}
             />
             <div
                 ref={containerRef}
@@ -134,11 +196,15 @@ export const Whiteboard: React.FC<WhiteboardProps> = ({
             >
                 <canvas
                     ref={canvasRef}
-                    className="absolute inset-0 cursor-crosshair"
+                    className="absolute inset-0 cursor-crosshair touch-none"
                     onMouseDown={handleMouseDown}
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUp}
                     onMouseLeave={handleMouseUp}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                    onTouchCancel={handleTouchEnd}
                 />
             </div>
         </div>

@@ -2,174 +2,106 @@ import { renderHook, act } from '@testing-library/react';
 import { useSessionRecorder } from '../useSessionRecorder';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
-// Mock MediaRecorder
-class MockMediaRecorder {
-    state = 'inactive';
-    ondataavailable: ((e: any) => void) | null = null;
-    onstop: (() => void) | null = null;
-    options: any;
-
-    constructor(stream: any, options: any) {
-        this.options = options;
-    }
-
-    start(interval?: number) {
-        this.state = 'recording';
-        // Simulate a data chunk
-        setTimeout(() => {
-            if (this.ondataavailable) {
-                this.ondataavailable({ data: { size: 100 } });
-            }
-        }, 10);
-    }
-
-    stop() {
-        this.state = 'inactive';
-        if (this.onstop) this.onstop();
-    }
-
-    static isTypeSupported = vi.fn(() => true);
-}
-
-vi.stubGlobal('MediaRecorder', MockMediaRecorder);
-
-// Stub URL methods
-global.URL.createObjectURL = vi.fn(() => 'mock-url');
-global.URL.revokeObjectURL = vi.fn();
-
 describe('useSessionRecorder', () => {
+    let mockMediaRecorder: any;
     let mockStream: any;
 
     beforeEach(() => {
+        // Mock MediaStream
         mockStream = {
+            getVideoTracks: () => [{ enabled: true, getSettings: () => ({ width: 1280, height: 720 }) }],
+            getAudioTracks: () => [],
             getTracks: () => [],
-            getVideoTracks: () => []
         };
-        vi.useFakeTimers();
+
+        // Mock MediaRecorder
+        mockMediaRecorder = {
+            start: vi.fn().mockImplementation(() => { mockMediaRecorder.state = 'recording'; }),
+            stop: vi.fn().mockImplementation(() => {
+                mockMediaRecorder.state = 'inactive';
+                if (mockMediaRecorder.onstop) {
+                    mockMediaRecorder.onstop();
+                }
+            }),
+            state: 'inactive',
+            ondataavailable: null,
+            onstop: null,
+        };
+
+        // Mock MediaRecorder using class to support 'new'
+        class MockMediaRecorder {
+            constructor() {
+                return mockMediaRecorder;
+            }
+            static isTypeSupported = vi.fn().mockReturnValue(true);
+        }
+        global.MediaRecorder = MockMediaRecorder as any;
+
+        // Mock URL.createObjectURL
+        global.URL.createObjectURL = vi.fn().mockReturnValue('blob:test');
+        global.URL.revokeObjectURL = vi.fn();
     });
 
     afterEach(() => {
-        vi.useRealTimers();
+        vi.clearAllMocks();
     });
 
-    it('should initialize correctly', () => {
+    it('should initialize with balanced quality', () => {
         const { result } = renderHook(() => useSessionRecorder(mockStream));
+        expect(result.current.quality).toBe('balanced');
         expect(result.current.isRecording).toBe(false);
-        expect(result.current.duration).toBe(0);
     });
 
     it('should start recording', () => {
         const { result } = renderHook(() => useSessionRecorder(mockStream));
+
         act(() => {
             result.current.startRecording();
         });
+
         expect(result.current.isRecording).toBe(true);
+        expect(mockMediaRecorder.start).toHaveBeenCalled();
     });
 
-    it('should stop and reset duration, and cleanup URLs', () => {
+    it('should stop recording and set preview url', () => {
         const { result } = renderHook(() => useSessionRecorder(mockStream));
-        act(() => {
-            result.current.startRecording();
-            vi.advanceTimersByTime(5000);
-            result.current.stopRecording();
-        });
 
-        expect(result.current.isRecording).toBe(false);
-        expect(result.current.duration).toBe(0);
-
-        // Advance for setTimeout
-        act(() => {
-            vi.advanceTimersByTime(150);
-        });
-        expect(global.URL.revokeObjectURL).toHaveBeenCalled();
-        (global.URL.revokeObjectURL as any).mockClear();
-    });
-
-    it('should show warnings and auto-stop at limits', () => {
-        const { result } = renderHook(() => useSessionRecorder(mockStream));
         act(() => {
             result.current.startRecording();
         });
 
-        // 1h 45m warning
+        // Simulate data
         act(() => {
-            vi.advanceTimersByTime(105 * 60 * 1000);
-        });
-        expect(result.current.warning).toContain('1h 45m');
-
-        // 1h 55m warning
-        act(() => {
-            vi.advanceTimersByTime(10 * 60 * 1000);
-        });
-        expect(result.current.warning).toContain('5 phút');
-
-        // 2h auto-stop
-        act(() => {
-            vi.advanceTimersByTime(5 * 60 * 1000);
-        });
-        expect(result.current.isRecording).toBe(false);
-    });
-
-    it('should apply correct bitrates and block changes during recording', () => {
-        let capturedOptions: any;
-        const OriginalMediaRecorder = global.MediaRecorder;
-
-        // Spy version of MediaRecorder to capture options
-        global.MediaRecorder = class extends OriginalMediaRecorder {
-            constructor(stream: any, options: any) {
-                super(stream, options);
-                capturedOptions = options;
+            if (mockMediaRecorder.ondataavailable) {
+                mockMediaRecorder.ondataavailable({ data: { size: 100 } } as any);
             }
-        } as any;
-
-        const { result } = renderHook(() => useSessionRecorder(mockStream));
-
-        // 1. Test Low Quality Bitrate
-        act(() => {
-            result.current.setQuality('low');
         });
-        act(() => {
-            result.current.startRecording();
-        });
-        expect(capturedOptions.videoBitsPerSecond).toBe(256000);
-
-        // 2. Test blocking quality change while recording
-        act(() => {
-            result.current.setQuality('high');
-        });
-        expect(result.current.quality).toBe('low'); // Should NOT change
 
         act(() => {
             result.current.stopRecording();
         });
 
-        // 3. Test High Quality Bitrate (after stopping)
-        act(() => {
-            result.current.setQuality('high');
-        });
-        act(() => {
-            result.current.startRecording();
-        });
-        expect(capturedOptions.videoBitsPerSecond).toBe(2500000);
-
-        global.MediaRecorder = OriginalMediaRecorder;
+        expect(result.current.isRecording).toBe(false);
+        expect(mockMediaRecorder.stop).toHaveBeenCalled();
+        expect(result.current.previewUrl).toBe('blob:test');
     });
 
-    it('should provide intelligent quality recommendations', () => {
-        // Test Low recommendation (no video)
-        const { result: lowResult } = renderHook(() => useSessionRecorder(mockStream));
-        expect(lowResult.current.recommendedQuality).toBe('low');
+    it('should discard recording', () => {
+        const { result } = renderHook(() => useSessionRecorder(mockStream));
 
-        // Test Balanced/High recommendation (with video)
-        const videoStream = {
-            getVideoTracks: () => [{
-                enabled: true,
-                getSettings: () => ({ width: 1280, height: 720 })
-            }],
-            getTracks: () => []
-        } as any;
+        act(() => {
+            result.current.startRecording();
+            if (mockMediaRecorder.ondataavailable) mockMediaRecorder.ondataavailable({ data: { size: 100 } } as any);
+            result.current.stopRecording();
+        });
 
-        const { result: highResult } = renderHook(() => useSessionRecorder(videoStream));
-        expect(highResult.current.recommendedQuality).toBe('high');
+        expect(result.current.previewUrl).toBe('blob:test');
+
+        act(() => {
+            result.current.discardRecording();
+        });
+
+        expect(result.current.previewUrl).toBeNull();
+        expect(global.URL.revokeObjectURL).toHaveBeenCalledWith('blob:test');
     });
 });

@@ -65,6 +65,15 @@ public interface OnlineSessionService {
     void updateHeartbeat(String roomId, Long userId);
 
     /**
+     * Updates recording metadata for a specific session.
+     * 
+     * @param roomId The unique room identifier.
+     * @param request The recording metadata details.
+     * @return The updated session details.
+     */
+    OnlineSessionResponse updateRecordingMetadata(String roomId, com.tutor_management.backend.modules.onlinesession.dto.request.UpdateRecordingMetadataRequest request);
+
+    /**
      * Detects and handles inactive participants in active rooms.
      * Should be called periodically by a scheduler.
      */

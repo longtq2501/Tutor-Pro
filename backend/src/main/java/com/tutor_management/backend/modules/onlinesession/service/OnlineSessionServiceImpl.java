@@ -5,6 +5,7 @@ import com.tutor_management.backend.modules.auth.UserRepository;
 import com.tutor_management.backend.modules.notification.event.OnlineSessionCreatedEvent;
 import com.tutor_management.backend.modules.notification.event.OnlineSessionEndedEvent;
 import com.tutor_management.backend.modules.onlinesession.dto.request.CreateOnlineSessionRequest;
+import com.tutor_management.backend.modules.onlinesession.dto.request.UpdateRecordingMetadataRequest;
 import com.tutor_management.backend.modules.onlinesession.dto.response.JoinRoomResponse;
 import com.tutor_management.backend.modules.onlinesession.dto.response.OnlineSessionResponse;
 import com.tutor_management.backend.modules.onlinesession.dto.response.RoomStatsResponse;
@@ -57,6 +58,9 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
             Map.of("urls", "stun:stun1.l.google.com:19302"),
             Map.of("urls", "stun:stun2.l.google.com:19302")
     );
+
+    @Value("${app.online-session.auto-end-timeout-minutes:2}")
+    private int autoEndTimeoutMinutes;
 
     @Override
     @Transactional
@@ -235,19 +239,32 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
                 return mapToResponse(session);
         }
 
+        LocalDateTime now = LocalDateTime.now(clock);
         session.setRoomStatus(RoomStatus.ENDED);
-        LocalDateTime endTime = LocalDateTime.now(clock);
-        session.setActualEnd(endTime);
+        session.setActualEnd(now);
 
-        // Calculate billable time: overlap between tutor and student presence
-        if (session.getTutorJoinedAt() != null && session.getStudentJoinedAt() != null) {
-                LocalDateTime overlapStart = session.getTutorJoinedAt().isAfter(session.getStudentJoinedAt()) 
-                ? session.getTutorJoinedAt() : session.getStudentJoinedAt();
-                
-                if (endTime.isAfter(overlapStart)) {
-                long minutes = java.time.Duration.between(overlapStart, endTime).toMinutes();
+        // Set left times if not already set (e.g., they were still active when tutor clicked end)
+        if (session.getTutorJoinedAt() != null && session.getTutorLeftAt() == null) {
+            session.setTutorLeftAt(now);
+        }
+        if (session.getStudentJoinedAt() != null && session.getStudentLeftAt() == null) {
+            session.setStudentLeftAt(now);
+        }
+
+        // Calculate billable overlap
+        if (session.getTutorJoinedAt() != null && session.getStudentJoinedAt() != null &&
+            session.getTutorLeftAt() != null && session.getStudentLeftAt() != null) {
+            
+            LocalDateTime overlapStart = session.getTutorJoinedAt().isAfter(session.getStudentJoinedAt()) 
+                    ? session.getTutorJoinedAt() : session.getStudentJoinedAt();
+            
+            LocalDateTime overlapEnd = session.getTutorLeftAt().isBefore(session.getStudentLeftAt())
+                    ? session.getTutorLeftAt() : session.getStudentLeftAt();
+            
+            if (overlapEnd.isAfter(overlapStart)) {
+                long minutes = java.time.Duration.between(overlapStart, overlapEnd).toMinutes();
                 session.setTotalDurationMinutes((int) minutes);
-                }
+            }
         }
 
         OnlineSession saved = onlineSessionRepository.save(session);
@@ -320,18 +337,16 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
     @Transactional
     @Scheduled(fixedRate = 60000) // Every 60 seconds
     public void detectInactiveParticipants() {
-        // Get all ACTIVE rooms
-        List<OnlineSession> activeSessions = onlineSessionRepository
-                .findByRoomStatus(RoomStatus.ACTIVE);
+        LocalDateTime now = LocalDateTime.now(clock);
+        List<OnlineSession> activeSessions = onlineSessionRepository.findByRoomStatus(RoomStatus.ACTIVE);
         
         for (OnlineSession session : activeSessions) {
             boolean tutorActive = presenceService.isUserActive(
                 session.getRoomId(), 
                 session.getTutor().getUser().getId(),
-                65 // 30s heartbeat + 35s grace period
+                65
             );
             
-            // Check student
             User studentUser = userRepository.findByStudentId(session.getStudent().getId())
                 .stream().findFirst().orElse(null);
             
@@ -344,22 +359,52 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
                 );
             }
             
-            // If both inactive for 60+ seconds
-            if (!tutorActive && !studentActive) {
-                log.warn("Room {} completely inactive for 60s. Last heartbeat missed.", session.getRoomId());
-                // Future: Implement auto-end or notification logic here
-            } else if (!tutorActive) {
-                log.info("Tutor disconnected from room {}", session.getRoomId());
-            } else if (!studentActive) {
-                log.info("Student disconnected from room {}", session.getRoomId());
+            // Track when they left
+            if (!tutorActive && session.getTutorLeftAt() == null && session.getTutorJoinedAt() != null) {
+                session.setTutorLeftAt(now);
+                log.info("Tutor in room {} marked as inactive at {}", session.getRoomId(), now);
             }
 
-            // Sync presence to DB occasionally (Optional, but helps for visual stats)
-            if (tutorActive || studentActive) {
-                session.setLastActivityAt(LocalDateTime.now(clock));
+            if (!studentActive && session.getStudentLeftAt() == null && session.getStudentJoinedAt() != null) {
+                session.setStudentLeftAt(now);
+                log.info("Student in room {} marked as inactive at {}", session.getRoomId(), now);
+            }
+            
+            // Auto-end if both inactive for specified timeout
+            boolean bothLeftLongAgo = !tutorActive && !studentActive &&
+                session.getTutorLeftAt() != null && session.getStudentLeftAt() != null &&
+                session.getTutorLeftAt().isBefore(now.minusMinutes(autoEndTimeoutMinutes)) &&
+                session.getStudentLeftAt().isBefore(now.minusMinutes(autoEndTimeoutMinutes));
+
+            if (bothLeftLongAgo) {
+                log.warn("Auto-ending abandoned room: {} (Tutor left: {}, Student left: {})", 
+                        session.getRoomId(), session.getTutorLeftAt(), session.getStudentLeftAt());
+                endSession(session.getRoomId(), null);
+            } else if (tutorActive || studentActive) {
+                session.setLastActivityAt(now);
                 onlineSessionRepository.save(session);
             }
         }
+    }
+
+    @Override
+    @Transactional
+    public OnlineSessionResponse updateRecordingMetadata(String roomId, UpdateRecordingMetadataRequest request) {
+        log.info("Updating recording metadata for room: {}", roomId);
+        
+        OnlineSession session = onlineSessionRepository.findByRoomId(roomId)
+                .orElseThrow(() -> new RoomNotFoundException("Room not found: " + roomId));
+
+        session.setRecordingDurationMinutes(request.getDurationMinutes());
+        session.setRecordingFileSizeMb(request.getFileSizeMb());
+        session.setRecordingDownloaded(request.getDownloaded());
+        
+        if (session.getRecordingStartedAt() == null && request.getDurationMinutes() > 0) {
+            session.setRecordingStartedAt(LocalDateTime.now(clock).minusMinutes(request.getDurationMinutes()));
+        }
+        session.setRecordingStoppedAt(LocalDateTime.now(clock));
+
+        return mapToResponse(onlineSessionRepository.save(session));
     }
 
     private OnlineSessionResponse mapToResponse(OnlineSession session) {

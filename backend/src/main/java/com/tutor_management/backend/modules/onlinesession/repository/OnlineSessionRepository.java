@@ -23,8 +23,14 @@ public interface OnlineSessionRepository extends JpaRepository<OnlineSession, Lo
      * @param roomId The unique identifier for the room.
      * @return Optional containing the OnlineSession if found.
      */
-    @EntityGraph(attributePaths = {"tutor", "student"})
     Optional<OnlineSession> findByRoomId(String roomId);
+
+    /**
+     * Checks if a room exists by its ID.
+     * @param roomId The room ID
+     * @return true if exists
+     */
+    boolean existsByRoomId(String roomId);
 
     @EntityGraph(attributePaths = {"tutor", "student"})
     List<OnlineSession> findByRoomStatus(RoomStatus status);

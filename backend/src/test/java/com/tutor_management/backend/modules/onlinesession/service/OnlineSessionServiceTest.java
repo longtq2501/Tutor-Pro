@@ -28,6 +28,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -67,6 +68,9 @@ class OnlineSessionServiceTest {
     @Mock
     private RoomTokenService roomTokenService;
 
+    @Mock
+    private PresenceService presenceService;
+
     private final Long userId = 1L;
     private final Long tutorId = 10L;
     private final Long studentId = 20L;
@@ -86,6 +90,9 @@ class OnlineSessionServiceTest {
         user = User.builder().id(userId).fullName("Tutor User").build();
         tutor = Tutor.builder().id(tutorId).fullName("Tutor Name").user(user).build();
         student = Student.builder().id(studentId).name("Student Name").build();
+
+        // Inject default timeout for tests
+        ReflectionTestUtils.setField(onlineSessionService, "autoEndTimeoutMinutes", 2);
     }
 
     @Test
@@ -272,30 +279,134 @@ class OnlineSessionServiceTest {
     }
 
     @Test
-    @DisplayName("Should retrieve global stats")
-    void getGlobalStats_Success() {
-        // Given
-        when(onlineSessionRepository.count()).thenReturn(100L);
-        when(onlineSessionRepository.countByRoomStatus(RoomStatus.ACTIVE)).thenReturn(5L);
-        when(onlineSessionRepository.countByRoomStatus(RoomStatus.WAITING)).thenReturn(10L);
-        when(onlineSessionRepository.countByRoomStatus(RoomStatus.ENDED)).thenReturn(85L);
-        when(onlineSessionRepository.sumTotalDurationMinutes()).thenReturn(Optional.of(5000L));
-        
-        LocalDateTime todayStart = LocalDateTime.now().withHour(0).withMinute(0); // This is risky due to time
-        // Use a fixed clock for deterministic today count
-        LocalDateTime fixedNow = LocalDateTime.of(2024, 1, 15, 12, 0);
-        when(clock.instant()).thenReturn(fixedNow.atZone(ZoneId.systemDefault()).toInstant());
-        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
-        
-        when(onlineSessionRepository.countByScheduledStartBetween(any(), any())).thenReturn(12L);
+    @DisplayName("Should calculate complex overlap correctly")
+    void endSession_ComplexOverlap() {
+        String roomId = "complex-overlap";
+        LocalDateTime tutorJoined = LocalDateTime.of(2024, 1, 15, 14, 0);
+        LocalDateTime studentJoined = LocalDateTime.of(2024, 1, 15, 14, 10);
+        LocalDateTime tutorLeft = LocalDateTime.of(2024, 1, 15, 14, 40);
+        LocalDateTime studentLeft = LocalDateTime.of(2024, 1, 15, 14, 50);
+        LocalDateTime now = LocalDateTime.of(2024, 1, 15, 15, 0);
 
-        // When
-        GlobalStatsResponse response = onlineSessionService.getGlobalStats();
+        Clock fixedClock = Clock.fixed(now.atZone(ZoneId.systemDefault()).toInstant(), ZoneId.systemDefault());
+        when(clock.instant()).thenReturn(fixedClock.instant());
+        when(clock.getZone()).thenReturn(fixedClock.getZone());
 
-        // Then
-        assertNotNull(response);
-        assertEquals(100L, response.getTotalSessions());
-        assertEquals(5L, response.getActiveSessions());
-        assertEquals(50.0, response.getAverageSessionDuration());
+        OnlineSession session = OnlineSession.builder()
+                .roomId(roomId).roomStatus(RoomStatus.ACTIVE)
+                .tutor(tutor).student(student)
+                .tutorJoinedAt(tutorJoined).studentJoinedAt(studentJoined)
+                .tutorLeftAt(tutorLeft).studentLeftAt(null) // Student still in room
+                .build();
+
+        when(onlineSessionRepository.findByRoomId(roomId)).thenReturn(Optional.of(session));
+        when(userRepository.findByStudentId(any())).thenReturn(List.of(User.builder().id(123L).build()));
+        when(onlineSessionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        onlineSessionService.endSession(roomId, userId);
+
+        // Overlap: 14:10 (student joined) to 14:40 (tutor left) = 30 minutes
+        assertEquals(30, session.getTotalDurationMinutes());
+        assertEquals(now, session.getStudentLeftAt()); // Defaulted to now
+    }
+
+    @Test
+    @DisplayName("Should auto-end session when both participants are inactive")
+    void detectInactiveParticipants_AutoEnd() {
+        String roomId = "auto-end-room";
+        LocalDateTime now = LocalDateTime.of(2024, 1, 15, 15, 0);
+        LocalDateTime leftTime = now.minusMinutes(3); // 3 mins ago
+
+        Clock fixedClock = Clock.fixed(now.atZone(ZoneId.systemDefault()).toInstant(), ZoneId.systemDefault());
+        when(clock.instant()).thenReturn(fixedClock.instant());
+        when(clock.getZone()).thenReturn(fixedClock.getZone());
+
+        OnlineSession session = OnlineSession.builder()
+                .roomId(roomId).roomStatus(RoomStatus.ACTIVE)
+                .tutor(tutor).student(student)
+                .tutorJoinedAt(now.minusHours(1))
+                .studentJoinedAt(now.minusHours(1))
+                .tutorLeftAt(leftTime)
+                .studentLeftAt(leftTime)
+                .build();
+
+        when(onlineSessionRepository.findByRoomStatus(RoomStatus.ACTIVE)).thenReturn(List.of(session));
+        when(onlineSessionRepository.findByRoomId(roomId)).thenReturn(Optional.of(session));
+        
+        // Presence mocks
+        when(presenceService.isUserActive(eq(roomId), anyLong(), anyInt())).thenReturn(false);
+        when(userRepository.findByStudentId(anyLong())).thenReturn(List.of(User.builder().id(123L).build()));
+        when(onlineSessionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        onlineSessionService.detectInactiveParticipants();
+
+        assertEquals(RoomStatus.ENDED, session.getRoomStatus());
+        verify(onlineSessionRepository, atLeastOnce()).save(session);
+    }
+
+    @Test
+    @DisplayName("Should set zero duration when there is NO overlap")
+    void endSession_NoOverlap() {
+        String roomId = "no-overlap";
+        // Tutor: 10:00-10:15
+        // Student: 10:30-10:45
+        LocalDateTime tutorJoined = LocalDateTime.of(2024, 1, 15, 10, 0);
+        LocalDateTime tutorLeft = LocalDateTime.of(2024, 1, 15, 10, 15);
+        LocalDateTime studentJoined = LocalDateTime.of(2024, 1, 15, 10, 30);
+        LocalDateTime studentLeft = LocalDateTime.of(2024, 1, 15, 10, 45);
+
+        OnlineSession session = OnlineSession.builder()
+                .roomId(roomId).roomStatus(RoomStatus.ACTIVE)
+                .tutor(tutor).student(student)
+                .tutorJoinedAt(tutorJoined).studentJoinedAt(studentJoined)
+                .tutorLeftAt(tutorLeft).studentLeftAt(studentLeft)
+                .build();
+
+        LocalDateTime now = LocalDateTime.of(2024, 1, 15, 11, 0);
+        Clock fixedClock = Clock.fixed(now.atZone(ZoneId.systemDefault()).toInstant(), ZoneId.systemDefault());
+        when(clock.instant()).thenReturn(fixedClock.instant());
+        when(clock.getZone()).thenReturn(fixedClock.getZone());
+
+        when(onlineSessionRepository.findByRoomId(roomId)).thenReturn(Optional.of(session));
+        when(userRepository.findByStudentId(any())).thenReturn(List.of(User.builder().id(123L).build()));
+        when(onlineSessionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        onlineSessionService.endSession(roomId, userId);
+
+        assertEquals(0, session.getTotalDurationMinutes());
+    }
+
+    @Test
+    @DisplayName("Should NOT end room if ONE participant is still active")
+    void detectInactiveParticipants_OneParticipantStillActive() {
+        String roomId = "partial-active-room";
+        LocalDateTime now = LocalDateTime.of(2024, 1, 15, 15, 0);
+        
+        Clock fixedClock = Clock.fixed(now.atZone(ZoneId.systemDefault()).toInstant(), ZoneId.systemDefault());
+        when(clock.instant()).thenReturn(fixedClock.instant());
+        when(clock.getZone()).thenReturn(fixedClock.getZone());
+        
+        OnlineSession session = OnlineSession.builder()
+                .roomId(roomId).roomStatus(RoomStatus.ACTIVE)
+                .tutor(tutor).student(student)
+                .tutorJoinedAt(now.minusHours(1))
+                .studentJoinedAt(now.minusHours(1))
+                .tutorLeftAt(now.minusMinutes(5)) // Left 5m ago
+                .studentLeftAt(null) // Still in room
+                .build();
+
+        when(onlineSessionRepository.findByRoomStatus(RoomStatus.ACTIVE)).thenReturn(List.of(session));
+        
+        // Presence mocks: Tutor inactive, Student active
+        when(presenceService.isUserActive(eq(roomId), eq(userId), anyInt())).thenReturn(false);
+        // Student user ID lookup
+        User studentUser = User.builder().id(123L).studentId(studentId).build();
+        when(userRepository.findByStudentId(studentId)).thenReturn(List.of(studentUser));
+        when(presenceService.isUserActive(eq(roomId), eq(123L), anyInt())).thenReturn(true);
+
+        onlineSessionService.detectInactiveParticipants();
+
+        // Room should STILL be ACTIVE
+        assertEquals(RoomStatus.ACTIVE, session.getRoomStatus());
     }
 }

@@ -1,6 +1,7 @@
 package com.tutor_management.backend.modules.onlinesession.controller;
 
 import com.tutor_management.backend.modules.onlinesession.service.OnlineSessionService;
+import com.tutor_management.backend.modules.onlinesession.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -18,6 +19,8 @@ import java.security.Principal;
 public class OnlineSessionWebSocketController {
 
     private final OnlineSessionService onlineSessionService;
+    private final ChatService chatService;
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     /**
      * Handles heartbeat messages from clients to keep the session alive and detect disconnects.
@@ -42,6 +45,39 @@ public class OnlineSessionWebSocketController {
             log.error("Invalid userId in principal name: {}", principal.getName());
         } catch (Exception e) {
             log.error("Error processing heartbeat for room {}: {}", roomId, e.getMessage());
+        }
+    }
+
+    /**
+     * Handles incoming chat messages from participants.
+     * Persists the message to the database and broadcasts it to all room participants.
+     * Expects messages at /app/room/{roomId}/chat
+     * 
+     * @param roomId The room ID
+     * @param request The chat message request
+     * @param principal The sender's principal
+     */
+    @MessageMapping("/room/{roomId}/chat")
+    public void handleChatMessage(
+            @DestinationVariable String roomId, 
+            com.tutor_management.backend.modules.onlinesession.dto.request.ChatMessageRequest request, 
+            Principal principal) {
+        
+        if (principal == null) {
+            log.warn("Chat message received without authentication for room: {}", roomId);
+            return;
+        }
+
+        try {
+            Long userId = Long.parseLong(principal.getName());
+            com.tutor_management.backend.modules.onlinesession.dto.response.ChatMessageResponse response = 
+                    chatService.saveMessage(roomId, userId, request);
+            
+            // Broadcast to the room topic
+            messagingTemplate.convertAndSend("/topic/room/" + roomId + "/chat", response);
+            log.debug("Chat message from user {} broadcasted to room {}", userId, roomId);
+        } catch (Exception e) {
+            log.error("Error processing chat message for room {}: {}", roomId, e.getMessage());
         }
     }
 }

@@ -128,4 +128,25 @@ public class OnlineSessionController {
                 response
         ));
     }
+
+    /**
+     * Endpoint to update recording metadata after download.
+     * 
+     * @param roomId The unique room ID.
+     * @param request The recording metadata details.
+     * @return ResponseEntity with updated session details.
+     */
+    @PostMapping("/{roomId}/recording-metadata")
+    @PreAuthorize("hasRole('ADMIN') or @roomAccessValidator.hasAccess(#roomId, #user.id)")
+    public ResponseEntity<ApiResponse<OnlineSessionResponse>> updateRecordingMetadata(
+            @PathVariable String roomId,
+            @Valid @RequestBody com.tutor_management.backend.modules.onlinesession.dto.request.UpdateRecordingMetadataRequest request) {
+        
+        OnlineSessionResponse response = onlineSessionService.updateRecordingMetadata(roomId, request);
+        
+        return ResponseEntity.ok(ApiResponse.success(
+                "Recording metadata updated successfully.", 
+                response
+        ));
+    }
 }

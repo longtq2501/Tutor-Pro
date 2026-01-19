@@ -109,6 +109,18 @@ public class OnlineSession {
     private LocalDateTime studentJoinedAt;
     
     /**
+     * Exact timestamp when the tutor left the room.
+     */
+    @Column(name = "tutor_left_at")
+    private LocalDateTime tutorLeftAt;
+    
+    /**
+     * Exact timestamp when the student left the room.
+     */
+    @Column(name = "student_left_at")
+    private LocalDateTime studentLeftAt;
+    
+    /**
      * Total billable duration in minutes.
      */
     @Column(name = "total_duration_minutes")
@@ -125,6 +137,10 @@ public class OnlineSession {
     /**
      * Serialized chat history (Phase 5).
      */
+    /**
+     * @deprecated Use separate ChatMessage entity and online_session_chat_messages table for paginated chat.
+     */
+    @Deprecated
     @Column(name = "chat_history", columnDefinition = "TEXT")
     @Builder.Default
     private String chatHistory = "[]";

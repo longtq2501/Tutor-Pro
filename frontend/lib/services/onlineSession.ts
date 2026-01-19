@@ -55,8 +55,14 @@ export const onlineSessionApi = {
      * @param {string} roomId - Unique identifier for the room
      * @returns {Promise<OnlineSessionResponse>} Updated session details
      */
-    endSession: async (roomId: string): Promise<OnlineSessionResponse> => {
-        const response = await api.post(`/online-sessions/${roomId}/end`);
+    /**
+     * UPDATES RECORDING METADATA AFTER DOWNLOAD
+     * @param {string} roomId - Unique identifier for the room
+     * @param {any} data - Recording metadata details (duration, size)
+     * @returns {Promise<OnlineSessionResponse>} Updated session details
+     */
+    updateRecordingMetadata: async (roomId: string, data: any): Promise<OnlineSessionResponse> => {
+        const response = await api.post(`/online-sessions/${roomId}/recording-metadata`, data);
         return response.data.data;
     },
 };

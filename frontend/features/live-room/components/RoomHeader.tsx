@@ -1,0 +1,72 @@
+'use client';
+
+import React from 'react';
+import { BillableTimer } from './BillableTimer';
+import { ModeToggle } from '@/components/ModeToggle';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Copy, Check } from 'lucide-react';
+
+interface RoomHeaderProps {
+    roomId: string;
+    isConnected: boolean;
+    isRecording: boolean;
+}
+
+/**
+ * Header component for the Live Room display.
+ * Displays room ID with tooltip/copy, billable timer, connection status, and recording indicator.
+ */
+export const RoomHeader: React.FC<RoomHeaderProps> = ({
+    roomId,
+    isConnected,
+    isRecording
+}) => {
+    const [copied, setCopied] = React.useState(false);
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(roomId);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <header className="h-14 border-b border-border flex items-center px-4 justify-between bg-card shrink-0">
+            <div className="flex items-center gap-2 min-w-0">
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <h2 className="font-semibold truncate text-sm md:text-base cursor-help flex items-center gap-1.5">
+                                <span className="hidden sm:inline">Phòng: </span>
+                                <span className="hidden sm:inline">{roomId}</span>
+                                <span className="sm:hidden">{roomId.slice(0, 12)}...</span>
+                            </h2>
+                        </TooltipTrigger>
+                        <TooltipContent className="flex flex-col gap-2 p-3">
+                            <p className="text-xs font-mono">{roomId}</p>
+                            <button
+                                onClick={handleCopy}
+                                className="flex items-center gap-1.5 text-[10px] text-primary hover:underline font-medium"
+                            >
+                                {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                                {copied ? 'Đã sao chép' : 'Sao chép ID'}
+                            </button>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+
+                <BillableTimer roomId={roomId} />
+                {isRecording && (
+                    <span className="flex items-center gap-1 text-[10px] md:text-xs text-red-500 font-medium animate-pulse whitespace-nowrap">
+                        ● <span className="hidden xs:inline">ĐANG GHI HÌNH</span>
+                    </span>
+                )}
+            </div>
+            <div className="flex items-center gap-2 md:gap-4 shrink-0">
+                <span className="hidden sm:inline text-xs text-muted-foreground">
+                    {isConnected ? '● Đã kết nối' : '○ Đang kết nối...'}
+                </span>
+                <ModeToggle />
+            </div>
+        </header>
+    );
+};

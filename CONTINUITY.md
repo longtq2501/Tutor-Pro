@@ -65,6 +65,7 @@ Optimize existing TMS from "functional" to "production-ready":
   - Frontend: Updated hooks and services to support paginated data structures.
 - ✅ **Student & Calendar Module Refinement:**
     - **Layout Fix:** Resolved `LessonDetailModal` scrolling issues on mobile, ensuring independent column scrolling and reachable save buttons.
+    - **Production Hardening:** Centralized mobile detection logic by introducing `BREAKPOINTS` constants and a robust `useIsMobile` hook (combining media queries and `react-device-detect`), eliminating hardcoded magic numbers.
     - **Premium UI Redesign:** Implemented a high-end glassmorphism look for the AI Feedback Generator, improving visual hierarchy and user intuition.
     - **Persistence:** Added URL-based search and filter persistence for the Student Unified View using `useSearchParams`.
     - **Code Quality:** Refactored `UnifiedContactHeader` and `OptimizedStudentGrid` to strictly follow the 50-line rule, improving modularity.
@@ -80,6 +81,9 @@ Optimize existing TMS from "functional" to "production-ready":
     - **UX Enhancements:** Implemented whiteboard undo/redo system, real-time chat typing indicator, and **Recording Preview** dialog before download.
     - **Metrics:** Chat load < 200ms, Billing accuracy 10/10, Session RAM overhead < 100MB, Whiteboard history tests 10/10, Chat typing tests 5/5, Mobile toolbar tests 6/6.
     - **UI/UX:** Mobile-optimized whiteboard toolbar with 48px touch targets and responsive layout.
+    - **Error Recovery:** Implemented `ErrorRecoveryDialog` with retry and "Audio Only" fallback. Optimized `useMediaStream` to prevent stream restarts during media toggling.
+    - **Features (Phase 5):** Added Visual Billable Timer (`useBillableTimer`) with real-time overlap tracking, handling disjointed sessions (rejoins) and background sync logic. Verified with 100% unit test coverage including edge cases (double counting, precision drift).
+
 
 - [x] Complete Live Teaching (Interactive & Lifecycle)
 
@@ -100,6 +104,6 @@ Optimize existing TMS from "functional" to "production-ready":
 ## Open Questions
 
 ### Working Set:
-Current module: Exercise Module Upgrade
-Active files or folders: [backend/src/main/java/com/tutor_management/backend/modules/exercise]
-Focus: Implementing pagination and pending status tracking
+Current module: Live Teaching (Interactive & Lifecycle)
+Active files or folders: [frontend/features/live-room, backend/src/main/java/com/tutor_management/backend/modules/onlinesession]
+Focus: Finalizing interactive features (Whiteboard, Chat) and Session Recording lifecycle.

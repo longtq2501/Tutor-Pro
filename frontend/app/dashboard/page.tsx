@@ -9,7 +9,8 @@ import {
     LogOut,
     Menu,
     TrendingUp,
-    Users
+    Users,
+    Video
 } from 'lucide-react';
 import React, { useCallback, useMemo, useState } from 'react';
 
@@ -43,6 +44,7 @@ const CalendarView = dynamic(() => import('@/features/calendar/calendar-view'));
 const LessonViewWrapper = dynamic(() => import('@/features/learning/lesson-view-wrapper'));
 const AdminLessonManager = dynamic(() => import('@/features/learning/lessons'));
 const TutorsFeature = dynamic(() => import('@/features/tutors'));
+const LiveRoomFeature = dynamic(() => import('@/features/live-room'));
 
 // ============================================================================
 // UI COMPONENTS (Keep in /components - not feature-specific)
@@ -173,6 +175,9 @@ const MainContentSwitcher = React.memo(({ currentView, hasAnyRole }: {
                 {/* Tutor Management */}
                 {currentView === 'tutors' && hasAnyRole(['ADMIN']) && <TutorsFeature />}
 
+                {/* Live Room */}
+                {currentView === 'live-room' && <LiveRoomFeature />}
+
                 {/* Student Lesson View */}
                 {currentView === 'lessons' && hasAnyRole(['STUDENT']) && <LessonViewWrapper />}
 
@@ -223,9 +228,8 @@ function AppContent() {
         const urlView = params.get('view');
 
         if (urlView !== currentView) {
-            const newParams = new URLSearchParams();
-            newParams.set('view', currentView);
-            router.replace(`${pathname}?${newParams.toString()}`, { scroll: false });
+            params.set('view', currentView);
+            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
         }
     }, [currentView, pathname, router]);
 
@@ -253,6 +257,7 @@ function AppContent() {
             { id: 'exercises', label: 'Khảo thí', icon: ClipboardList },
             // { id: 'unpaid', label: 'Công Nợ', icon: AlertCircle },
             { id: 'documents', label: 'Tài Liệu', icon: FileText },
+            { id: 'live-room', label: 'Lớp học', icon: Video },
         ];
 
         return allItems.filter(item => {
@@ -261,6 +266,11 @@ function AppContent() {
             if (item.id === 'unpaid' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
             if (item.id === 'calendar' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
             if (item.id === 'tutors' && !hasAnyRole(['ADMIN'])) return false;
+            // live-room is accessible by everyone involved in a session, but usually accessed via link. 
+            // We can hide it from main nav if no active session, or keep it. 
+            // For now, let's allow it for ADMIN/TUTOR/STUDENT as a specialized view.
+            // if (item.id === 'live-room') return false; // Hide from sidebar initially, accessed via Calendar/Link
+            if (item.id === 'live-room') return true;
             return true;
         });
     }, [hasAnyRole]);

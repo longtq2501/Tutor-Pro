@@ -1,64 +1,167 @@
 'use client';
 
 import React from 'react';
-import { Whiteboard } from './Whiteboard';
-import { ChatPanel } from './ChatPanel';
 import { useWebSocket } from '../context/WebSocketContext';
 import { useRoomState } from '../context/RoomStateContext';
 import { RoomErrorBoundary } from './RoomErrorBoundary';
 import { useLiveRoomMedia } from '../hooks/useLiveRoomMedia';
-import { VideoPlayer } from './VideoPlayer';
-import { MediaControls } from './MediaControls';
-import { ModeToggle } from '@/components/ModeToggle';
 import { RecordingPreviewDialog } from './RecordingPreviewDialog';
+import { RoomMainContent } from './RoomMainContent';
+import { useRoomStatus } from '../hooks/useRoomStatus';
+import { InactivityWarning } from './InactivityWarning';
+import { RoomHeader } from './RoomHeader';
+import { MobileNavigation, RoomTab } from './MobileNavigation';
+import { useMediaQuery } from '../hooks/useMediaQuery';
+import { useIsMobile } from '../hooks/useIsMobile';
+import { ErrorRecoveryDialog } from './ErrorRecoveryDialog';
+import { useRouter } from 'next/navigation';
 
 interface LiveRoomDisplayProps {
     roomId: string;
     currentUserId: number;
 }
 
+/**
+ * Main display component for the Live Room feature.
+ * Features a responsive layout that switches between side-by-side (desktop)
+ * and tab-based (mobile) views.
+ */
 export const LiveRoomDisplay: React.FC<LiveRoomDisplayProps> = ({ roomId, currentUserId }) => {
     const { sendMessage } = useWebSocket();
-    const { state } = useRoomState();
+    const { state, actions } = useRoomState();
+    const retryCountRef = React.useRef(0);
+    const MAX_RETRIES = 3;
+
+    // Media error to user-friendly message
+    const getMediaErrorMessage = React.useCallback((error: any): string | null => {
+        if (!error) return null;
+        const messages: Record<string, string> = {
+            NotAllowedError: 'Bạn đã từ chối quyền truy cập camera/microphone. Vui lòng cấp quyền trong cài đặt trình duyệt để tiếp tục.',
+            NotFoundError: 'Không tìm thấy camera hoặc microphone. Vui lòng kiểm tra kết nối thiết bị.',
+            NotReadableError: 'Camera hoặc microphone đang được sử dụng bởi một ứng dụng khác.',
+            OverconstrainedError: 'Thiết bị của bạn không hỗ trợ cấu hình video yêu cầu.',
+            TypeError: 'Trình duyệt không hỗ trợ các tính năng media cần thiết.',
+            UnknownError: 'Đã xảy ra lỗi không xác định khi truy cập thiết bị media.'
+        };
+        return messages[error] || 'Lỗi truy cập camera/microphone.';
+    }, []);
+
     const media = useLiveRoomMedia();
+    const { warning: statusWarning, secondsRemaining } = useRoomStatus(roomId);
+    const isMobile = useIsMobile();
+    const router = useRouter();
+
+    // Tab persistence logic - Safe for SSR
+    const [activeTab, setActiveTab] = React.useState<RoomTab>(() => {
+        if (typeof window !== 'undefined') {
+            const stored = sessionStorage.getItem(`room-${roomId}-active-tab`);
+            if (stored === 'board' || stored === 'video' || stored === 'chat') {
+                return stored;
+            }
+        }
+        return 'board'; // Always return 'board' during SSR to prevent mismatch
+    });
+
+    // Set mobile default tab after hydration if no preference is stored
+    React.useEffect(() => {
+        if (isMobile && typeof window !== 'undefined') {
+            const stored = sessionStorage.getItem(`room-${roomId}-active-tab`);
+            if (!stored) {
+                setActiveTab('video');
+            }
+        }
+    }, [isMobile, roomId]);
+
+    const handleTabChange = React.useCallback((tab: RoomTab) => {
+        setActiveTab(tab);
+        sessionStorage.setItem(`room-${roomId}-active-tab`, tab);
+
+        // Accessibility announcement
+        const tabNames = { board: 'Bảng', video: 'Video', chat: 'Chat' };
+        const announcement = document.createElement('div');
+        announcement.setAttribute('role', 'status');
+        announcement.setAttribute('aria-live', 'polite');
+        announcement.className = 'sr-only';
+        announcement.textContent = `Đã chuyển sang tab ${tabNames[tab]}`;
+        document.body.appendChild(announcement);
+        setTimeout(() => announcement.remove(), 1000);
+    }, [roomId]);
+
+    // Keyboard shortcuts for tab switching (Alt + 1/2/3) - Desktop only
+    React.useEffect(() => {
+        const handleKeyPress = (e: KeyboardEvent) => {
+            if (!isMobile && e.altKey) {
+                if (e.key === '1') handleTabChange('board');
+                if (e.key === '2') handleTabChange('video');
+                if (e.key === '3') handleTabChange('chat');
+            }
+        };
+        window.addEventListener('keydown', handleKeyPress);
+        return () => window.removeEventListener('keydown', handleKeyPress);
+    }, [handleTabChange, isMobile]);
+
+    const handleRetry = React.useCallback(() => {
+        if (retryCountRef.current >= MAX_RETRIES) {
+            if (process.env.NODE_ENV !== 'production') {
+                console.warn('[ErrorRecovery] Max retries reached');
+            }
+            actions.setError(`Đã thử kết nối lại ${MAX_RETRIES} lần nhưng vẫn thất bại. Vui lòng kiểm tra lại đường truyền mạng.`);
+            return;
+        }
+
+        if (process.env.NODE_ENV !== 'production') {
+            console.log(`[ErrorRecovery] Initiating full retry #${retryCountRef.current + 1}`);
+        }
+        retryCountRef.current++;
+
+        actions.setConnectionState('INITIALIZING');
+        actions.setError(null);
+        media.retry({ video: true, audio: true });
+    }, [actions, media]);
+
+    const handleAudioOnly = React.useCallback(() => {
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('[ErrorRecovery] Initiating audio-only fallback');
+        }
+        actions.setConnectionState('INITIALIZING');
+        actions.setError(null);
+        media.retry({ video: false, audio: true });
+    }, [actions, media]);
+
+    // Reset retry count on successful connection
+    React.useEffect(() => {
+        if (state.isConnected) {
+            retryCountRef.current = 0;
+        }
+    }, [state.isConnected]);
+
+    const handleExit = React.useCallback(() => {
+        router.push('/dashboard');
+    }, [router]);
 
     return (
         <RoomErrorBoundary>
-            <div className="flex h-screen w-full bg-background overflow-hidden text-foreground">
-                <div className="flex-1 relative flex flex-col min-w-0">
-                    <header className="h-14 border-b border-border flex items-center px-4 justify-between bg-card">
-                        <div className="flex items-center gap-2">
-                            <h2 className="font-semibold truncate">Phòng học: {roomId}</h2>
-                            {media.isRecording && <span className="flex items-center gap-1 text-xs text-red-500 font-medium animate-pulse">● ĐANG GHI HÌNH</span>}
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <span className="text-xs text-muted-foreground">{state.isConnected ? '● Đã kết nối' : '○ Đang kết nối...'}</span>
-                            <ModeToggle />
-                        </div>
-                    </header>
+            <div className="flex h-screen w-full bg-background overflow-hidden text-foreground selection:bg-primary/20">
+                <div className="flex-1 relative flex flex-col min-w-0 h-full">
+                    <InactivityWarning warning={statusWarning} secondsRemaining={secondsRemaining} />
 
-                    <main className="flex-1 relative overflow-hidden bg-muted/30 flex">
-                        <div className="flex-1 relative p-4 flex flex-col">
-                            <Whiteboard roomId={roomId} sendMessage={sendMessage} className="shadow-sm border border-border rounded-lg bg-white" />
-                            <MediaControls
-                                {...media}
-                                onToggleMic={media.toggleMic}
-                                onToggleCamera={media.toggleCamera}
-                                onToggleRecording={media.isRecording ? media.stopRecording : media.startRecording}
-                                onQualityChange={media.setQuality}
-                                isRecordingSupported={media.isSupported}
-                                className="absolute bottom-8 left-1/2 -translate-x-1/2"
-                            />
-                        </div>
-                        <div className="w-64 p-4 flex flex-col gap-4 bg-card border-l border-border">
-                            <VideoPlayer stream={media.stream} className="aspect-video w-full rounded-md border border-border bg-muted" />
-                            {media.warning && <div className="p-3 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs rounded-lg">{media.warning}</div>}
-                        </div>
-                    </main>
+                    <RoomHeader
+                        roomId={roomId}
+                        isConnected={state.isConnected}
+                        isRecording={media.isRecording}
+                    />
+
+                    <RoomMainContent
+                        roomId={roomId}
+                        currentUserId={currentUserId}
+                        activeTab={activeTab}
+                        media={media}
+                        sendMessage={sendMessage}
+                        onTabChange={handleTabChange}
+                    />
+
+                    <MobileNavigation activeTab={activeTab} onTabChange={handleTabChange} />
                 </div>
-                <aside className="w-80 border-l border-border flex flex-col shrink-0 bg-background">
-                    <ChatPanel roomId={roomId} currentUserId={currentUserId} />
-                </aside>
             </div>
 
             <RecordingPreviewDialog
@@ -68,6 +171,14 @@ export const LiveRoomDisplay: React.FC<LiveRoomDisplayProps> = ({ roomId, curren
                 duration={media.previewMeta?.duration}
                 onDownload={media.confirmDownload}
                 onDiscard={media.discardRecording}
+            />
+
+            <ErrorRecoveryDialog
+                isOpen={state.connectionState === 'FAILED' || !!media.error}
+                error={state.error || getMediaErrorMessage(media.error)}
+                onRetry={handleRetry}
+                onAudioOnly={handleAudioOnly}
+                onExit={handleExit}
             />
         </RoomErrorBoundary>
     );

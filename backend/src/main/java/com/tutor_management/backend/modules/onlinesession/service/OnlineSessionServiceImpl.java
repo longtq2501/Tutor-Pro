@@ -12,6 +12,7 @@ import com.tutor_management.backend.modules.onlinesession.dto.response.RoomStats
 import com.tutor_management.backend.modules.onlinesession.dto.response.GlobalStatsResponse;
 import com.tutor_management.backend.modules.onlinesession.entity.OnlineSession;
 import com.tutor_management.backend.modules.onlinesession.enums.RoomStatus;
+import com.tutor_management.backend.modules.onlinesession.dto.response.SessionStatusResponse;
 import com.tutor_management.backend.modules.onlinesession.exception.RoomNotFoundException;
 import com.tutor_management.backend.modules.onlinesession.exception.RoomAlreadyEndedException;
 import com.tutor_management.backend.modules.onlinesession.repository.OnlineSessionRepository;
@@ -21,14 +22,19 @@ import com.tutor_management.backend.modules.student.entity.Student;
 import com.tutor_management.backend.modules.student.repository.StudentRepository;
 import com.tutor_management.backend.modules.tutor.entity.Tutor;
 import com.tutor_management.backend.modules.tutor.repository.TutorRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -51,6 +57,8 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
     private final Clock clock;
     private final RoomTokenService roomTokenService;
     private final PresenceService presenceService;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final MeterRegistry meterRegistry;
 
     // Simplified TURN servers to avoid @Value list binding issues in YAML
     private final List<Map<String, Object>> turnServers = List.of(
@@ -228,7 +236,7 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public OnlineSessionResponse endSession(String roomId, Long userId) {
         log.info("Ending online session for room ID: {}", roomId);
 
@@ -274,8 +282,6 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
         
         // ✅ FIX: Find student's User via userRepository
         Long studentUserId = userRepository.findByStudentId(saved.getStudent().getId())
-                .stream()
-                .findFirst()
                 .map(User::getId)
                 .orElse(null); // ✅ Graceful handling if User not found
 
@@ -299,7 +305,7 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
     @Override
     @Transactional
     public void updateHeartbeat(String roomId, Long userId) {
-        OnlineSession session = onlineSessionRepository.findByRoomId(roomId)
+        OnlineSession session = onlineSessionRepository.findByRoomIdForUpdate(roomId)
                 .orElseThrow(() -> new RoomNotFoundException("Room not found: " + roomId));
 
         // Only process for ACTIVE rooms
@@ -307,7 +313,7 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
             return;
         }
 
-        // ✅ FIX: Check participant correctly to avoid NPE
+        // ✅ check participant correctly to avoid NPE
         boolean isParticipant = false;
         
         // Check if tutor
@@ -327,62 +333,99 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
         if (isParticipant) {
             // ✅ Update in-memory presence (fast) - avoiding constant DB writes
             presenceService.updateHeartbeat(roomId, userId);
+            
+            // If they were marked as left, announce they are back and clear left time
+            boolean wasMarkedLeft = false;
+            if (session.getTutor().getUser() != null && session.getTutor().getUser().getId().equals(userId)) {
+                if (session.getTutorLeftAt() != null) {
+                    session.setTutorLeftAt(null);
+                    wasMarkedLeft = true;
+                }
+            } else {
+                if (session.getStudentLeftAt() != null) {
+                    session.setStudentLeftAt(null);
+                    wasMarkedLeft = true;
+                }
+            }
+
+            if (wasMarkedLeft) {
+                if (session.getInactivityWarningSentAt() != null) {
+                    session.setInactivityWarningSentAt(null);
+                }
+                onlineSessionRepository.save(session);
+                broadcastStatus(roomId, SessionStatusResponse.Type.PARTICIPANT_JOINED, userId, null, null, "Người dùng đã quay lại.");
+            } else if (session.getInactivityWarningSentAt() != null) {
+                session.setInactivityWarningSentAt(null);
+                onlineSessionRepository.save(session);
+                broadcastStatus(roomId, SessionStatusResponse.Type.PARTICIPANT_JOINED, userId, null, null, "Hệ thống đã ổn định trở lại.");
+            }
+            
             log.trace("Heartbeat updated for room {} by user {}", roomId, userId);
         } else {
-            log.warn("Heartbeat rejected: user {} not in room {}", userId, roomId);
+            log.warn("Heartbeat rejected: user {} not in room {} (session participants: tutor={}, student={})", 
+                userId, roomId, session.getTutor().getUser().getId(), session.getStudent().getId());
         }
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
+    public OnlineSessionResponse getCurrentSession(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        java.util.Optional<OnlineSession> session = java.util.Optional.empty();
+
+        if (user.getRole() == Role.TUTOR) {
+            // Check if user is a valid tutor
+            java.util.Optional<Tutor> tutor = tutorRepository.findByUserId(userId);
+            if (tutor.isPresent()) {
+                session = onlineSessionRepository.findFirstByTutorIdAndRoomStatusNotOrderByScheduledStartAsc(
+                        tutor.get().getId(), RoomStatus.ENDED);
+            }
+        } else if (user.getRole() == Role.STUDENT) {
+            if (user.getStudentId() != null) {
+                // Check for sessions for this student
+                session = onlineSessionRepository.findFirstByStudentIdAndRoomStatusNotOrderByScheduledStartAsc(
+                        user.getStudentId(), RoomStatus.ENDED);
+            }
+        }
+
+        return session.map(this::mapToResponse).orElse(null);
+    }
+
+    private void broadcastStatus(String roomId, SessionStatusResponse.Type type, Long userId, String role, Integer remainingSeconds, String message) {
+        SessionStatusResponse response = SessionStatusResponse.builder()
+                .roomId(roomId)
+                .type(type)
+                .userId(userId)
+                .role(role)
+                .remainingSeconds(remainingSeconds)
+                .message(message)
+                .build();
+        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/status", response);
+    }
+
+    @Override
     @Scheduled(fixedRate = 60000) // Every 60 seconds
     public void detectInactiveParticipants() {
         LocalDateTime now = LocalDateTime.now(clock);
         List<OnlineSession> activeSessions = onlineSessionRepository.findByRoomStatus(RoomStatus.ACTIVE);
         
+        // ✅ N+1 Query Fix: Pre-load all potential student users
+        List<Long> studentIds = activeSessions.stream()
+                .map(s -> s.getStudent().getId())
+                .distinct()
+                .toList();
+        
+        java.util.Map<Long, User> studentUserMap = userRepository.findByStudentIdIn(studentIds).stream()
+                .collect(java.util.stream.Collectors.toMap(User::getStudentId, java.util.function.Function.identity(), (a, b) -> a));
+
         for (OnlineSession session : activeSessions) {
-            boolean tutorActive = presenceService.isUserActive(
-                session.getRoomId(), 
-                session.getTutor().getUser().getId(),
-                65
-            );
-            
-            User studentUser = userRepository.findByStudentId(session.getStudent().getId())
-                .stream().findFirst().orElse(null);
-            
-            boolean studentActive = false;
-            if (studentUser != null) {
-                studentActive = presenceService.isUserActive(
-                    session.getRoomId(),
-                    studentUser.getId(),
-                    65
-                );
-            }
-            
-            // Track when they left
-            if (!tutorActive && session.getTutorLeftAt() == null && session.getTutorJoinedAt() != null) {
-                session.setTutorLeftAt(now);
-                log.info("Tutor in room {} marked as inactive at {}", session.getRoomId(), now);
-            }
-
-            if (!studentActive && session.getStudentLeftAt() == null && session.getStudentJoinedAt() != null) {
-                session.setStudentLeftAt(now);
-                log.info("Student in room {} marked as inactive at {}", session.getRoomId(), now);
-            }
-            
-            // Auto-end if both inactive for specified timeout
-            boolean bothLeftLongAgo = !tutorActive && !studentActive &&
-                session.getTutorLeftAt() != null && session.getStudentLeftAt() != null &&
-                session.getTutorLeftAt().isBefore(now.minusMinutes(autoEndTimeoutMinutes)) &&
-                session.getStudentLeftAt().isBefore(now.minusMinutes(autoEndTimeoutMinutes));
-
-            if (bothLeftLongAgo) {
-                log.warn("Auto-ending abandoned room: {} (Tutor left: {}, Student left: {})", 
-                        session.getRoomId(), session.getTutorLeftAt(), session.getStudentLeftAt());
-                endSession(session.getRoomId(), null);
-            } else if (tutorActive || studentActive) {
-                session.setLastActivityAt(now);
-                onlineSessionRepository.save(session);
+            try {
+                User studentUser = studentUserMap.get(session.getStudent().getId());
+                processSessionInactivity(session, now, studentUser);
+            } catch (Exception e) {
+                log.error("Error processing inactivity for room {}: {}", session.getRoomId(), e.getMessage());
             }
         }
     }
@@ -405,6 +448,84 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
         session.setRecordingStoppedAt(LocalDateTime.now(clock));
 
         return mapToResponse(onlineSessionRepository.save(session));
+    }
+
+    @Transactional
+    public void processSessionInactivity(OnlineSession session, LocalDateTime now, User studentUser) {
+        if (Boolean.TRUE.equals(session.getPreventAutoEnd())) {
+            return;
+        }
+
+        boolean tutorActive = presenceService.isUserActive(
+            session.getRoomId(), 
+            session.getTutor().getUser().getId(),
+            65
+        );
+        
+        boolean studentActive = false;
+        if (studentUser != null) {
+            studentActive = presenceService.isUserActive(
+                session.getRoomId(),
+                studentUser.getId(),
+                65
+            );
+        }
+        
+        boolean needsSave = false;
+        
+        // Track when they left
+        if (!tutorActive && session.getTutorLeftAt() == null && session.getTutorJoinedAt() != null) {
+            session.setTutorLeftAt(now);
+            needsSave = true;
+            broadcastStatus(session.getRoomId(), SessionStatusResponse.Type.PARTICIPANT_LEFT, 
+                session.getTutor().getUser().getId(), "TUTOR", null, "Giảng viên đã mất kết nối.");
+            log.info("Tutor in room {} marked as inactive at {}", session.getRoomId(), now);
+        }
+
+        if (!studentActive && session.getStudentLeftAt() == null && session.getStudentJoinedAt() != null) {
+            session.setStudentLeftAt(now);
+            needsSave = true;
+            if (studentUser != null) {
+                broadcastStatus(session.getRoomId(), SessionStatusResponse.Type.PARTICIPANT_LEFT, 
+                    studentUser.getId(), "STUDENT", null, "Học sinh đã mất kết nối.");
+            }
+            log.info("Student in room {} marked as inactive at {}", session.getRoomId(), now);
+        }
+        
+        // Notify if both left (Inactivity warning)
+        if (!tutorActive && !studentActive && session.getTutorLeftAt() != null && session.getStudentLeftAt() != null) {
+            LocalDateTime overlapLeftAt = session.getTutorLeftAt().isAfter(session.getStudentLeftAt()) 
+                    ? session.getTutorLeftAt() : session.getStudentLeftAt();
+            
+            LocalDateTime autoEndTime = overlapLeftAt.plusMinutes(autoEndTimeoutMinutes);
+            
+            if (now.isBefore(autoEndTime)) {
+                // Throttle warning messages: only send if not sent before or sent > 45s ago (to avoid spamming every minute)
+                if (session.getInactivityWarningSentAt() == null) {
+                    long remainingSeconds = java.time.Duration.between(now, autoEndTime).toSeconds();
+                    broadcastStatus(session.getRoomId(), SessionStatusResponse.Type.INACTIVITY_WARNING, 
+                        null, null, (int) remainingSeconds, "Phòng học sẽ tự động đóng do không có người.");
+                    session.setInactivityWarningSentAt(now);
+                    needsSave = true;
+                }
+            } else {
+                log.warn("Auto-ending abandoned room: {}", session.getRoomId());
+                meterRegistry.counter("online_session.auto_end.triggered", "reason", "both_inactive").increment();
+                broadcastStatus(session.getRoomId(), SessionStatusResponse.Type.ROOM_AUTO_ENDED, null, null, 0, "Phòng học đã đóng.");
+                endSession(session.getRoomId(), null);
+                return; // endSession handles save
+            }
+        } else if (tutorActive || studentActive) {
+            session.setLastActivityAt(now);
+            needsSave = true;
+        }
+
+        if (needsSave) {
+            onlineSessionRepository.save(session);
+            meterRegistry.counter("online_session.inactivity.detected",
+                "tutor_active", String.valueOf(tutorActive),
+                "student_active", String.valueOf(studentActive)).increment();
+        }
     }
 
     private OnlineSessionResponse mapToResponse(OnlineSession session) {

@@ -32,7 +32,10 @@ export function useUnifiedView() {
         else params.delete('filter');
 
         const query = params.toString();
-        router.replace(`${pathname}${query ? `?${query}` : ''}`, { scroll: false });
+        const currentQuery = searchParams.toString();
+        if (query !== currentQuery) {
+            router.replace(`${pathname}${query ? `?${query}` : ''}`, { scroll: false });
+        }
     }, [searchTerm, filter, pathname, router, searchParams]);
 
     // Schedule & Session Modals

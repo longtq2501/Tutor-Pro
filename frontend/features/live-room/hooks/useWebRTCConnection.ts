@@ -34,6 +34,7 @@ export interface UseWebRTCConnectionResult {
     updateState: (state: WebRTCConnectionState) => void;
     setError: (error: string) => void;
     error: string | null;
+    reset: () => void;
 }
 
 /**
@@ -46,15 +47,23 @@ export const useWebRTCConnection = (): UseWebRTCConnectionResult => {
     const [error, setErrorState] = useState<string | null>(null);
 
     const updateState = useCallback((newState: WebRTCConnectionState) => {
+        if (process.env.NODE_ENV !== 'production') {
+            console.log(`[WebRTC] State transition: ${state} -> ${newState}`);
+        }
         setState(newState);
         if (newState !== 'FAILED') {
             setErrorState(null);
         }
-    }, []);
+    }, [state]);
 
     const setError = useCallback((message: string) => {
         setState('FAILED');
         setErrorState(message);
+    }, []);
+
+    const reset = useCallback(() => {
+        setState('INITIALIZING');
+        setErrorState(null);
     }, []);
 
     return {
@@ -64,5 +73,6 @@ export const useWebRTCConnection = (): UseWebRTCConnectionResult => {
         updateState,
         setError,
         error,
+        reset,
     };
 };

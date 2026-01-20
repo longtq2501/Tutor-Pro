@@ -77,7 +77,7 @@ public class OnlineSessionController {
      * @return ResponseEntity containing the room statistics.
      */
     @GetMapping("/{roomId}/stats")
-    @PreAuthorize("hasRole('ADMIN') or (hasRole('TUTOR') and @roomAccessValidator.hasAccess(#roomId, #user.id))")
+    @PreAuthorize("hasRole('ADMIN') or @roomAccessValidator.hasAccess(#roomId, #user.id)")
     public ResponseEntity<ApiResponse<RoomStatsResponse>> getRoomStats(
             @PathVariable String roomId,
             @AuthenticationPrincipal User user) {
@@ -103,6 +103,29 @@ public class OnlineSessionController {
         
         return ResponseEntity.ok(ApiResponse.success(
                 "Đã lấy thống kê tổng quát thành công.", 
+                response
+        ));
+    }
+
+    /**
+     * Endpoint to retrieve the current active/upcoming session for the user.
+     * 
+     * @param user The currently authenticated user.
+     * @return ResponseEntity containing the current session details.
+     */
+    @GetMapping("/current")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<OnlineSessionResponse>> getActiveSession(
+            @AuthenticationPrincipal User user) {
+        
+        OnlineSessionResponse response = onlineSessionService.getCurrentSession(user.getId());
+        
+        if (response == null) {
+            return ResponseEntity.ok(ApiResponse.success("No active session found.", null));
+        }
+
+        return ResponseEntity.ok(ApiResponse.success(
+                "Current session retrieved successfully.", 
                 response
         ));
     }

@@ -234,7 +234,7 @@ public class StudentService {
         }
 
         sessionRecordRepository.deleteAll(sessionRecordRepository.findByStudentId(id));
-        userRepository.deleteAll(userRepository.findByStudentId(id));
+        userRepository.findByStudentId(id).ifPresent(userRepository::delete);
         studentRepository.delete(student);
     }
 
@@ -248,7 +248,7 @@ public class StudentService {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Học sinh không tồn tại"));
 
-        if (!userRepository.findByStudentId(studentId).isEmpty()) {
+        if (userRepository.findByStudentId(studentId).isPresent()) {
             throw new IllegalStateException("Tài khoản đã tồn tại cho học sinh này");
         }
 
@@ -301,15 +301,15 @@ public class StudentService {
     }
 
     private void updateAssociatedAccount(Long studentId, StudentRequest request) {
-        List<User> users = userRepository.findByStudentId(studentId);
-        if (users.isEmpty()) {
+        Optional<User> userOpt = userRepository.findByStudentId(studentId);
+        if (userOpt.isEmpty()) {
             if (Boolean.TRUE.equals(request.getCreateAccount())) {
                 provisionAccount(studentRepository.getReferenceById(studentId), request.getEmail(), request.getPassword());
             }
             return;
         }
-
-        User user = users.get(0);
+ 
+        User user = userOpt.get();
         if (request.getEmail() != null && !request.getEmail().isEmpty()) {
             userRepository.findByEmail(request.getEmail()).ifPresent(existing -> {
                 if (!existing.getId().equals(user.getId())) throw new IllegalArgumentException("Email đã được sử dụng");
@@ -359,7 +359,7 @@ public class StudentService {
 
     public StudentResponse convertToResponse(Student student) {
         List<SessionRecord> records = sessionRecordRepository.findByStudentId(student.getId());
-        User user = userRepository.findByStudentId(student.getId()).stream().findFirst().orElse(null);
+        User user = userRepository.findByStudentId(student.getId()).orElse(null);
         return convertToResponseOptimized(student, records, user);
     }
 

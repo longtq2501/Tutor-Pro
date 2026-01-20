@@ -60,3 +60,18 @@ export interface CreateOnlineSessionRequest {
     scheduledStart: string;
     scheduledEnd: string;
 }
+
+export type SessionStatusType =
+    | 'PARTICIPANT_JOINED'
+    | 'PARTICIPANT_LEFT'
+    | 'INACTIVITY_WARNING'
+    | 'ROOM_AUTO_ENDED';
+
+export interface SessionStatusResponse {
+    roomId: string;
+    type: SessionStatusType;
+    userId?: number;
+    role?: string;
+    remainingSeconds?: number;
+    message: string;
+}

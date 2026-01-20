@@ -41,4 +41,12 @@ public interface OnlineSessionRepository extends JpaRepository<OnlineSession, Lo
     Optional<Long> sumTotalDurationMinutes();
 
     long countByScheduledStartBetween(LocalDateTime start, LocalDateTime end);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT s FROM OnlineSession s WHERE s.roomId = :roomId")
+    Optional<OnlineSession> findByRoomIdForUpdate(@org.springframework.data.repository.query.Param("roomId") String roomId);
+
+    Optional<OnlineSession> findFirstByStudentIdAndRoomStatusNotOrderByScheduledStartAsc(Long studentId, RoomStatus status);
+
+    Optional<OnlineSession> findFirstByTutorIdAndRoomStatusNotOrderByScheduledStartAsc(Long tutorId, RoomStatus status);
 }

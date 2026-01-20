@@ -54,4 +54,17 @@ describe('useWebRTCConnection', () => {
         });
         expect(result.current.error).toBeNull();
     });
+
+    it('should reset to INITIALIZING state', () => {
+        const { result } = renderHook(() => useWebRTCConnection());
+
+        act(() => {
+            result.current.setError('Critical fail');
+            result.current.reset();
+        });
+
+        expect(result.current.state).toBe('INITIALIZING');
+        expect(result.current.error).toBeNull();
+        expect(result.current.progress).toBe(10);
+    });
 });

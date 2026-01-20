@@ -65,6 +65,14 @@ public interface OnlineSessionService {
     void updateHeartbeat(String roomId, Long userId);
 
     /**
+     * Finds the most relevant active/upcoming session for the current user.
+     * 
+     * @param userId The ID of the authenticated user.
+     * @return The active session details, or null if none found.
+     */
+    OnlineSessionResponse getCurrentSession(Long userId);
+
+    /**
      * Updates recording metadata for a specific session.
      * 
      * @param roomId The unique room identifier.

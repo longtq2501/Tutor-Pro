@@ -11,6 +11,7 @@ import com.tutor_management.backend.modules.onlinesession.dto.response.OnlineSes
 import com.tutor_management.backend.modules.onlinesession.dto.response.RoomStatsResponse;
 import com.tutor_management.backend.modules.onlinesession.entity.OnlineSession;
 import com.tutor_management.backend.modules.onlinesession.enums.RoomStatus;
+import com.tutor_management.backend.modules.onlinesession.dto.response.SessionStatusResponse;
 import com.tutor_management.backend.modules.onlinesession.exception.RoomAlreadyEndedException;
 import com.tutor_management.backend.modules.onlinesession.repository.OnlineSessionRepository;
 import com.tutor_management.backend.modules.onlinesession.security.RoomTokenService;
@@ -28,11 +29,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Counter;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -71,6 +76,12 @@ class OnlineSessionServiceTest {
     @Mock
     private PresenceService presenceService;
 
+    @Mock
+    private SimpMessagingTemplate messagingTemplate;
+
+    @Mock
+    private MeterRegistry meterRegistry;
+
     private final Long userId = 1L;
     private final Long tutorId = 10L;
     private final Long studentId = 20L;
@@ -93,6 +104,17 @@ class OnlineSessionServiceTest {
 
         // Inject default timeout for tests
         ReflectionTestUtils.setField(onlineSessionService, "autoEndTimeoutMinutes", 2);
+        ReflectionTestUtils.setField(onlineSessionService, "clock", clock);
+
+        // ✅ Mock metrics leniently to avoid NPE in tests
+        Counter mockCounter = mock(Counter.class);
+        lenient().when(meterRegistry.counter(anyString(), any(String[].class))).thenReturn(mockCounter);
+        lenient().when(meterRegistry.counter(anyString(), anyString(), anyString())).thenReturn(mockCounter);
+        lenient().when(meterRegistry.counter(anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(mockCounter);
+        
+        // ✅ Mock common lookups leniently
+        lenient().when(userRepository.findByStudentId(anyLong())).thenReturn(Optional.of(user));
+        lenient().when(userRepository.findByStudentIdIn(anyList())).thenReturn(List.of(user));
     }
 
     @Test
@@ -178,7 +200,7 @@ class OnlineSessionServiceTest {
         // Mock User lookup
         User studentUser = User.builder().id(123L).studentId(studentId).build();
         when(userRepository.findByStudentId(studentId))
-                .thenReturn(List.of(studentUser));
+                .thenReturn(Optional.of(studentUser));
         
         when(onlineSessionRepository.save(any(OnlineSession.class)))
                 .thenAnswer(i -> i.getArgument(0));
@@ -300,7 +322,7 @@ class OnlineSessionServiceTest {
                 .build();
 
         when(onlineSessionRepository.findByRoomId(roomId)).thenReturn(Optional.of(session));
-        when(userRepository.findByStudentId(any())).thenReturn(List.of(User.builder().id(123L).build()));
+        when(userRepository.findByStudentId(any())).thenReturn(Optional.of(User.builder().id(123L).build()));
         when(onlineSessionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
         onlineSessionService.endSession(roomId, userId);
@@ -330,13 +352,16 @@ class OnlineSessionServiceTest {
                 .studentLeftAt(leftTime)
                 .build();
 
-        when(onlineSessionRepository.findByRoomStatus(RoomStatus.ACTIVE)).thenReturn(List.of(session));
-        when(onlineSessionRepository.findByRoomId(roomId)).thenReturn(Optional.of(session));
+        lenient().when(onlineSessionRepository.findByRoomStatus(RoomStatus.ACTIVE)).thenReturn(List.of(session));
+        lenient().when(onlineSessionRepository.findByRoomId(roomId)).thenReturn(Optional.of(session));
         
         // Presence mocks
         when(presenceService.isUserActive(eq(roomId), anyLong(), anyInt())).thenReturn(false);
-        when(userRepository.findByStudentId(anyLong())).thenReturn(List.of(User.builder().id(123L).build()));
-        when(onlineSessionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        // ✅ Match N+1 optimized lookup
+        User studentUser = User.builder().id(123L).studentId(studentId).build();
+        lenient().when(userRepository.findByStudentIdIn(anyList())).thenReturn(List.of(studentUser));
+        lenient().when(userRepository.findByStudentId(anyLong())).thenReturn(Optional.of(studentUser));
+        lenient().when(onlineSessionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
         onlineSessionService.detectInactiveParticipants();
 
@@ -368,7 +393,7 @@ class OnlineSessionServiceTest {
         when(clock.getZone()).thenReturn(fixedClock.getZone());
 
         when(onlineSessionRepository.findByRoomId(roomId)).thenReturn(Optional.of(session));
-        when(userRepository.findByStudentId(any())).thenReturn(List.of(User.builder().id(123L).build()));
+        when(userRepository.findByStudentId(any())).thenReturn(Optional.of(User.builder().id(123L).build()));
         when(onlineSessionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
         onlineSessionService.endSession(roomId, userId);
@@ -401,12 +426,71 @@ class OnlineSessionServiceTest {
         when(presenceService.isUserActive(eq(roomId), eq(userId), anyInt())).thenReturn(false);
         // Student user ID lookup
         User studentUser = User.builder().id(123L).studentId(studentId).build();
-        when(userRepository.findByStudentId(studentId)).thenReturn(List.of(studentUser));
-        when(presenceService.isUserActive(eq(roomId), eq(123L), anyInt())).thenReturn(true);
+        lenient().when(userRepository.findByStudentIdIn(anyList())).thenReturn(List.of(studentUser));
+        lenient().when(presenceService.isUserActive(eq(roomId), eq(123L), anyInt())).thenReturn(true);
 
         onlineSessionService.detectInactiveParticipants();
 
         // Room should STILL be ACTIVE
         assertEquals(RoomStatus.ACTIVE, session.getRoomStatus());
+    }
+
+    @Test
+    @DisplayName("Should clear leftAt and warning when heartbeat received after disconnect")
+    void updateHeartbeat_ClearLeftTime_AfterReconnect() {
+        // Given
+        String roomId = "reconnect-room";
+        LocalDateTime now = LocalDateTime.of(2024, 1, 15, 15, 0);
+        LocalDateTime leftTime = now.minusMinutes(1);
+        
+        OnlineSession session = OnlineSession.builder()
+                .roomId(roomId)
+                .roomStatus(RoomStatus.ACTIVE)
+                .tutor(tutor)
+                .student(student)
+                .tutorJoinedAt(now.minusHours(1))
+                .tutorLeftAt(leftTime) // ✅ Marked as left
+                .inactivityWarningSentAt(leftTime) // ✅ Warning sent
+                .build();
+
+        when(onlineSessionRepository.findByRoomIdForUpdate(roomId))
+                .thenReturn(Optional.of(session));
+        when(onlineSessionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        // When
+        onlineSessionService.updateHeartbeat(roomId, userId);
+
+        // Then
+        assertNull(session.getTutorLeftAt()); // ✅ Cleared
+        assertNull(session.getInactivityWarningSentAt()); // ✅ Cleared
+        
+        ArgumentCaptor<SessionStatusResponse> captor = ArgumentCaptor.forClass(SessionStatusResponse.class);
+        verify(messagingTemplate).convertAndSend(eq("/topic/room/" + roomId + "/status"), captor.capture());
+        
+        SessionStatusResponse broadcast = captor.getValue();
+        assertEquals(SessionStatusResponse.Type.PARTICIPANT_JOINED, broadcast.getType());
+    }
+
+    @Test
+    @DisplayName("Should NOT auto-end room if admin override is enabled")
+    void detectInactiveParticipants_PreventAutoEnd_WhenAdminOverride() {
+        String roomId = "admin-override-room";
+        LocalDateTime now = LocalDateTime.of(2024, 1, 15, 15, 0);
+        
+        OnlineSession session = OnlineSession.builder()
+                .roomId(roomId).roomStatus(RoomStatus.ACTIVE)
+                .tutor(tutor).student(student)
+                .tutorJoinedAt(now.minusHours(1))
+                .studentJoinedAt(now.minusHours(1))
+                .tutorLeftAt(now.minusMinutes(10))
+                .studentLeftAt(now.minusMinutes(10))
+                .preventAutoEnd(true) // ✅ ADMIN OVERRIDE
+                .build();
+
+        onlineSessionService.processSessionInactivity(session, now, null);
+
+        // Room should STILL be ACTIVE despite being long inactive
+        assertEquals(RoomStatus.ACTIVE, session.getRoomStatus());
+        verify(onlineSessionRepository, never()).save(any());
     }
 }

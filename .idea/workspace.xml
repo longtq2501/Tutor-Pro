@@ -5,17 +5,33 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CONTINUITY.md" beforeDir="false" afterPath="$PROJECT_DIR$/CONTINUITY.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/controller/OnlineSessionWebSocketController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/controller/OnlineSessionWebSocketController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/ChatService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/ChatService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/ChatServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/ChatServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/BackendApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/BackendApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/auth/UserRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/auth/UserRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/controller/OnlineSessionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/controller/OnlineSessionController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/entity/OnlineSession.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/entity/OnlineSession.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/repository/OnlineSessionRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/repository/OnlineSessionRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/student/service/StudentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/student/service/StudentService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/test/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/test/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionServiceTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/dashboard/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/Sidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/Sidebar.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/live-room/ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/ISSUES.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/ChatInput.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/ChatInput.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/ChatPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/ChatPanel.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/Whiteboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/Whiteboard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/WhiteboardToolbar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/WhiteboardToolbar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/hooks/__tests__/useWhiteboardSync.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/hooks/__tests__/useWhiteboardSync.test.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/hooks/useWhiteboardSync.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/hooks/useWhiteboardSync.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/LiveRoomDisplay.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/LiveRoomDisplay.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/context/RoomStateContext.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/context/RoomStateContext.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/context/WebSocketContext.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/context/WebSocketContext.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/hooks/__tests__/useRoomState.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/hooks/__tests__/useRoomState.test.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/hooks/__tests__/useWebRTCConnection.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/hooks/__tests__/useWebRTCConnection.test.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/hooks/useMediaStream.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/hooks/useMediaStream.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/hooks/useWebRTCConnection.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/hooks/useWebRTCConnection.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/students/unified-view/hooks/useUnifiedView.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/unified-view/hooks/useUnifiedView.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/services/onlineSession.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/onlineSession.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/types/onlineSession.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/types/onlineSession.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/tailwind.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/tailwind.config.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -133,7 +149,7 @@
       <recent name="com.tutor_management.backend.exception" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.ChatServiceTest">
+  <component name="RunManager" selected="JUnit.OnlineSessionServiceTest">
     <configuration name="ChatServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="backend" />
       <extension name="coverage">
@@ -220,8 +236,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.ChatServiceTest" />
         <item itemvalue="JUnit.OnlineSessionServiceTest" />
+        <item itemvalue="JUnit.ChatServiceTest" />
         <item itemvalue="JUnit.TutorServiceTest" />
         <item itemvalue="JUnit.RoomAccessValidatorTest" />
         <item itemvalue="JUnit.GlobalExceptionHandlerTest.handleRoomNotFoundException_ShouldReturn404" />
@@ -312,7 +328,9 @@
       <workItem from="1768706612832" duration="2873000" />
       <workItem from="1768736426020" duration="3024000" />
       <workItem from="1768796463159" duration="1422000" />
-      <workItem from="1768807845575" duration="710000" />
+      <workItem from="1768807845575" duration="2098000" />
+      <workItem from="1768885104324" duration="1563000" />
+      <workItem from="1768887653061" duration="2568000" />
     </task>
     <servers />
   </component>

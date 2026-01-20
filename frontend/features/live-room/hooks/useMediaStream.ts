@@ -22,7 +22,7 @@ export interface UseMediaStreamResult {
     isLoading: boolean;
     isMicMuted: boolean;
     isCameraMuted: boolean;
-    retry: () => void;
+    retry: (newConstraints?: MediaStreamConstraints) => void;
     toggleMic: () => void;
     toggleCamera: () => void;
     devices: MediaDeviceInfo[];
@@ -45,6 +45,12 @@ export const useMediaStream = (
     const [isMicMuted, setIsMicMuted] = useState<boolean>(false);
     const [isCameraMuted, setIsCameraMuted] = useState<boolean>(false);
     const streamRef = useRef<MediaStream | null>(null);
+    const muteStateRef = useRef({ audio: false, video: false });
+
+    // Keep ref in sync for initial stream creation
+    useEffect(() => {
+        muteStateRef.current = { audio: isMicMuted, video: isCameraMuted };
+    }, [isMicMuted, isCameraMuted]);
 
     const stopStream = useCallback(() => {
         if (streamRef.current) {
@@ -54,24 +60,28 @@ export const useMediaStream = (
     }, []);
 
     const toggleMic = useCallback(() => {
-        if (streamRef.current) {
-            const audioTracks = streamRef.current.getAudioTracks();
-            audioTracks.forEach(track => {
-                track.enabled = !isMicMuted; // ✅ FIX: Invert FIRST
-            });
-            setIsMicMuted(!isMicMuted);
-        }
-    }, [isMicMuted]);
+        setIsMicMuted(prev => {
+            const newMutedState = !prev;
+            if (streamRef.current) {
+                streamRef.current.getAudioTracks().forEach(track => {
+                    track.enabled = !newMutedState;
+                });
+            }
+            return newMutedState;
+        });
+    }, []);
 
     const toggleCamera = useCallback(() => {
-        if (streamRef.current) {
-            const videoTracks = streamRef.current.getVideoTracks();
-            videoTracks.forEach(track => {
-                track.enabled = !isCameraMuted; // ✅ FIX: Invert FIRST
-            });
-            setIsCameraMuted(!isCameraMuted);
-        }
-    }, [isCameraMuted]);
+        setIsCameraMuted(prev => {
+            const newMutedState = !prev;
+            if (streamRef.current) {
+                streamRef.current.getVideoTracks().forEach(track => {
+                    track.enabled = !newMutedState;
+                });
+            }
+            return newMutedState;
+        });
+    }, []);
 
     const getDevices = useCallback(async () => {
         try {
@@ -95,15 +105,19 @@ export const useMediaStream = (
             const newStream = await navigator.mediaDevices.getUserMedia(constraints);
             streamRef.current = newStream;
 
-            // Sync current mute states to new stream tracks
-            newStream.getAudioTracks().forEach(track => track.enabled = !isMicMuted);
-            newStream.getVideoTracks().forEach(track => track.enabled = !isCameraMuted);
+            // Sync current mute states to new stream tracks using Ref to avoid getMedia dependency
+            newStream.getAudioTracks().forEach(track => track.enabled = !muteStateRef.current.audio);
+            newStream.getVideoTracks().forEach(track => track.enabled = !muteStateRef.current.video);
 
             setStream(newStream);
             setError(null);
             await getDevices();
         } catch (err: any) {
-            console.error('Media access error:', err);
+            // Silence console error for common/expected hardware missing scenarios 
+            // the error is still propagated to the UI via state.
+            if (err.name !== 'NotFoundError' && err.name !== 'DevicesNotFoundError') {
+                console.error('Media access error:', err);
+            }
             if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') setError('NotAllowedError');
             else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') setError('NotFoundError');
             else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') setError('NotReadableError');
@@ -114,14 +128,20 @@ export const useMediaStream = (
         } finally {
             setIsLoading(false);
         }
-    }, [constraints, stopStream, getDevices, isMicMuted, isCameraMuted]);
+    }, [constraints, stopStream, getDevices]); // Removed isMicMuted, isCameraMuted
 
     useEffect(() => {
         getMedia();
         return () => stopStream();
     }, [getMedia, stopStream, retryCount]);
 
-    const retry = useCallback(() => setRetryCount(prev => prev + 1), []);
+    const retry = useCallback((newConstraints?: MediaStreamConstraints) => {
+        if (newConstraints) {
+            setConstraints(newConstraints);
+        }
+        stopStream(); // Ensure old stream is stopped before retry
+        setRetryCount(prev => prev + 1);
+    }, [stopStream]);
 
     const switchDevice = useCallback((deviceId: string, kind: 'audio' | 'video') => {
         setConstraints(prev => ({

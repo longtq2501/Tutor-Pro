@@ -107,9 +107,16 @@ public class RoomAccessValidator {
         // STUDENT must be the assigned student for this session
         if (user.getRole() == Role.STUDENT) {
             if (session.getStudent() == null) {
+                log.error("RoomAccessValidator: Session {} has no student assigned", roomId);
                 throw new RoomAccessDeniedException("Session has no assigned student (data corruption).");
             }
-            if (user.getStudentId() == null || !Objects.equals(user.getStudentId(), session.getStudent().getId())) {
+            if (user.getStudentId() == null) {
+                log.error("RoomAccessValidator: User {} (Student) has no studentId", userId);
+                throw new RoomAccessDeniedException("You are not authorized to join this room.");
+            }
+            if (!Objects.equals(user.getStudentId(), session.getStudent().getId())) {
+                log.error("RoomAccessValidator: Mismatch for room {}. User StudentID: {}, Session StudentID: {}", 
+                     roomId, user.getStudentId(), session.getStudent().getId());
                 throw new RoomAccessDeniedException("You are not authorized to join this room.");
             }
             return;

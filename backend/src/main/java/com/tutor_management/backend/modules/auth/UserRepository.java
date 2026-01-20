@@ -16,8 +16,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
     Boolean existsByEmail(String email);
-
-    List<User> findByStudentId(Long studentId);
+ 
+    Optional<User> findByStudentId(Long studentId);
 
     // ✅ OPTIMIZED: Batch load users for multiple students
     List<User> findByStudentIdIn(List<Long> studentIds);

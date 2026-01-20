@@ -9,6 +9,15 @@ import type {
 
 export const onlineSessionApi = {
     /**
+     * GET ACTIVE SESSION FOR CURRENT USER
+     * Used for the "Lobby" to proactively show join buttons.
+     */
+    getCurrentSession: async (): Promise<OnlineSessionResponse | null> => {
+        const response = await api.get('/online-sessions/current');
+        return response.data.data;
+    },
+
+    /**
      * CREATE A NEW ONLINE SESSION
      * Accessible by TUTOR and ADMIN roles.
      * @param {CreateOnlineSessionRequest} data - Session creation details
@@ -35,8 +44,15 @@ export const onlineSessionApi = {
      * @param {string} roomId - Unique identifier for the room
      * @returns {Promise<RoomStatsResponse>} Room statistics
      */
-    getRoomStats: async (roomId: string): Promise<RoomStatsResponse> => {
-        const response = await api.get(`/online-sessions/${roomId}/stats`);
+    /**
+     * RETRIEVE STATISTICS FOR A SPECIFIC SESSION
+     * @param {string} roomId - Unique identifier for the room
+     * @param {object} options - Request options
+     * @param {AbortSignal} [options.signal] - AbortSignal for cancellation
+     * @returns {Promise<RoomStatsResponse>} Room statistics
+     */
+    getRoomStats: async (roomId: string, options?: { signal?: AbortSignal }): Promise<RoomStatsResponse> => {
+        const response = await api.get(`/online-sessions/${roomId}/stats`, { signal: options?.signal });
         return response.data.data;
     },
 

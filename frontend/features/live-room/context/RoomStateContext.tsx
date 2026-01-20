@@ -27,6 +27,7 @@ export interface RoomState {
     remoteStream: MediaStream | null;
     connectionState: WebRTCConnectionState;
     isConnected: boolean;
+    error: string | null;
 }
 
 /**
@@ -42,6 +43,7 @@ export interface RoomActions {
     setRemoteStream: (stream: MediaStream | null) => void;
     setConnectionState: (state: WebRTCConnectionState) => void;
     setIsConnected: (connected: boolean) => void;
+    setError: (error: string | null) => void;
     resetRoom: () => void;
 }
 
@@ -63,6 +65,7 @@ const initialState: RoomState = {
     remoteStream: null,
     connectionState: 'INITIALIZING',
     isConnected: false,
+    error: null,
 };
 
 /**
@@ -110,6 +113,10 @@ export const RoomStateProvider: React.FC<{ children: ReactNode }> = ({ children 
         setState(prev => ({ ...prev, isConnected }));
     }, []);
 
+    const setError = useCallback((error: string | null) => {
+        setState(prev => ({ ...prev, error }));
+    }, []);
+
     const resetRoom = useCallback(() => {
         setState(initialState);
     }, []);
@@ -126,6 +133,7 @@ export const RoomStateProvider: React.FC<{ children: ReactNode }> = ({ children 
             setRemoteStream,
             setConnectionState,
             setIsConnected,
+            setError,
             resetRoom,
         },
     };

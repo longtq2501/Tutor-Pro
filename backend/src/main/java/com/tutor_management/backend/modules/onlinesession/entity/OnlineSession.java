@@ -180,6 +180,13 @@ public class OnlineSession {
      */
     @Column(name = "last_activity_at")
     private LocalDateTime lastActivityAt;
+
+    @Column(name = "inactivity_warning_sent_at")
+    private LocalDateTime inactivityWarningSentAt;
+
+    @Column(name = "prevent_auto_end")
+    @Builder.Default
+    private Boolean preventAutoEnd = false;
     
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

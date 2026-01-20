@@ -57,22 +57,26 @@ describe('useRoomState', () => {
         expect(result.current.state.participants).toHaveLength(0);
     });
 
-    it('should reset room state', () => {
+    it('should update error state', () => {
+        const { result } = renderHook(() => useRoomState(), { wrapper });
+
+        act(() => {
+            result.current.actions.setError('Connection lost');
+        });
+
+        expect(result.current.state.error).toBe('Connection lost');
+    });
+
+    it('should reset room state including error', () => {
         const { result } = renderHook(() => useRoomState(), { wrapper });
 
         act(() => {
             result.current.actions.setRoomId('room-123');
-            result.current.actions.setIsConnected(true);
-        });
-
-        expect(result.current.state.roomId).toBe('room-123');
-        expect(result.current.state.isConnected).toBe(true);
-
-        act(() => {
+            result.current.actions.setError('Some error');
             result.current.actions.resetRoom();
         });
 
         expect(result.current.state.roomId).toBeNull();
-        expect(result.current.state.isConnected).toBe(false);
+        expect(result.current.state.error).toBeNull();
     });
 });

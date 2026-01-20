@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useRef, useState, ReactNode, useCallback } from 'react';
 import SockJS from 'sockjs-client';
-import Stomp from 'stompjs';
+import { Client, IMessage, StompSubscription } from '@stomp/stompjs';
 
 interface WebSocketContextValue {
     isConnected: boolean;
@@ -19,48 +19,66 @@ interface WebSocketProviderProps {
 }
 
 /**
- * Provider for WebSocket connection using SockJS and STOMP.
+ * Provider for WebSocket connection using SockJS and @stomp/stompjs.
  */
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ roomId, token, children }) => {
     const [isConnected, setIsConnected] = useState(false);
-    const stompClientRef = useRef<Stomp.Client | null>(null);
-    const subscriptionsRef = useRef<Map<string, Stomp.Subscription>>(new Map());
+    const stompClientRef = useRef<Client | null>(null);
+    const subscriptionsRef = useRef<Map<string, StompSubscription>>(new Map());
 
     useEffect(() => {
+        const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080').replace(/\/$/, '');
+
         // Backend endpoint as configured in WebSocketConfig
-        const socket = new SockJS('/ws/room');
-        const client = Stomp.over(socket);
-
-        // Disable logging in production
-        if (process.env.NODE_ENV === 'production') {
-            client.debug = () => { };
-        }
-
-        client.connect(
-            { Authorization: `Bearer ${token}` },
-            (frame) => {
-                console.log('Connected to WebSocket:', frame);
-                stompClientRef.current = client;
-                setIsConnected(true);
+        // Using webSocketFactory for SockJS compatibility
+        const client = new Client({
+            webSocketFactory: () => new SockJS(`${API_BASE_URL}/ws/room`),
+            connectHeaders: {
+                Authorization: `Bearer ${token}`
             },
-            (error) => {
-                console.error('WebSocket connection error:', error);
-                setIsConnected(false);
-            }
-        );
+            debug: (str) => {
+                if (process.env.NODE_ENV !== 'production') {
+                    console.log(str);
+                }
+            },
+            reconnectDelay: 5000, // Auto reconnect
+            heartbeatIncoming: 4000,
+            heartbeatOutgoing: 4000,
+        });
+
+        client.onConnect = (frame) => {
+            console.log('Connected to WebSocket:', frame);
+            setIsConnected(true);
+        };
+
+        client.onStompError = (frame) => {
+            console.error('Broker reported error: ' + frame.headers['message']);
+            console.error('Additional details: ' + frame.body);
+            setIsConnected(false);
+        };
+
+        client.onWebSocketClose = () => {
+            console.log('WebSocket connection closed');
+            setIsConnected(false);
+        };
+
+        client.activate();
+        stompClientRef.current = client;
 
         return () => {
             if (stompClientRef.current) {
-                stompClientRef.current.disconnect(() => {
-                    console.log('Disconnected from WebSocket');
-                });
+                stompClientRef.current.deactivate();
+                setIsConnected(false);
             }
         };
     }, [token]);
 
     const sendMessage = useCallback((destination: string, payload: unknown) => {
         if (stompClientRef.current && isConnected) {
-            stompClientRef.current.send(destination, {}, JSON.stringify(payload));
+            stompClientRef.current.publish({
+                destination,
+                body: JSON.stringify(payload)
+            });
         } else {
             console.warn('Cannot send message: WebSocket not connected');
         }
@@ -72,7 +90,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ roomId, to
             return () => { };
         }
 
-        const subscription = stompClientRef.current.subscribe(destination, (msg) => {
+        const subscription = stompClientRef.current.subscribe(destination, (msg: IMessage) => {
             const body = JSON.parse(msg.body);
             callback(body);
         });
@@ -99,3 +117,5 @@ export const useWebSocket = () => {
     }
     return context;
 };
+
+

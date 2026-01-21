@@ -1,6 +1,7 @@
 import api from './axios-instance';
 import type { SessionRecord, SessionRecordRequest, SessionRecordUpdateRequest } from '../types';
 import type { PageResponse } from '../types/common';
+import type { OnlineSessionResponse } from '../types/onlineSession';
 
 export const sessionsApi = {
   /** * LẤY DANH SÁCH TẤT CẢ CÁC BUỔI HỌC
@@ -108,6 +109,14 @@ export const sessionsApi = {
    */
   duplicate: async (id: number): Promise<SessionRecord> => {
     const response = await api.post(`/sessions/${id}/duplicate`);
+    return response.data.data;
+  },
+
+  /**
+   * Chuyển đổi buổi học sang Online
+   */
+  convertToOnline: async (id: number): Promise<OnlineSessionResponse> => {
+    const response = await api.patch(`/sessions/${id}/convert-to-online`);
     return response.data.data;
   },
 

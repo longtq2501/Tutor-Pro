@@ -2,6 +2,10 @@ package com.tutor_management.backend.modules.onlinesession.repository;
 
 import com.tutor_management.backend.modules.onlinesession.entity.OnlineSession;
 import com.tutor_management.backend.modules.onlinesession.enums.RoomStatus;
+import org.springframework.data.domain.ScrollPosition;
+import org.springframework.data.domain.Window;
+import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -49,4 +53,18 @@ public interface OnlineSessionRepository extends JpaRepository<OnlineSession, Lo
     Optional<OnlineSession> findFirstByStudentIdAndRoomStatusNotOrderByScheduledStartAsc(Long studentId, RoomStatus status);
 
     Optional<OnlineSession> findFirstByTutorIdAndRoomStatusNotOrderByScheduledStartAsc(Long tutorId, RoomStatus status);
+
+    @EntityGraph(attributePaths = {"tutor.user", "student"})
+    Window<OnlineSession> findAllByTutorIdAndRoomStatusNotOrderByScheduledStartAscIdAsc(Long tutorId, RoomStatus status, ScrollPosition scrollPosition, Limit limit);
+
+    @EntityGraph(attributePaths = {"tutor.user", "student"})
+    Window<OnlineSession> findAllByStudentIdAndRoomStatusNotOrderByScheduledStartAscIdAsc(Long studentId, RoomStatus status, ScrollPosition scrollPosition, Limit limit);
+
+    /**
+     * Checks if an online session already exists for a specific session record.
+     * 
+     * @param sessionRecordId The ID of the session record.
+     * @return true if an online session already exists.
+     */
+    boolean existsBySessionRecordId(Long sessionRecordId);
 }

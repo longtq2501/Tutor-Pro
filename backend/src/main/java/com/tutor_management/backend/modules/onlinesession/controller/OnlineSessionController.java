@@ -131,6 +131,28 @@ public class OnlineSessionController {
     }
 
     /**
+     * Endpoint to retrieve all active/upcoming sessions for the user (Lobby).
+     * 
+     * @param user The currently authenticated user.
+     * @return ResponseEntity containing the list of online sessions.
+     */
+    @GetMapping("/my-sessions")
+    @PreAuthorize("isAuthenticated()")
+    @RateLimiter(limit = 60, period = 60)
+    public ResponseEntity<ApiResponse<org.springframework.data.domain.Window<OnlineSessionResponse>>> getMySessions(
+            @AuthenticationPrincipal User user,
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "10") @jakarta.validation.constraints.Min(1) @jakarta.validation.constraints.Max(100) int size) {
+        
+        org.springframework.data.domain.Window<OnlineSessionResponse> response = onlineSessionService.getMySessions(user.getId(), cursor, size);
+        
+        return ResponseEntity.ok(ApiResponse.success(
+                "Đã lấy danh sách buổi học trực tuyến thành công.", 
+                response
+        ));
+    }
+
+    /**
      * Endpoint to end an online session manually.
      * Accessible by direct participants (TUTOR/STUDENT) or ADMIN.
      * 

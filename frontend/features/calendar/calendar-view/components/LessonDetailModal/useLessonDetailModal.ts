@@ -9,6 +9,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { LessonDetailFormData, LessonDetailModalProps } from './types';
 
+import { isCancelledStatus, isCompletedStatus } from '@/lib/types/lesson-status';
+import { useConvertToOnline } from '../../hooks/useConvertToOnline';
+
 // Debounce Hook (internal)
 function useDebounce<T>(value: T, delay: number = 300): T {
     const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -36,6 +39,7 @@ export function useLessonDetailModal({ session, onClose, onUpdate, onDelete, ini
     const [loading, setLoading] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+    const [showConvertConfirm, setShowConvertConfirm] = useState(false);
 
     // Tab and filter state
     const [activeTab, setActiveTab] = useState<'lessons' | 'documents'>('lessons');
@@ -47,6 +51,19 @@ export function useLessonDetailModal({ session, onClose, onUpdate, onDelete, ini
     // Library selection state
     const [selectedLessonIds, setSelectedLessonIds] = useState<Set<number>>(new Set());
     const [selectedDocumentIds, setSelectedDocumentIds] = useState<Set<number>>(new Set());
+
+    // Conversion logic
+    const { mutate: convertToOnline, isPending: isConverting } = useConvertToOnline();
+
+    const canConvert = useMemo(() => {
+        if (!localSession.status) return false;
+        const status = localSession.status as LessonStatus;
+        return !isCompletedStatus(status) && !isCancelledStatus(status);
+    }, [localSession.status]);
+
+    const handleConvertToOnline = async () => {
+        convertToOnline(localSession.id);
+    };
 
     // Fetch Library Data
     const { data: libraryLessons = [] } = useQuery({
@@ -288,6 +305,8 @@ export function useLessonDetailModal({ session, onClose, onUpdate, onDelete, ini
         isDirty,
         confirmDeleteOpen,
         setConfirmDeleteOpen,
+        showConvertConfirm,
+        setShowConvertConfirm,
         activeTab,
         setActiveTab,
         searchTerm,
@@ -313,6 +332,9 @@ export function useLessonDetailModal({ session, onClose, onUpdate, onDelete, ini
         handleSubmit,
         handleDuplicate,
         handleDelete,
+        handleConvertToOnline,
+        canConvert,
+        isConverting,
         getCategoryName
     };
 }

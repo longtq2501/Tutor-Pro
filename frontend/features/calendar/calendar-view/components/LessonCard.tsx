@@ -1,5 +1,6 @@
 import type { SessionRecord } from '@/lib/types/finance';
 import { getStatusColors, formatCurrency } from '../utils/statusColors';
+import { Globe } from 'lucide-react';
 
 interface LessonCardProps {
     session: SessionRecord;
@@ -62,11 +63,21 @@ export function LessonCard({ session, compact = false, onClick, onContextMenu, o
         flex flex-col gap-0.5 transition-all cursor-pointer relative group
         hover:shadow-sm hover:scale-[1.02]
         ${colors.bg} ${colors.border} ${colors.text}
+        ${session.isOnline ? 'ring-1 ring-blue-500/50 bg-blue-50/50 dark:bg-blue-900/30 shadow-[0_0_8px_rgba(59,130,246,0.2)]' : ''}
       `}
         >
             {/* Student name with status dot */}
             <div className="flex items-center gap-1.5">
                 <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${colors.dot}`} />
+                {session.isOnline && (
+                    <>
+                        <Globe
+                            className="w-3 h-3 text-blue-600 dark:text-blue-400 flex-shrink-0 animate-pulse-subtle"
+                            aria-hidden="true"
+                        />
+                        <span className="sr-only">Buổi học trực tuyến</span>
+                    </>
+                )}
                 <span className="truncate font-bold">{session.studentName}</span>
             </div>
 

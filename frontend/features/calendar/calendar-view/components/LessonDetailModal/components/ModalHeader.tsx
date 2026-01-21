@@ -36,6 +36,11 @@ export function ModalHeader({ session, onClose }: ModalHeaderProps) {
                             <Badge className="bg-white/20 hover:bg-white/30 text-white border-0 py-0 h-4 text-[8px] sm:text-[9px] font-bold">
                                 {session.sessionDate}
                             </Badge>
+                            {session.isOnline && (
+                                <Badge className="bg-blue-400 hover:bg-blue-500 text-white border-0 py-0 h-4 text-[8px] sm:text-[9px] font-bold animate-pulse-subtle">
+                                    🌐 Dạy Online
+                                </Badge>
+                            )}
                         </div>
                         <h1 className="text-lg sm:text-2xl font-black text-white tracking-tight leading-none">Thông tin lớp học</h1>
                     </div>

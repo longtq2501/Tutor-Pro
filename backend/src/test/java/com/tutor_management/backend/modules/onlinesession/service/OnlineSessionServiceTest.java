@@ -4,15 +4,19 @@ import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.auth.UserRepository;
 import com.tutor_management.backend.modules.notification.event.OnlineSessionCreatedEvent;
 import com.tutor_management.backend.modules.notification.event.OnlineSessionEndedEvent;
+import com.tutor_management.backend.modules.notification.event.SessionConvertedToOnlineEvent;
+import com.tutor_management.backend.modules.finance.entity.SessionRecord;
+import com.tutor_management.backend.modules.finance.repository.SessionRecordRepository;
+import com.tutor_management.backend.modules.finance.LessonStatus;
+import com.tutor_management.backend.modules.onlinesession.exception.*;
 import com.tutor_management.backend.modules.onlinesession.dto.request.CreateOnlineSessionRequest;
-import com.tutor_management.backend.modules.onlinesession.dto.response.GlobalStatsResponse;
 import com.tutor_management.backend.modules.onlinesession.dto.response.JoinRoomResponse;
 import com.tutor_management.backend.modules.onlinesession.dto.response.OnlineSessionResponse;
 import com.tutor_management.backend.modules.onlinesession.dto.response.RoomStatsResponse;
 import com.tutor_management.backend.modules.onlinesession.entity.OnlineSession;
 import com.tutor_management.backend.modules.onlinesession.enums.RoomStatus;
 import com.tutor_management.backend.modules.onlinesession.dto.response.SessionStatusResponse;
-import com.tutor_management.backend.modules.onlinesession.exception.RoomAlreadyEndedException;
+import com.tutor_management.backend.modules.onlinesession.exception.SessionCannotBeConvertedException;
 import com.tutor_management.backend.modules.onlinesession.repository.OnlineSessionRepository;
 import com.tutor_management.backend.modules.onlinesession.security.RoomTokenService;
 import com.tutor_management.backend.modules.auth.Role;
@@ -33,7 +37,12 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Counter;
 import org.springframework.test.util.ReflectionTestUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.springframework.data.domain.Window;
+import org.springframework.data.domain.ScrollPosition;
+import org.springframework.data.domain.KeysetScrollPosition;
+import org.springframework.data.domain.Limit;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -43,6 +52,10 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -51,6 +64,9 @@ class OnlineSessionServiceTest {
 
     @Mock
     private OnlineSessionRepository onlineSessionRepository;
+
+    @Mock
+    private SessionRecordRepository sessionRecordRepository;
 
     @Mock
     private TutorRepository tutorRepository;
@@ -82,6 +98,9 @@ class OnlineSessionServiceTest {
     @Mock
     private MeterRegistry meterRegistry;
 
+    @Mock
+    private ObjectMapper objectMapper;
+
     private final Long userId = 1L;
     private final Long tutorId = 10L;
     private final Long studentId = 20L;
@@ -104,6 +123,7 @@ class OnlineSessionServiceTest {
 
         // Inject default timeout for tests
         ReflectionTestUtils.setField(onlineSessionService, "autoEndTimeoutMinutes", 2);
+        ReflectionTestUtils.setField(onlineSessionService, "earlyJoinMinutes", 15);
         ReflectionTestUtils.setField(onlineSessionService, "clock", clock);
 
         // ✅ Mock metrics leniently to avoid NPE in tests
@@ -112,6 +132,11 @@ class OnlineSessionServiceTest {
         lenient().when(meterRegistry.counter(anyString(), anyString(), anyString())).thenReturn(mockCounter);
         lenient().when(meterRegistry.counter(anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(mockCounter);
         
+        // ✅ Mock clock to provide a default zone and instant
+        LocalDateTime now = LocalDateTime.now();
+        lenient().when(clock.instant()).thenReturn(now.atZone(ZoneId.systemDefault()).toInstant());
+        lenient().when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+
         // ✅ Mock common lookups leniently
         lenient().when(userRepository.findByStudentId(anyLong())).thenReturn(Optional.of(user));
         lenient().when(userRepository.findByStudentIdIn(anyList())).thenReturn(List.of(user));
@@ -229,6 +254,7 @@ class OnlineSessionServiceTest {
         OnlineSession session = OnlineSession.builder()
                 .roomId(roomId)
                 .roomStatus(RoomStatus.WAITING) // Start as waiting
+                .scheduledStart(now.plusHours(1))
                 .tutor(tutor)
                 .student(student)
                 .build();
@@ -492,5 +518,314 @@ class OnlineSessionServiceTest {
         // Room should STILL be ACTIVE despite being long inactive
         assertEquals(RoomStatus.ACTIVE, session.getRoomStatus());
         verify(onlineSessionRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should convert session record to online successfully")
+    void convertToOnline_Success() {
+        // Given
+        Long sessionRecordId = 500L;
+
+        // ✅ ADD CLOCK MOCK FIRST
+        LocalDateTime now = LocalDateTime.of(2024, 1, 15, 9, 0); // 9 AM
+        when(clock.instant()).thenReturn(now.atZone(ZoneId.systemDefault()).toInstant());
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+
+        // Session scheduled at 10 AM (1 hour in future)
+        java.time.LocalDate futureDate = java.time.LocalDate.of(2024, 1, 15);
+        java.time.LocalTime start = java.time.LocalTime.of(10, 0);
+        java.time.LocalTime end = java.time.LocalTime.of(12, 0);
+
+        SessionRecord sessionRecord = SessionRecord.builder()
+                .id(sessionRecordId)
+                .tutorId(tutorId)
+                .student(student)
+                .sessionDate(futureDate)
+                .startTime(start)
+                .endTime(end)
+                .status(LessonStatus.SCHEDULED)
+                .subject("Math")
+                .build();
+
+        when(sessionRecordRepository.findByIdForUpdate(sessionRecordId))
+                .thenReturn(Optional.of(sessionRecord));
+        when(tutorRepository.findByUserId(userId)).thenReturn(Optional.of(tutor));
+        when(onlineSessionRepository.existsBySessionRecordId(sessionRecordId)).thenReturn(false);
+        when(onlineSessionRepository.save(any(OnlineSession.class))).thenAnswer(i -> {
+            OnlineSession s = i.getArgument(0);
+            s.setId(1001L);
+            return s;
+        });
+
+        // When
+        OnlineSessionResponse response = onlineSessionService.convertToOnline(sessionRecordId, userId);
+
+        // Then
+        assertNotNull(response);
+        assertEquals(tutorId, response.getTutorId());
+        assertEquals(studentId, response.getStudentId());
+        assertEquals(LocalDateTime.of(futureDate, start), response.getScheduledStart());
+        assertEquals(LocalDateTime.of(futureDate, end), response.getScheduledEnd());
+
+        verify(eventPublisher).publishEvent(any(SessionConvertedToOnlineEvent.class));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when session record already online")
+    void convertToOnline_AlreadyOnline_ThrowsException() {
+        // Given
+        Long sessionRecordId = 500L;
+        SessionRecord sessionRecord = SessionRecord.builder()
+                .id(sessionRecordId)
+                .tutorId(tutorId)
+                .student(student)
+                .status(LessonStatus.SCHEDULED)
+                .build();
+
+        // ✅ FIX: Use findByIdForUpdate
+        when(sessionRecordRepository.findByIdForUpdate(sessionRecordId))
+                .thenReturn(Optional.of(sessionRecord));
+        when(tutorRepository.findByUserId(userId)).thenReturn(Optional.of(tutor));
+        when(onlineSessionRepository.existsBySessionRecordId(sessionRecordId)).thenReturn(true);
+
+        // When & Then
+        assertThrows(SessionAlreadyOnlineException.class,
+                () -> onlineSessionService.convertToOnline(sessionRecordId, userId));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when session status cannot be converted")
+    void convertToOnline_InvalidStatus_ThrowsException() {
+        // Given
+        Long sessionRecordId = 500L;
+        SessionRecord sessionRecord = SessionRecord.builder()
+                .id(sessionRecordId)
+                .tutorId(tutorId)
+                .student(student)
+                .status(LessonStatus.COMPLETED)
+                .build();
+
+        when(sessionRecordRepository.findByIdForUpdate(sessionRecordId))
+                .thenReturn(Optional.of(sessionRecord));
+        when(tutorRepository.findByUserId(userId)).thenReturn(Optional.of(tutor));
+        when(onlineSessionRepository.existsBySessionRecordId(sessionRecordId)).thenReturn(false);
+
+        // When & Then
+        assertThrows(SessionCannotBeConvertedException.class,
+                () -> onlineSessionService.convertToOnline(sessionRecordId, userId));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when unauthorized tutor tries to convert")
+    void convertToOnline_Unauthorized_ThrowsException() {
+        // Given
+        Long sessionRecordId = 500L;
+        SessionRecord sessionRecord = SessionRecord.builder()
+                .id(sessionRecordId)
+                .tutorId(999L) // Different tutor ID
+                .student(student)  // ✅ ADD THIS
+                .status(LessonStatus.SCHEDULED)  // ✅ ADD THIS
+                .build();
+
+        // ✅ FIX: Use findByIdForUpdate
+        when(sessionRecordRepository.findByIdForUpdate(sessionRecordId))
+                .thenReturn(Optional.of(sessionRecord));
+        when(tutorRepository.findByUserId(userId)).thenReturn(Optional.of(tutor));
+
+        // When & Then
+        // ✅ FIX: Assert specific exception type
+        UnauthorizedSessionConversionException exception = assertThrows(
+                UnauthorizedSessionConversionException.class,
+                () -> onlineSessionService.convertToOnline(sessionRecordId, userId)
+        );
+
+        // ✅ Verify exception message
+        assertTrue(exception.getMessage().contains("không có quyền"));
+        assertTrue(exception.getMessage().contains(String.valueOf(tutor.getId())));
+        assertTrue(exception.getMessage().contains(String.valueOf(sessionRecordId)));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when session record not found")
+    void convertToOnline_NotFound_ThrowsException() {
+        Long sessionRecordId = 999L;
+        when(sessionRecordRepository.findByIdForUpdate(sessionRecordId)).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, 
+                () -> onlineSessionService.convertToOnline(sessionRecordId, userId));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when session is in the past")
+    void convertToOnline_PastTime_ThrowsException() {
+        Long sessionRecordId = 500L;
+
+        // ✅ Current time: 12:00 PM
+        LocalDateTime now = LocalDateTime.of(2024, 1, 15, 12, 0);
+        when(clock.instant()).thenReturn(now.atZone(ZoneId.systemDefault()).toInstant());
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+
+        // ✅ Session scheduled at 10:00 AM (2 hours in past)
+        SessionRecord sessionRecord = SessionRecord.builder()
+                .id(sessionRecordId)
+                .tutorId(tutorId)
+                .student(student)
+                .sessionDate(java.time.LocalDate.of(2024, 1, 15))
+                .startTime(java.time.LocalTime.of(10, 0))  // 10 AM < 12 PM (now)
+                .endTime(java.time.LocalTime.of(11, 0))   // ✅ ADD END TIME
+                .status(LessonStatus.SCHEDULED)
+                .build();
+
+        when(sessionRecordRepository.findByIdForUpdate(sessionRecordId))
+                .thenReturn(Optional.of(sessionRecord));
+        when(tutorRepository.findByUserId(userId)).thenReturn(Optional.of(tutor));
+        when(onlineSessionRepository.existsBySessionRecordId(sessionRecordId)).thenReturn(false);
+
+        assertThrows(SessionCannotBeConvertedException.class,
+                () -> onlineSessionService.convertToOnline(sessionRecordId, userId));
+    }
+
+    @Test
+    @DisplayName("Should handle race condition during session conversion")
+    void convertToOnline_RaceCondition_ThrowsException() {
+        Long sessionRecordId = 500L;
+
+        // ✅ ADD CLOCK MOCK FIRST
+        LocalDateTime now = LocalDateTime.of(2024, 1, 15, 9, 0); // 9 AM
+        when(clock.instant()).thenReturn(now.atZone(ZoneId.systemDefault()).toInstant());
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+
+        // Session scheduled at 10 AM (1 hour in future)
+        SessionRecord sessionRecord = SessionRecord.builder()
+                .id(sessionRecordId)
+                .tutorId(tutorId)
+                .student(student)
+                .sessionDate(java.time.LocalDate.of(2024, 1, 15))
+                .startTime(java.time.LocalTime.of(10, 0))
+                .endTime(java.time.LocalTime.of(12, 0))
+                .status(LessonStatus.SCHEDULED)
+                .build();
+
+        when(sessionRecordRepository.findByIdForUpdate(sessionRecordId))
+                .thenReturn(Optional.of(sessionRecord));
+        when(tutorRepository.findByUserId(userId)).thenReturn(Optional.of(tutor));
+        when(onlineSessionRepository.existsBySessionRecordId(sessionRecordId)).thenReturn(false);
+
+        when(onlineSessionRepository.save(any(OnlineSession.class)))
+                .thenThrow(new org.springframework.dao.DataIntegrityViolationException("Duplicate key"));
+
+        assertThrows(SessionAlreadyOnlineException.class,
+                () -> onlineSessionService.convertToOnline(sessionRecordId, userId));
+    }
+
+    @Test
+    @DisplayName("Should return sessions for tutor")
+    void getMySessions_Tutor_Success() {
+        // Given
+        Tutor tutor = Tutor.builder().id(tutorId).user(User.builder().id(userId).build()).fullName("Tutor Name").build();
+        OnlineSession session = OnlineSession.builder()
+                .id(1L)
+                .roomId("room-1")
+                .roomStatus(RoomStatus.WAITING)
+                .scheduledStart(LocalDateTime.now(clock).plusHours(1))
+                .tutor(tutor)
+                .student(student)
+                .build();
+        KeysetScrollPosition scrollPosition = ScrollPosition.keyset();
+        Limit limit = Limit.of(10);
+        Window<OnlineSession> window = Window.from(List.of(session), pos -> scrollPosition);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(User.builder().id(userId).role(Role.TUTOR).build()));
+        when(tutorRepository.findByUserId(userId)).thenReturn(Optional.of(tutor));
+        when(onlineSessionRepository.findAllByTutorIdAndRoomStatusNotOrderByScheduledStartAscIdAsc(eq(tutorId), eq(RoomStatus.ENDED), any(org.springframework.data.domain.KeysetScrollPosition.class), eq(limit)))
+                .thenReturn(window);
+
+        // When
+        org.springframework.data.domain.Window<OnlineSessionResponse> results = onlineSessionService.getMySessions(userId, null, 10);
+
+        // Then
+        assertFalse(results.isEmpty());
+        assertEquals("room-1", results.getContent().getFirst().getRoomId());
+        assertFalse(results.getContent().getFirst().isCanJoinNow());
+    }
+
+    @Test
+    @DisplayName("Should return sessions for student")
+    void getMySessions_Student_Success() {
+        // Given
+        Long studentId = student.getId();
+        OnlineSession session = OnlineSession.builder()
+                .id(1L)
+                .roomId("room-1")
+                .roomStatus(RoomStatus.WAITING)
+                .scheduledStart(LocalDateTime.now(clock).plusHours(1))
+                .tutor(tutor)
+                .student(student)
+                .build();
+        KeysetScrollPosition scrollPosition = ScrollPosition.keyset();
+        Window<OnlineSession> window = Window.from(List.of(session), pos -> scrollPosition);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(User.builder().id(userId).role(Role.STUDENT).studentId(studentId).build()));
+        when(onlineSessionRepository.findAllByStudentIdAndRoomStatusNotOrderByScheduledStartAscIdAsc(eq(studentId), eq(RoomStatus.ENDED), any(org.springframework.data.domain.KeysetScrollPosition.class), any(org.springframework.data.domain.Limit.class)))
+                .thenReturn(window);
+
+        // When
+        org.springframework.data.domain.Window<OnlineSessionResponse> results = onlineSessionService.getMySessions(userId, null, 10);
+
+        // Then
+        assertFalse(results.isEmpty());
+        assertEquals("room-1", results.getContent().get(0).getRoomId());
+    }
+
+    @Test
+    @DisplayName("Should correctly calculate canJoinNow")
+    void canJoinNow_Calculation_Scenarios() {
+        // Current time: 10:00 AM
+        LocalDateTime now = LocalDateTime.of(2024, 1, 15, 10, 0);
+        when(clock.instant()).thenReturn(now.atZone(ZoneId.systemDefault()).toInstant());
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+
+        // 1. Scheduled at 10:16 AM (16m in future) -> False
+        OnlineSession s1 = OnlineSession.builder()
+                .roomStatus(RoomStatus.WAITING)
+                .scheduledStart(now.plusMinutes(16))
+                .tutor(tutor).student(student).build();
+        
+        // 2. Scheduled at 10:14 AM (14m in future) -> True
+        OnlineSession s2 = OnlineSession.builder()
+                .roomStatus(RoomStatus.WAITING)
+                .scheduledStart(now.plusMinutes(14))
+                .tutor(tutor).student(student).build();
+
+        // 3. Already Active -> True
+        OnlineSession s3 = OnlineSession.builder()
+                .roomStatus(RoomStatus.ACTIVE)
+                .scheduledStart(now.minusHours(1))
+                .tutor(tutor).student(student).build();
+
+        // 4. Ended -> False
+        OnlineSession s4 = OnlineSession.builder()
+                .roomStatus(RoomStatus.ENDED)
+                .scheduledStart(now.minusHours(1))
+                .tutor(tutor).student(student).build();
+
+        // Need to use getMySessions or mock mapToResponse indirectly? 
+        // OnlineSessionServiceImpl's mapToResponse is private. 
+        // Let's test via getMySessions.
+
+        KeysetScrollPosition scrollPosition = ScrollPosition.keyset();
+        Window<OnlineSession> window = Window.from(List.of(s1, s2, s3, s4), pos -> scrollPosition);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(User.builder().id(userId).role(Role.TUTOR).build()));
+        when(tutorRepository.findByUserId(userId)).thenReturn(Optional.of(tutor));
+        when(onlineSessionRepository.findAllByTutorIdAndRoomStatusNotOrderByScheduledStartAscIdAsc(any(), any(), any(org.springframework.data.domain.KeysetScrollPosition.class), any(org.springframework.data.domain.Limit.class)))
+                .thenReturn(window);
+
+        org.springframework.data.domain.Window<OnlineSessionResponse> results = onlineSessionService.getMySessions(userId, null, 10);
+
+        assertFalse(results.getContent().get(0).isCanJoinNow());
+        assertTrue(results.getContent().get(1).isCanJoinNow());
+        assertTrue(results.getContent().get(2).isCanJoinNow());
+        assertFalse(results.getContent().get(3).isCanJoinNow());
     }
 }

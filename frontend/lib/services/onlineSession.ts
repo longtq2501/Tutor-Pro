@@ -1,4 +1,5 @@
 import api from './axios-instance';
+import type { WindowResponse } from '@/lib/types/common';
 import type {
     OnlineSessionResponse,
     JoinRoomResponse,
@@ -14,6 +15,17 @@ export const onlineSessionApi = {
      */
     getCurrentSession: async (): Promise<OnlineSessionResponse | null> => {
         const response = await api.get('/online-sessions/current');
+        return response.data.data;
+    },
+
+    /**
+     * GET ALL MY SESSIONS (LOBBY)
+     * Uses cursor-based pagination.
+     */
+    getMySessions: async (cursor?: string, size: number = 10): Promise<WindowResponse<OnlineSessionResponse>> => {
+        const response = await api.get('/online-sessions/my-sessions', {
+            params: { cursor, size }
+        });
         return response.data.data;
     },
 

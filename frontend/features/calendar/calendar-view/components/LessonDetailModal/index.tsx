@@ -44,6 +44,11 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
         handleSubmit,
         handleDuplicate,
         handleDelete,
+        handleConvertToOnline,
+        canConvert,
+        isConverting,
+        showConvertConfirm,
+        setShowConvertConfirm,
         getCategoryName
     } = useLessonDetailModal(props);
 
@@ -129,6 +134,9 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
                             globalSelectedCount={globalSelectedCount}
                             handleDuplicate={handleDuplicate}
                             setConfirmDeleteOpen={setConfirmDeleteOpen}
+                            onConvertToOnline={() => setShowConvertConfirm(true)}
+                            canConvert={canConvert}
+                            isConverting={isConverting}
                         />
                     </div>
 
@@ -173,6 +181,17 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
                     description="Buổi học này sẽ bị xóa vĩnh viễn khỏi lịch dạy. Bạn không thể hoàn tác thao tác này."
                     confirmText="Xác nhận xóa"
                     variant="destructive"
+                />
+            )}
+
+            {showConvertConfirm && (
+                <ConfirmDialog
+                    open={showConvertConfirm}
+                    onOpenChange={setShowConvertConfirm}
+                    onConfirm={handleConvertToOnline}
+                    title="Chuyển sang Online?"
+                    description="Học sinh sẽ nhận được thông báo với link tham gia buổi học online. Bạn có muốn tiếp tục?"
+                    confirmText="Xác nhận"
                 />
             )}
         </div>,

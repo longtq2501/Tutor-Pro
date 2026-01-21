@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
-import { Copy, Pencil, Save, Trash2 } from 'lucide-react';
+import { Copy, Globe, Pencil, Save, Trash2 } from 'lucide-react';
 import { Loader2 } from './Loader2';
+import { motion } from 'framer-motion';
 
 interface ModalFooterProps {
     mode: 'view' | 'edit';
@@ -10,6 +11,9 @@ interface ModalFooterProps {
     globalSelectedCount: number;
     handleDuplicate: () => void;
     setConfirmDeleteOpen: (open: boolean) => void;
+    onConvertToOnline?: () => void;
+    canConvert?: boolean;
+    isConverting?: boolean;
 }
 
 export function ModalFooter({
@@ -19,7 +23,10 @@ export function ModalFooter({
     isDirty,
     globalSelectedCount,
     handleDuplicate,
-    setConfirmDeleteOpen
+    setConfirmDeleteOpen,
+    onConvertToOnline,
+    canConvert,
+    isConverting
 }: ModalFooterProps) {
     return (
         <div className="p-4 bg-muted/10 border-t border-border/60 shrink-0">
@@ -34,6 +41,27 @@ export function ModalFooter({
                         >
                             <Trash2 size={16} />
                         </Button>
+
+                        {canConvert && (
+                            <Button
+                                variant="outline"
+                                onClick={onConvertToOnline}
+                                disabled={isConverting || loading}
+                                className="h-10 flex-[1.5] rounded-xl font-black text-[11px] sm:text-[10px] px-2 border-blue-200 dark:border-blue-900 bg-blue-50/30 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400 group overflow-hidden relative"
+                            >
+                                <motion.div
+                                    className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                />
+                                {isConverting ? (
+                                    <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                                ) : (
+                                    <Globe className="w-3.5 h-3.5 mr-1.5 shrink-0 group-hover:rotate-12 transition-transform duration-500" />
+                                )}
+                                <span className="relative z-10 hidden xs:inline truncate">CHUYỂN ONLINE</span>
+                                <span className="relative z-10 xs:hidden truncate">Online</span>
+                            </Button>
+                        )}
+
                         <Button
                             variant="outline"
                             onClick={handleDuplicate}

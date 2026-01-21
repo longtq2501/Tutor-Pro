@@ -27,4 +27,5 @@ public class OnlineSessionResponse {
     private String tutorName;
     private Long studentId;
     private String studentName;
+    private boolean canJoinNow;
 }

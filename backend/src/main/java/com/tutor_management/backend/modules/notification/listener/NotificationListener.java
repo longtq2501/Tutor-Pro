@@ -11,6 +11,7 @@ import com.tutor_management.backend.modules.notification.event.ScheduleCreatedEv
 import com.tutor_management.backend.modules.notification.event.ScheduleUpdatedEvent;
 import com.tutor_management.backend.modules.notification.event.OnlineSessionCreatedEvent;
 import com.tutor_management.backend.modules.notification.event.OnlineSessionEndedEvent;
+import com.tutor_management.backend.modules.notification.event.SessionConvertedToOnlineEvent;
 import com.tutor_management.backend.modules.notification.event.SessionCreatedEvent;
 import com.tutor_management.backend.modules.notification.event.SessionRescheduledEvent;
 import com.tutor_management.backend.modules.exercise.repository.ExerciseAssignmentRepository;
@@ -371,8 +372,46 @@ public class NotificationListener {
                         NotificationType.ONLINE_SESSION_ENDED
                 );
         } catch (Exception e) {
-                log.error("Failed to notify tutor {} for session end {}: {}", 
-                        event.getTutorId(), event.getRoomId(), e.getMessage());
+            log.error("Failed to notify tutor {} for session end {}: {}", 
+                    event.getTutorId(), event.getRoomId(), e.getMessage());
+        }
+    }
+
+    /**
+     * Handles when a calendar session is converted to an online session.
+     * Notifies the student with the join link.
+     * 
+     * @param event The session conversion details
+     */
+    @EventListener
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void handleSessionConvertedToOnline(SessionConvertedToOnlineEvent event) {
+        log.info("Processing SessionConvertedToOnlineEvent for session: {}", event.getSessionId());
+        
+        try {
+            User student = userRepository.findByStudentId(event.getStudentId()).stream()
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Student user mapping not found for student ID: " + event.getStudentId()));
+
+            // ADD JOIN URL (Using placeholder URL as per existing patterns)
+            String joinUrl = String.format("https://yourapp.com/room/%s/join", event.getRoomId());
+            
+            notificationService.createAndSend(
+                    student,
+                    "🌐 Buổi học đã chuyển sang online",
+                    String.format(
+                        "Giảng viên %s đã chuyển buổi học %s ngày %s sang hình thức online.\n\n" +
+                        "🔗 Tham gia ngay: %s",
+                        event.getTutorName(),
+                        event.getSubject(),
+                        event.getSessionDate(),
+                        joinUrl
+                    ),
+                    NotificationType.SESSION_CONVERTED_ONLINE
+            );
+        } catch (Exception e) {
+            log.error("Failed to notify student {} for session conversion {}: {}", 
+                    event.getStudentId(), event.getSessionId(), e.getMessage());
         }
     }
 }

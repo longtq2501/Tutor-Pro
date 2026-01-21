@@ -15,6 +15,7 @@ export interface OnlineSessionResponse {
     tutorName: string;
     studentId: number;
     studentName: string;
+    canJoinNow: boolean;
 }
 
 export interface JoinRoomResponse {

@@ -4,6 +4,11 @@ import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.auth.UserRepository;
 import com.tutor_management.backend.modules.notification.event.OnlineSessionCreatedEvent;
 import com.tutor_management.backend.modules.notification.event.OnlineSessionEndedEvent;
+import com.tutor_management.backend.modules.notification.event.SessionConvertedToOnlineEvent;
+import com.tutor_management.backend.modules.finance.entity.SessionRecord;
+import com.tutor_management.backend.modules.finance.repository.SessionRecordRepository;
+import com.tutor_management.backend.modules.finance.LessonStatus;
+import com.tutor_management.backend.modules.onlinesession.exception.*;
 import com.tutor_management.backend.modules.onlinesession.dto.request.CreateOnlineSessionRequest;
 import com.tutor_management.backend.modules.onlinesession.dto.request.UpdateRecordingMetadataRequest;
 import com.tutor_management.backend.modules.onlinesession.dto.response.JoinRoomResponse;
@@ -13,8 +18,6 @@ import com.tutor_management.backend.modules.onlinesession.dto.response.GlobalSta
 import com.tutor_management.backend.modules.onlinesession.entity.OnlineSession;
 import com.tutor_management.backend.modules.onlinesession.enums.RoomStatus;
 import com.tutor_management.backend.modules.onlinesession.dto.response.SessionStatusResponse;
-import com.tutor_management.backend.modules.onlinesession.exception.RoomNotFoundException;
-import com.tutor_management.backend.modules.onlinesession.exception.RoomAlreadyEndedException;
 import com.tutor_management.backend.modules.onlinesession.repository.OnlineSessionRepository;
 import com.tutor_management.backend.modules.onlinesession.security.RoomTokenService;
 import com.tutor_management.backend.modules.auth.Role;
@@ -25,15 +28,22 @@ import com.tutor_management.backend.modules.tutor.repository.TutorRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Limit;
+import org.springframework.data.domain.Window;
+import org.springframework.data.domain.ScrollPosition;
+import org.springframework.data.domain.KeysetScrollPosition;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import java.util.Base64;
 import java.util.Optional;
 
 import java.time.Clock;
@@ -50,6 +60,7 @@ import java.util.UUID;
 public class OnlineSessionServiceImpl implements OnlineSessionService {
 
     private final OnlineSessionRepository onlineSessionRepository;
+    private final SessionRecordRepository sessionRecordRepository;
     private final TutorRepository tutorRepository;
     private final StudentRepository studentRepository;
     private final UserRepository userRepository;
@@ -59,6 +70,7 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
     private final PresenceService presenceService;
     private final SimpMessagingTemplate messagingTemplate;
     private final MeterRegistry meterRegistry;
+    private final ObjectMapper objectMapper;
 
     // Simplified TURN servers to avoid @Value list binding issues in YAML
     private final List<Map<String, Object>> turnServers = List.of(
@@ -69,6 +81,9 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
 
     @Value("${app.online-session.auto-end-timeout-minutes:2}")
     private int autoEndTimeoutMinutes;
+
+    @Value("${app.online-session.early-join-minutes:15}")
+    private int earlyJoinMinutes;
 
     @Override
     @Transactional
@@ -373,24 +388,61 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        java.util.Optional<OnlineSession> session = java.util.Optional.empty();
-
+        Optional<OnlineSession> session = Optional.empty();
         if (user.getRole() == Role.TUTOR) {
-            // Check if user is a valid tutor
-            java.util.Optional<Tutor> tutor = tutorRepository.findByUserId(userId);
-            if (tutor.isPresent()) {
-                session = onlineSessionRepository.findFirstByTutorIdAndRoomStatusNotOrderByScheduledStartAsc(
-                        tutor.get().getId(), RoomStatus.ENDED);
-            }
+            Tutor tutor = tutorRepository.findByUserId(userId)
+                    .orElseThrow(() -> new TutorProfileNotFoundException(userId));
+            session = onlineSessionRepository.findFirstByTutorIdAndRoomStatusNotOrderByScheduledStartAsc(
+                    tutor.getId(), RoomStatus.ENDED);
         } else if (user.getRole() == Role.STUDENT) {
             if (user.getStudentId() != null) {
-                // Check for sessions for this student
                 session = onlineSessionRepository.findFirstByStudentIdAndRoomStatusNotOrderByScheduledStartAsc(
                         user.getStudentId(), RoomStatus.ENDED);
             }
         }
 
         return session.map(this::mapToResponse).orElse(null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Window<OnlineSessionResponse> getMySessions(Long userId, String continuationToken, int size) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        ScrollPosition scrollPosition = decodeContinuationToken(continuationToken);
+        
+        Limit limit = Limit.of(size);
+        Window<OnlineSession> window = Window.from(Collections.emptyList(), pos -> scrollPosition);
+
+        if (user.getRole() == Role.TUTOR) {
+            Tutor tutor = tutorRepository.findByUserId(userId)
+                    .orElseThrow(() -> new TutorProfileNotFoundException(userId));
+            window = onlineSessionRepository.findAllByTutorIdAndRoomStatusNotOrderByScheduledStartAscIdAsc(
+                    tutor.getId(), RoomStatus.ENDED, scrollPosition, limit);
+        } else if (user.getRole() == Role.STUDENT) {
+            if (user.getStudentId() != null) {
+                window = onlineSessionRepository.findAllByStudentIdAndRoomStatusNotOrderByScheduledStartAscIdAsc(
+                        user.getStudentId(), RoomStatus.ENDED, scrollPosition, limit);
+            }
+        }
+
+        return window.map(this::mapToResponse);
+    }
+
+    private ScrollPosition decodeContinuationToken(String token) {
+        if (token == null || token.isBlank()) {
+            return ScrollPosition.keyset();
+        }
+        try {
+            // Spring Data's continuation token is usually a Base64 encoded JSON keyset
+            byte[] decoded = Base64.getDecoder().decode(token);
+            Map<String, Object> keys = objectMapper.readValue(decoded, new TypeReference<Map<String, Object>>() {});
+            return ScrollPosition.keyset();
+        } catch (Exception e) {
+            log.warn("Failed to decode continuation token, falling back to initial: {}", token);
+            return ScrollPosition.keyset();
+        }
     }
 
     private void broadcastStatus(String roomId, SessionStatusResponse.Type type, Long userId, String role, Integer remainingSeconds, String message) {
@@ -448,6 +500,72 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
         session.setRecordingStoppedAt(LocalDateTime.now(clock));
 
         return mapToResponse(onlineSessionRepository.save(session));
+    }
+
+    @Override
+    @Transactional
+    public OnlineSessionResponse convertToOnline(Long sessionRecordId, Long userId) {
+        log.info("Converting session record ID {} to online by user {}", sessionRecordId, userId);
+
+        // Pessimistic lock to prevent race conditions during status check/conversion
+        SessionRecord sessionRecord = sessionRecordRepository.findByIdForUpdate(sessionRecordId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy buổi học với ID: " + sessionRecordId));
+
+        // Validate tutor access accurately
+        Tutor tutor = tutorRepository.findByUserId(userId)
+                .orElseThrow(() -> new TutorProfileNotFoundException(userId));
+        
+        if (!sessionRecord.getTutorId().equals(tutor.getId())) {
+            throw new UnauthorizedSessionConversionException(tutor.getId(), sessionRecordId);
+        }
+
+        // Check if already online (Database unique constraint UK_ONLINE_SESSION_RECORD provides safety)
+        if (onlineSessionRepository.existsBySessionRecordId(sessionRecordId)) {
+            throw new SessionAlreadyOnlineException(sessionRecordId);
+        }
+
+        // Validate status (don't convert COMPLETED, CANCELLED, etc.)
+        if (sessionRecord.getStatus() != LessonStatus.SCHEDULED) {
+             throw new SessionCannotBeConvertedException("Chỉ có thể chuyển đổi buổi học đang ở trạng thái 'Đã xếp lịch'. Trạng thái hiện tại: " + sessionRecord.getStatus());
+        }
+
+        LocalDateTime scheduledStart = LocalDateTime.of(sessionRecord.getSessionDate(), sessionRecord.getStartTime());
+        LocalDateTime scheduledEnd = LocalDateTime.of(sessionRecord.getSessionDate(), sessionRecord.getEndTime());
+
+        // Validate scheduled time is in future
+        if (scheduledStart.isBefore(LocalDateTime.now(clock))) {
+            throw new SessionCannotBeConvertedException("Không thể chuyển sang Online cho buổi học đã hoặc đang diễn ra.");
+        }
+
+        OnlineSession session = OnlineSession.builder()
+                .roomId(UUID.randomUUID().toString())
+                .roomStatus(RoomStatus.WAITING)
+                .scheduledStart(scheduledStart)
+                .scheduledEnd(scheduledEnd)
+                .tutor(tutor)
+                .student(sessionRecord.getStudent())
+                .sessionRecord(sessionRecord)
+                .build();
+
+        try {
+            OnlineSession saved = onlineSessionRepository.save(session);
+
+            // Publish conversion event
+            eventPublisher.publishEvent(SessionConvertedToOnlineEvent.builder()
+                    .sessionId(sessionRecordId)
+                    .roomId(saved.getRoomId())
+                    .studentId(sessionRecord.getStudent().getId())
+                    .tutorName(tutor.getFullName())
+                    .subject(sessionRecord.getSubject())
+                    .sessionDate(sessionRecord.getSessionDate())
+                    .startTime(sessionRecord.getStartTime())
+                    .build());
+
+            return mapToResponse(saved);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            log.error("Conflict detected during session conversion for ID {}: {}", sessionRecordId, e.getMessage());
+            throw new SessionAlreadyOnlineException(sessionRecordId);
+        }
     }
 
     @Transactional
@@ -529,16 +647,23 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
     }
 
     private OnlineSessionResponse mapToResponse(OnlineSession session) {
+        LocalDateTime now = LocalDateTime.now(clock);
+        boolean canJoinNow = session.getRoomStatus() != RoomStatus.ENDED && 
+                !now.isBefore(session.getScheduledStart().minusMinutes(earlyJoinMinutes));
+
         return OnlineSessionResponse.builder()
                 .id(session.getId())
                 .roomId(session.getRoomId())
                 .roomStatus(session.getRoomStatus().name())
                 .scheduledStart(session.getScheduledStart())
                 .scheduledEnd(session.getScheduledEnd())
+                .actualStart(session.getActualStart())
+                .actualEnd(session.getActualEnd())
                 .tutorId(session.getTutor().getId())
                 .tutorName(session.getTutor().getFullName())
                 .studentId(session.getStudent().getId())
                 .studentName(session.getStudent().getName())
+                .canJoinNow(canJoinNow)
                 .build();
     }
 }

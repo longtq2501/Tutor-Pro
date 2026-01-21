@@ -41,6 +41,7 @@ public class SessionRecordResponse {
     private String subject;
     private String status;
     private Integer version;
+    private Boolean isOnline;
 
     private List<DocumentDTO> documents;
     private List<LessonDTO> lessons;

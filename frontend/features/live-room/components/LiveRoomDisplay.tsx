@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useWebSocket } from '../context/WebSocketContext';
 import { useRoomState } from '../context/RoomStateContext';
 import { RoomErrorBoundary } from './RoomErrorBoundary';
@@ -14,7 +14,7 @@ import { MobileNavigation, RoomTab } from './MobileNavigation';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { ErrorRecoveryDialog } from './ErrorRecoveryDialog';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface LiveRoomDisplayProps {
     roomId: string;
@@ -33,8 +33,9 @@ export const LiveRoomDisplay: React.FC<LiveRoomDisplayProps> = ({ roomId, curren
     const MAX_RETRIES = 3;
 
     // Media error to user-friendly message
-    const getMediaErrorMessage = React.useCallback((error: any): string | null => {
+    const getMediaErrorMessage = React.useCallback((error: Error | DOMException | null): string | null => {
         if (!error) return null;
+        const errorName = error.name || 'UnknownError';
         const messages: Record<string, string> = {
             NotAllowedError: 'Bạn đã từ chối quyền truy cập camera/microphone. Vui lòng cấp quyền trong cài đặt trình duyệt để tiếp tục.',
             NotFoundError: 'Không tìm thấy camera hoặc microphone. Vui lòng kiểm tra kết nối thiết bị.',
@@ -43,13 +44,18 @@ export const LiveRoomDisplay: React.FC<LiveRoomDisplayProps> = ({ roomId, curren
             TypeError: 'Trình duyệt không hỗ trợ các tính năng media cần thiết.',
             UnknownError: 'Đã xảy ra lỗi không xác định khi truy cập thiết bị media.'
         };
-        return messages[error] || 'Lỗi truy cập camera/microphone.';
+        return messages[errorName] || 'Lỗi truy cập camera/microphone.';
     }, []);
 
     const media = useLiveRoomMedia();
     const { warning: statusWarning, secondsRemaining } = useRoomStatus(roomId);
     const isMobile = useIsMobile();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const autoRecordRef = React.useRef(false);
+
+    // Read recording preference from URL param
+    const shouldAutoRecord = searchParams?.get('record') === 'true';
 
     // Tab persistence logic - Safe for SSR
     const [activeTab, setActiveTab] = React.useState<RoomTab>(() => {
@@ -135,6 +141,17 @@ export const LiveRoomDisplay: React.FC<LiveRoomDisplayProps> = ({ roomId, curren
         }
     }, [state.isConnected]);
 
+    // Auto-start recording if requested via URL param
+    useEffect(() => {
+        if (shouldAutoRecord && state.isConnected && !media.isRecording && !autoRecordRef.current) {
+            autoRecordRef.current = true;
+            media.startRecording();
+            if (process.env.NODE_ENV !== 'production') {
+                console.log('[LiveRoomDisplay] Auto-starting recording from URL param');
+            }
+        }
+    }, [shouldAutoRecord, state.isConnected, media.isRecording, media]);
+
     const handleExit = React.useCallback(() => {
         router.push('/dashboard');
     }, [router]);
@@ -175,7 +192,7 @@ export const LiveRoomDisplay: React.FC<LiveRoomDisplayProps> = ({ roomId, curren
 
             <ErrorRecoveryDialog
                 isOpen={state.connectionState === 'FAILED' || !!media.error}
-                error={state.error || getMediaErrorMessage(media.error)}
+                error={state.error || getMediaErrorMessage(media.error as Error | DOMException | null)}
                 onRetry={handleRetry}
                 onAudioOnly={handleAudioOnly}
                 onExit={handleExit}

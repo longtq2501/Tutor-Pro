@@ -7,6 +7,9 @@ import com.tutor_management.backend.modules.finance.dto.request.SessionRecordReq
 import com.tutor_management.backend.modules.finance.dto.request.SessionRecordUpdateRequest;
 import com.tutor_management.backend.modules.finance.dto.response.SessionRecordResponse;
 
+import com.tutor_management.backend.modules.onlinesession.dto.response.OnlineSessionResponse;
+import com.tutor_management.backend.modules.onlinesession.service.OnlineSessionService;
+import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.shared.service.ExportService;
 import com.tutor_management.backend.modules.shared.dto.response.ApiResponse;
 import jakarta.validation.Valid;
@@ -17,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,6 +37,7 @@ public class SessionRecordController {
 
     private final SessionRecordService sessionRecordService;
     private final ExportService exportService;
+    private final OnlineSessionService onlineSessionService;
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @GetMapping
@@ -168,5 +173,18 @@ public class SessionRecordController {
         log.warn("Deleting all sessions for month: {}", month);
         sessionRecordService.deleteSessionsByMonth(month);
         return ResponseEntity.ok(ApiResponse.success("Đã xóa toàn bộ buổi học trong tháng " + month, null));
+    }
+
+    /**
+     * Converts a calendar session record to an online session.
+     */
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
+    @PatchMapping("/{id}/convert-to-online")
+    public ResponseEntity<ApiResponse<OnlineSessionResponse>> convertToOnline(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User user) {
+        log.info("Converting session ID: {} to online by user: {}", id, user.getEmail());
+        OnlineSessionResponse response = onlineSessionService.convertToOnline(id, user.getId());
+        return ResponseEntity.ok(ApiResponse.success("Đã chuyển đổi buổi học sang chế độ Online", response));
     }
 }

@@ -1,4 +1,4 @@
-import { X, Plus, Calendar, Clock, Trash2, BookOpen, BookDashed, CheckSquare, Square, Loader2, DollarSign, Check, Info } from 'lucide-react';
+import { X, Plus, Calendar, Clock, Trash2, BookOpen, BookDashed, CheckSquare, Square, Loader2, DollarSign, Check, Info, Globe } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -162,6 +162,7 @@ export const DayDetailModal = ({
                         "hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-lg",
                         "bg-gradient-to-br from-white/10 to-transparent dark:from-white/5 dark:to-transparent",
                         colors.bg,
+                        session.isOnline && "bg-blue-50/50 dark:bg-blue-900/30 ring-1 ring-blue-500/30",
                         "border-white/20 dark:border-white/10"
                       )}
                     >
@@ -176,6 +177,16 @@ export const DayDetailModal = ({
                         <div className="flex-1 min-w-0 pr-4">
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
                             <h4 className="font-black text-base sm:text-lg truncate tracking-tight">{session.studentName}</h4>
+                            {session.isOnline && (
+                              <>
+                                <Globe
+                                  size={14}
+                                  className="text-blue-600 dark:text-blue-400 animate-pulse-subtle"
+                                  aria-hidden="true"
+                                />
+                                <span className="sr-only">Buổi học trực tuyến</span>
+                              </>
+                            )}
                             <Badge className={cn("rounded-full px-2 sm:px-3 py-0.5 text-[9px] sm:text-[10px] font-black uppercase tracking-widest border-0", colors.bg, colors.text)}>
                               {LESSON_STATUS_LABELS[session.status as keyof typeof LESSON_STATUS_LABELS] || (session.completed ? 'Đã dạy' : 'Dự kiến')}
                             </Badge>

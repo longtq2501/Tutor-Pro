@@ -82,6 +82,25 @@ public interface OnlineSessionService {
     OnlineSessionResponse updateRecordingMetadata(String roomId, com.tutor_management.backend.modules.onlinesession.dto.request.UpdateRecordingMetadataRequest request);
 
     /**
+     * Converts a calendar session record to an online session.
+     * 
+     * @param sessionRecordId The ID of the session record to convert.
+     * @param userId The ID of the user performing the conversion (must be the tutor).
+     * @return The created online session details.
+     */
+    OnlineSessionResponse convertToOnline(Long sessionRecordId, Long userId);
+
+    /**
+     * Retrieves all active/upcoming online sessions for the current user with cursor-based pagination.
+     * 
+     * @param userId The ID of the authenticated user.
+     * @param continuationToken The cursor token for keyset pagination (optional).
+     * @param size The number of items to retrieve.
+     * @return Window of online session responses.
+     */
+    org.springframework.data.domain.Window<OnlineSessionResponse> getMySessions(Long userId, String continuationToken, int size);
+
+    /**
      * Detects and handles inactive participants in active rooms.
      * Should be called periodically by a scheduler.
      */

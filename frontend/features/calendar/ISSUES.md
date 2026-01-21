@@ -8,13 +8,9 @@
 - [x] [P2-Medium] Optimize data fetching for calendar cells
   - Status: FIXED with transition away from redundant state and improved prop drilling.
 
-## UX Issues
-- [x] [P1-High] Drag & drop fails on consecutive moves (Optimistic Locking)
-  - Symptom: "Dữ liệu đã bị thay đổi bởi người dùng khác" on 2nd drag.
-  - Root cause: Frontend state (session version) not updating correctly after first move.
-  - Status: FIXED.
-    1. Forced `DraggableSession` remount on version change (`key={id-version}`).
-    2. Updated `useDraggable` ID to include version (`id={session-id-version}`) to prevent ID collisions during `AnimatePresence` exit animations.
+- [x] [P1-High] Calendar cells don't reflect session type visually
+  - Root cause: Absence of metadata and UI indicators to distinguish online/offline sessions.
+  - Status: FIXED with Globe icon, blue ring/glow, and background highlights across all views (Month, Week, List, and Detail Modal).
 
 ## Technical Debt (Optional)
 - [x] Refactor long components in `features/calendar` to follow 50-line rule

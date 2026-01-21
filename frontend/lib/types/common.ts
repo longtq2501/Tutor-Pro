@@ -22,3 +22,10 @@ export interface PageResponse<T> {
   first: boolean;
   empty: boolean;
 }
+
+export interface WindowResponse<T> {
+  content: T[];
+  size: number;
+  last: boolean;
+  position: any;
+}

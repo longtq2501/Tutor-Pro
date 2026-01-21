@@ -30,7 +30,12 @@ import java.time.LocalDateTime;
         @Index(name = "idx_student_id", columnList = "student_id"),
         @Index(name = "idx_tutor_student", columnList = "tutor_id, student_id"),
         @Index(name = "idx_scheduled_start", columnList = "scheduled_start"),
-        @Index(name = "idx_last_activity_at", columnList = "last_activity_at")
+        @Index(name = "idx_last_activity_at", columnList = "last_activity_at"),
+        @Index(name = "idx_tutor_status_scheduled", columnList = "tutor_id, room_status, scheduled_start"),
+        @Index(name = "idx_student_status_scheduled", columnList = "student_id, room_status, scheduled_start")
+    },
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_online_session_record", columnNames = "session_record_id")
     }
 )
 @Data

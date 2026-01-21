@@ -123,7 +123,7 @@ export const CalendarCell = memo(({
                                 key={session.id}
                                 className={cn(
                                     "w-2 h-2 rounded-full border border-background shadow-[0_0_0_1px_rgba(0,0,0,0.1)]",
-                                    colors.dot
+                                    session.isOnline ? "rounded-[2px] bg-blue-500 scale-110 ring-1 ring-blue-400" : colors.dot
                                 )}
                             />
                         );

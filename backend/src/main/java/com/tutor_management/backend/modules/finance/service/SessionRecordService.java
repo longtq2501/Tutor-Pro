@@ -20,6 +20,7 @@ import com.tutor_management.backend.modules.finance.repository.SessionRecordRepo
 import com.tutor_management.backend.modules.finance.StatusTransitionValidator;
 import com.tutor_management.backend.modules.lesson.repository.LessonRepository;
 import com.tutor_management.backend.modules.lesson.entity.Lesson;
+import com.tutor_management.backend.modules.onlinesession.repository.OnlineSessionRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -61,6 +62,7 @@ public class SessionRecordService {
     // Dependencies for isolation
     private final com.tutor_management.backend.modules.auth.UserRepository userRepository;
     private final com.tutor_management.backend.modules.tutor.repository.TutorRepository tutorRepository;
+    private final OnlineSessionRepository onlineSessionRepository;
 
     private final DateTimeFormatter isoFormatter = DateTimeFormatter.ISO_DATE_TIME;
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
@@ -544,7 +546,8 @@ public class SessionRecordService {
             .sessionDate(r.getSessionDate().toString()).createdAt(formatDateTime(r.getCreatedAt()))
             .completed(r.getCompleted()).startTime(formatTime(r.getStartTime()))
             .endTime(formatTime(r.getEndTime())).subject(r.getSubject())
-            .status(r.getStatus() != null ? r.getStatus().name() : null).version(r.getVersion());
+            .status(r.getStatus() != null ? r.getStatus().name() : null).version(r.getVersion())
+            .isOnline(onlineSessionRepository.existsBySessionRecordId(r.getId()));
 
         if (lightweight) {
             b.documents(Collections.emptyList()).lessons(Collections.emptyList());

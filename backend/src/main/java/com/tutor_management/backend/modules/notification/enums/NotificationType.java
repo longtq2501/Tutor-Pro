@@ -33,6 +33,9 @@ public enum NotificationType {
 
     /** Online live teaching session ended */
     ONLINE_SESSION_ENDED,
+
+    /** Calendar session converted to online session */
+    SESSION_CONVERTED_ONLINE,
     
     /** Critical system or security alerts */
     SYSTEM,

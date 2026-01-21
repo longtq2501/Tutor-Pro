@@ -23,6 +23,7 @@ export interface SessionRecord {
   subject?: string; // MÔN HỌC (e.g., "Toán 10", "Lý 11")
   status?: LessonStatus; // TRẠNG THÁI CHI TIẾT (SCHEDULED, CONFIRMED, COMPLETED, PAID, etc.)
   version?: number; // VERSION FOR OPTIMISTIC LOCKING
+  isOnline?: boolean; // TRẠNG THÁI BUỔI HỌC ONLINE
 
   // ========== ATTACHMENTS (LIBRARY) ==========
   documents?: DocumentDTO[];

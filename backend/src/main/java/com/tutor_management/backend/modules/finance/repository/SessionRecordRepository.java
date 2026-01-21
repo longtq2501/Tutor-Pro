@@ -22,6 +22,10 @@ import com.tutor_management.backend.modules.student.entity.Student;
 @Repository
 public interface SessionRecordRepository extends JpaRepository<SessionRecord, Long> {
 
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT sr FROM SessionRecord sr WHERE sr.id = :id")
+    Optional<SessionRecord> findByIdForUpdate(@Param("id") Long id);
+
     @Query("SELECT sr FROM SessionRecord sr " +
            "LEFT JOIN FETCH sr.student " +
            "WHERE sr.student.id = :studentId " +

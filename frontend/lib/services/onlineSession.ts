@@ -5,7 +5,8 @@ import type {
     JoinRoomResponse,
     RoomStatsResponse,
     GlobalStatsResponse,
-    CreateOnlineSessionRequest
+    CreateOnlineSessionRequest,
+    UpdateRecordingMetadataRequest
 } from '@/lib/types/onlineSession';
 
 export const onlineSessionApi = {
@@ -89,7 +90,7 @@ export const onlineSessionApi = {
      * @param {any} data - Recording metadata details (duration, size)
      * @returns {Promise<OnlineSessionResponse>} Updated session details
      */
-    updateRecordingMetadata: async (roomId: string, data: any): Promise<OnlineSessionResponse> => {
+    updateRecordingMetadata: async (roomId: string, data: UpdateRecordingMetadataRequest): Promise<OnlineSessionResponse> => {
         const response = await api.post(`/online-sessions/${roomId}/recording-metadata`, data);
         return response.data.data;
     },

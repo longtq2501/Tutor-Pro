@@ -7,6 +7,7 @@ import type { StrokePoint } from '../hooks/useWhiteboardSync';
 
 export interface WhiteboardProps {
     roomId: string;
+    currentUserId?: string | number;
     sendMessage?: (destination: string, payload: unknown) => void;
     className?: string;
 }
@@ -17,6 +18,7 @@ export interface WhiteboardProps {
  */
 export const Whiteboard: React.FC<WhiteboardProps> = ({
     roomId,
+    currentUserId,
     sendMessage,
     className,
 }) => {
@@ -40,7 +42,7 @@ export const Whiteboard: React.FC<WhiteboardProps> = ({
         setColor,
         setWidth,
         setTool,
-    } = useWhiteboardSync(roomId, sendMessage);
+    } = useWhiteboardSync(roomId, currentUserId, sendMessage);
 
     // Keyboard shortcuts for Undo/Redo
     useEffect(() => {

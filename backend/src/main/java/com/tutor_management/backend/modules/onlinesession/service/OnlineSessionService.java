@@ -91,6 +91,16 @@ public interface OnlineSessionService {
     OnlineSessionResponse convertToOnline(Long sessionRecordId, Long userId);
 
     /**
+     * Reverts an online session back to offline mode.
+     * Only allowed if the session is in WAITING status.
+     * Is idempotent - if session doesn't exist, returns success (via SessionRecord state).
+     * 
+     * @param sessionRecordId The ID of the session record to revert.
+     * @param userId The ID of the user performing the action (must be the tutor).
+     */
+    void revertToOffline(Long sessionRecordId, Long userId);
+
+    /**
      * Retrieves all active/upcoming online sessions for the current user with cursor-based pagination.
      * 
      * @param userId The ID of the authenticated user.

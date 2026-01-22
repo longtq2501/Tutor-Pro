@@ -187,4 +187,17 @@ public class SessionRecordController {
         OnlineSessionResponse response = onlineSessionService.convertToOnline(id, user.getId());
         return ResponseEntity.ok(ApiResponse.success("Đã chuyển đổi buổi học sang chế độ Online", response));
     }
+
+    /**
+     * Reverts a session record from online back to offline.
+     */
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
+    @PatchMapping("/{id}/revert-to-offline")
+    public ResponseEntity<ApiResponse<Void>> revertToOffline(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User user) {
+        log.info("Reverting session ID: {} to offline by user: {}", id, user.getEmail());
+        onlineSessionService.revertToOffline(id, user.getId());
+        return ResponseEntity.ok(ApiResponse.success("Đã chuyển đổi buổi học về chế độ Offline", null));
+    }
 }

@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useWhiteboardPersistence } from './useWhiteboardPersistence';
+import { useWebSocket } from '../context/WebSocketContext';
 
 /**
  * Message payload for whiteboard synchronization.
@@ -87,6 +88,7 @@ function throttle<T extends (...args: any[]) => void>(
  */
 export const useWhiteboardSync = (
     roomId: string,
+    currentUserId?: string | number,
     sendMessage?: (destination: string, payload: unknown) => void
 ) => {
     const { loadFromStorage, clearStorage, useAutoSave } = useWhiteboardPersistence(roomId);
@@ -117,6 +119,14 @@ export const useWhiteboardSync = (
         }
     }, [roomId, sendMessage]);
 
+    // Reactive send for current drawing stroke
+    useEffect(() => {
+        if (state.isDrawing && state.currentStroke && throttledSendRef.current) {
+            throttledSendRef.current(state.currentStroke);
+        }
+    }, [state.currentStroke, state.isDrawing]);
+
+
     const startStroke = useCallback((point: StrokePoint) => {
         setState(prev => {
             const newStroke: Stroke = {
@@ -126,6 +136,7 @@ export const useWhiteboardSync = (
                 width: prev.selectedWidth,
                 tool: prev.selectedTool,
                 timestamp: Date.now(),
+                userId: currentUserId?.toString(),
             };
 
             return {
@@ -145,10 +156,6 @@ export const useWhiteboardSync = (
                 ...prev.currentStroke,
                 points: [...prev.currentStroke.points, point],
             };
-
-            if (throttledSendRef.current) {
-                throttledSendRef.current(updatedStroke);
-            }
 
             return {
                 ...prev,
@@ -240,16 +247,24 @@ export const useWhiteboardSync = (
     }, []);
 
     const receiveRemoteStroke = useCallback((stroke: Stroke) => {
-        setState(prev => {
-            // Check if stroke already exists (e.g. from redo sync)
-            if (prev.strokes.some(s => s.id === stroke.id)) return prev;
+        // Echo cancellation: Ignore our own messages
+        if (stroke.userId === currentUserId?.toString()) {
+            return;
+        }
 
+        setState(prev => {
+            const index = prev.strokes.findIndex(s => s.id === stroke.id);
+            if (index !== -1) {
+                const newStrokes = [...prev.strokes];
+                newStrokes[index] = stroke;
+                return { ...prev, strokes: newStrokes };
+            }
             return {
                 ...prev,
                 strokes: [...prev.strokes, stroke],
             };
         });
-    }, []);
+    }, [currentUserId]);
 
     const receiveRemoteUndo = useCallback((strokeId: string) => {
         setState(prev => ({
@@ -257,6 +272,38 @@ export const useWhiteboardSync = (
             strokes: prev.strokes.filter(s => s.id !== strokeId),
         }));
     }, []);
+
+    // WebSocket subscription for remote updates
+    const { subscribe } = useWebSocket();
+    useEffect(() => {
+        if (!subscribe) return;
+
+        console.log(`[WhiteboardSync] Subscribing to room ${roomId}`);
+
+        const unsubscribeStroke = subscribe(`/topic/room/${roomId}/whiteboard`, (data) => {
+            receiveRemoteStroke(data as Stroke);
+        });
+
+        const unsubscribeClear = subscribe(`/topic/room/${roomId}/whiteboard/clear`, () => {
+            setState(prev => ({
+                ...prev,
+                strokes: [],
+                currentStroke: null,
+                redoStack: [],
+            }));
+        });
+
+        const unsubscribeUndo = subscribe(`/topic/room/${roomId}/whiteboard/undo`, (data) => {
+            const { id } = data as { id: string };
+            receiveRemoteUndo(id);
+        });
+
+        return () => {
+            unsubscribeStroke();
+            unsubscribeClear();
+            unsubscribeUndo();
+        };
+    }, [roomId, subscribe, receiveRemoteStroke, receiveRemoteUndo]);
 
     return {
         ...state,

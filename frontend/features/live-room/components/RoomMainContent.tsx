@@ -107,7 +107,7 @@ export const RoomMainContent: React.FC<RoomMainContentProps> = ({
                 activeTab !== 'board' && "hidden md:flex",
                 activeTab === 'board' && "md:border-t-2 md:border-t-primary"
             )}>
-                <Whiteboard roomId={roomId} sendMessage={sendMessage} className="shadow-sm border border-border rounded-lg bg-white h-full" />
+                <Whiteboard roomId={roomId} currentUserId={currentUserId} sendMessage={sendMessage} className="shadow-sm border border-border rounded-lg bg-white h-full" />
                 <MediaControls
                     {...media}
                     onToggleMic={media.toggleMic}

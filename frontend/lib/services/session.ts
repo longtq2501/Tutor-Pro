@@ -130,6 +130,13 @@ export const sessionsApi = {
   },
 
   /**
+   * Chuyển đổi buổi học Online về trạng thái Offline
+   */
+  revertToOffline: async (id: number): Promise<void> => {
+    await api.patch(`/sessions/${id}/revert-to-offline`);
+  },
+
+  /**
    * Xuất danh sách buổi học ra file Excel
    */
   exportToExcel: async (month?: string, studentId?: number): Promise<void> => {

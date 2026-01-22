@@ -45,12 +45,12 @@ export const SessionCard: React.FC<SessionCardProps> = ({
 
     const handleRecordingConfirm = () => {
         setShowRecordingPrompt(false);
-        router.push(`/live-room?roomId=${session.roomId}&record=true`);
+        router.push(`/live-teaching/${session.roomId}?record=true`);
     };
 
     const handleRecordingDecline = () => {
         setShowRecordingPrompt(false);
-        router.push(`/live-room?roomId=${session.roomId}&record=false`);
+        router.push(`/live-teaching/${session.roomId}?record=false`);
     };
 
     return (

@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useWebSocket } from '../context/WebSocketContext';
-import type { SessionStatusResponse } from '@/lib/types/onlineSession';
+import { SessionStatusResponse } from '@/lib/types/onlineSession';
+import { useRoomState } from '../context/RoomStateContext';
 
 /**
  * Hook to manage room status alerts and inactivity warnings via WebSocket.
@@ -10,6 +11,7 @@ import type { SessionStatusResponse } from '@/lib/types/onlineSession';
  */
 export const useRoomStatus = (roomId: string) => {
     const { isConnected, subscribe } = useWebSocket();
+    const { actions } = useRoomState();
     const [warning, setWarning] = useState<string | null>(null);
     const [secondsRemaining, setSecondsRemaining] = useState<number | null>(null);
     const [isCountdownActive, setIsCountdownActive] = useState(false);
@@ -34,18 +36,32 @@ export const useRoomStatus = (roomId: string) => {
                 }
 
                 switch (update.type) {
-                    case 'PARTICIPANT_LEFT':
-                        setWarning(update.message || "Một người tham gia đã rời phòng.");
-                        setSecondsRemaining(null);
-                        targetEndTimeRef.current = null;
-                        setIsCountdownActive(false);
-                        break;
-
                     case 'PARTICIPANT_JOINED':
                         setWarning(null);
                         setSecondsRemaining(null);
                         targetEndTimeRef.current = null;
                         setIsCountdownActive(false);
+                        // Update participant list if possible (fallback to fetch)
+                        if (update.userId && update.role) {
+                            actions.addParticipant({
+                                id: update.userId.toString(),
+                                name: update.role === 'TUTOR' ? 'Giáo viên' : 'Học viên',
+                                role: update.role as any,
+                                joinedAt: new Date(),
+                                isMicMuted: false,
+                                isCameraMuted: false
+                            });
+                        }
+                        break;
+
+                    case 'PARTICIPANT_LEFT':
+                        setWarning(update.message || "Một người tham gia đã rời phòng.");
+                        setSecondsRemaining(null);
+                        targetEndTimeRef.current = null;
+                        setIsCountdownActive(false);
+                        if (update.userId) {
+                            actions.removeParticipant(update.userId.toString());
+                        }
                         break;
 
                     case 'INACTIVITY_WARNING':

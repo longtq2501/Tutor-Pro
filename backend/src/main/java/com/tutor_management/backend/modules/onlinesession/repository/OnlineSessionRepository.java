@@ -67,4 +67,12 @@ public interface OnlineSessionRepository extends JpaRepository<OnlineSession, Lo
      * @return true if an online session already exists.
      */
     boolean existsBySessionRecordId(Long sessionRecordId);
+
+    /**
+     * Finds the online session associated with a specific session record.
+     * 
+     * @param sessionRecordId The ID of the session record.
+     * @return Optional containing the OnlineSession if found.
+     */
+    Optional<OnlineSession> findBySessionRecordId(Long sessionRecordId);
 }

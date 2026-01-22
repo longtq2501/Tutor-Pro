@@ -568,6 +568,34 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
         }
     }
 
+    @Override
+    @Transactional
+    public void revertToOffline(Long sessionRecordId, Long userId) {
+        log.info("Reverting session record ID {} to offline by user {}", sessionRecordId, userId);
+
+        OnlineSession session = onlineSessionRepository.findBySessionRecordId(sessionRecordId)
+                .orElseThrow(() -> new RoomNotFoundException("Online session not found for record ID: " + sessionRecordId));
+
+        // Validate tutor access (Security check)
+        Tutor tutor = tutorRepository.findByUserId(userId)
+                .orElseThrow(() -> new TutorProfileNotFoundException(userId));
+        
+        if (!session.getTutor().getId().equals(tutor.getId())) {
+             throw new UnauthorizedSessionConversionException(tutor.getId(), sessionRecordId);
+        }
+
+        // Validate Status
+        // Allow WAITING, ACTIVE, or ENDED (Total reset/recreate capability)
+        // No status check needed as we want to allow deleting any online session to reset to offline.
+
+
+        // Delete the Online Session
+        onlineSessionRepository.delete(session);
+        log.info("Deleted online session room {} for record {}", session.getRoomId(), sessionRecordId);
+        
+        // No need to explicitly update SessionRecord as the isOnline flag is derived from existence of OnlineSession
+    }
+
     @Transactional
     public void processSessionInactivity(OnlineSession session, LocalDateTime now, User studentUser) {
         if (Boolean.TRUE.equals(session.getPreventAutoEnd())) {
@@ -648,8 +676,8 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
 
     private OnlineSessionResponse mapToResponse(OnlineSession session) {
         LocalDateTime now = LocalDateTime.now(clock);
-        boolean canJoinNow = session.getRoomStatus() != RoomStatus.ENDED && 
-                !now.isBefore(session.getScheduledStart().minusMinutes(earlyJoinMinutes));
+        // Allow joining at any time if not ended (User Request: early access for setup)
+        boolean canJoinNow = session.getRoomStatus() != RoomStatus.ENDED;
 
         return OnlineSessionResponse.builder()
                 .id(session.getId())

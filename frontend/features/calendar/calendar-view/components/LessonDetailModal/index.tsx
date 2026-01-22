@@ -45,10 +45,13 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
         handleDuplicate,
         handleDelete,
         handleConvertToOnline,
+        handleRevertToOffline,
         canConvert,
         isConverting,
         showConvertConfirm,
         setShowConvertConfirm,
+        showRevertConfirm,
+        setShowRevertConfirm,
         getCategoryName
     } = useLessonDetailModal(props);
 
@@ -135,8 +138,10 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
                             handleDuplicate={handleDuplicate}
                             setConfirmDeleteOpen={setConfirmDeleteOpen}
                             onConvertToOnline={() => setShowConvertConfirm(true)}
+                            onRevertToOffline={() => setShowRevertConfirm(true)}
                             canConvert={canConvert}
                             isConverting={isConverting}
+                            isOnline={!!localSession.isOnline}
                         />
                     </div>
 
@@ -192,6 +197,18 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
                     title="Chuyển sang Online?"
                     description="Học sinh sẽ nhận được thông báo với link tham gia buổi học online. Bạn có muốn tiếp tục?"
                     confirmText="Xác nhận"
+                />
+            )}
+
+            {showRevertConfirm && (
+                <ConfirmDialog
+                    open={showRevertConfirm}
+                    onOpenChange={setShowRevertConfirm}
+                    onConfirm={handleRevertToOffline}
+                    title="Hủy phòng học Online?"
+                    description="Thao tác này sẽ xóa phòng học online hiện tại. Dữ liệu chat/bảng trắng (nếu có) sẽ bị mất. Bạn có chắc chắn không?"
+                    confirmText="Hủy Online"
+                    variant="destructive"
                 />
             )}
         </div>,

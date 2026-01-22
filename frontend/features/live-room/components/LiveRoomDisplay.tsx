@@ -15,6 +15,8 @@ import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { ErrorRecoveryDialog } from './ErrorRecoveryDialog';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useHeartbeat } from '../hooks/useHeartbeat';
+import { onlineSessionApi } from '@/lib/services/onlineSession';
 
 interface LiveRoomDisplayProps {
     roomId: string;
@@ -27,7 +29,7 @@ interface LiveRoomDisplayProps {
  * and tab-based (mobile) views.
  */
 export const LiveRoomDisplay: React.FC<LiveRoomDisplayProps> = ({ roomId, currentUserId }) => {
-    const { sendMessage } = useWebSocket();
+    const { isConnected, sendMessage } = useWebSocket();
     const { state, actions } = useRoomState();
     const retryCountRef = React.useRef(0);
     const MAX_RETRIES = 3;
@@ -134,12 +136,65 @@ export const LiveRoomDisplay: React.FC<LiveRoomDisplayProps> = ({ roomId, curren
         media.retry({ video: false, audio: true });
     }, [actions, media]);
 
+    // Start heartbeat
+    useHeartbeat(roomId);
+
+    // Fetch initial participant state
+    React.useEffect(() => {
+        const syncInitialParticipants = async () => {
+            try {
+                const stats = await onlineSessionApi.getRoomStats(roomId);
+                const participants = [];
+                if (stats.tutorName && (stats.tutorPresent || stats.tutorJoinedAt)) {
+                    participants.push({
+                        id: 'tutor', // We might need real IDs here but name/role suffices for timer
+                        name: stats.tutorName,
+                        role: 'TUTOR' as const,
+                        joinedAt: stats.tutorJoinedAt ? new Date(stats.tutorJoinedAt) : new Date(),
+                        isMicMuted: false,
+                        isCameraMuted: false
+                    });
+                }
+                if (stats.studentName && (stats.studentPresent || stats.studentJoinedAt)) {
+                    participants.push({
+                        id: 'student',
+                        name: stats.studentName,
+                        role: 'STUDENT' as const,
+                        joinedAt: stats.studentJoinedAt ? new Date(stats.studentJoinedAt) : new Date(),
+                        isMicMuted: false,
+                        isCameraMuted: false
+                    });
+                }
+                // Clear and set
+                actions.resetRoom();
+                actions.setRoomId(roomId);
+                participants.forEach(p => actions.addParticipant(p));
+            } catch (err) {
+                console.error("Failed to sync initial participants:", err);
+            }
+        };
+
+        if (isConnected) {
+            syncInitialParticipants();
+        }
+    }, [roomId, isConnected, actions]);
+
     // Reset retry count on successful connection
+    // AND Automate connection state transition for now (since we lack signaling)
     React.useEffect(() => {
         if (state.isConnected) {
             retryCountRef.current = 0;
+            return;
         }
-    }, [state.isConnected]);
+
+        // If WebSocket is connected, we manually bridge to 'CONNECTED' 
+        // because we don't have actual SDP signaling yet.
+        // This unblocks the UI from "Connecting..." state.
+        if (isConnected) {
+            actions.setConnectionState('CONNECTED');
+            actions.setIsConnected(true);
+        }
+    }, [state.isConnected, isConnected, actions]);
 
     // Auto-start recording if requested via URL param
     useEffect(() => {

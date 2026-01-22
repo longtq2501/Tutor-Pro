@@ -53,7 +53,12 @@ export const useChatMessages = (roomId: string) => {
         .flatMap((page) => page.content)
         .reverse() || [];
 
-    const allMessages = [...historicalMessages, ...realTimeMessages];
+    const combined = [...historicalMessages, ...realTimeMessages];
+
+    // Deduplicate by ID
+    const allMessages = Array.from(
+        new Map(combined.map(msg => [msg.id || `temp-${msg.timestamp}-${Math.random()}`, msg])).values()
+    );
 
     return {
         messages: allMessages,

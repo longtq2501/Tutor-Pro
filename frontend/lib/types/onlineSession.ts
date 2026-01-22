@@ -76,3 +76,8 @@ export interface SessionStatusResponse {
     remainingSeconds?: number;
     message: string;
 }
+
+export interface UpdateRecordingMetadataRequest {
+    durationMinutes: number;
+    fileSizeMb: number;
+}

@@ -12,8 +12,10 @@ interface ModalFooterProps {
     handleDuplicate: () => void;
     setConfirmDeleteOpen: (open: boolean) => void;
     onConvertToOnline?: () => void;
+    onRevertToOffline?: () => void;
     canConvert?: boolean;
     isConverting?: boolean;
+    isOnline?: boolean;
 }
 
 export function ModalFooter({
@@ -25,8 +27,10 @@ export function ModalFooter({
     handleDuplicate,
     setConfirmDeleteOpen,
     onConvertToOnline,
+    onRevertToOffline,
     canConvert,
-    isConverting
+    isConverting,
+    isOnline
 }: ModalFooterProps) {
     return (
         <div className="p-4 bg-muted/10 border-t border-border/60 shrink-0">
@@ -59,6 +63,26 @@ export function ModalFooter({
                                 )}
                                 <span className="relative z-10 hidden xs:inline truncate">CHUYỂN ONLINE</span>
                                 <span className="relative z-10 xs:hidden truncate">Online</span>
+                            </Button>
+                        )}
+
+                        {!loading && mode === 'view' && isOnline && canConvert && (
+                            <Button
+                                variant="outline"
+                                onClick={onRevertToOffline}
+                                disabled={isConverting || loading}
+                                className="h-10 flex-[1.5] rounded-xl font-black text-[11px] sm:text-[10px] px-2 border-red-200 dark:border-red-900 bg-red-50/30 dark:bg-red-900/10 text-red-600 dark:text-red-400 group overflow-hidden relative"
+                            >
+                                <motion.div
+                                    className="absolute inset-0 bg-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                />
+                                {isConverting ? (
+                                    <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                                ) : (
+                                    <Globe className="w-3.5 h-3.5 mr-1.5 shrink-0 group-hover:rotate-12 transition-transform duration-500" />
+                                )}
+                                <span className="relative z-10 hidden xs:inline truncate">HỦY ONLINE</span>
+                                <span className="relative z-10 xs:hidden truncate">Offline</span>
                             </Button>
                         )}
 

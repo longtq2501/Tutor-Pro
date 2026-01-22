@@ -111,4 +111,33 @@ public class OnlineSessionWebSocketController {
             log.error("Error processing typing status for room {}: {}", roomId, e.getMessage());
         }
     }
+
+    /**
+     * Handles whiteboard drawing actions.
+     * Broadcasts the stroke data to all participants in the room.
+     */
+    @MessageMapping("/room/{roomId}/whiteboard")
+    public void handleWhiteboardDraw(
+            @DestinationVariable String roomId,
+            Object payload) {
+        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/whiteboard", payload);
+    }
+
+    /**
+     * Handles whiteboard clear actions.
+     */
+    @MessageMapping("/room/{roomId}/whiteboard/clear")
+    public void handleWhiteboardClear(@DestinationVariable String roomId) {
+        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/whiteboard/clear", "{}");
+    }
+
+    /**
+     * Handles whiteboard undo actions.
+     */
+    @MessageMapping("/room/{roomId}/whiteboard/undo")
+    public void handleWhiteboardUndo(
+            @DestinationVariable String roomId,
+            Object payload) {
+        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/whiteboard/undo", payload);
+    }
 }

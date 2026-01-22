@@ -20,9 +20,9 @@ import { LiveRoomSkeleton } from './components/LiveRoomSkeleton';
  * Main feature component for Live Teaching.
  * Toggles between the Lobby (list of sessions) and the Live Room (teaching interface).
  */
-export const LiveRoomFeature = () => {
+export const LiveRoomFeature = ({ roomId: propRoomId }: { roomId?: string }) => {
     const searchParams = useSearchParams();
-    const roomId = searchParams.get('roomId');
+    const roomId = propRoomId || searchParams.get('roomId');
     const { user } = useAuth();
     const router = useRouter();
 
@@ -93,7 +93,7 @@ export const LiveRoomFeature = () => {
         return (
             <LobbyErrorBoundary>
                 <LiveTeachingLobby
-                    onJoin={(rid) => router.push(`/dashboard?view=live-room&roomId=${rid}`)}
+                    onJoin={(rid) => router.push(`/live-teaching/${rid}`)}
                     currentUserId={user?.id || 0}
                     isTutor={user?.role !== 'STUDENT'}
                     onCreateTestRoom={handleCreateTestRoom}

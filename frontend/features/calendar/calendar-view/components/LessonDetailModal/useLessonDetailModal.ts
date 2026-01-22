@@ -11,6 +11,7 @@ import { LessonDetailFormData, LessonDetailModalProps } from './types';
 
 import { isCancelledStatus, isCompletedStatus } from '@/lib/types/lesson-status';
 import { useConvertToOnline } from '../../hooks/useConvertToOnline';
+import { useConvertToOffline } from '../../hooks/useConvertToOffline';
 
 // Debounce Hook (internal)
 function useDebounce<T>(value: T, delay: number = 300): T {
@@ -40,6 +41,7 @@ export function useLessonDetailModal({ session, onClose, onUpdate, onDelete, ini
     const [isDirty, setIsDirty] = useState(false);
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
     const [showConvertConfirm, setShowConvertConfirm] = useState(false);
+    const [showRevertConfirm, setShowRevertConfirm] = useState(false);
 
     // Tab and filter state
     const [activeTab, setActiveTab] = useState<'lessons' | 'documents'>('lessons');
@@ -53,7 +55,10 @@ export function useLessonDetailModal({ session, onClose, onUpdate, onDelete, ini
     const [selectedDocumentIds, setSelectedDocumentIds] = useState<Set<number>>(new Set());
 
     // Conversion logic
-    const { mutate: convertToOnline, isPending: isConverting } = useConvertToOnline();
+    const { mutate: convertToOnline, isPending: isConvertingToOnline } = useConvertToOnline();
+    const { mutate: revertToOffline, isPending: isRevertingToOffline } = useConvertToOffline();
+
+    const isConverting = isConvertingToOnline || isRevertingToOffline;
 
     const canConvert = useMemo(() => {
         if (!localSession.status) return false;
@@ -62,7 +67,20 @@ export function useLessonDetailModal({ session, onClose, onUpdate, onDelete, ini
     }, [localSession.status]);
 
     const handleConvertToOnline = async () => {
-        convertToOnline(localSession.id);
+        convertToOnline(localSession.id, {
+            onSuccess: () => {
+                setLocalSession(prev => ({ ...prev, isOnline: true }));
+                toast.success('Đã chuyển sang chế độ Online'); // Duplicate toast? Hook has one too.
+            }
+        });
+    };
+
+    const handleRevertToOffline = async () => {
+        revertToOffline(localSession.id, {
+            onSuccess: () => {
+                setLocalSession(prev => ({ ...prev, isOnline: false }));
+            }
+        });
     };
 
     // Fetch Library Data
@@ -307,6 +325,8 @@ export function useLessonDetailModal({ session, onClose, onUpdate, onDelete, ini
         setConfirmDeleteOpen,
         showConvertConfirm,
         setShowConvertConfirm,
+        showRevertConfirm,
+        setShowRevertConfirm,
         activeTab,
         setActiveTab,
         searchTerm,
@@ -333,6 +353,7 @@ export function useLessonDetailModal({ session, onClose, onUpdate, onDelete, ini
         handleDuplicate,
         handleDelete,
         handleConvertToOnline,
+        handleRevertToOffline,
         canConvert,
         isConverting,
         getCategoryName

@@ -66,7 +66,8 @@ public class SecurityConfiguration {
         // ✅ Cụ thể origins (KHÔNG dùng wildcard khi có credentials)
         configuration.setAllowedOrigins(Arrays.asList(
                 "https://tutor-management-e7zh.vercel.app",
-                "http://localhost:3000"
+                "http://localhost:3000",
+                "http://127.0.0.1:3000"
         ));
 
         configuration.setAllowedMethods(Arrays.asList(

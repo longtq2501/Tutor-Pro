@@ -23,7 +23,15 @@ Comprehensive refactor of the Document Library module from hardcoded categories 
 
 ## 📋 Active Items
 
-*No active items at this time. All requirements met. Scaling issues on iPhone 16 have been resolved via Google Docs Viewer.*
+### Tutor Personalization (Multi-tenancy) - 🔄 NEXT
+- [ ] [P1-High] **Backend: Multi-tenant Data Isolation**
+  - Task: Add `tutor_id` to `Document` entity and update `DocumentRepository` to filter by owner.
+  - Objective: Ensure Tutors only manage their own documents while Admins see all.
+- [ ] [P1-High] **Backend: Enable Upload for Tutors**
+  - Task: Update `DocumentController` permissions to allow `TUTOR` role to use `@PostMapping`.
+- [ ] [P2-Medium] **Frontend: Personalization UI**
+  - Task: Show "Tải lên" and "Sửa/Xóa" buttons for `TUTOR` role in `DocumentLibrary`.
+  - Task: Filter document list to show only relevant tutor's files.
 
 ---
 

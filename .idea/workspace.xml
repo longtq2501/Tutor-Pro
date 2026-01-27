@@ -7,20 +7,12 @@
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CONTINUITY.md" beforeDir="false" afterPath="$PROJECT_DIR$/CONTINUITY.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/config/CacheConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/config/CacheConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/feedback/dto/request/GenerateCommentRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/feedback/dto/request/GenerateCommentRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/feedback/service/SessionFeedbackService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/feedback/service/SessionFeedbackService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/test_output.txt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/test_output.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/ISSUES.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarHeader.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/HeaderActions.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/HeaderActions.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/feedback/components/CommentGenerator.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/feedback/components/CommentGenerator.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/feedback/components/form/FeedbackFormFields.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/feedback/components/form/FeedbackFormFields.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/feedback/components/generator/GeneratorActions.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/feedback/components/generator/GeneratorActions.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/feedback/components/generator/RatingSelect.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/feedback/components/generator/RatingSelect.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/feedback/hooks/useSmartFeedback.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/feedback/hooks/useSmartFeedback.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/feedback/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/feedback/types.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/documents/ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/ISSUES.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/exercises/ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/exercises/ISSUES.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/ISSUES.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -96,6 +88,7 @@
     &quot;JUnit.RoomTokenServiceTest.executor&quot;: &quot;Run&quot;,
     &quot;JUnit.RoomTokenServiceTest.isTokenExpired_ExpiredToken.executor&quot;: &quot;Run&quot;,
     &quot;JUnit.RoomTokenServiceTest.validateToken_ExpiredToken.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.SessionRecordServiceTest.executor&quot;: &quot;Run&quot;,
     &quot;JUnit.TutorServiceTest (1).executor&quot;: &quot;Run&quot;,
     &quot;JUnit.TutorServiceTest.executor&quot;: &quot;Run&quot;,
     &quot;Maven.backend [clean].executor&quot;: &quot;Run&quot;,
@@ -335,7 +328,8 @@
       <workItem from="1769093814790" duration="1950000" />
       <workItem from="1769144128808" duration="3572000" />
       <workItem from="1769319214645" duration="3963000" />
-      <workItem from="1769481523408" duration="10190000" />
+      <workItem from="1769481523408" duration="10605000" />
+      <workItem from="1769527053060" duration="619000" />
     </task>
     <servers />
   </component>

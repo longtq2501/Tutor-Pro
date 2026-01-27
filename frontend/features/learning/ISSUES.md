@@ -8,10 +8,17 @@
   - Root cause: Bulk actions scroll away with long lists.
   - Solution: Sticky header or fixed toolbar.
 
-## UI Issues
-- [x] [P2-Medium] **Responsive Design on Mobile**
-  - Root cause: Complex tables/grids not optimized for iPhone SE.
-  - Solution: Use card view or horizontal scroll for tables on mobile.
+## 📋 Active Items
+
+### Tutor Personalization (Multi-tenancy) - 🔄 NEXT
+- [ ] [P1-High] **Backend: Migrate tutorName to tutor_id**
+  - Task: Add `tutor_id` FK to `Lesson` entity, migrate existing data.
+  - Task: Update `LessonRepository` to filter by `tutor_id` for isolated management.
+- [ ] [P1-High] **Backend: Owner-based Access Control**
+  - Task: Prevent Tutors from editing/deleting lessons they don't own.
+- [ ] [P2-Medium] **Frontend: Tutor-focused UI**
+  - Task: Update Lesson creation form to auto-assign current tutor.
+  - Task: Add "My Lessons" vs "All Lessons" toggle/filter for Tutors.
 
 ## Technical Debt (Optional)
 

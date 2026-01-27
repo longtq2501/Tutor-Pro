@@ -102,6 +102,11 @@ Optimize existing TMS from "functional" to "production-ready":
   - Priority: P1
 
 ### Next:
+- 🔄 **Module Personalization Phase (Multi-tenancy)**
+  - Goal: Personalize Lessons, Documents, and Exercises for individual Tutors.
+  - Scope: Schema migration (`tutor_id`), Backend data isolation, and Tutor-specific UI/UX for management.
+  - Priority: P1
+
 - 🔄 **Exercise Module Upgrade** (Paused)
   - Goal: Implement pagination, "Pending" status tracking, and "Teacher-only" view.
   - Context: Currently exercises are global or unoptimized.

@@ -1,7 +1,7 @@
 'use client';
 
-import { BackgroundPaths } from "@/components/ui/background-paths";
+import { TutorProHero } from "@/features/landing/components/TutorProHero";
 
 export default function LandingPage() {
-  return <BackgroundPaths title="Tutor Pro" />;
+  return <TutorProHero />;
 }

@@ -1,9 +1,13 @@
 # Exercise Module - Issues & Optimization
 
-## UX Issues
-- [ ] [P2-Medium] Search/Filter Persistence
-  - Root cause: Library filters (category, search) are lost on refresh.
-  - Target: Sync with URL query parameters.
+## 📋 Active Items
+
+### Tutor Personalization (Multi-tenancy) - 🔄 NEXT
+- [ ] [P1-High] **Backend: Data Ownership Migration**
+  - Task: Implement `tutor_id` tracking for library exercises.
+  - Objective: Isolate exercise banks so Tutors only manage their own content.
+- [ ] [P2-Medium] **Frontend: Librarian View Personalization**
+  - Task: Add "My Bank" vs "Public Bank" filtering mechanism.
 
 ## Completed Work
 

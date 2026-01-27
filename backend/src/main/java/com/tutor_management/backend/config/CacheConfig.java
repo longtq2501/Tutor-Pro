@@ -23,7 +23,8 @@ public class CacheConfig {
                 "courseList",
                 "courseDetail",
                 "dashboardStats",
-                "monthlyStats");
+                "monthlyStats",
+                "aiGeneratedComments");
         cacheManager.setCaffeine(caffeineCacheBuilder());
         return cacheManager;
     }

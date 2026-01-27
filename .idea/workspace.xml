@@ -6,30 +6,21 @@
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/finance/controller/SessionRecordController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/finance/controller/SessionRecordController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/controller/OnlineSessionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/controller/OnlineSessionController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/controller/OnlineSessionWebSocketController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/controller/OnlineSessionWebSocketController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/dto/response/RoomStatsResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/dto/response/RoomStatsResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/entity/OnlineSession.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/entity/OnlineSession.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/PresenceService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/PresenceService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/app/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/dashboard/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CONTINUITY.md" beforeDir="false" afterPath="$PROJECT_DIR$/CONTINUITY.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/config/CacheConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/config/CacheConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/feedback/dto/request/GenerateCommentRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/feedback/dto/request/GenerateCommentRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/feedback/service/SessionFeedbackService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/feedback/service/SessionFeedbackService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/test_output.txt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/test_output.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/calendar/ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/ISSUES.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/ISSUES.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/LiveRoomDisplay.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/LiveRoomDisplay.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/RecordingPromptDialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/RecordingPromptDialog.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/RoomHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/RoomHeader.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/Whiteboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/Whiteboard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/WhiteboardToolbar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/WhiteboardToolbar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/context/RoomStateContext.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/context/RoomStateContext.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/hooks/__tests__/useWhiteboardSync.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/hooks/__tests__/useWhiteboardSync.test.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/hooks/useBillableTimer.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/hooks/useBillableTimer.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/hooks/useHeartbeat.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/hooks/useHeartbeat.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/hooks/useSessionRecorder.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/hooks/useSessionRecorder.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/hooks/useWhiteboardSync.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/hooks/useWhiteboardSync.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/services/onlineSession.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/onlineSession.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/types/onlineSession.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/types/onlineSession.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarHeader.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/HeaderActions.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/HeaderActions.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/feedback/components/CommentGenerator.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/feedback/components/CommentGenerator.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/feedback/components/form/FeedbackFormFields.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/feedback/components/form/FeedbackFormFields.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/feedback/components/generator/GeneratorActions.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/feedback/components/generator/GeneratorActions.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/feedback/components/generator/RatingSelect.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/feedback/components/generator/RatingSelect.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/feedback/hooks/useSmartFeedback.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/feedback/hooks/useSmartFeedback.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/feedback/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/feedback/types.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -202,22 +193,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="OnlineSessionServiceTest.convertToOnline_Success" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="backend" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.tutor_management.backend.modules.onlinesession.service.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.tutor_management.backend.modules.onlinesession.service" />
-      <option name="MAIN_CLASS_NAME" value="com.tutor_management.backend.modules.onlinesession.service.OnlineSessionServiceTest" />
-      <option name="METHOD_NAME" value="convertToOnline_Success" />
-      <option name="TEST_OBJECT" value="method" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="OnlineSessionServiceTest.getMySessions_Tutor_Success" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="backend" />
       <extension name="coverage">
@@ -234,6 +209,21 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="SessionRecordServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="backend" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.tutor_management.backend.modules.finance.service.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.tutor_management.backend.modules.finance.service" />
+      <option name="MAIN_CLASS_NAME" value="com.tutor_management.backend.modules.finance.service.SessionRecordServiceTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="BackendApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
       <module name="backend" />
@@ -244,11 +234,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.SessionRecordServiceTest" />
         <item itemvalue="JUnit.OnlineSessionServiceTest" />
         <item itemvalue="JUnit.OnlineSessionServiceTest.getMySessions_Tutor_Success" />
         <item itemvalue="JUnit.OnlineSessionServiceTest.convertToOnline_PastTime_ThrowsException" />
         <item itemvalue="JUnit.OnlineSessionServiceTest.convertToOnline_RaceCondition_ThrowsException" />
-        <item itemvalue="JUnit.OnlineSessionServiceTest.convertToOnline_Success" />
       </list>
     </recent_temporary>
   </component>
@@ -345,7 +335,7 @@
       <workItem from="1769093814790" duration="1950000" />
       <workItem from="1769144128808" duration="3572000" />
       <workItem from="1769319214645" duration="3963000" />
-      <workItem from="1769481523408" duration="6414000" />
+      <workItem from="1769481523408" duration="10190000" />
     </task>
     <servers />
   </component>

@@ -28,6 +28,7 @@ interface Props {
   searchQuery?: string;
   onFilterChange?: (status: string | 'ALL') => void;
   onSearchChange?: (query: string) => void;
+  onDeleteMonth?: () => void;
   isFetching?: boolean;
 }
 
@@ -35,7 +36,7 @@ export const CalendarHeader = ({
   currentDate, currentView, onViewChange, onNavigate, onToday, onAddSession,
   onAutoGenerate, onGenerateInvoice, isGenerating = false, sessions, stats,
   isScrolled, onFilterChange, currentFilter = 'ALL', searchQuery = '',
-  onSearchChange, isFetching = false
+  onSearchChange, onDeleteMonth, isFetching = false
 }: Props) => {
   return (
     <header className={cn(
@@ -52,7 +53,14 @@ export const CalendarHeader = ({
               <ViewTabs currentView={currentView} onViewChange={onViewChange} />
               <FilterPopover currentFilter={currentFilter} searchQuery={searchQuery} onFilterChange={onFilterChange!} onSearchChange={onSearchChange!} />
             </div>
-            <HeaderActions onAddSession={onAddSession} onGenerateInvoice={onGenerateInvoice} onAutoGenerate={onAutoGenerate} isGenerating={isGenerating} sessionsCount={sessions.length} />
+            <HeaderActions
+              onAddSession={onAddSession}
+              onGenerateInvoice={onGenerateInvoice}
+              onAutoGenerate={onAutoGenerate}
+              onDeleteMonth={onDeleteMonth!}
+              isGenerating={isGenerating}
+              sessionsCount={sessions.length}
+            />
           </div>
         </div>
       </div>

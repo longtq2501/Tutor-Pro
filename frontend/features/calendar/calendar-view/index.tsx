@@ -54,6 +54,7 @@ export default function CalendarView() {
         currentFilter={view.statusFilter}
         searchQuery={view.searchQuery}
         onSearchChange={view.setSearchQuery}
+        onDeleteMonth={() => view.setDeleteConfirmationOpen(true)}
         isFetching={view.isFetching}
       />
 

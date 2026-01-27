@@ -12,6 +12,7 @@ interface HeaderActionsProps {
     onAddSession: () => void;
     onGenerateInvoice: () => void;
     onAutoGenerate: () => void;
+    onDeleteMonth: () => void;
     isGenerating: boolean;
     sessionsCount: number;
 }
@@ -20,6 +21,7 @@ export function HeaderActions({
     onAddSession,
     onGenerateInvoice,
     onAutoGenerate,
+    onDeleteMonth,
     isGenerating,
     sessionsCount,
 }: HeaderActionsProps) {
@@ -51,10 +53,22 @@ export function HeaderActions({
                                 );
                             })}
                         </div>
-                        <div className="pt-4 mt-4 border-t border-border/40">
+                        <div className="pt-4 mt-4 border-t border-border/40 space-y-2">
                             <Button variant="ghost" size="sm" className="w-full justify-start h-10 rounded-xl px-3 font-black uppercase tracking-widest text-[10px] text-muted-foreground" onClick={onGenerateInvoice} disabled={isGenerating}>
                                 {isGenerating ? "Đang xử lý..." : "Chi tiết doanh thu"}
                             </Button>
+
+                            {sessionsCount > 0 && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="w-full justify-start h-10 rounded-xl px-3 font-black uppercase tracking-widest text-[10px] text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                    onClick={onDeleteMonth}
+                                    disabled={isGenerating}
+                                >
+                                    Xóa tất cả buổi học
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </PopoverContent>

@@ -4,13 +4,24 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Loader2, Shuffle, Sparkles } from "lucide-react";
 
+/**
+ * Interface for GeneratorActions component props.
+ */
 interface GeneratorActionsProps {
+    /** Callback to trigger standard AI generation */
     onGenerate: () => void;
+    /** Callback to trigger a forced regeneration (bypassing cache) */
+    onShuffle: () => void;
+    /** Whether the generation process is currently active */
     isGenerating: boolean;
+    /** Whether the buttons should be disabled (e.g., missing rating) */
     disabled: boolean;
 }
 
-export function GeneratorActions({ onGenerate, isGenerating, disabled }: GeneratorActionsProps) {
+/**
+ * Action buttons for the AI feedback generator, including standard generation and shuffle.
+ */
+export function GeneratorActions({ onGenerate, onShuffle, isGenerating, disabled }: GeneratorActionsProps) {
     return (
         <div className="flex gap-2">
             <Button
@@ -31,12 +42,12 @@ export function GeneratorActions({ onGenerate, isGenerating, disabled }: Generat
                 type="button"
                 size="icon"
                 variant="outline"
-                title="Shuffle"
-                onClick={onGenerate}
+                title="Tạo phương án khác"
+                onClick={onShuffle}
                 disabled={disabled || isGenerating}
-                className="w-10 h-10 rounded-2xl border-border/40 bg-background/50 backdrop-blur-sm hover:bg-background/80 hover:border-primary/30 transition-all"
+                className="w-10 h-10 rounded-2xl border-border/40 bg-background/50 backdrop-blur-sm hover:bg-background/80 hover:border-primary/30 transition-all group/shuffle"
             >
-                <Shuffle className={cn("w-4 h-4 text-muted-foreground", isGenerating && "animate-spin")} />
+                <Shuffle className={cn("w-4 h-4 text-muted-foreground group-hover/shuffle:text-primary transition-colors", isGenerating && "animate-spin")} />
             </Button>
         </div>
     );

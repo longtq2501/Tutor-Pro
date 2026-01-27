@@ -60,6 +60,11 @@ Optimize existing TMS from "functional" to "production-ready":
 - ✅ **Student Module Refactoring (Unified View):**
     - **Quality:** Broke down the monolithic `StudentDetailModal.tsx` and extracted complex modal logic from `unified-view/index.tsx` into a reusable `useUnifiedView` hook.
     - **Architecture:** Improved maintainability by separating logic from UI and reducing component complexity.
+- ✅ **AI Comment Generator Upgrade (Scaling for Multi-User):**
+    - **Achievements:** Replaced static CSV generator with **Groq AI (Llama 3.3)** powering the core engine.
+    - **Scaling:** Added support for multi-subject (10+) and multi-language (5+) contextual generation.
+    - **Reliability:** Implemented a robust **Template Fallback System** ensuring generation even when AI is offline.
+    - **API Performance:** Response time < 2s with optimized prompt engineering.
 - ✅ Finance Management Optimization (Phase 1):
   - Memory Usage: Fixed "Memory Intensive Payload" by implementing Spring Data pagination for `/api/sessions`.
   - Frontend: Updated hooks and services to support paginated data structures.
@@ -92,8 +97,8 @@ Optimize existing TMS from "functional" to "production-ready":
 - [x] Complete Live Teaching (Interactive & Lifecycle)
 
 ### Now:
-- 🔄 **Exercise Module Upgrade**
-  - Goal: Implement pagination, "Pending" status tracking, and "Teacher-only" view.
+- 🔄 **Calendar Module Upgrade**
+  - Goal: Enhance UX for online sessions.
   - Priority: P1
 
 ### Next:
@@ -107,6 +112,6 @@ Optimize existing TMS from "functional" to "production-ready":
 ## Open Questions
 
 ### Working Set:
-Current module: Live Teaching (Interactive & Lifecycle)
-Active files or folders: [frontend/features/live-room, backend/src/main/java/com/tutor_management/backend/modules/onlinesession]
-Focus: Finalizing interactive features (Whiteboard, Chat) and Session Recording lifecycle.
+Current module: frontend\features\calendar
+Active files or folders: [frontend/features/calendar]
+Focus: Enhance UX for online sessions.

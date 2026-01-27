@@ -11,6 +11,7 @@ import com.tutor_management.backend.modules.feedback.repository.FeedbackScenario
 import com.tutor_management.backend.modules.feedback.repository.SessionFeedbackRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +40,7 @@ public class SessionFeedbackService {
     private final FeedbackScenarioRepository feedbackScenarioRepository;
     private final SessionRecordRepository sessionRecordRepository;
     private final StudentRepository studentRepository;
+    private final com.tutor_management.backend.modules.feedback.service.ai.AiGeneratorService aiGeneratorService;
 
     @Transactional
     public Long createFeedback(SessionFeedbackRequest request) {
@@ -109,10 +111,29 @@ public class SessionFeedbackService {
 
     /**
      * Assembles a natural-sounding Vietnamese comment based on ratings and selected keywords.
+     * Uses AI-powered generation with a template-based fallback system.
      */
+    @Cacheable(value = "aiGeneratedComments", 
+               key = "{#request.category, #request.ratingLevel, #request.keywords, #request.tone, #request.length}",
+               condition = "!#request.forceRefresh")
     public GenerateCommentResponse generateComment(GenerateCommentRequest request) {
-        log.debug("Generating smart comment for student {} [Category: {}]", request.getStudentName(), request.getCategory());
+        log.info("Generating smart comment for student {} [Category: {}], ForceRefresh: {}", 
+                 request.getStudentName(), request.getCategory(), request.isForceRefresh());
         
+        // 1. Try AI Generation first (Groq)
+        if (aiGeneratorService.isEnabled()) {
+            String aiComment = aiGeneratorService.generate(request);
+            if (aiComment != null && !aiComment.isEmpty()) {
+                log.info("Successfully generated AI comment for {}", request.getStudentName());
+                return GenerateCommentResponse.builder()
+                        .generatedComment(aiComment)
+                        .usedScenarioIds(Collections.emptyList()) // AI doesn't use static scenarios
+                        .build();
+            }
+            log.warn("AI generation failed or returned empty content. Falling back to templates.");
+        }
+
+        // 2. Fallback to Template System
         String studentName = (request.getStudentName() != null && !request.getStudentName().isEmpty()) 
                 ? request.getStudentName() : "Con";
 

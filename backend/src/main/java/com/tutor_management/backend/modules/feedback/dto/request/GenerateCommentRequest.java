@@ -34,4 +34,29 @@ public class GenerateCommentRequest {
      * Name of the student to inject into the template placeholders.
      */
     private String studentName;
+
+    /**
+     * Subject being taught (e.g., "MATH", "ENGLISH").
+     */
+    private String subject;
+
+    /**
+     * Targeted language for the output (e.g., "vi", "en").
+     */
+    private String language;
+
+    /**
+     * Tone of the feedback (e.g., "PROFESSIONAL", "FRIENDLY", "FORMAL").
+     */
+    private String tone;
+
+    /**
+     * Desire length of the comment (e.g., "SHORT", "MEDIUM", "LONG").
+     */
+    private String length;
+
+    /**
+     * If true, bypass cache and generate a new variation.
+     */
+    private boolean forceRefresh;
 }

@@ -16,13 +16,23 @@ import {
 } from "@/components/ui/select";
 import { UseFormReturn } from "react-hook-form";
 
+/**
+ * Interface for RatingSelect component props.
+ */
 interface RatingSelectProps {
+    /** The form instance from react-hook-form */
     form: UseFormReturn<any>;
+    /** The field name to map to the select value */
     name: string;
+    /** Display label for the rating field */
     label: string;
+    /** List of available rating options */
     ratings: string[];
 }
 
+/**
+ * A themed select component for choosing student performance levels.
+ */
 export function RatingSelect({ form, name, label, ratings }: RatingSelectProps) {
     return (
         <FormField

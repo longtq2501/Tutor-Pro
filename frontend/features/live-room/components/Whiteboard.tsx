@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { useWhiteboardSync } from '../hooks/useWhiteboardSync';
 import { WhiteboardToolbar } from './WhiteboardToolbar';
+import { ConfirmDialog } from './ConfirmDialog';
 import type { StrokePoint } from '../hooks/useWhiteboardSync';
 
 export interface WhiteboardProps {
@@ -25,6 +26,9 @@ export const Whiteboard: React.FC<WhiteboardProps> = ({
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
+    // ✅ Add state for confirmation dialog
+    const [showClearConfirm, setShowClearConfirm] = useState(false);
+
     const {
         strokes,
         currentStroke,
@@ -42,7 +46,32 @@ export const Whiteboard: React.FC<WhiteboardProps> = ({
         setColor,
         setWidth,
         setTool,
+        getMyStrokesCount,
     } = useWhiteboardSync(roomId, currentUserId, sendMessage);
+
+    // ✅ Handler to show clear confirmation
+    const handleClearRequest = useCallback(() => {
+        setShowClearConfirm(true);
+    }, []);
+
+    // ✅ Handler for confirmed clear
+    const handleClearConfirmed = useCallback(() => {
+        clearBoard();
+        setShowClearConfirm(false);
+    }, [clearBoard]);
+
+    // ✅ Compute canUndo based on user's strokes only
+    const canUndo = getMyStrokesCount() > 0;
+
+    // Add this useEffect at the top of the Whiteboard component, after the hook call
+    useEffect(() => {
+        console.log('[Whiteboard] Component initialized:', {
+            roomId,
+            currentUserId,
+            currentUserIdType: typeof currentUserId,
+            hasSendMessage: !!sendMessage
+        });
+    }, [roomId, currentUserId, sendMessage]);
 
     // Keyboard shortcuts for Undo/Redo
     useEffect(() => {
@@ -69,22 +98,39 @@ export const Whiteboard: React.FC<WhiteboardProps> = ({
         const canvas = canvasRef.current;
         if (!canvas) return;
 
+        const { width, height } = canvas;
+        if (width === 0 || height === 0) return;
+
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, width, height);
 
         [...strokes, currentStroke].filter(Boolean).forEach(stroke => {
             if (!stroke || stroke.points.length === 0) return;
 
             ctx.beginPath();
             ctx.strokeStyle = stroke.tool === 'eraser' ? '#FFFFFF' : stroke.color;
-            ctx.lineWidth = stroke.width;
+
+            // Safe scaling
+            const scale = Math.min(width, height) / 1000;
+            ctx.lineWidth = Math.max(1, stroke.width * scale);
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
 
-            ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
-            stroke.points.forEach(point => ctx.lineTo(point.x, point.y));
+            // Helper to safely denormalize
+            const getSafePoint = (p: StrokePoint) => ({
+                x: Math.max(0, Math.min(1, p.x)) * width,
+                y: Math.max(0, Math.min(1, p.y)) * height
+            });
+
+            const start = getSafePoint(stroke.points[0]);
+            ctx.moveTo(start.x, start.y);
+
+            stroke.points.forEach(point => {
+                const safe = getSafePoint(point);
+                ctx.lineTo(safe.x, safe.y);
+            });
             ctx.stroke();
         });
     }, [strokes, currentStroke]);
@@ -100,6 +146,7 @@ export const Whiteboard: React.FC<WhiteboardProps> = ({
             const container = containerRef.current;
             if (!canvas || !container) return;
 
+            // Set actual canvas size to match display size for sharp rendering
             canvas.width = container.clientWidth;
             canvas.height = container.clientHeight;
             renderCanvas();
@@ -110,44 +157,37 @@ export const Whiteboard: React.FC<WhiteboardProps> = ({
         return () => window.removeEventListener('resize', handleResize);
     }, [renderCanvas]);
 
-    const getCanvasPoint = useCallback((e: React.MouseEvent): StrokePoint => {
+    const getNormalizedPoint = useCallback((clientX: number, clientY: number): StrokePoint | null => {
         const canvas = canvasRef.current;
-        if (!canvas) return { x: 0, y: 0 };
+        if (!canvas) return null;
 
         const rect = canvas.getBoundingClientRect();
-        return {
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top,
-        };
-    }, []);
+        const width = canvas.width;
+        const height = canvas.height;
 
-    const getCanvasTouchPoint = useCallback((e: React.TouchEvent): StrokePoint | null => {
-        const canvas = canvasRef.current;
-        if (!canvas || e.touches.length === 0) return null;
+        if (width === 0 || height === 0) return null;
 
-        const rect = canvas.getBoundingClientRect();
-        const touch = e.touches[0];
         return {
-            x: touch.clientX - rect.left,
-            y: touch.clientY - rect.top,
+            x: (clientX - rect.left) / width,
+            y: (clientY - rect.top) / height,
         };
     }, []);
 
     const handleMouseDown = useCallback(
         (e: React.MouseEvent) => {
-            const point = getCanvasPoint(e);
-            startStroke(point);
+            const point = getNormalizedPoint(e.clientX, e.clientY);
+            if (point) startStroke(point);
         },
-        [getCanvasPoint, startStroke]
+        [getNormalizedPoint, startStroke]
     );
 
     const handleMouseMove = useCallback(
         (e: React.MouseEvent) => {
             if (!isDrawing) return;
-            const point = getCanvasPoint(e);
-            addPoint(point);
+            const point = getNormalizedPoint(e.clientX, e.clientY);
+            if (point) addPoint(point);
         },
-        [isDrawing, getCanvasPoint, addPoint]
+        [isDrawing, getNormalizedPoint, addPoint]
     );
 
     const handleMouseUp = useCallback(() => {
@@ -156,21 +196,22 @@ export const Whiteboard: React.FC<WhiteboardProps> = ({
 
     const handleTouchStart = useCallback(
         (e: React.TouchEvent) => {
-            // Prevent scrolling while drawing
-            // Note: touch-action: none in CSS is also required for this to work reliably
-            const point = getCanvasTouchPoint(e);
+            if (e.touches.length === 0) return;
+            const touch = e.touches[0];
+            const point = getNormalizedPoint(touch.clientX, touch.clientY);
             if (point) startStroke(point);
         },
-        [getCanvasTouchPoint, startStroke]
+        [getNormalizedPoint, startStroke]
     );
 
     const handleTouchMove = useCallback(
         (e: React.TouchEvent) => {
-            if (!isDrawing) return;
-            const point = getCanvasTouchPoint(e);
+            if (!isDrawing || e.touches.length === 0) return;
+            const touch = e.touches[0];
+            const point = getNormalizedPoint(touch.clientX, touch.clientY);
             if (point) addPoint(point);
         },
-        [isDrawing, getCanvasTouchPoint, addPoint]
+        [isDrawing, getNormalizedPoint, addPoint]
     );
 
     const handleTouchEnd = useCallback(() => {
@@ -187,14 +228,29 @@ export const Whiteboard: React.FC<WhiteboardProps> = ({
                 onWidthChange={setWidth}
                 onToolChange={setTool}
                 onClear={clearBoard}
+                onClearRequest={handleClearRequest} // ✅ Add
                 onUndo={undoBoard}
                 onRedo={redoBoard}
-                canUndo={strokes.length > 0}
+                canUndo={canUndo} // ✅ Updated logic
                 canRedo={redoStack.length > 0}
             />
+
+            {/* ✅ Add Confirmation Dialog */}
+            <ConfirmDialog
+                open={showClearConfirm}
+                onOpenChange={setShowClearConfirm}
+                title="Xóa nét vẽ của bạn?"
+                description="Hành động này sẽ xóa tất cả nét vẽ của bạn trên whiteboard. Bạn có chắc chắn muốn tiếp tục?"
+                confirmText="Xóa"
+                cancelText="Hủy"
+                onConfirm={handleClearConfirmed}
+                variant="destructive"
+            />
+
             <div
                 ref={containerRef}
-                className="relative flex-1 bg-white border rounded-lg overflow-hidden"
+                className="relative flex-1 bg-white border rounded-lg overflow-hidden touch-none"
+                style={{ minHeight: '400px' }}
             >
                 <canvas
                     ref={canvasRef}

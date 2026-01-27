@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { BillableTimer } from './BillableTimer';
+import { ParticipantPresence } from './ParticipantPresence';
 import { ModeToggle } from '@/components/ModeToggle';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Copy, Check } from 'lucide-react';
@@ -55,6 +56,9 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
                 </TooltipProvider>
 
                 <BillableTimer roomId={roomId} />
+
+                <ParticipantPresence />
+
                 {isRecording && (
                     <span className="flex items-center gap-1 text-[10px] md:text-xs text-red-500 font-medium animate-pulse whitespace-nowrap">
                         ● <span className="hidden xs:inline">ĐANG GHI HÌNH</span>

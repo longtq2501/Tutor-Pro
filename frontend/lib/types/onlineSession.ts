@@ -27,6 +27,8 @@ export interface JoinRoomResponse {
 export interface RoomStatsResponse {
     roomId: string;
     roomStatus: string;
+    tutorId: number;
+    studentId: number;
     tutorName: string;
     studentName: string;
     tutorPresent: boolean;
@@ -39,6 +41,7 @@ export interface RoomStatsResponse {
     tutorJoinedAt?: string;
     studentJoinedAt?: string;
     durationMinutes: number;
+    durationSeconds?: number;
     recordingEnabled: boolean;
     recordingDownloaded: boolean;
     recordingDurationMinutes: number;

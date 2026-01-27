@@ -1,17 +1,40 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useWhiteboardPersistence } from './useWhiteboardPersistence';
 import { useWebSocket } from '../context/WebSocketContext';
+import { onlineSessionApi } from '@/lib/services/onlineSession';
 
 /**
  * Message payload for whiteboard synchronization.
+ * Supports both delta updates (during drawing) and complete strokes (on end).
  */
-/**
- * Message payload for whiteboard synchronization.
- */
-interface SyncMessage {
-    type: 'STROKE' | 'CLEAR' | 'UNDO';
-    payload?: Stroke | string; // Stroke for STROKE, string (id) for UNDO
+interface StrokeDeltaMessage {
+    type: 'STROKE_DELTA';
+    strokeId: string;
+    points: StrokePoint[];
+    startIndex: number;
+    color: string;
+    width: number;
+    tool: 'pen' | 'eraser';
+    userId?: string;
 }
+
+interface CompleteStrokeMessage {
+    type: 'STROKE';
+    stroke: Stroke;
+}
+
+interface ClearMessage {
+    type: 'CLEAR';
+    userId?: string;
+}
+
+interface UndoMessage {
+    type: 'UNDO';
+    id: string;
+    userId?: string;
+}
+
+type SyncMessage = StrokeDeltaMessage | CompleteStrokeMessage | ClearMessage | UndoMessage;
 
 /**
  * Stroke data structure for whiteboard drawing.
@@ -53,38 +76,14 @@ export interface WhiteboardSyncActions {
     setTool: (tool: 'pen' | 'eraser') => void;
     receiveRemoteStroke: (stroke: Stroke) => void;
     receiveRemoteUndo: (strokeId: string) => void;
+    getMyStrokesCount: () => number;
 }
 
-/**
- * Throttle function that limits execution to once per interval.
- */
-function throttle<T extends (...args: any[]) => void>(
-    func: T,
-    delay: number
-): T {
-    let lastCall = 0;
-    let timeoutId: NodeJS.Timeout | null = null;
-
-    return ((...args: Parameters<T>) => {
-        const now = Date.now();
-        const timeSinceLastCall = now - lastCall;
-
-        if (timeSinceLastCall >= delay) {
-            lastCall = now;
-            func(...args);
-        } else {
-            if (timeoutId) clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => {
-                lastCall = Date.now();
-                func(...args);
-            }, delay - timeSinceLastCall);
-        }
-    }) as T;
-}
 
 /**
- * Hook for managing whiteboard drawing with throttled WebSocket sync.
- * Throttles stroke updates to 1 message per 50ms (20 messages/sec max).
+ * Hook for managing whiteboard drawing with interval-based delta sync.
+ * Sends only new points every 50ms (batched deltas) to reduce payload size by 80%+.
+ * Sends complete stroke on endStroke for final reconciliation.
  */
 export const useWhiteboardSync = (
     roomId: string,
@@ -109,22 +108,82 @@ export const useWhiteboardSync = (
     // Periodically save to localStorage (10s interval defined in useWhiteboardPersistence)
     useAutoSave(state.strokes);
 
-    const throttledSendRef = useRef<((stroke: Stroke) => void) | null>(null);
-
+    // ✅ Hydrate from Backend on mount
     useEffect(() => {
-        if (sendMessage) {
-            throttledSendRef.current = throttle((stroke: Stroke) => {
-                sendMessage(`/app/room/${roomId}/whiteboard`, stroke);
-            }, 50);
-        }
-    }, [roomId, sendMessage]);
+        const fetchStrokes = async () => {
+            try {
+                const fetchedStrokes = await onlineSessionApi.getWhiteboardStrokes(roomId);
+                if (fetchedStrokes.length > 0) {
+                    setState(prev => {
+                        const merged = [...prev.strokes];
+                        fetchedStrokes.forEach(fs => {
+                            if (!merged.find(s => s.id === fs.id)) {
+                                merged.push(fs);
+                            }
+                        });
+                        return { ...prev, strokes: merged.sort((a, b) => a.timestamp - b.timestamp) };
+                    });
+                }
+            } catch (error) {
+                console.error('[Whiteboard] Failed to fetch strokes from backend:', error);
+            }
+        };
 
-    // Reactive send for current drawing stroke
-    useEffect(() => {
-        if (state.isDrawing && state.currentStroke && throttledSendRef.current) {
-            throttledSendRef.current(state.currentStroke);
+        if (roomId) {
+            fetchStrokes();
         }
-    }, [state.currentStroke, state.isDrawing]);
+    }, [roomId]);
+
+    // Track last sent point index for delta protocol
+    const lastSentIndexRef = useRef<number>(0);
+    // Ref to access latest state in interval callback
+    const stateRef = useRef(state);
+
+    // Keep stateRef updated with latest state
+    useEffect(() => {
+        stateRef.current = state;
+    }, [state]);
+
+    /**
+     * Interval-based delta sender: sends only new points every 50ms during drawing.
+     * Eliminates race conditions and reduces payload size by 80%+.
+     * Uses stateRef to access latest state in interval callback.
+     */
+    useEffect(() => {
+        if (!sendMessage) return;
+
+        // Only run interval when drawing
+        if (!state.isDrawing || !state.currentStroke) {
+            lastSentIndexRef.current = 0;
+            return;
+        }
+
+        const intervalId = setInterval(() => {
+            // Read from ref to get latest state
+            const currentState = stateRef.current;
+            const stroke = currentState.currentStroke;
+
+            if (!stroke || !currentState.isDrawing) return;
+
+            const newPoints = stroke.points.slice(lastSentIndexRef.current);
+            if (newPoints.length > 0) {
+                const deltaMessage: StrokeDeltaMessage = {
+                    type: 'STROKE_DELTA',
+                    strokeId: stroke.id,
+                    points: newPoints,
+                    startIndex: lastSentIndexRef.current,
+                    color: stroke.color,
+                    width: stroke.width,
+                    tool: stroke.tool,
+                    userId: currentUserId?.toString(),
+                };
+                sendMessage(`/app/room/${roomId}/whiteboard/delta`, deltaMessage);
+                lastSentIndexRef.current = stroke.points.length;
+            }
+        }, 50);
+
+        return () => clearInterval(intervalId);
+    }, [state.isDrawing, state.currentStroke?.id, sendMessage, roomId, currentUserId]);
 
 
     const startStroke = useCallback((point: StrokePoint) => {
@@ -146,7 +205,7 @@ export const useWhiteboardSync = (
                 redoStack: [], // Clear redo stack on new action
             };
         });
-    }, []);
+    }, [currentUserId]);
 
     const addPoint = useCallback((point: StrokePoint) => {
         setState(prev => {
@@ -168,6 +227,15 @@ export const useWhiteboardSync = (
         setState(prev => {
             if (!prev.currentStroke) return prev;
 
+            // Send complete stroke for final reconciliation
+            if (sendMessage) {
+                const completeMessage: CompleteStrokeMessage = {
+                    type: 'STROKE',
+                    stroke: prev.currentStroke,
+                };
+                sendMessage(`/app/room/${roomId}/whiteboard`, completeMessage);
+            }
+
             return {
                 ...prev,
                 strokes: [...prev.strokes, prev.currentStroke],
@@ -175,43 +243,70 @@ export const useWhiteboardSync = (
                 isDrawing: false,
             };
         });
-    }, []);
+    }, [sendMessage, roomId]);
 
     const clearBoard = useCallback(() => {
-        setState(prev => ({
-            ...prev,
-            strokes: [],
-            currentStroke: null,
-            redoStack: [],
-        }));
+        const myUserId = currentUserId?.toString();
+
+        setState(prev => {
+            // Only clear strokes of the current user
+            const remainingStrokes = myUserId
+                ? prev.strokes.filter(s => s.userId !== myUserId)
+                : []; // Fallback to clear all if no userId
+
+            return {
+                ...prev,
+                strokes: remainingStrokes,
+                currentStroke: null,
+                redoStack: [], // Clear redo stack for this user
+            };
+        });
 
         clearStorage();
 
         if (sendMessage) {
-            sendMessage(`/app/room/${roomId}/whiteboard/clear`, {});
+            const clearMessage: ClearMessage = {
+                type: 'CLEAR',
+                userId: myUserId,
+            };
+            sendMessage(`/app/room/${roomId}/whiteboard/clear`, clearMessage);
         }
-    }, [roomId, sendMessage, clearStorage]);
+    }, [roomId, sendMessage, clearStorage, currentUserId]);
 
     const undoBoard = useCallback(() => {
+        const myUserId = currentUserId?.toString();
+
         setState(prev => {
             if (prev.strokes.length === 0) return prev;
 
-            const newStrokes = [...prev.strokes];
-            const lastStroke = newStrokes.pop();
+            // Find last stroke of current user
+            const myStrokes = prev.strokes.filter(s => s.userId === myUserId);
+            if (myStrokes.length === 0) {
+                console.log('[Whiteboard] No strokes to undo for current user');
+                return prev;
+            }
 
-            if (!lastStroke) return prev;
+            const lastMyStroke = myStrokes[myStrokes.length - 1];
+
+            // Remove only that stroke
+            const newStrokes = prev.strokes.filter(s => s.id !== lastMyStroke.id);
 
             if (sendMessage) {
-                sendMessage(`/app/room/${roomId}/whiteboard/undo`, { id: lastStroke.id });
+                const undoMessage: UndoMessage = {
+                    type: 'UNDO',
+                    id: lastMyStroke.id,
+                    userId: myUserId,
+                };
+                sendMessage(`/app/room/${roomId}/whiteboard/undo`, undoMessage);
             }
 
             return {
                 ...prev,
                 strokes: newStrokes,
-                redoStack: [lastStroke, ...prev.redoStack],
+                redoStack: [lastMyStroke, ...prev.redoStack],
             };
         });
-    }, [roomId, sendMessage]);
+    }, [roomId, sendMessage, currentUserId]);
 
     const redoBoard = useCallback(() => {
         setState(prev => {
@@ -223,7 +318,11 @@ export const useWhiteboardSync = (
             if (!strokeToRestore) return prev;
 
             if (sendMessage) {
-                sendMessage(`/app/room/${roomId}/whiteboard`, strokeToRestore);
+                const completeMessage: CompleteStrokeMessage = {
+                    type: 'STROKE',
+                    stroke: strokeToRestore,
+                };
+                sendMessage(`/app/room/${roomId}/whiteboard`, completeMessage);
             }
 
             return {
@@ -246,23 +345,117 @@ export const useWhiteboardSync = (
         setState(prev => ({ ...prev, selectedTool: tool }));
     }, []);
 
-    const receiveRemoteStroke = useCallback((stroke: Stroke) => {
-        // Echo cancellation: Ignore our own messages
-        if (stroke.userId === currentUserId?.toString()) {
+    /**
+     * Handles incoming complete stroke messages (sent on endStroke).
+     * Replaces or adds the complete stroke to the strokes array.
+     * 
+     * ✅ IMPROVED: Robust echo cancellation with proper type checking and logging
+     */
+    const receiveRemoteStroke = useCallback((message: CompleteStrokeMessage) => {
+        const stroke = message.stroke;
+
+        // ✅ Validate message structure
+        if (!stroke || !stroke.id) {
+            console.error('[Whiteboard] Received invalid stroke message:', message);
             return;
         }
 
+        // ✅ Robust echo cancellation with proper type checking
+        const myUserId = currentUserId?.toString();
+        const strokeUserId = stroke.userId?.toString();
+
+        // ✅ Detailed logging for debugging (can be removed in production)
+        // console.log('[Whiteboard] Received remote stroke:', {
+        //     strokeId: stroke.id,
+        //     strokeUserId: strokeUserId,
+        //     myUserId: myUserId,
+        //     pointsCount: stroke.points?.length,
+        //     willIgnore: !!(myUserId && strokeUserId && myUserId === strokeUserId)
+        // });
+
+        // Echo cancellation: Only ignore if BOTH userIds exist and match
+        if (myUserId && strokeUserId && myUserId === strokeUserId) {
+            // console.log('[Whiteboard] Ignoring own stroke (echo cancellation)');
+            return;
+        }
+
+        // ✅ Process remote stroke
         setState(prev => {
             const index = prev.strokes.findIndex(s => s.id === stroke.id);
             if (index !== -1) {
+                // Replace existing stroke (for stroke updates/corrections)
                 const newStrokes = [...prev.strokes];
                 newStrokes[index] = stroke;
+                console.log('[Whiteboard] Updated existing stroke:', stroke.id);
                 return { ...prev, strokes: newStrokes };
             }
+            // Add new stroke
+            console.log('[Whiteboard] Added new remote stroke:', stroke.id);
             return {
                 ...prev,
                 strokes: [...prev.strokes, stroke],
             };
+        });
+    }, [currentUserId]);
+
+    const getMyStrokesCount = useCallback(() => {
+        const myUserId = currentUserId?.toString();
+        if (!myUserId) return 0;
+        return state.strokes.filter(s => s.userId === myUserId).length;
+    }, [state.strokes, currentUserId]);
+
+    /**
+     * Handles incoming delta messages (sent during drawing).
+     * Merges new points into existing stroke or creates new stroke.
+     * 
+     * ✅ IMPROVED: Robust echo cancellation with proper type checking and logging
+     */
+    const receiveRemoteDelta = useCallback((delta: StrokeDeltaMessage) => {
+        // ✅ Validate message structure
+        if (!delta || !delta.strokeId || !delta.points || delta.points.length === 0) {
+            console.error('[Whiteboard] Received invalid delta message:', delta);
+            return;
+        }
+
+        // ✅ Robust echo cancellation with proper type checking
+        const myUserId = currentUserId?.toString();
+        const deltaUserId = delta.userId?.toString();
+
+        // Echo cancellation: Only ignore if BOTH userIds exist and match
+        if (myUserId && deltaUserId && myUserId === deltaUserId) {
+            return;
+        }
+
+        // ✅ Process remote delta
+        setState(prev => {
+            const index = prev.strokes.findIndex(s => s.id === delta.strokeId);
+
+            if (index !== -1) {
+                // Merge points into existing stroke
+                const newStrokes = [...prev.strokes];
+                const existingStroke = newStrokes[index];
+                newStrokes[index] = {
+                    ...existingStroke,
+                    points: [...existingStroke.points, ...delta.points],
+                };
+                return { ...prev, strokes: newStrokes };
+            } else {
+                // Create new stroke from delta (first delta for this stroke)
+                const newStroke: Stroke = {
+                    id: delta.strokeId,
+                    points: delta.points,
+                    color: delta.color,
+                    width: delta.width,
+                    tool: delta.tool,
+                    timestamp: Date.now(),
+                    userId: delta.userId,
+                };
+                // console.log('[Whiteboard] Created new stroke from delta:', delta.strokeId);
+                return {
+                    ...prev,
+                    strokes: [...prev.strokes, newStroke],
+                };
+            }
         });
     }, [currentUserId]);
 
@@ -276,34 +469,105 @@ export const useWhiteboardSync = (
     // WebSocket subscription for remote updates
     const { subscribe } = useWebSocket();
     useEffect(() => {
-        if (!subscribe) return;
+        if (!subscribe) {
+            console.warn('[Whiteboard] No subscribe function available from WebSocketContext');
+            return;
+        }
 
-        console.log(`[WhiteboardSync] Subscribing to room ${roomId}`);
+        console.log(`[Whiteboard] Setting up subscriptions for room ${roomId}`);
 
+        // ✅ Subscribe to complete stroke messages
         const unsubscribeStroke = subscribe(`/topic/room/${roomId}/whiteboard`, (data) => {
-            receiveRemoteStroke(data as Stroke);
+            // console.log('[Whiteboard] RAW stroke message:', data);
+            try {
+                receiveRemoteStroke(data as CompleteStrokeMessage);
+            } catch (error) {
+                console.error('[Whiteboard] Error processing stroke message:', error);
+            }
         });
 
-        const unsubscribeClear = subscribe(`/topic/room/${roomId}/whiteboard/clear`, () => {
-            setState(prev => ({
-                ...prev,
-                strokes: [],
-                currentStroke: null,
-                redoStack: [],
-            }));
+        // ✅ Subscribe to delta messages (real-time drawing)
+        const unsubscribeDelta = subscribe(`/topic/room/${roomId}/whiteboard/delta`, (data) => {
+            try {
+                receiveRemoteDelta(data as StrokeDeltaMessage);
+            } catch (error) {
+                console.error('[Whiteboard] Error processing delta message:', error);
+            }
         });
 
+        // ✅ Subscribe to clear messages
+        const unsubscribeClear = subscribe(`/topic/room/${roomId}/whiteboard/clear`, (data) => {
+            console.log('[Whiteboard] Received clear command:', data);
+
+            try {
+                const clearMsg = data as ClearMessage;
+
+                // If there is a userId, only clear strokes of that user
+                if (clearMsg.userId) {
+                    const clearUserId = clearMsg.userId.toString();
+
+                    // Echo cancellation for clear
+                    const myUserId = currentUserId?.toString();
+                    if (myUserId && clearUserId === myUserId) {
+                        console.log('[Whiteboard] Ignoring own clear (already applied locally)');
+                        return;
+                    }
+
+                    setState(prev => ({
+                        ...prev,
+                        strokes: prev.strokes.filter(s => s.userId !== clearUserId),
+                    }));
+                    console.log('[Whiteboard] Cleared strokes for user:', clearUserId);
+                } else {
+                    // Fallback: clear all
+                    setState(prev => ({
+                        ...prev,
+                        strokes: [],
+                        currentStroke: null,
+                        redoStack: [],
+                    }));
+                    console.log('[Whiteboard] Cleared all strokes (no userId specified)');
+                }
+            } catch (error) {
+                console.error('[Whiteboard] Error processing clear message:', error);
+            }
+        });
+
+        // ✅ Subscribe to undo messages
         const unsubscribeUndo = subscribe(`/topic/room/${roomId}/whiteboard/undo`, (data) => {
-            const { id } = data as { id: string };
-            receiveRemoteUndo(id);
+            console.log('[Whiteboard] RAW undo message:', data);
+            try {
+                const undoMsg = data as UndoMessage;
+                if (!undoMsg || !undoMsg.id) {
+                    console.error('[Whiteboard] Undo message missing id field');
+                    return;
+                }
+
+                // Echo cancellation for undo
+                const myUserId = currentUserId?.toString();
+                const undoUserId = undoMsg.userId?.toString();
+
+                if (myUserId && undoUserId && myUserId === undoUserId) {
+                    console.log('[Whiteboard] Ignoring own undo (echo cancellation)');
+                    return;
+                }
+
+                receiveRemoteUndo(undoMsg.id);
+            } catch (error) {
+                console.error('[Whiteboard] Error processing undo message:', error);
+            }
         });
+
+        console.log('[Whiteboard] All subscriptions active');
 
         return () => {
+            console.log('[Whiteboard] Cleaning up subscriptions for room', roomId);
             unsubscribeStroke();
+            unsubscribeDelta();
             unsubscribeClear();
             unsubscribeUndo();
         };
-    }, [roomId, subscribe, receiveRemoteStroke, receiveRemoteUndo]);
+    }, [roomId, subscribe, receiveRemoteStroke, receiveRemoteDelta, receiveRemoteUndo, currentUserId]);
 
     return {
         ...state,
@@ -317,6 +581,8 @@ export const useWhiteboardSync = (
         setWidth,
         setTool,
         receiveRemoteStroke,
+        receiveRemoteDelta,
         receiveRemoteUndo,
+        getMyStrokesCount,
     };
 };

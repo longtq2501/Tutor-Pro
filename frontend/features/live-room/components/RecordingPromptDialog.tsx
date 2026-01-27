@@ -76,8 +76,9 @@ const RecordingExplanation: React.FC = () => (
         <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex gap-3">
             <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-amber-900 dark:text-amber-200">
-                <p className="font-bold mb-1">Lưu ý quan trọng:</p>
-                <p>Bạn có thể bật/tắt ghi hình bất cứ lúc nào trong buổi học. Video sẽ tự động dừng sau 2 giờ.</p>
+                <p className="font-bold mb-1">💡 Cách ghi hình:</p>
+                <p>Khi bắt đầu, trình duyệt sẽ yêu cầu bạn <span className="font-medium">chọn màn hình/tab</span> để ghi hình. Chọn tab phòng học này để ghi lại toàn bộ giao diện.</p>
+                <p className="mt-2">Bạn có thể bật/tắt ghi hình bất cứ lúc nào trong buổi học. Video sẽ tự động dừng sau 2 giờ.</p>
             </div>
         </div>
     </div>

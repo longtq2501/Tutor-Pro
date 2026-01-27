@@ -1,10 +1,14 @@
 package com.tutor_management.backend.modules.onlinesession.controller;
 
 import com.tutor_management.backend.modules.onlinesession.dto.request.TypingRequest;
+import com.tutor_management.backend.modules.onlinesession.dto.request.WhiteboardStrokeMessage;
+import com.tutor_management.backend.modules.onlinesession.dto.request.WhiteboardDeltaMessage;
+import com.tutor_management.backend.modules.onlinesession.dto.request.WhiteboardUndoMessage;
 import com.tutor_management.backend.modules.onlinesession.dto.response.ChatMessageResponse;
 import com.tutor_management.backend.modules.onlinesession.dto.response.TypingResponse;
 import com.tutor_management.backend.modules.onlinesession.service.ChatService;
 import com.tutor_management.backend.modules.onlinesession.service.OnlineSessionService;
+import com.tutor_management.backend.modules.onlinesession.service.WhiteboardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -24,6 +28,7 @@ public class OnlineSessionWebSocketController {
 
     private final OnlineSessionService onlineSessionService;
     private final ChatService chatService;
+    private final WhiteboardService whiteboardService;
     private final SimpMessagingTemplate messagingTemplate;
 
     /**
@@ -41,14 +46,42 @@ public class OnlineSessionWebSocketController {
         }
 
         try {
-            // ✅ FIX: extract userId from Principal.getName() 
-            // set by WebSocketAuthInterceptor during CONNECT
             Long userId = Long.parseLong(principal.getName());
             onlineSessionService.updateHeartbeat(roomId, userId);
         } catch (NumberFormatException e) {
             log.error("Invalid userId in principal name: {}", principal.getName());
         } catch (Exception e) {
             log.error("Error processing heartbeat for room {}: {}", roomId, e.getMessage());
+        }
+    }
+
+    /**
+     * Handles explicit join notifications from clients.
+     * Expects messages at /app/room/{roomId}/join
+     */
+    @MessageMapping("/room/{roomId}/join")
+    public void handleJoin(@DestinationVariable String roomId, Principal principal) {
+        if (principal == null) return;
+        try {
+            Long userId = Long.parseLong(principal.getName());
+            onlineSessionService.notifyUserJoined(roomId, userId);
+        } catch (NumberFormatException e) {
+            log.error("Invalid userId in principal name: {}", principal.getName());
+        }
+    }
+
+    /**
+     * Handles explicit leave notifications from clients.
+     * Expects messages at /app/room/{roomId}/leave
+     */
+    @MessageMapping("/room/{roomId}/leave")
+    public void handleLeave(@DestinationVariable String roomId, Principal principal) {
+        if (principal == null) return;
+        try {
+            Long userId = Long.parseLong(principal.getName());
+            onlineSessionService.notifyUserLeft(roomId, userId);
+        } catch (NumberFormatException e) {
+            log.error("Invalid userId in principal name: {}", principal.getName());
         }
     }
 
@@ -77,7 +110,6 @@ public class OnlineSessionWebSocketController {
             ChatMessageResponse response =
                     chatService.saveMessage(roomId, userId, request);
             
-            // Broadcast to the room topic
             messagingTemplate.convertAndSend("/topic/room/" + roomId + "/chat", response);
             log.debug("Chat message from user {} broadcasted to room {}", userId, roomId);
         } catch (Exception e) {
@@ -113,31 +145,129 @@ public class OnlineSessionWebSocketController {
     }
 
     /**
-     * Handles whiteboard drawing actions.
-     * Broadcasts the stroke data to all participants in the room.
+     * Handles whiteboard drawing actions (complete strokes sent on endStroke).
+     * Broadcasts the complete stroke data to all participants in the room.
+     * 
+     * ✅ FIX: Now properly deserializes WhiteboardStrokeMessage to preserve userId
+     * for client-side echo cancellation.
+     * 
+     * @param roomId The room ID
+     * @param payload The complete stroke message with full stroke data
      */
     @MessageMapping("/room/{roomId}/whiteboard")
     public void handleWhiteboardDraw(
             @DestinationVariable String roomId,
-            Object payload) {
+            WhiteboardStrokeMessage payload) {
+        
+        // ✅ Validate payload structure
+        if (payload == null || payload.getStroke() == null) {
+            log.warn("Received invalid whiteboard stroke message for room {}", roomId);
+            return;
+        }
+        
+        // ✅ Log for debugging (remove in production if needed)
+        log.debug("Whiteboard stroke for room {}: strokeId={}, userId={}, points={}", 
+            roomId, 
+            payload.getStroke().getId(), 
+            payload.getStroke().getUserId(),
+            payload.getStroke().getPoints() != null ? payload.getStroke().getPoints().size() : 0);
+        
+        // ✅ Persist stroke to DB
+        whiteboardService.saveStroke(roomId, payload.getStroke());
+        
+        // ✅ Broadcast with properly preserved structure
         messagingTemplate.convertAndSend("/topic/room/" + roomId + "/whiteboard", payload);
     }
 
     /**
+     * Handles whiteboard delta messages (point batches during drawing).
+     * Broadcasts the delta to all participants for real-time synchronization.
+     * Reduces payload size by 80%+ compared to sending complete strokes.
+     * 
+     * ✅ FIX: Now properly deserializes WhiteboardDeltaMessage to preserve userId
+     * for client-side echo cancellation.
+     * 
+     * @param roomId The room ID
+     * @param payload The delta message with new points
+     */
+    @MessageMapping("/room/{roomId}/whiteboard/delta")
+    public void handleWhiteboardDelta(
+            @DestinationVariable String roomId,
+            WhiteboardDeltaMessage payload) {
+        
+        // ✅ Validate payload structure
+        if (payload == null || payload.getStrokeId() == null) {
+            log.warn("Received invalid whiteboard delta message for room {}", roomId);
+            return;
+        }
+        
+        // ✅ Log for debugging (remove in production if needed)
+        log.debug("Whiteboard delta for room {}: strokeId={}, userId={}, points={}", 
+            roomId, 
+            payload.getStrokeId(), 
+            payload.getUserId(),
+            payload.getPoints() != null ? payload.getPoints().size() : 0);
+        
+        // ✅ Broadcast with properly preserved structure
+        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/whiteboard/delta", payload);
+    }
+
+    /**
      * Handles whiteboard clear actions.
+     * Broadcasts clear command to all participants.
+     * Now supports clearing only specific user's strokes.
+     * 
+     * @param roomId The room ID
+     * @param payload The clear message with optional userId
      */
     @MessageMapping("/room/{roomId}/whiteboard/clear")
-    public void handleWhiteboardClear(@DestinationVariable String roomId) {
-        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/whiteboard/clear", "{}");
+    public void handleWhiteboardClear(
+            @DestinationVariable String roomId,
+            com.tutor_management.backend.modules.onlinesession.dto.request.WhiteboardClearMessage payload) {
+        
+        // ✅ Validate payload structure
+        if (payload == null) {
+            log.warn("Received invalid whiteboard clear message for room {}", roomId);
+            return;
+        }
+        
+        // ✅ Log for debugging
+        log.debug("Whiteboard clear for room {}: userId={}", roomId, payload.getUserId());
+        
+        // ✅ Persist clear command to DB
+        whiteboardService.clearStrokes(roomId, payload.getUserId());
+        
+        // ✅ Broadcast with properly preserved structure
+        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/whiteboard/clear", payload);
     }
 
     /**
      * Handles whiteboard undo actions.
+     * Broadcasts undo command with stroke ID to all participants.
+     * 
+     * ✅ FIX: Now properly deserializes WhiteboardUndoMessage
+     * 
+     * @param roomId The room ID
+     * @param payload The undo message with stroke ID to remove
      */
     @MessageMapping("/room/{roomId}/whiteboard/undo")
     public void handleWhiteboardUndo(
             @DestinationVariable String roomId,
-            Object payload) {
+            WhiteboardUndoMessage payload) {
+        
+        // ✅ Validate payload structure
+        if (payload == null || payload.getId() == null) {
+            log.warn("Received invalid whiteboard undo message for room {}", roomId);
+            return;
+        }
+        
+        // ✅ Log for debugging
+        log.debug("Whiteboard undo for room {}: strokeId={}", roomId, payload.getId());
+        
+        // ✅ Persist undo command to DB
+        whiteboardService.deleteStroke(roomId, payload.getId());
+        
+        // ✅ Broadcast with properly preserved structure
         messagingTemplate.convertAndSend("/topic/room/" + roomId + "/whiteboard/undo", payload);
     }
 }

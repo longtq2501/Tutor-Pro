@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { getSupportedMimeType } from '@/lib/utils/browserCompat';
+import { createRecordingStream } from '@/lib/utils/mediaStreamUtils';
 
 const MAX_DURATION = 2 * 60 * 60 * 1000;
 const WARNING_1 = 105 * 60 * 1000;
@@ -28,7 +29,6 @@ const useRecordingTimer = (isRecording: boolean, onLimitReached: () => void) => 
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        // Clear any existing interval
         if (intervalRef.current) {
             clearInterval(intervalRef.current);
             intervalRef.current = null;
@@ -82,6 +82,7 @@ export const useSessionRecorder = (stream: MediaStream | null) => {
     const [isRecording, setIsRecording] = useState(false);
     const [quality, setQualityState] = useState<RecordingQuality>('balanced');
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const recordingStreamRef = useRef<MediaStream | null>(null);
     const chunksRef = useRef<Blob[]>([]);
     const startTimeRef = useRef<number>(0);
 
@@ -90,7 +91,7 @@ export const useSessionRecorder = (stream: MediaStream | null) => {
 
     const setQuality = useCallback((newQuality: RecordingQuality) => {
         if (isRecording) {
-            console.warn('Cannot change quality during recording');
+            console.warn('[Recording] Cannot change quality during recording');
             return;
         }
         setQualityState(newQuality);
@@ -103,95 +104,203 @@ export const useSessionRecorder = (stream: MediaStream | null) => {
             setPreviewMeta(null);
         }
         chunksRef.current = [];
+        console.log('[Recording] Discarded');
     }, [previewUrl]);
 
     const confirmDownload = useCallback(() => {
-        if (!previewUrl || chunksRef.current.length === 0) return;
+        // ✅ FIX: Check previewUrl and previewMeta instead of chunksRef
+        if (!previewUrl || !previewMeta) {
+            console.error('[Download] No recording preview available');
+            return;
+        }
+
+        console.log('[Download] Starting download from preview URL');
 
         try {
-            const blob = new Blob(chunksRef.current, { type: getSupportedMimeType() });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `tms-session-${new Date().toISOString()}.webm`;
-            a.click();
+            // ✅ FIX: Fetch blob from existing preview URL
+            fetch(previewUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    console.log('[Download] Blob fetched:', {
+                        size: blob.size,
+                        type: blob.type
+                    });
 
-            // Note: We don't revokeObjectURL here immediately for the download link itself 
-            // because `triggerDownload` creates a new object URL. 
-            // In the user's provided code, they do `URL.createObjectURL(blob)` again inside confirmDownload logic inside the snippet? 
-            // Actually, the user snippet creates a new url: `const url = URL.createObjectURL(blob);`. 
-            // And then revokes it: `URL.revokeObjectURL(url);`.
-            // But `previewUrl` is ALREADY a blob URL. We can just use that? 
-            // However, the user snippet creates a NEW blob url. That's fine, let's follow the verified snippet.
-            // Wait, if I use `previewUrl` for download, I don't need to create a new one. 
-            // But `previewUrl` is tied to the state. 
-            // Let's stick strictly to the user's provided complete hook code to be safe.
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `tms-session-${new Date().toISOString().replace(/[:.]/g, '-')}.webm`;
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
+                    a.click();
 
-            setTimeout(() => {
-                URL.revokeObjectURL(url);
-            }, 100);
+                    setTimeout(() => {
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        console.log('[Download] Cleanup complete');
+                    }, 100);
 
-            // Cleanup after download
-            discardRecording();
+                    // Discard after successful download
+                    discardRecording();
+                })
+                .catch(error => {
+                    console.error('[Download] Failed to fetch blob from preview URL:', error);
+                });
         } catch (error) {
-            console.error('Failed to download recording:', error);
+            console.error('[Download] Failed to initiate download:', error);
         }
-    }, [previewUrl, discardRecording]);
+    }, [previewUrl, previewMeta, discardRecording]);
 
     const stopRecording = useCallback(() => {
         const recorder = mediaRecorderRef.current;
-        if (!recorder || recorder.state === 'inactive') return;
+        if (!recorder || recorder.state === 'inactive') {
+            console.warn('[Recording] Cannot stop - recorder not active');
+            return;
+        }
 
-        // Set up onstop handler before calling stop()
+        console.log('[Recording] Stopping recording...');
+
         recorder.onstop = () => {
             try {
+                console.log('[Recording] onstop triggered, chunks:', chunksRef.current.length);
+
                 if (chunksRef.current.length === 0) {
-                    console.warn('No recording data available');
+                    console.error('[Recording] No data chunks recorded!');
                     return;
                 }
 
                 const blob = new Blob(chunksRef.current, { type: getSupportedMimeType() });
-                const url = URL.createObjectURL(blob);
                 const duration = Date.now() - startTimeRef.current;
 
+                console.log('[Recording] Stopped successfully:', {
+                    size: blob.size,
+                    duration: duration,
+                    chunks: chunksRef.current.length,
+                    blobType: blob.type
+                });
+
+                if (blob.size === 0) {
+                    console.error('[Recording] Blob is empty!');
+                    return;
+                }
+
+                const url = URL.createObjectURL(blob);
                 setPreviewUrl(url);
                 setPreviewMeta({ size: blob.size, duration });
+
+                console.log('[Recording] Preview URL created:', url);
             } catch (error) {
-                console.error('Failed to create recording preview:', error);
+                console.error('[Recording] Failed to create preview:', error);
             }
         };
 
         recorder.stop();
         setIsRecording(false);
+
+        // Cleanup recording stream
+        if (recordingStreamRef.current) {
+            recordingStreamRef.current.getTracks().forEach(track => {
+                track.stop();
+                console.log('[Recording] Stopped track:', track.kind, track.label);
+            });
+            recordingStreamRef.current = null;
+        }
     }, []);
 
-    const startRecording = useCallback(() => {
+    const startRecording = useCallback(async () => {
         const mimeType = getSupportedMimeType();
-        if (!stream || !mimeType) return;
+        if (!mimeType) {
+            console.error('[Recording] No supported MIME type');
+            return;
+        }
 
         discardRecording();
         chunksRef.current = [];
         startTimeRef.current = Date.now();
 
-        const recorder = new MediaRecorder(stream, {
+        // ✅ NO DELAY NEEDED - screen capture invitation is an explicit UI action
+        console.log('[Recording] Requesting screen capture...');
+
+        // ✅ FIX: Use screen capture (async)
+        const recordingStream = await createRecordingStream(stream, true); // true = use screen capture
+        if (!recordingStream) {
+            console.error('[Recording] Failed to create recording stream (user may have cancelled)');
+            return;
+        }
+
+        // ✅ Validate stream has video track
+        const videoTracks = recordingStream.getVideoTracks();
+        const audioTracks = recordingStream.getAudioTracks();
+
+        if (videoTracks.length === 0) {
+            console.error('[Recording] No video tracks in recording stream!');
+            if (audioTracks.length === 0) {
+                console.error('[Recording] No tracks at all! Cannot record.');
+                return;
+            }
+        }
+
+        recordingStreamRef.current = recordingStream;
+
+        console.log('[Recording] Starting with config:', {
             mimeType,
-            videoBitsPerSecond: BITRATES[quality]
+            quality,
+            bitrate: BITRATES[quality],
+            videoTracks: videoTracks.length,
+            audioTracks: audioTracks.length,
+            videoTrackSettings: videoTracks[0]?.getSettings(),
+            audioTrackSettings: audioTracks[0]?.getSettings()
         });
 
-        recorder.ondataavailable = (e) => {
-            if (e.data.size > 0) {
-                chunksRef.current.push(e.data);
-            }
-        };
+        try {
+            const recorder = new MediaRecorder(recordingStream, {
+                mimeType,
+                videoBitsPerSecond: BITRATES[quality]
+            });
 
-        recorder.start(1000);
-        mediaRecorderRef.current = recorder;
-        setIsRecording(true);
+            recorder.ondataavailable = (e) => {
+                if (e.data.size > 0) {
+                    chunksRef.current.push(e.data);
+                    console.log('[Recording] Data chunk received:',
+                        e.data.size, 'bytes',
+                        '| Total chunks:', chunksRef.current.length,
+                        '| Total size:', chunksRef.current.reduce((sum, chunk) => sum + chunk.size, 0), 'bytes'
+                    );
+                } else {
+                    console.warn('[Recording] Empty data chunk received');
+                }
+            };
+
+            recorder.onerror = (e) => {
+                console.error('[Recording] MediaRecorder error:', e);
+            };
+
+            recorder.onstart = () => {
+                console.log('[Recording] MediaRecorder started, state:', recorder.state);
+            };
+
+            recorder.start(1000); // Collect data every 1s
+            mediaRecorderRef.current = recorder;
+            setIsRecording(true);
+
+            console.log('[Recording] Started successfully, initial state:', recorder.state);
+        } catch (error) {
+            console.error('[Recording] Failed to start MediaRecorder:', error);
+        }
     }, [stream, quality, discardRecording]);
 
     useEffect(() => {
         return () => {
             discardRecording();
+            if (recordingStreamRef.current) {
+                recordingStreamRef.current.getTracks().forEach(track => track.stop());
+                recordingStreamRef.current = null;
+            }
         };
     }, [discardRecording]);
 
@@ -205,7 +314,6 @@ export const useSessionRecorder = (stream: MediaStream | null) => {
 
             const activeVideoTrack = videoTracks.find(t => t.enabled);
 
-            // Audio-only recording
             if (!activeVideoTrack && audioTracks.length > 0) {
                 return 'low';
             }
@@ -220,7 +328,7 @@ export const useSessionRecorder = (stream: MediaStream | null) => {
             if (width >= 640 || height >= 480) return 'balanced';
             return 'low';
         } catch (error) {
-            console.warn('Failed to get video settings for recommendation', error);
+            console.warn('[Recording] Failed to get video settings for recommendation', error);
             return 'balanced';
         }
     })();

@@ -50,6 +50,17 @@ public class PresenceService {
     }
 
     /**
+     * Retrieves the last known activity timestamp for a user.
+     * 
+     * @param roomId The room identifier.
+     * @param userId The user identifier.
+     * @return The last activity timestamp, or null if never active.
+     */
+    public LocalDateTime getLastActivity(String roomId, Long userId) {
+        return userPresence.get(generateKey(roomId, userId));
+    }
+
+    /**
      * Generates a unique key for the presence map.
      */
     private String generateKey(String roomId, Long userId) {

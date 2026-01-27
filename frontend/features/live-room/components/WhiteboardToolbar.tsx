@@ -17,6 +17,7 @@ export interface WhiteboardToolbarProps {
     onRedo?: () => void;
     canUndo?: boolean;
     canRedo?: boolean;
+    onClearRequest?: () => void; // ✅ Add: Callback to request clear (will show dialog)
 }
 
 const PRESET_COLORS = [
@@ -53,6 +54,7 @@ export const WhiteboardToolbar: React.FC<WhiteboardToolbarProps> = ({
     onRedo,
     canUndo = false,
     canRedo = false,
+    onClearRequest, // ✅ New prop
 }) => {
     const handleHaptic = useCallback(() => {
         if ('vibrate' in navigator) navigator.vibrate(10);
@@ -61,6 +63,17 @@ export const WhiteboardToolbar: React.FC<WhiteboardToolbarProps> = ({
     const handleToolSelect = (tool: 'pen' | 'eraser') => {
         handleHaptic();
         onToolChange(tool);
+    };
+
+    const handleClearClick = () => {
+        handleHaptic();
+        // ✅ If onClearRequest is provided (with dialog), call it
+        // Otherwise call onClear directly (backward compatibility)
+        if (onClearRequest) {
+            onClearRequest();
+        } else {
+            onClear();
+        }
     };
 
     return (
@@ -141,9 +154,10 @@ export const WhiteboardToolbar: React.FC<WhiteboardToolbarProps> = ({
             <Button
                 variant="destructive"
                 size="icon"
-                onClick={() => { handleHaptic(); onClear(); }}
+                onClick={handleClearClick} // ✅ Changed
                 className={RESPONSIVE_SIZES.button}
-                aria-label="Clear whiteboard"
+                aria-label="Clear my drawings"
+                title="Xóa nét vẽ của tôi" // ✅ Updated tooltip
             >
                 <Trash2 className={RESPONSIVE_SIZES.icon} />
             </Button>

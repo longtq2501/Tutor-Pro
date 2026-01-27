@@ -12,6 +12,7 @@ export interface Participant {
     name: string;
     role: 'TUTOR' | 'STUDENT';
     joinedAt: Date;
+    avatarUrl?: string;
     isMicMuted: boolean;
     isCameraMuted: boolean;
 }
@@ -83,7 +84,12 @@ export const RoomStateProvider: React.FC<{ children: ReactNode }> = ({ children 
     }, []);
 
     const addParticipant = useCallback((participant: Participant) => {
-        setState(prev => ({ ...prev, participants: [...prev.participants, participant] }));
+        setState(prev => {
+            if (prev.participants.some(p => p.id === participant.id)) {
+                return prev;
+            }
+            return { ...prev, participants: [...prev.participants, participant] };
+        });
     }, []);
 
     const removeParticipant = useCallback((participantId: string) => {
@@ -121,22 +127,36 @@ export const RoomStateProvider: React.FC<{ children: ReactNode }> = ({ children 
         setState(initialState);
     }, []);
 
-    const value: RoomContextValue = {
+    const actions = React.useMemo(() => ({
+        setRoomId,
+        setSessionId,
+        addParticipant,
+        removeParticipant,
+        updateParticipant,
+        setLocalStream,
+        setRemoteStream,
+        setConnectionState,
+        setIsConnected,
+        setError,
+        resetRoom,
+    }), [
+        setRoomId,
+        setSessionId,
+        addParticipant,
+        removeParticipant,
+        updateParticipant,
+        setLocalStream,
+        setRemoteStream,
+        setConnectionState,
+        setIsConnected,
+        setError,
+        resetRoom
+    ]);
+
+    const value: RoomContextValue = React.useMemo(() => ({
         state,
-        actions: {
-            setRoomId,
-            setSessionId,
-            addParticipant,
-            removeParticipant,
-            updateParticipant,
-            setLocalStream,
-            setRemoteStream,
-            setConnectionState,
-            setIsConnected,
-            setError,
-            resetRoom,
-        },
-    };
+        actions,
+    }), [state, actions]);
 
     return <RoomStateContext.Provider value={value}>{children}</RoomStateContext.Provider>;
 };

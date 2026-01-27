@@ -21,6 +21,8 @@ public class RoomStatsResponse {
     private String roomStatus;
     
     // Participants
+    private Long tutorId; // User ID of the tutor
+    private Long studentId; // User ID of the student (if linked to User)
     private String tutorName;
     private String studentName;
     private Boolean tutorPresent;
@@ -37,6 +39,7 @@ public class RoomStatsResponse {
     
     // Duration
     private Integer durationMinutes;
+    private Integer durationSeconds;
     
     // Recording
     private Boolean recordingEnabled;

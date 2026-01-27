@@ -115,4 +115,19 @@ public interface OnlineSessionService {
      * Should be called periodically by a scheduler.
      */
     void detectInactiveParticipants();
-}
+
+    /**
+     * Broadcasts a user joined event to the room's presence topic.
+     * 
+     * @param roomId The room ID.
+     * @param userId The ID of the user who joined.
+     */
+    void notifyUserJoined(String roomId, Long userId);
+
+    /**
+     * Broadcasts a user left event to the room's presence topic.
+     * 
+     * @param roomId The room ID.
+     * @param userId The ID of the user who left.
+     */
+    void notifyUserLeft(String roomId, Long userId);}

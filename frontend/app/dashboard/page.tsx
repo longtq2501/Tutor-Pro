@@ -102,6 +102,7 @@ const AppHeader = React.memo(({ title, user, initials, roleBadge, logout }: {
                     </div>
                 </div>
                 <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
+                    {/* <NotificationBell /> */}
                     <NotificationBell />
                     <ModeToggle />
                     <DropdownMenu>
@@ -207,6 +208,7 @@ function AppContent() {
     const [currentView, setCurrentView] = useState<View>(initialView);
     const { isCollapsed, setIsCollapsed } = useUI();
     const { user, logout, hasAnyRole } = useAuth();
+    const roomId = searchParams.get('roomId');
 
     // Auto-collapse logic for tablets
     React.useEffect(() => {
@@ -300,6 +302,17 @@ function AppContent() {
     const roleBadge = useMemo(() => user ? getRoleBadge(user.role) : null, [user]);
     const initials = useMemo(() => user ? getInitials(user.fullName) : '', [user]);
 
+    // 🚀 FULL SCREEN TAKEOVER LIVE ROOM MODE
+    // If in live-room view AND roomId is present, render bypassing the layout
+    if (currentView === 'live-room' && roomId) {
+        return (
+            <div className="fixed inset-0 z-50 bg-background w-screen h-screen overflow-hidden">
+                <LiveRoomFeature roomId={roomId} />
+            </div>
+        );
+    }
+
+    // Standard Dashboard Layout
     return (
         <div className="flex h-screen relative isolate bg-background">
             {/* Background elements */}

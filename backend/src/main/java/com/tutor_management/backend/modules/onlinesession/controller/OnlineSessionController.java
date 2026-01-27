@@ -3,14 +3,17 @@ package com.tutor_management.backend.modules.onlinesession.controller;
 import com.tutor_management.backend.infrastructure.security.RateLimiter;
 import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.onlinesession.dto.request.CreateOnlineSessionRequest;
+import com.tutor_management.backend.modules.onlinesession.dto.request.WhiteboardStrokeMessage;
 import com.tutor_management.backend.modules.onlinesession.dto.response.GlobalStatsResponse;
 import com.tutor_management.backend.modules.onlinesession.dto.response.JoinRoomResponse;
 import com.tutor_management.backend.modules.onlinesession.dto.response.OnlineSessionResponse;
 import com.tutor_management.backend.modules.onlinesession.dto.response.RoomStatsResponse;
 import com.tutor_management.backend.modules.onlinesession.service.OnlineSessionService;
+import com.tutor_management.backend.modules.onlinesession.service.WhiteboardService;
 import com.tutor_management.backend.modules.shared.dto.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 public class OnlineSessionController {
 
     private final OnlineSessionService onlineSessionService;
+    private final WhiteboardService whiteboardService;
 
     /**
      * Endpoint to create a new online session.
@@ -191,6 +195,25 @@ public class OnlineSessionController {
         
         return ResponseEntity.ok(ApiResponse.success(
                 "Recording metadata updated successfully.", 
+                response
+        ));
+    }
+    /**
+     * Endpoint to retrieve all whiteboard strokes for a session.
+     * 
+     * @param roomId The unique room identifier.
+     * @return ResponseEntity containing the list of strokes.
+     */
+    @GetMapping("/{roomId}/whiteboard")
+    @PreAuthorize("hasRole('ADMIN') or @roomAccessValidator.canJoin(#roomId, #user.id)")
+    public ResponseEntity<ApiResponse<List<WhiteboardStrokeMessage.StrokeData>>> getWhiteboardStrokes(
+            @PathVariable String roomId,
+            @AuthenticationPrincipal com.tutor_management.backend.modules.auth.User user) {
+        
+        List<WhiteboardStrokeMessage.StrokeData> response = whiteboardService.getStrokes(roomId);
+        
+        return ResponseEntity.ok(ApiResponse.success(
+                "Đã lấy dữ liệu whiteboard thành công.", 
                 response
         ));
     }

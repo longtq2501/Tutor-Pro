@@ -79,7 +79,7 @@ public class SessionRecordController {
         return ResponseEntity.ok(ApiResponse.success("Đã cập nhật trạng thái thanh toán", response));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteRecord(@PathVariable Long id) {
         log.info("Deleting session record ID: {}", id);

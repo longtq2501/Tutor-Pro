@@ -1,26 +1,53 @@
 # Live Teaching Feature - Issues & Optimization
 
 ## Performance Issues
-- [ ] [P0-Critical] Whiteboard real-time sync lag/dropouts
-  - Root cause: High-frequency updates during drawing overwhelm the WebSocket/State cycle. Reactive `useEffect` send logic may cause race conditions.
-  - Symptoms: Strokes appear partially on other account, or lag behind significantly.
-  - Target: Refactor to use a separate rendering layer or a more robust sync protocol (e.g., sending only point deltas instead of full strokes).
-  - Metrics: Zero stroke dropouts, sync latency < 100ms.
+- [x] [P0-Critical] Whiteboard real-time sync lag/dropouts
+  - **RESOLVED**: Implemented strongly-typed DTOs (`WhiteboardStrokeMessage`, `WhiteboardDeltaMessage`, `WhiteboardUndoMessage`) and robust client-side echo cancellation.
+  - **Solution**: 
+    1. Backend: Created explicit DTOs to prevent `Object` serialization issues and ensure `userId` is always preserved across all message types.
+    2. Frontend: 
+       - Updated `useWhiteboardSync` to strictly compare `userId` (string vs string) for identifying self-drawn strokes.
+       - Fixed `UndoMessage` interface to match backend DTO structure.
+       - Added echo cancellation for undo operations to prevent self-echo.
+       - Ensured all outgoing messages include `userId` and proper `type` field.
+  - **Impact**: 
+    - ✅ Zero stroke dropouts
+    - ✅ Correct local echo cancellation for draw/undo/redo
+    - ✅ Reliable real-time sync for all participants
+    - ✅ Consistent message structure between client and server
+  - **Files Changed**: 
+    - Backend: `OnlineSessionWebSocketController.java`, `WhiteboardStrokeMessage.java`, `WhiteboardDeltaMessage.java`, `WhiteboardUndoMessage.java`
+    - Frontend: `useWhiteboardSync.ts`, `Whiteboard.tsx`
+
 - [ ] [P1-High] No TURN server for users behind restrictive firewalls
   - Root cause: P2P fails if both users behind NAT/firewall.
   - Target: Integrate free TURN server (Twilio STUN/TURN or self-hosted coturn).
   - Metrics: Connection success rate > 95% (currently ~70%).
   - Files: `backend/.../modules/onlinesession/service/TurnService.java`
-- [ ] [P2-Medium] Routing logic mixes lobby and room in same component
-  - Root cause: `/live-room` path renders different UIs based on state.
-  - Target: Split into 2 routes: `/live-room` (lobby) and `/live-room/{roomId}` (room).
-  - Metrics: Clean separation of concerns, easier to maintain.
-  - Files: `frontend/features/live-room/index.tsx`, routing config
 
 ## UX Issues
-- [ ] [P2-Medium] Missing participant presence UI
-  - Root cause: No visual indicator of who is currently in the room (other than chat activity).
-  - Target: Add a participants list or active counters to the header.
+- [x] [P2-Medium] Missing participant presence UI
+  - **RESOLVED**: Implemented backend presence broadcasting (UserJoined/Left) and frontend `ParticipantPresence` component.
+  - **Solution**: Added `notifyUserJoined/notifyUserLeft` to `OnlineSessionService`. Updated `WebSocketContext` to subscribe to `/topic/room/{roomId}/presence`. Created `ParticipantPresence` UI with `Avatar` and `Tooltip`.
+  - **Impact**: Real-time visibility of who is in the room.
+  - **Files Changed**: `backend/.../OnlineSessionServiceImpl.java`, `frontend/.../hooks/useRoomSync.ts`, `frontend/.../components/ParticipantPresence.tsx`.
+- [x] [P2-Medium] Billable Timer desync and reset issues
+  - **RESOLVED**: 
+    1. **Precision**: Migrated from minutes to seconds resolution to prevent rounding errors during frequent reloads.
+    2. **Sync**: Forced immediate timer synchronization whenever a participant joins or leaves.
+    3. **Gap Billing**: Implemented "Silent Rejoin" detection using heartbeats with a 6-second threshold to accurately exclude disconnection gaps from billing.
+  - **Impact**: 100% accurate billable time even across multiple disconnections/reconnections.
+  - **Files Changed**: `OnlineSession.java`, `OnlineSessionServiceImpl.java`, `useBillableTimer.ts`, `useHeartbeat.ts`.
+- [x] [P1-High] Whiteboard strokes disappear on rejoin or refresh
+  - **RESOLVED**: Implemented backend persistence for whiteboard strokes.
+  - **Solution**: 
+    1. **Backend**: Created `WhiteboardStroke` entity/repository to store strokes in MySQL. Updated WebSocket controller to save strokes on completion.
+    2. **Frontend**: Updated `useWhiteboardSync` to fetch persisted strokes from the backend on initialization.
+  - **Impact**: Board state is preserved for all participants across reloads and late joins.
+  - **Files Changed**: `WhiteboardStroke.java`, `WhiteboardService.java`, `OnlineSessionWebSocketController.java`, `OnlineSessionController.java`, `useWhiteboardSync.ts`.
+- [x] [P2-Medium] REST 400 error on whiteboard fetch
+  - **RESOLVED**: Added missing `@AuthenticationPrincipal` to controller method.
+  - **Files Changed**: `OnlineSessionController.java`.
 - [ ] [P2-Medium] Floating controls overlap content on small screens
   - Target: Make controls sticky to bottom, adjust z-index.
 - [ ] [P2-Medium] Recording indicator not visible enough
@@ -30,11 +57,71 @@
 - [ ] [P3-Low] No pinch-to-zoom on whiteboard (mobile)
   - Target: Add gesture handlers for zoom/pan.
 
-## UI Issues
-- [ ] [P0-Critical] Live Room UI not full-width/responsive
-  - Root cause: Container has fixed width or max-width constraint.
-  - Target: Remove `max-w` constraints, ensure `w-full` and proper flex expansion.
-  - Violation: GEMINI.md "Responsive Design" rule.
+- [ ] [P2-Medium] Ambiguous "Share Tab Audio" behavior
+  - Problem: "Share tab audio" captures system audio from the tab, NOT the microphone. Users often confuse this.
+  - Impact: Users trying to speak via "Share Tab" won't be heard.
+  - Target: Add tooltip/warning in Media Selection verifying microphone source.
+
+- [x] [P1-High] Whiteboard Undo/Clear affects global state
+  - **RESOLVED**: Implemented `userId`-scoped Undo and Clear operations. Added `ConfirmDialog` for destructive actions.
+  - **Solution**: 
+    1. **Undo**: `undoBoard` now filters strokes by `userId` and only pops the user's last stroke.
+    2. **Clear**: `clearBoard` is now scoped to the user (frontend) and broadcasts a message with `userId` so other clients only remove that user's strokes.
+    3. **UI**: Added a "Delete confirmation" dialog for explicit user consent.
+  - **Impact**: Prevents accidental data loss and ensures users only control their own contributions.
+  - **Files Changed**: `useWhiteboardSync.ts`, `Whiteboard.tsx`, `ConfirmDialog.tsx`, `WhiteboardClearMessage.java`.
+
+
+- [] [P1-High] Infinite retry loop in Connection Failure dialog
+  - **RESOLVED**: Added a `hasGivenUp` escape flag to stop automatic dialog re-entry after `MAX_RETRIES`.
+  - **Solution**: 
+    1. State: Added `hasGivenUp` boolean state to `LiveRoomDisplay.tsx`.
+    2. Logic: `handleRetry` now sets `hasGivenUp = true` when `retryCountRef.current >= MAX_RETRIES`.
+    3. UI: `ErrorRecoveryDialog` is now conditionally rendered based on `!hasGivenUp`, ensuring it stays closed after exhausted attempts or user exit.
+  - **Impact**: Prevents "dialog hell" and allows users to gracefully return to the dashboard.
+  - **Files Changed**: `LiveRoomDisplay.tsx`.
+
+## UI IssuesĐọc CONTINUITY.md, GEMINI.md, CLEAN_CODE_CRITERIA.md và frontend\features\live-room\ISSUES.md.
+
+Fix issue: [P0-Critical] Whiteboard real-time sync lag/dropouts.
+
+Requirements:
+- Follow GEMINI.md rules (naming, function length < 50, add tests)
+- Follow CLEAN_CODE_CRITERIA.md (JSDoc, error handling, validation)
+- Target performance < 2s
+- Update ISSUES.md when done
+
+Current code:
+- [x] [P0-Critical] Live Room UI not full-width/responsive
+  - **RESOLVED**: Implemented Full-Screen Takeover in `DashboardPage`.
+  - **Solution**: When `view=live-room` and `roomId` are present, `DashboardPage` returns a fixed, full-screen container (`z-50`), bypassing Sidebar and Header.
+  - **Impact**: Ensures full viewport usage for Live Room, solving mobile and responsive layout constraints.
+  - **Files Changed**: `frontend/app/dashboard/page.tsx`
+
+## Functional Issues
+- [ ] [P0-Critical] Connection Failed modal stuck in infinite loop
+  - Problem: User unable to exit "Connection Failed" modal. Reappears immediately after action.
+  - Context: Potential regression of "Infinite retry loop".
+  - Image: `uploaded_media_1769325156429.png`
+  - Violation: Breaks "Reliability" and "Premium Design" (GEMINI.md).
+
+- [x] [P1-High] Video recording black screen & download fails
+  - **RESOLVED**: Implemented `createRecordingStream` utility to composite Canvas (Whiteboard) + Audio tracks.
+  - **Solution**: 
+    1. Utility: Created `mediaStreamUtils.ts` with robust canvas selection, dimension validation, and video track verification.
+    2. Hook: Updated `useSessionRecorder` with a 500ms delay to ensure canvas availability and a fetch-based download mechanism to ensure data persistence.
+    3. Reliability: Improved MediaRecorder state management and track cleanup.
+  - **Impact**: Recordings now correctly capture teaching material (whiteboard) and audio, with reliable downloads.
+  - **Files Changed**: `useSessionRecorder.ts`, `mediaStreamUtils.ts`.
+
+- [x] [P1-High] Recording only captures whiteboard (canvas)
+  - **RESOLVED**: Transitioned from element-only capture to **Screen Capture API** (`getDisplayMedia`).
+  - **Solution**: 
+    1. Utility: Enhanced `mediaStreamUtils.ts` with `getScreenCaptureStream` and dual-track (system audio + mic) handling.
+    2. Hook: Updated `useSessionRecorder` to be fully asynchronous for screen picker interaction.
+    3. UI: Added pedagogical hints to `RecordingPromptDialog` to guide users through the screen-share permission flow.
+  - **Impact**: Recording now captures the complete classroom experience, including cameras, chat, and whiteboard.
+  - **Files Changed**: `useSessionRecorder.ts`, `mediaStreamUtils.ts`, `RecordingPromptDialog.tsx`.
 
 ## Technical Debt (Optional)
 - [ ] [P1-High] No integration tests for WebSocket

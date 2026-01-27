@@ -18,6 +18,8 @@ import com.tutor_management.backend.modules.onlinesession.dto.response.GlobalSta
 import com.tutor_management.backend.modules.onlinesession.entity.OnlineSession;
 import com.tutor_management.backend.modules.onlinesession.enums.RoomStatus;
 import com.tutor_management.backend.modules.onlinesession.dto.response.SessionStatusResponse;
+import com.tutor_management.backend.modules.onlinesession.dto.response.UserJoinedMessage;
+import com.tutor_management.backend.modules.onlinesession.dto.response.UserLeftMessage;
 import com.tutor_management.backend.modules.onlinesession.repository.OnlineSessionRepository;
 import com.tutor_management.backend.modules.onlinesession.security.RoomTokenService;
 import com.tutor_management.backend.modules.auth.Role;
@@ -152,14 +154,61 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
         // ✅ Record join time
         LocalDateTime now = LocalDateTime.now(clock);
         
-        if (user.getRole() == Role.TUTOR && session.getTutorJoinedAt() == null) {
-            session.setTutorJoinedAt(now);
-            log.info("Tutor {} joined room {}", userId, roomId);
+        if (user.getRole() == Role.TUTOR) {
+            // New Join
+            if (session.getTutorJoinedAt() == null) {
+                session.setTutorJoinedAt(now);
+                log.info("Tutor {} joined room {}", userId, roomId);
+            } 
+            // Re-join (Implicit or Explicit)
+            else {
+                // If LeftAt is null (Silent Disconnect), try to close segment using Last Activity
+                if (session.getTutorLeftAt() == null) {
+                    LocalDateTime lastActive = presenceService.getLastActivity(roomId, userId);
+                    // Threshold: Heartbeat (5s) + Buffer (1s) = 6s
+                    // If lastActive is older than 6s, we assume they left.
+                    if (lastActive != null && lastActive.isBefore(now.minusSeconds(6))) {
+                        // User was gone for >6s, treat as gap
+                        session.setTutorLeftAt(lastActive);
+                        log.info("Detected silent disconnect for Tutor {}. Closing segment at {}", userId, lastActive);
+                    } else {
+                         // Very short disconnect or just reload (<5s) -> Don't gap, treat as continuous
+                         // Or if lastActive is null (shouldn't happen if they were active)
+                         // If we don't set LeftAt, it continues as one segment.
+                    }
+                }
+                
+                // If LeftAt is set (either explicitly or via logic above), flush and start new
+                if (session.getTutorLeftAt() != null) {
+                    flushDuration(session);
+                    session.setTutorJoinedAt(now);
+                    session.setTutorLeftAt(null);
+                    log.info("Tutor {} rejoined room {}", userId, roomId);
+                }
+            }
         } else if (user.getRole() == Role.STUDENT) {
+            // Verify student ID match
             if (user.getStudentId() != null && user.getStudentId().equals(session.getStudent().getId())) {
                 if (session.getStudentJoinedAt() == null) {
                     session.setStudentJoinedAt(now);
                     log.info("Student {} joined room {}", userId, roomId);
+                } 
+                else {
+                    // SILENT DISCONNECT LOGIC FOR STUDENT
+                    if (session.getStudentLeftAt() == null) {
+                        LocalDateTime lastActive = presenceService.getLastActivity(roomId, userId);
+                        if (lastActive != null && lastActive.isBefore(now.minusSeconds(6))) {
+                            session.setStudentLeftAt(lastActive);
+                             log.info("Detected silent disconnect for Student {}. Closing segment at {}", userId, lastActive);
+                        }
+                    }
+
+                    if (session.getStudentLeftAt() != null) {
+                        flushDuration(session);
+                        session.setStudentJoinedAt(now);
+                        session.setStudentLeftAt(null);
+                        log.info("Student {} rejoined room {}", userId, roomId);
+                    }
                 }
             }
         }
@@ -193,10 +242,21 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
         return RoomStatsResponse.builder()
                 .roomId(roomId)
                 .roomStatus(session.getRoomStatus().name())
+                .tutorId(session.getTutor().getUser().getId()) // Tutor always has User
+                // Student might not have User if not registered, but usually does in this system
+                // We need the User ID to match WebSocket 'userId'.
+                // If student has no User account, we can't match them via WS anyway.
+                // Best effort lookup or query via userRepository.findByStudentId
+                .studentId(userRepository.findByStudentId(session.getStudent().getId()).map(User::getId).orElse(null))
                 .tutorName(session.getTutor().getFullName())
                 .studentName(session.getStudent().getName())
-                .tutorPresent(session.getTutorJoinedAt() != null)
-                .studentPresent(session.getStudentJoinedAt() != null)
+                .tutorPresent(presenceService.isUserActive(roomId, session.getTutor().getUser().getId(), 60))
+                // Best effort for student presence check (requires User mapping)
+                .studentPresent(
+                    userRepository.findByStudentId(session.getStudent().getId())
+                        .map(u -> presenceService.isUserActive(roomId, u.getId(), 60))
+                        .orElse(false)
+                )
                 .participantCount(calculateParticipantCount(session))
                 .scheduledStart(session.getScheduledStart())
                 .scheduledEnd(session.getScheduledEnd())
@@ -204,7 +264,8 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
                 .actualEnd(session.getActualEnd())
                 .tutorJoinedAt(session.getTutorJoinedAt())
                 .studentJoinedAt(session.getStudentJoinedAt())
-                .durationMinutes(session.getTotalDurationMinutes())
+                .durationMinutes(calculateCurrentDurationSeconds(session) / 60)
+                .durationSeconds(calculateCurrentDurationSeconds(session))
                 .recordingEnabled(session.getRecordingEnabled())
                 .recordingDownloaded(session.getRecordingDownloaded())
                 .recordingDurationMinutes(session.getRecordingDurationMinutes())
@@ -274,37 +335,16 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
             session.setStudentLeftAt(now);
         }
 
-        // Calculate billable overlap
-        if (session.getTutorJoinedAt() != null && session.getStudentJoinedAt() != null &&
-            session.getTutorLeftAt() != null && session.getStudentLeftAt() != null) {
-            
-            LocalDateTime overlapStart = session.getTutorJoinedAt().isAfter(session.getStudentJoinedAt()) 
-                    ? session.getTutorJoinedAt() : session.getStudentJoinedAt();
-            
-            LocalDateTime overlapEnd = session.getTutorLeftAt().isBefore(session.getStudentLeftAt())
-                    ? session.getTutorLeftAt() : session.getStudentLeftAt();
-            
-            if (overlapEnd.isAfter(overlapStart)) {
-                long minutes = java.time.Duration.between(overlapStart, overlapEnd).toMinutes();
-                session.setTotalDurationMinutes((int) minutes);
-            }
-        }
+        // Flush any pending duration before ending
+        flushDuration(session);
 
         OnlineSession saved = onlineSessionRepository.save(session);
 
-        // ✅ FIX: Get User IDs correctly
-        Long tutorUserId = saved.getTutor().getUser().getId(); // ✅ Tutor has User relationship
-        
-        // ✅ FIX: Find student's User via userRepository
+        Long tutorUserId = saved.getTutor().getUser().getId();
         Long studentUserId = userRepository.findByStudentId(saved.getStudent().getId())
                 .map(User::getId)
-                .orElse(null); // ✅ Graceful handling if User not found
-
-        if (studentUserId == null) {
-                log.warn("No User mapping found for student ID: {}", saved.getStudent().getId());
-                // Still save session, just don't notify student
-        }
-
+                .orElse(null);
+        
         // Publish End Event
         eventPublisher.publishEvent(OnlineSessionEndedEvent.builder()
                 .sessionId(saved.getId())
@@ -351,13 +391,25 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
             
             // If they were marked as left, announce they are back and clear left time
             boolean wasMarkedLeft = false;
+            LocalDateTime now = LocalDateTime.now(clock);
+
             if (session.getTutor().getUser() != null && session.getTutor().getUser().getId().equals(userId)) {
                 if (session.getTutorLeftAt() != null) {
+                    // FLUSH PREVIOUS SEGMENT
+                    flushDuration(session);
+                    
+                    // RESET START TIME FOR NEW SEGMENT
+                    session.setTutorJoinedAt(now);
                     session.setTutorLeftAt(null);
                     wasMarkedLeft = true;
                 }
             } else {
                 if (session.getStudentLeftAt() != null) {
+                    // FLUSH PREVIOUS SEGMENT
+                    flushDuration(session);
+                    
+                    // RESET START TIME FOR NEW SEGMENT
+                    session.setStudentJoinedAt(now);
                     session.setStudentLeftAt(null);
                     wasMarkedLeft = true;
                 }
@@ -621,7 +673,11 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
         
         // Track when they left
         if (!tutorActive && session.getTutorLeftAt() == null && session.getTutorJoinedAt() != null) {
+            // Flush duration up to now before marking as left
             session.setTutorLeftAt(now);
+            // Don't flush yet - allow getRoomStats to calculate pending based on LeftAt
+            // flushDuration(session); 
+            
             needsSave = true;
             broadcastStatus(session.getRoomId(), SessionStatusResponse.Type.PARTICIPANT_LEFT, 
                 session.getTutor().getUser().getId(), "TUTOR", null, "Giảng viên đã mất kết nối.");
@@ -630,6 +686,8 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
 
         if (!studentActive && session.getStudentLeftAt() == null && session.getStudentJoinedAt() != null) {
             session.setStudentLeftAt(now);
+            // flushDuration(session); 
+
             needsSave = true;
             if (studentUser != null) {
                 broadcastStatus(session.getRoomId(), SessionStatusResponse.Type.PARTICIPANT_LEFT, 
@@ -693,5 +751,123 @@ public class OnlineSessionServiceImpl implements OnlineSessionService {
                 .studentName(session.getStudent().getName())
                 .canJoinNow(canJoinNow)
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void notifyUserJoined(String roomId, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + userId));
+
+        String name = user.getFullName();
+        String role = user.getRole().name();
+        // Assuming avatar logic exists or placeholder
+        String avatarUrl = null; // Placeholder: User entity supports no avatar yet
+
+        log.info("Broadcasting JOIN for user {} in room {}", userId, roomId);
+
+        UserJoinedMessage message = UserJoinedMessage.builder()
+                .userId(userId)
+                .name(name)
+                .role(role)
+                .avatarUrl(avatarUrl)
+                .joinedAt(java.time.Instant.now())
+                .build();
+
+        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/presence", message);
+    }
+
+    @Override
+    public void notifyUserLeft(String roomId, Long userId) {
+        log.info("Broadcasting LEAVE for user {} in room {}", userId, roomId);
+        
+        UserLeftMessage message = UserLeftMessage.builder()
+                .userId(userId)
+                .leftAt(java.time.Instant.now())
+                .build();
+
+        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/presence", message);
+    }
+
+    private void flushDuration(OnlineSession session) {
+        LocalDateTime tStart = session.getTutorJoinedAt();
+        LocalDateTime tEnd = session.getTutorLeftAt() != null ? session.getTutorLeftAt() : LocalDateTime.now(clock);
+        
+        LocalDateTime sStart = session.getStudentJoinedAt();
+        LocalDateTime sEnd = session.getStudentLeftAt() != null ? session.getStudentLeftAt() : LocalDateTime.now(clock);
+        
+        if (tStart == null || sStart == null) return;
+        
+        long seconds = calculateOverlapSeconds(tStart, tEnd, sStart, sEnd);
+        if (seconds > 0) {
+            int currentTotalSeconds = session.getTotalDurationSeconds() != null ? session.getTotalDurationSeconds() : 0;
+            session.setTotalDurationSeconds(currentTotalSeconds + (int) seconds);
+            session.setTotalDurationMinutes((currentTotalSeconds + (int) seconds) / 60);
+            log.info("Flushed {} seconds to session {}. New Total: {}s", seconds, session.getRoomId(), session.getTotalDurationSeconds());
+        }
+    }
+
+    private long calculateOverlapSeconds(LocalDateTime start1, LocalDateTime end1, LocalDateTime start2, LocalDateTime end2) {
+        if (start1 == null || end1 == null || start2 == null || end2 == null) return 0;
+        
+        LocalDateTime overlapStart = start1.isAfter(start2) ? start1 : start2;
+        LocalDateTime overlapEnd = end1.isBefore(end2) ? end1 : end2;
+        
+        if (overlapEnd.isAfter(overlapStart)) {
+            return java.time.Duration.between(overlapStart, overlapEnd).toSeconds();
+        }
+        return 0;
+    }
+
+    private Integer calculateCurrentDurationSeconds(OnlineSession session) {
+        int storedDuration = session.getTotalDurationSeconds() != null ? session.getTotalDurationSeconds() : 0;
+        
+        if (session.getRoomStatus() != RoomStatus.ACTIVE) {
+            return storedDuration;
+        }
+
+        // Logic: Add current pending segment duration
+        // We simulate a flush logic but without saving
+        
+        LocalDateTime tStart = session.getTutorJoinedAt();
+        LocalDateTime now = LocalDateTime.now(clock);
+        
+        // If leftAt is null, use lastActivity (capped by now)
+        // If leftAt is SET, use leftAt.
+        LocalDateTime tEnd = session.getTutorLeftAt();
+        if (tEnd == null) {
+             LocalDateTime tAct = presenceService.getLastActivity(session.getRoomId(), session.getTutor().getUser().getId());
+             // Optimistic: If active within 65s (heartbeat interval + buffer), use NOW to avoid stutter.
+             // Pessimistic: If inactive, use LastActivity to stop billing at disconnect time.
+             if (tAct == null || tAct.isAfter(now.minusSeconds(65))) {
+                 tEnd = now;
+             } else {
+                 tEnd = tAct;
+             }
+        }
+
+        LocalDateTime sStart = session.getStudentJoinedAt();
+        LocalDateTime sEnd = session.getStudentLeftAt();
+        if (sEnd == null) {
+             // Resolving student User ID logic mostly duplicated but necessary
+              Long sUserId = userRepository.findByStudentId(session.getStudent().getId()).map(User::getId).orElse(null);
+              if (sUserId != null) {
+                  LocalDateTime sAct = presenceService.getLastActivity(session.getRoomId(), sUserId);
+                  if (sAct == null || sAct.isAfter(now.minusSeconds(65))) {
+                      sEnd = now;
+                  } else {
+                      sEnd = sAct;
+                  }
+              } else {
+                  // No user account -> assume active if joined? Or fallback to join time?
+                  // Best effort: usage 'now'
+                  sEnd = now;
+              }
+        }
+        
+        
+        long pending = calculateOverlapSeconds(tStart, tEnd, sStart, sEnd);
+        
+        return storedDuration + (int) pending;
     }
 }

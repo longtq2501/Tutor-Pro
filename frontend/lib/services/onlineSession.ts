@@ -94,4 +94,14 @@ export const onlineSessionApi = {
         const response = await api.post(`/online-sessions/${roomId}/recording-metadata`, data);
         return response.data.data;
     },
+
+    /**
+     * RETRIEVE ALL WHITEBOARD STROKES FOR A SESSION
+     * @param {string} roomId - Unique identifier for the room
+     * @returns {Promise<any[]>} List of strokes
+     */
+    getWhiteboardStrokes: async (roomId: string): Promise<any[]> => {
+        const response = await api.get(`/online-sessions/${roomId}/whiteboard`);
+        return response.data.data;
+    },
 };

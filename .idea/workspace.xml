@@ -6,28 +6,29 @@
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/config/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/config/SecurityConfiguration.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/finance/controller/SessionRecordController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/finance/controller/SessionRecordController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/controller/OnlineSessionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/controller/OnlineSessionController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/controller/OnlineSessionWebSocketController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/controller/OnlineSessionWebSocketController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/repository/OnlineSessionRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/repository/OnlineSessionRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/dto/response/RoomStatsResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/dto/response/RoomStatsResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/entity/OnlineSession.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/entity/OnlineSession.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/OnlineSessionServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/LessonDetailModal/components/ModalFooter.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/LessonDetailModal/components/ModalFooter.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/LessonDetailModal/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/LessonDetailModal/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/LessonDetailModal/useLessonDetailModal.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/LessonDetailModal/useLessonDetailModal.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/hooks/useConvertToOnline.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/hooks/useConvertToOnline.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/PresenceService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/onlinesession/service/PresenceService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/dashboard/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/ISSUES.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/live-room/ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/ISSUES.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/LiveRoomDisplay.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/LiveRoomDisplay.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/RoomMainContent.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/RoomMainContent.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/SessionCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/SessionCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/RecordingPromptDialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/RecordingPromptDialog.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/RoomHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/RoomHeader.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/Whiteboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/Whiteboard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/hooks/useChatMessages.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/hooks/useChatMessages.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/hooks/useRoomStatus.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/hooks/useRoomStatus.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/hooks/useUpcomingSessions.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/hooks/useUpcomingSessions.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/WhiteboardToolbar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/WhiteboardToolbar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/context/RoomStateContext.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/context/RoomStateContext.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/hooks/__tests__/useWhiteboardSync.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/hooks/__tests__/useWhiteboardSync.test.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/hooks/useBillableTimer.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/hooks/useBillableTimer.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/hooks/useHeartbeat.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/hooks/useHeartbeat.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/hooks/useSessionRecorder.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/hooks/useSessionRecorder.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/live-room/hooks/useWhiteboardSync.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/hooks/useWhiteboardSync.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/index.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/lib/services/onlineSession.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/onlineSession.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/services/session.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/session.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/lib/types/onlineSession.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/types/onlineSession.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -153,7 +154,7 @@
       <recent name="com.tutor_management.backend.exception" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.OnlineSessionServiceTest">
+  <component name="RunManager" selected="Spring Boot.BackendApplication">
     <configuration name="OnlineSessionServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="backend" />
       <extension name="coverage">
@@ -341,6 +342,10 @@
       <workItem from="1768970265719" duration="86000" />
       <workItem from="1768970358792" duration="8181000" />
       <workItem from="1769035467078" duration="2231000" />
+      <workItem from="1769093814790" duration="1950000" />
+      <workItem from="1769144128808" duration="3572000" />
+      <workItem from="1769319214645" duration="3963000" />
+      <workItem from="1769481523408" duration="6414000" />
     </task>
     <servers />
   </component>

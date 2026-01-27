@@ -131,6 +131,13 @@ public class OnlineSession {
     @Column(name = "total_duration_minutes")
     @Builder.Default
     private Integer totalDurationMinutes = 0;
+
+    /**
+     * Total billable duration in seconds (added for precision).
+     */
+    @Column(name = "total_duration_seconds")
+    @Builder.Default
+    private Integer totalDurationSeconds = 0;
     
     /**
      * Serialized whiteboard data (Phase 5).

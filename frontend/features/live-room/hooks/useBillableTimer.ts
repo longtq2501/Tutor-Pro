@@ -9,8 +9,8 @@ interface UseBillableTimerResult {
 }
 
 interface TimerState {
-    baseDurationSeconds: number;
-    realtimeSeconds: number;
+    baseDurationSeconds: number; // Historical duration from backend
+    accumulatedSeconds: number; // Local seconds accumulated since last backend sync
     isBillable: boolean;
 }
 
@@ -34,14 +34,14 @@ export const useBillableTimer = (roomId: string): UseBillableTimerResult => {
     // Consolidated state to avoid race conditions
     const [timerState, setTimerState] = useState<TimerState>({
         baseDurationSeconds: 0,
-        realtimeSeconds: 0,
+        accumulatedSeconds: 0,
         isBillable: false,
     });
 
     // Refs for interval management
     const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    // 1. Polling & Initial Fetch Logic
+    // 1. Polling & Sync Logic
     useEffect(() => {
         const controller = new AbortController();
 
@@ -51,7 +51,9 @@ export const useBillableTimer = (roomId: string): UseBillableTimerResult => {
 
                 setTimerState(prev => ({
                     ...prev,
-                    baseDurationSeconds: stats.durationMinutes * 60
+                    baseDurationSeconds: stats.durationSeconds ?? (stats.durationMinutes * 60),
+                    // Reset local accumulation on sync to prevent double counting
+                    accumulatedSeconds: 0
                 }));
             } catch (error: any) {
                 if (error.name !== 'AbortError' && !axios.isCancel(error)) {
@@ -74,46 +76,33 @@ export const useBillableTimer = (roomId: string): UseBillableTimerResult => {
                 clearInterval(pollingIntervalRef.current);
             }
         };
-    }, [roomId]);
+    }, [roomId, state.participants]); // ✅ Re-sync when participants change (e.g. Join/Leave)
 
-    // 2. Local Overlap Calculation (High Frequency)
+    // 2. Real-time Ticker (Increments only when billable)
     useEffect(() => {
-        const calculateOverlap = () => {
+        const checkBillable = () => {
+            // Simply check if both Tutor and Student are in the participants list
+            // Since we fixed the participant list to be real-time, this is accurate.
             const tutor = state.participants.find(p => p.role === 'TUTOR');
             const student = state.participants.find(p => p.role === 'STUDENT');
-            const billingActive = !!(tutor && student);
+            return !!(tutor && student);
+        };
 
-            let currentOverlapSeconds = 0;
-
-            if (billingActive && tutor.joinedAt && student.joinedAt) {
-                // Determine start of current overlap
-                const overlapStart = new Date(Math.max(
-                    new Date(tutor.joinedAt).getTime(),
-                    new Date(student.joinedAt).getTime()
-                ));
-
-                // Drift-safe calculation using Date delta instead of counting ticks
-                const now = Date.now();
-                currentOverlapSeconds = Math.max(0, Math.floor((now - overlapStart.getTime()) / 1000));
-            }
+        const intervalId = setInterval(() => {
+            const isBillable = checkBillable();
 
             setTimerState(prev => ({
                 ...prev,
-                isBillable: billingActive,
-                realtimeSeconds: billingActive ? currentOverlapSeconds : 0
+                isBillable,
+                // Only increment if billable
+                accumulatedSeconds: isBillable ? prev.accumulatedSeconds + 1 : prev.accumulatedSeconds
             }));
-        };
-
-        // Run immediately
-        calculateOverlap();
-
-        // Update UI every second
-        const intervalId = setInterval(calculateOverlap, 1000);
+        }, 1000);
 
         return () => clearInterval(intervalId);
     }, [state.participants]);
 
-    const totalSeconds = timerState.baseDurationSeconds + timerState.realtimeSeconds;
+    const totalSeconds = timerState.baseDurationSeconds + timerState.accumulatedSeconds;
 
     const formatTime = useCallback((totalSeconds: number): string => {
         const hours = Math.floor(totalSeconds / 3600);

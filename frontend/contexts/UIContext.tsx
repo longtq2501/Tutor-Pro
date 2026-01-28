@@ -18,6 +18,11 @@ interface UIContextType {
     setHeaderSubtitle: (subtitle: string | null) => void;
     headerActions: React.ReactNode | null;
     setHeaderActions: (actions: React.ReactNode | null) => void;
+    // Portal Slots
+    titleSlot: HTMLElement | null;
+    setTitleSlot: (slot: HTMLElement | null) => void;
+    actionsSlot: HTMLElement | null;
+    setActionsSlot: (slot: HTMLElement | null) => void;
 }
 
 const UIContext = createContext<UIContextType | undefined>(undefined);

@@ -48,6 +48,7 @@ export function useStudents() {
     loading,
     isError,
     refetch: loadStudents,
+    loadStudents,
     deleteStudent
   };
 }

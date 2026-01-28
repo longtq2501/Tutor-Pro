@@ -6,43 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/config/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/config/SecurityConfiguration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/finance/controller/InvoiceController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/finance/controller/InvoiceController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/finance/repository/SessionRecordRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/finance/repository/SessionRecordRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/student/dto/response/StudentResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/student/dto/response/StudentResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/student/dto/response/StudentSummaryResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/student/dto/response/StudentSummaryResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/student/service/StudentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/student/service/StudentService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/app/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/dashboard/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/components/ui/dialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/ui/dialog.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/contexts/UIContext.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/contexts/UIContext.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/components/CalendarHeader.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/calendar/calendar-view/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/dashboard/admin-dashboard/components/StatCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/dashboard/admin-dashboard/components/StatCard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/dashboard/admin-dashboard/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/dashboard/admin-dashboard/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-library/components/CategoryView.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-library/components/CategoryView.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-library/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-library/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/exercises/exercise-dashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/exercises/exercise-dashboard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/finance/management/components/FinanceDashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/finance/management/components/FinanceDashboard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/finance/management/components/FinanceHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/finance/management/components/FinanceHeader.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/finance/management/hooks/useFinanceActions.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/finance/management/hooks/useFinanceActions.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/landing/components/TutorProHero.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/landing/components/TutorProHero.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lessons/components/AdminLessonManager.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lessons/components/AdminLessonManager.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/live-room/components/LiveTeachingLobby.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/live-room/components/LiveTeachingLobby.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/students/student-list/hooks/useStudents.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/student-list/hooks/useStudents.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/students/unified-view/components/OptimizedStudentGrid.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/unified-view/components/OptimizedStudentGrid.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/students/unified-view/components/QuickAddParentModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/unified-view/components/QuickAddParentModal.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/students/unified-view/components/StudentDetailModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/unified-view/components/StudentDetailModal.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/students/unified-view/components/UnifiedContactHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/unified-view/components/UnifiedContactHeader.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/students/unified-view/components/UnifiedStudentCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/unified-view/components/UnifiedStudentCard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/students/unified-view/components/details/StudentInfoSections.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/unified-view/components/details/StudentInfoSections.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/students/unified-view/hooks/useUnifiedView.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/unified-view/hooks/useUnifiedView.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/students/unified-view/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/unified-view/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/services/axios-instance.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/axios-instance.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/services/invoice.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/invoice.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/types/student.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/types/student.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/utils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/utils.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/students/student-list/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/student-list/index.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -361,7 +327,8 @@
       <workItem from="1769481523408" duration="10605000" />
       <workItem from="1769527053060" duration="619000" />
       <workItem from="1769571941990" duration="5883000" />
-      <workItem from="1769613265488" duration="4793000" />
+      <workItem from="1769613265488" duration="5643000" />
+      <workItem from="1769626319213" duration="57000" />
     </task>
     <servers />
   </component>

@@ -20,7 +20,8 @@ export default function StudentList() {
     filteredStudents, activeCount, inactiveCount,
   } = useStudentFilters(students);
   const modals = useStudentModals();
-  const { handleAddSessionSubmit } = useAddSession(loadStudents, modals.closeAddSession);
+  const handleLoadStudents = async () => { await loadStudents(); };
+  const { handleAddSessionSubmit } = useAddSession(handleLoadStudents, modals.closeAddSession);
 
   if (loading) return (
     <div className="space-y-8">
@@ -48,7 +49,7 @@ export default function StudentList() {
       <StudentListModals
         modals={modals}
         students={students}
-        loadStudents={loadStudents}
+        loadStudents={handleLoadStudents}
         handleAddSessionSubmit={handleAddSessionSubmit}
       />
     </div>

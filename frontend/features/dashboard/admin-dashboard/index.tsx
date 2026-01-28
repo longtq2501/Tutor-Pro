@@ -9,8 +9,7 @@ import { StatCard } from './components/StatCard';
 import { DashboardExportButton } from './components/DashboardExportButton';
 import { useDashboardData } from './hooks/useDashboardData';
 import { useMonthlyChartData } from './hooks/useMonthlyChartData';
-
-// Đã loại bỏ import formatCurrency vì không còn dùng tới
+import { DashboardHeader } from '@/contexts/UIContext';
 
 // 2. Thành phần nặng (Biểu đồ) thì import động
 const EnhancedRevenueChart = dynamic(
@@ -61,14 +60,11 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6 lg:space-y-8 pb-10">
-      {/* Header Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Tổng Quan Hệ Thống</h2>
-          <p className="text-muted-foreground">Theo dõi chỉ số kinh doanh và học tập</p>
-        </div>
-        <DashboardExportButton filename="bao-cao-doanh-thu.pdf" />
-      </div>
+      <DashboardHeader
+        title="Tổng Quan Hệ Thống"
+        subtitle="Theo dõi chỉ số kinh doanh và học tập"
+        actions={<DashboardExportButton filename="bao-cao-doanh-thu.pdf" />}
+      />
 
       {/* Stats Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
@@ -115,7 +111,12 @@ export default function AdminDashboard() {
 
         {/* Total Unpaid */}
         <StatCard
-          title="Chưa Thu"
+          title={
+            <div className="flex items-center gap-1.5">
+              <span>Chưa Thu</span>
+              <span className="text-[10px] font-medium opacity-60">(tổng các buổi)</span>
+            </div>
+          }
           value={safeStats.totalUnpaidAllTime}
           icon={<XCircle />}
           variant="red"

@@ -12,7 +12,7 @@ import {
     Users,
     Video
 } from 'lucide-react';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 // ============================================================================
 // FEATURE-BASED IMPORTS (All refactored)
@@ -63,7 +63,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
-import { UIProvider, useUI } from '@/contexts/UIContext';
+import { UIProvider, useUI, HeaderSlot } from '@/contexts/UIContext';
 
 import ExerciseDashboard from '@/features/exercises/exercise-dashboard';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -73,8 +73,7 @@ import { NotificationBell } from '@/features/notifications/components/Notificati
 // MEMOIZED SUB-COMPONENTS FOR RENDERING ISOLATION
 // ============================================================================
 
-const AppHeader = React.memo(({ title, user, initials, roleBadge, logout }: {
-    title: string;
+const AppHeader = React.memo(({ user, initials, roleBadge, logout }: {
     user: any;
     initials: string;
     roleBadge: any;
@@ -83,59 +82,75 @@ const AppHeader = React.memo(({ title, user, initials, roleBadge, logout }: {
     const { setSidebarOpen } = useUI();
 
     return (
-        <header className="border-b border-border bg-background/50 backdrop-blur-sm sticky top-0 z-20">
-            <div className="flex items-center justify-between h-14 lg:h-16 px-4 lg:px-6">
-                <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="lg:hidden h-9 w-9"
-                        onClick={() => setSidebarOpen(true)}
-                    >
-                        <Menu className="h-5 w-5" />
-                    </Button>
-                    <div className="min-w-0">
-                        <h1 className="text-base sm:text-lg lg:text-2xl font-bold text-foreground truncate">{title}</h1>
-                        <p className="text-xs lg:text-sm text-muted-foreground hidden lg:block truncate">
-                            Chào mừng trở lại, {user?.fullName}.
-                        </p>
+        <header className="border-b border-border bg-background/50 backdrop-blur-xl sticky top-0 z-20 transition-all duration-300">
+            <div className="flex flex-col w-full">
+                {/* Global Utility Bar - Top */}
+                <div className="flex items-center justify-between h-14 lg:h-16 px-4 lg:px-8">
+                    <div className="flex items-center gap-4">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="lg:hidden h-9 w-9"
+                            onClick={() => setSidebarOpen(true)}
+                        >
+                            <Menu className="h-5 w-5" />
+                        </Button>
+
+                        {/* Breadcrumb-like indicator (Small on desktop) */}
+                        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground/60 lg:hidden">
+                            {/* Mobile Title Slot or logic can go here if needed, keeping it simple for now */}
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 lg:gap-4 flex-shrink-0">
+                        <NotificationBell />
+                        <ModeToggle />
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="relative h-9 w-9 lg:h-10 lg:w-10 rounded-full hover:bg-white/5 transition-colors">
+                                    <Avatar className="h-9 w-9 lg:h-10 lg:w-10 border border-primary/20">
+                                        <AvatarFallback className="bg-primary text-primary-foreground text-xs lg:text-sm font-bold">
+                                            {initials}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-64" align="end" forceMount>
+                                <DropdownMenuLabel className="font-normal p-4">
+                                    <div className="flex flex-col space-y-2">
+                                        <div className="flex flex-col">
+                                            <p className="text-sm font-bold leading-none">{user?.fullName}</p>
+                                            <p className="text-xs leading-none text-muted-foreground mt-1 truncate">
+                                                {user?.email}
+                                            </p>
+                                        </div>
+                                        {roleBadge && (
+                                            <span className={`inline-flex items-center w-fit px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${roleBadge.color}`}>
+                                                {roleBadge.label}
+                                            </span>
+                                        )}
+                                    </div>
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => logout()} className="text-red-600 dark:text-red-400 cursor-pointer p-3">
+                                    <LogOut className="mr-2 h-4 w-4" />
+                                    <span className="font-bold">Đăng xuất</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </div>
-                <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
-                    {/* <NotificationBell /> */}
-                    <NotificationBell />
-                    <ModeToggle />
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="relative h-8 w-8 lg:h-10 lg:w-10 rounded-full">
-                                <Avatar className="h-8 w-8 lg:h-10 lg:w-10">
-                                    <AvatarFallback className="bg-primary text-primary-foreground text-xs lg:text-base">
-                                        {initials}
-                                    </AvatarFallback>
-                                </Avatar>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56" align="end" forceMount>
-                            <DropdownMenuLabel className="font-normal">
-                                <div className="flex flex-col space-y-1">
-                                    <p className="text-sm font-medium leading-none">{user?.fullName}</p>
-                                    <p className="text-xs leading-none text-muted-foreground truncate">
-                                        {user?.email}
-                                    </p>
-                                    {roleBadge && (
-                                        <span className={`inline-flex items-center px-2 py-1 mt-2 rounded-full text-xs font-medium ${roleBadge.color}`}>
-                                            {roleBadge.label}
-                                        </span>
-                                    )}
-                                </div>
-                            </DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => logout()} className="text-red-600 dark:text-red-400 cursor-pointer">
-                                <LogOut className="mr-2 h-4 w-4" />
-                                <span>Đăng xuất</span>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+
+                {/* Hero Title & Actions Bar - Responsive layout */}
+                <div className="px-4 lg:px-8 pb-4 lg:pb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 lg:gap-8">
+                    <div className="flex-1 min-w-0 w-full md:w-auto">
+                        <HeaderSlot id="title" />
+                    </div>
+
+                    {/* Actions Slot */}
+                    <div className="flex items-center gap-2 sm:gap-3 flex-wrap md:flex-nowrap shrink-0">
+                        <HeaderSlot id="actions" />
+                    </div>
                 </div>
             </div>
         </header>
@@ -328,7 +343,6 @@ function AppContent() {
 
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10 bg-background">
                 <AppHeader
-                    title={currentTitle}
                     user={user}
                     initials={initials}
                     roleBadge={roleBadge}

@@ -6,15 +6,15 @@ import { ExerciseListItemResponse } from '@/features/exercise-import/types/exerc
 import { ExercisePlayer } from '@/features/submission/components/student/ExercisePlayer';
 import { TeacherGradingDashboard } from '@/features/submission/components/teacher/TeacherGradingDashboard';
 import { GradingView } from '@/features/submission/components/teacher/GradingView';
-import { ArrowLeft } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowLeft, Users, Library, X } from 'lucide-react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { ExerciseList } from './components/ExerciseList';
 import { TutorStudentGrid } from './components/TutorStudentGrid';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Users, Library } from 'lucide-react';
 import { StudentDetailView } from './components/StudentDetailView';
 import { TutorStudentSummaryResponse } from '@/features/exercise-import/types/exercise.types';
+import { DashboardHeader } from '@/contexts/UIContext';
 
 type ViewMode = 'LIST' | 'IMPORT' | 'PLAY' | 'GRADE' | 'REVIEW';
 
@@ -30,7 +30,6 @@ export default function ExerciseDashboard() {
     const role = isTeacher ? 'TEACHER' : 'STUDENT';
 
     const handleSelectExercise = (ex: ExerciseListItemResponse, action: 'PLAY' | 'GRADE' | 'EDIT' | 'REVIEW') => {
-        console.log("handleSelectExercise triggered:", { exerciseId: ex.id, action });
         setSelectedExerciseId(ex.id);
         if (action === 'PLAY') setViewMode('PLAY');
         if (action === 'GRADE') setViewMode('GRADE');
@@ -43,49 +42,72 @@ export default function ExerciseDashboard() {
         setSelectedSubmissionId(null);
     };
 
+    const headerContent = useMemo(() => {
+        switch (viewMode) {
+            case 'IMPORT':
+                return { title: 'Thêm bài tập', subtitle: 'Nhập bài tập mới vào hệ thống', actions: <Button variant="ghost" size="sm" onClick={handleBack} className="rounded-xl"><ArrowLeft className="mr-2 h-4 w-4" /> Quay lại</Button> };
+            case 'PLAY':
+                return { title: 'Làm bài tập', subtitle: 'Hoàn thành bài tập của bạn', actions: <Button variant="ghost" size="sm" onClick={handleBack} className="rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10"><X className="mr-2 h-4 w-4" /> Thoát</Button> };
+            case 'GRADE':
+                return { title: selectedSubmissionId ? 'Chấm điểm bài làm' : 'Chấm điểm bài tập', subtitle: 'Đánh giá kết quả của học sinh', actions: <Button variant="ghost" size="sm" onClick={handleBack} className="rounded-xl"><ArrowLeft className="mr-2 h-4 w-4" /> Quay lại</Button> };
+            case 'REVIEW':
+                return { title: 'Xem lại bài tập', subtitle: 'Xem chi tiết kết quả và phản hồi', actions: <Button variant="ghost" size="sm" onClick={handleBack} className="rounded-xl"><ArrowLeft className="mr-2 h-4 w-4" /> Quay lại</Button> };
+            default:
+                return {
+                    title: 'Hệ thống Khảo thí',
+                    subtitle: isTeacher ? "Quản lý ngân hàng câu hỏi, bài tập và theo dõi tiến độ học sinh." : "Danh sách bài tập và bài kiểm tra dành cho bạn.",
+                    actions: isTeacher ? (
+                        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'STUDENTS' | 'LIBRARY')}>
+                            <TabsList className="h-10 p-1 bg-muted/50 rounded-xl border border-border/40 w-auto flex gap-2">
+                                <TabsTrigger
+                                    value="STUDENTS"
+                                    className="rounded-lg font-bold text-xs h-8 px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Users className="h-3.5 w-3.5" />
+                                        <span>Theo học sinh</span>
+                                    </div>
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="LIBRARY"
+                                    className="rounded-lg font-bold text-xs h-8 px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Library className="h-3.5 w-3.5" />
+                                        <span>Thư viện bài tập</span>
+                                    </div>
+                                </TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                    ) : null
+                };
+        }
+    }, [viewMode, isTeacher, selectedSubmissionId, activeTab]);
+
     if (!user) return null;
 
-    // 1. IMPORT/CREATE MODE (Teacher only)
-    if (viewMode === 'IMPORT' && isTeacher) {
-        return (
-            <div className="space-y-4">
-                <Button variant="ghost" onClick={handleBack} className="mb-2">
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Quay lại
-                </Button>
-                <ImportExercise />
-            </div>
-        );
-    }
+    return (
+        <div className="space-y-6">
+            <DashboardHeader
+                title={headerContent.title}
+                subtitle={headerContent.subtitle}
+                actions={headerContent.actions}
+            />
 
-    // 2. PLAY MODE (Student)
-    if (viewMode === 'PLAY' && selectedExerciseId) {
-        return (
-            <div className="space-y-4">
-                <Button variant="ghost" onClick={handleBack} className="mb-2">
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Quay lại danh sách
-                </Button>
+            {viewMode === 'IMPORT' && isTeacher && (
+                <ImportExercise />
+            )}
+
+            {viewMode === 'PLAY' && selectedExerciseId && (
                 <ExercisePlayer
                     exerciseId={selectedExerciseId}
                     studentId={String(user.id)}
                     onExit={handleBack}
                 />
-            </div>
-        );
-    }
+            )}
 
-    // 3. GRADE MODE (Teacher)
-    if (viewMode === 'GRADE' && (selectedExerciseId || selectedSubmissionId) && isTeacher) {
-        return (
-            <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                    <Button variant="ghost" onClick={handleBack}>
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Quay lại
-                    </Button>
-                    <h2 className="text-xl font-semibold">
-                        {selectedSubmissionId ? 'Chấm điểm bài làm' : 'Chấm điểm bài tập'}
-                    </h2>
-                </div>
-                {selectedSubmissionId ? (
+            {viewMode === 'GRADE' && (selectedExerciseId || selectedSubmissionId) && isTeacher && (
+                selectedSubmissionId ? (
                     <GradingView
                         submissionId={selectedSubmissionId}
                         onBack={handleBack}
@@ -93,98 +115,56 @@ export default function ExerciseDashboard() {
                     />
                 ) : (
                     <TeacherGradingDashboard exerciseId={selectedExerciseId!} />
-                )}
-            </div>
-        );
-    }
+                )
+            )}
 
-    // 4. REVIEW MODE (Student/Teacher preview)
-    if (viewMode === 'REVIEW' && (selectedExerciseId || selectedSubmissionId)) {
-        return (
-            <div className="space-y-4">
-                <Button variant="ghost" onClick={handleBack} className="mb-2">
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Quay lại
-                </Button>
+            {viewMode === 'REVIEW' && (selectedExerciseId || selectedSubmissionId) && (
                 <GradingView
                     submissionId={(selectedSubmissionId || selectedExerciseId)!}
                     onBack={handleBack}
                     isReviewMode={true}
                 />
-            </div>
-        );
-    }
+            )}
 
-    // 4. LIST MODE (Default)
-    return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Hệ thống Khảo thí</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        {isTeacher
-                            ? "Quản lý ngân hàng câu hỏi, bài tập và theo dõi tiến độ học sinh."
-                            : "Danh sách bài tập và bài kiểm tra dành cho bạn."}
-                    </p>
-                </div>
-            </div>
+            {viewMode === 'LIST' && (
+                isTeacher ? (
+                    <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full space-y-6">
+                        <TabsContent value="STUDENTS" className="mt-0 outline-none">
+                            {selectedStudent ? (
+                                <StudentDetailView
+                                    studentSummary={selectedStudent}
+                                    onBack={() => setSelectedStudent(null)}
+                                    onViewExercise={(ex, action) => {
+                                        if (action === 'GRADE') {
+                                            setSelectedSubmissionId(ex.submissionId || '');
+                                            setViewMode('GRADE');
+                                        } else if (action === 'REVIEW') {
+                                            setSelectedSubmissionId(ex.submissionId || '');
+                                            setViewMode('REVIEW');
+                                        }
+                                    }}
+                                />
+                            ) : (
+                                <TutorStudentGrid onSelectStudent={setSelectedStudent} />
+                            )}
+                        </TabsContent>
 
-            {isTeacher ? (
-                <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full space-y-6">
-                    <div className="flex justify-between items-center border-b pb-1">
-                        <TabsList className="bg-transparent h-auto p-0 gap-6">
-                            <TabsTrigger
-                                value="STUDENTS"
-                                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 text-sm font-semibold transition-all"
-                            >
-                                <Users className="h-4 w-4 mr-2" /> Theo học sinh
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="LIBRARY"
-                                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 text-sm font-semibold transition-all"
-                            >
-                                <Library className="h-4 w-4 mr-2" /> Thư viện bài tập
-                            </TabsTrigger>
-                        </TabsList>
-
-                        <div className="flex gap-2">
-                            {/* Actions based on active tab could go here */}
-                        </div>
-                    </div>
-
-                    <TabsContent value="STUDENTS" className="mt-0 outline-none">
-                        {selectedStudent ? (
-                            <StudentDetailView
-                                studentSummary={selectedStudent}
-                                onBack={() => setSelectedStudent(null)}
-                                onViewExercise={(ex, action) => {
-                                    if (action === 'GRADE') {
-                                        setSelectedSubmissionId(ex.submissionId || '');
-                                        setViewMode('GRADE');
-                                    } else if (action === 'REVIEW') {
-                                        setSelectedSubmissionId(ex.submissionId || '');
-                                        setViewMode('REVIEW');
-                                    }
-                                }}
+                        <TabsContent value="LIBRARY" className="mt-0 outline-none">
+                            <ExerciseList
+                                role={role}
+                                onSelectExercise={handleSelectExercise}
+                                onCreateNew={() => setViewMode('IMPORT')}
                             />
-                        ) : (
-                            <TutorStudentGrid onSelectStudent={setSelectedStudent} />
-                        )}
-                    </TabsContent>
-
-                    <TabsContent value="LIBRARY" className="mt-0 outline-none">
-                        <ExerciseList
-                            role={role}
-                            onSelectExercise={handleSelectExercise}
-                            onCreateNew={() => setViewMode('IMPORT')}
-                        />
-                    </TabsContent>
-                </Tabs>
-            ) : (
-                <ExerciseList
-                    role={role}
-                    onSelectExercise={handleSelectExercise}
-                />
+                        </TabsContent>
+                    </Tabs>
+                ) : (
+                    <ExerciseList
+                        role={role}
+                        onSelectExercise={handleSelectExercise}
+                    />
+                )
             )}
         </div>
     );
 }
+

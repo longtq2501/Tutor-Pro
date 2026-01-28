@@ -188,7 +188,7 @@ export const UnifiedStudentCard = memo(function UnifiedStudentCard({
                 </div>
 
                 {/* Debt Display - More prominent colors */}
-                {student.totalUnpaid > 0 && (
+                {student.totalUnpaidTaught > 0 && (
                     <motion.div
                         initial={{ scale: 0.95 }}
                         animate={{ scale: 1 }}
@@ -207,7 +207,7 @@ export const UnifiedStudentCard = memo(function UnifiedStudentCard({
                             </span>
                         </div>
                         <span className="text-lg font-bold text-red-600 dark:text-red-400 tabular-nums">
-                            {formatCurrency(student.totalUnpaid)}
+                            {formatCurrency(student.totalUnpaidTaught)}
                         </span>
                     </motion.div>
                 )}

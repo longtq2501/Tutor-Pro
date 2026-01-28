@@ -121,35 +121,47 @@ public class InvoiceController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @PostMapping("/send-email-batch")
-    public ResponseEntity<ApiResponse<String>> sendInvoiceBatch(@RequestBody InvoiceRequest request) {
+    public ResponseEntity<ApiResponse<com.tutor_management.backend.modules.finance.dto.response.BatchEmailResult>> sendInvoiceBatch(@RequestBody InvoiceRequest request) throws Exception {
         log.info("Sending batch invoice email");
-        try {
-            List<Long> studentIds = request.getSelectedStudentIds();
-            if (studentIds == null || studentIds.isEmpty()) {
-                return ResponseEntity.badRequest().body(ApiResponse.error("Vui lòng chọn ít nhất 1 học sinh"));
-            }
-
-            List<Student> students = studentRepository.findByIdInWithParent(studentIds);
-            Parent firstParent = validateBatchParents(students);
-
-            InvoiceResponse invoice = invoiceService.generateInvoice(request);
-            byte[] pdfData = pdfGeneratorService.generateInvoicePDF(invoice);
-
-            String allStudentNames = students.stream().map(Student::getName).collect(Collectors.joining(", "));
-            emailService.sendInvoiceEmail(
-                    firstParent.getEmail(),
-                    firstParent.getName(),
-                    allStudentNames,
-                    invoice.getMonth(),
-                    pdfData,
-                    invoice.getInvoiceNumber());
-
-            return ResponseEntity.ok(ApiResponse.success("Đã gửi email báo giá tổng hợp thành công"));
-        } catch (Exception e) {
-            log.error("Failed to send batch invoice email", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("Lỗi hệ thống: " + e.getMessage()));
+        List<Long> studentIds = request.getSelectedStudentIds();
+        if (studentIds == null || studentIds.isEmpty()) {
+            throw new IllegalArgumentException("Vui lòng chọn ít nhất 1 học sinh");
         }
+
+        List<Student> students = studentRepository.findByIdInWithParent(studentIds);
+        Parent firstParent = validateBatchParents(students);
+
+        InvoiceResponse invoice = invoiceService.generateInvoice(request);
+        byte[] pdfData = pdfGeneratorService.generateInvoicePDF(invoice);
+
+        String allStudentNames = students.stream().map(Student::getName).collect(Collectors.joining(", "));
+        emailService.sendInvoiceEmail(
+                firstParent.getEmail(),
+                firstParent.getName(),
+                allStudentNames,
+                invoice.getMonth(),
+                pdfData,
+                invoice.getInvoiceNumber());
+
+        // Construct detailed result
+        var result = com.tutor_management.backend.modules.finance.dto.response.BatchEmailResult.builder()
+                .success(true)
+                .message("Đã gửi email báo giá tổng hợp thành công")
+                .summary(com.tutor_management.backend.modules.finance.dto.response.BatchEmailResult.EmailSummary.builder()
+                        .total(1)
+                        .sent(1)
+                        .failed(0)
+                        .build())
+                .successDetails(java.util.Collections.singletonList(
+                        com.tutor_management.backend.modules.finance.dto.response.BatchEmailResult.EmailDetail.builder()
+                                .student(allStudentNames)
+                                .parent(firstParent.getName())
+                                .email(firstParent.getEmail())
+                                .build()
+                ))
+                .build();
+
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
@@ -170,12 +182,12 @@ public class InvoiceController {
     }
 
     private Parent validateBatchParents(List<Student> students) {
-        if (students.isEmpty()) throw new RuntimeException("Không tìm thấy học sinh");
+        if (students.isEmpty()) throw new IllegalArgumentException("Không tìm thấy học sinh");
         Parent p = students.get(0).getParent();
         validateParentEmail(p);
         for (Student s : students) {
             if (s.getParent() == null || !s.getParent().getId().equals(p.getId())) {
-                throw new RuntimeException("Các học sinh đã chọn không cùng phụ huynh");
+                throw new IllegalArgumentException("Các học sinh đã chọn không cùng phụ huynh");
             }
         }
         return p;

@@ -9,11 +9,13 @@ import type { Student } from '@/lib/types';
 import {
     CalendarClock,
     Plus,
+    Edit2
 } from 'lucide-react';
-import React from 'react';
+import React, { useState } from 'react';
 import { DetailModalHeader } from './details/DetailModalHeader';
 import { FinancialSummary } from './details/FinancialSummary';
 import { StudentInfoSections } from './details/StudentInfoSections';
+import { QuickAddParentModal } from './QuickAddParentModal';
 
 interface StudentDetailModalProps {
     open: boolean;
@@ -32,20 +34,29 @@ export function StudentDetailModal({
     onAddSession,
     onViewSchedule
 }: StudentDetailModalProps) {
+    const [editParentModalOpen, setEditParentModalOpen] = useState(false);
+    const [editingParent, setEditingParent] = useState<any>(null);
+
+    const handleEditParent = (parent: any) => {
+        setEditingParent(parent);
+        setEditParentModalOpen(true);
+    };
+
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[600px] w-[95vw] max-w-[95vw] sm:w-full max-h-[90vh] p-0 overflow-hidden bg-card rounded-[32px] shadow-2xl border-none animate-in fade-in zoom-in-95 duration-300">
+            <DialogContent className="sm:max-w-[800px] w-[95vw] max-w-[95vw] sm:w-full max-h-[90vh] p-0 overflow-hidden bg-card rounded-[32px] shadow-2xl border-none animate-in fade-in zoom-in-95 duration-300">
                 <DetailModalHeader student={student} />
 
                 <div className="px-8 pb-8 space-y-8 max-h-[calc(85vh-200px)] overflow-y-auto scrollbar-thin">
                     <FinancialSummary
-                        totalUnpaid={student.totalUnpaid}
+                        totalUnpaid={student.totalUnpaidTaught}
                         totalPaid={student.totalPaid}
                     />
 
                     <StudentInfoSections
                         student={student}
                         onEdit={onEdit}
+                        onEditParent={handleEditParent}
                     />
                 </div>
 
@@ -68,6 +79,17 @@ export function StudentDetailModal({
                     </Button>
                 </div>
             </DialogContent>
+
+            {editParentModalOpen && (
+                <QuickAddParentModal
+                    open={editParentModalOpen}
+                    initialData={editingParent}
+                    onClose={() => setEditParentModalOpen(false)}
+                    onSuccess={() => {
+                        setEditParentModalOpen(false);
+                    }}
+                />
+            )}
         </Dialog>
     );
 }

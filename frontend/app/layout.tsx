@@ -35,6 +35,20 @@ export const metadata: Metadata = {
     title: 'Tutor Pro - Quản lý gia sư',
     description: 'Hệ thống quản lý gia sư chuyên nghiệp',
   },
+  verification: {
+    google: 'google-site-verification-placeholder',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 export default function RootLayout({

@@ -8,7 +8,6 @@ import { Upload } from 'lucide-react';
 import type { Document } from '@/lib/types';
 import { useDocumentLibrary } from './hooks/useDocumentLibrary';
 import { useDocumentActions } from './hooks/useDocumentActions';
-import { LoadingState } from './components/LoadingState';
 import { StatsCards } from './components/StatsCards';
 import { SearchBar } from './components/SearchBar';
 import { CategoryGrid } from './components/CategoryGrid';
@@ -18,6 +17,7 @@ import DocumentUploadModal from '@/features/documents/document-upload-modal';
 import DocumentPreviewModal from '@/features/documents/document-preview-modal';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { useQueryClient } from '@tanstack/react-query';
+import { DashboardHeader } from '@/contexts/UIContext';
 
 export default function DocumentLibrary() {
   const {
@@ -73,28 +73,21 @@ export default function DocumentLibrary() {
     queryClient.invalidateQueries({ queryKey: ['documents', 'stats'] });
   };
 
-  // if (loading) return <LoadingState />; // Removed to support Skeleton
-
   if (!selectedCategory) {
     return (
       <>
-        <div className="bg-card rounded-2xl shadow-lg p-4 lg:p-6 transition-colors border border-border">
-          {/* ... Dashboard content ... */}
-          {/* We could potentially show skeleton here if needed, but dashboard data (stats/categories) usually loads fast or can have its own skeletons later. For now, we focus on CategoryView */}
+        <DashboardHeader
+          title="Kho Tài Liệu Tiếng Anh"
+          subtitle="Quản lý tài liệu theo danh mục để dễ tìm kiếm sau này"
+          actions={!isStudent && (
+            <button onClick={() => setShowUploadModal(true)} className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground px-4 lg:px-6 py-2.5 lg:py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors shadow-lg shadow-primary/20">
+              <Upload size={18} />
+              Tải lên
+            </button>
+          )}
+        />
 
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <div>
-              <h2 className="text-xl lg:text-2xl font-bold text-card-foreground">Kho Tài Liệu Tiếng Anh</h2>
-              <p className="text-muted-foreground text-xs lg:text-sm mt-1">Quản lý tài liệu theo danh mục để dễ tìm kiếm sau này</p>
-            </div>
-            {!isStudent && (
-              <button onClick={() => setShowUploadModal(true)} className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground px-4 lg:px-6 py-2.5 lg:py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
-                <Upload size={18} />
-                Tải lên
-              </button>
-            )}
-          </div>
-
+        <div className="space-y-6">
           <StatsCards stats={stats} />
           <SearchBar value="" onChange={() => { }} disabled />
           <CategoryGrid

@@ -28,7 +28,7 @@ function StatsCard({
 }: {
     icon: React.ReactNode;
     label: string;
-    value: number | string;
+    value: React.ReactNode;
     variant: 'green' | 'gray' | 'blue' | 'red';
 }) {
     const variants = {
@@ -49,60 +49,61 @@ function StatsCard({
     );
 }
 
-function StatsOverview({ stats }: { stats: UnifiedContactHeaderProps['stats'] }) {
+function StatsOverview({ stats, isLoading, isError }: { stats: UnifiedContactHeaderProps['stats'], isLoading?: boolean, isError?: boolean }) {
+    const renderValue = (val: number | string) => {
+        if (isLoading) return <div className="h-8 w-16 bg-muted-foreground/10 animate-pulse rounded-lg" />;
+        if (isError) return <span className="text-muted-foreground/40 text-lg">--</span>;
+        return val;
+    };
+
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <StatsCard icon={<Users className="w-5 h-5" />} label="Đang học" value={stats.active} variant="green" />
-            <StatsCard icon={<UserX className="w-5 h-5" />} label="Đã nghỉ" value={stats.inactive} variant="gray" />
-            <StatsCard icon={<UserCircle className="w-5 h-5" />} label="Phụ huynh" value={stats.parents} variant="blue" />
-            <StatsCard icon={<DollarSign className="w-5 h-5" />} label="Tổng nợ" value={stats.totalDebt} variant="red" />
+            <StatsCard icon={<Users className="w-5 h-5" />} label="Đang học" value={renderValue(stats.active)} variant="green" />
+            <StatsCard icon={<UserX className="w-5 h-5" />} label="Đã nghỉ" value={renderValue(stats.inactive)} variant="gray" />
+            <StatsCard icon={<UserCircle className="w-5 h-5" />} label="Phụ huynh" value={renderValue(stats.parents)} variant="blue" />
+            <StatsCard icon={<DollarSign className="w-5 h-5" />} label="Tổng nợ" value={renderValue(stats.totalDebt)} variant="red" />
         </div>
     );
 }
 
-export function UnifiedContactHeader(props: UnifiedContactHeaderProps) {
+export function UnifiedContactStats({ stats, isLoading, isError }: { stats: UnifiedContactHeaderProps['stats'], isLoading?: boolean, isError?: boolean }) {
     return (
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 sm:space-y-6">
-            <div>
-                <h1 className="text-3xl sm:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70 text-center sm:text-left">
-                    Học Sinh & Phụ Huynh
-                </h1>
-                <p className="text-sm sm:text-base text-muted-foreground mt-1 text-center sm:text-left">
-                    Quản lý thông tin học sinh và phụ huynh trong hệ thống
-                </p>
+        <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+            <StatsOverview stats={stats} isLoading={isLoading} isError={isError} />
+        </div>
+    );
+}
+
+export function UnifiedContactActions(props: Omit<UnifiedContactHeaderProps, 'stats'>) {
+    return (
+        <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-end w-full animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="relative w-full md:w-48 lg:w-64">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                <Input
+                    placeholder="Tìm kiếm..."
+                    className="pl-9 h-10 w-full rounded-xl border-border/60 bg-background focus:ring-primary/10 transition-all font-medium text-sm"
+                    value={props.searchTerm}
+                    onChange={(e) => props.onSearchChange(e.target.value)}
+                />
             </div>
 
-            <StatsOverview stats={props.stats} />
+            <div className="flex items-center gap-2">
+                <Tabs value={props.filter} onValueChange={props.onFilterChange} className="flex-1 sm:flex-none">
+                    <TabsList className="h-10 p-1 bg-muted/50 rounded-xl border border-border/40 w-full sm:w-auto">
+                        <TabsTrigger value="all" className="rounded-lg font-bold text-[10px] h-8 px-3">Tất cả</TabsTrigger>
+                        <TabsTrigger value="active" className="rounded-lg font-bold text-[10px] h-8 px-3">Đang học</TabsTrigger>
+                        <TabsTrigger value="inactive" className="rounded-lg font-bold text-[10px] h-8 px-3">Đã nghỉ</TabsTrigger>
+                    </TabsList>
+                </Tabs>
 
-            <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
-                <div className="relative w-full lg:max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Tìm kiếm..."
-                        className="pl-10 h-11 w-full rounded-xl border-border/60 bg-background focus:ring-primary/10"
-                        value={props.searchTerm}
-                        onChange={(e) => props.onSearchChange(e.target.value)}
-                    />
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <Tabs value={props.filter} onValueChange={props.onFilterChange} className="w-full sm:w-auto">
-                        <TabsList className="h-11 p-1 bg-muted/50 rounded-xl border border-border/40 w-full sm:w-auto grid grid-cols-3">
-                            <TabsTrigger value="all" className="rounded-lg font-bold text-xs h-9">Tất cả</TabsTrigger>
-                            <TabsTrigger value="active" className="rounded-lg font-bold text-xs h-9">Đang học</TabsTrigger>
-                            <TabsTrigger value="inactive" className="rounded-lg font-bold text-xs h-9">Đã nghỉ</TabsTrigger>
-                        </TabsList>
-                    </Tabs>
-
-                    <Button
-                        size="lg"
-                        onClick={props.onAddStudent}
-                        className="h-11 rounded-xl bg-primary shadow-lg shadow-primary/20 font-black text-xs gap-2"
-                    >
-                        <Plus size={18} /> Thêm học sinh
-                    </Button>
-                </div>
+                <Button
+                    size="sm"
+                    onClick={props.onAddStudent}
+                    className="h-10 rounded-xl bg-primary shadow-lg shadow-primary/20 font-bold text-xs gap-1.5 hover:scale-105 active:scale-95 transition-all px-4"
+                >
+                    <Plus size={16} /> <span className="hidden sm:inline">Thêm học sinh</span>
+                </Button>
             </div>
-        </motion.div>
+        </div>
     );
 }

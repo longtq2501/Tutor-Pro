@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 
 interface UIContextType {
     isSidebarOpen: boolean;
@@ -10,6 +11,13 @@ interface UIContextType {
     activeDialogs: number;
     openDialog: () => void;
     closeDialog: () => void;
+    // Dynamic Header
+    headerTitle: string;
+    setHeaderTitle: (title: string) => void;
+    headerSubtitle: string | null;
+    setHeaderSubtitle: (subtitle: string | null) => void;
+    headerActions: React.ReactNode | null;
+    setHeaderActions: (actions: React.ReactNode | null) => void;
 }
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
@@ -44,6 +52,10 @@ export function UIProvider({ children }: { children: ReactNode }) {
         return () => window.removeEventListener('resize', handleResize);
     }, [isCollapsed]);
 
+    // Portal Slots for Header
+    const [titleSlot, setTitleSlot] = useState<HTMLElement | null>(null);
+    const [actionsSlot, setActionsSlot] = useState<HTMLElement | null>(null);
+
     return (
         <UIContext.Provider value={{
             isSidebarOpen,
@@ -52,7 +64,17 @@ export function UIProvider({ children }: { children: ReactNode }) {
             setIsCollapsed,
             activeDialogs,
             openDialog,
-            closeDialog
+            closeDialog,
+            headerTitle: '', // Deprecated
+            setHeaderTitle: () => { }, // Deprecated
+            headerSubtitle: null, // Deprecated
+            setHeaderSubtitle: () => { }, // Deprecated
+            headerActions: null, // Deprecated
+            setHeaderActions: () => { }, // Deprecated
+            titleSlot,
+            setTitleSlot,
+            actionsSlot,
+            setActionsSlot
         }}>
             {children}
         </UIContext.Provider>
@@ -65,4 +87,65 @@ export function useUI() {
         throw new Error('useUI must be used within a UIProvider');
     }
     return context;
+}
+
+/**
+ * Slot component placed in the layout where features will inject their content
+ */
+export function HeaderSlot({ id }: { id: 'title' | 'actions' }) {
+    const { setTitleSlot, setActionsSlot } = useUI();
+    return (
+        <div
+            ref={(el) => {
+                if (id === 'title') setTitleSlot(el);
+                if (id === 'actions') setActionsSlot(el);
+            }}
+            className="w-full h-full"
+        />
+    );
+}
+
+/**
+ * Portal component used by features to inject content into the layout slots
+ */
+export function HeaderPortal({ children, to }: { children: React.ReactNode; to: 'title' | 'actions' }) {
+    const { titleSlot, actionsSlot } = useUI();
+    const slot = to === 'title' ? titleSlot : actionsSlot;
+
+    if (!slot) return null;
+    return createPortal(children, slot);
+}
+
+/**
+ * Component to be used by features to project their header content into the layout
+ */
+export function DashboardHeader({ title, subtitle, actions }: { title: string; subtitle?: string | null; actions?: React.ReactNode }) {
+    return (
+        <>
+            <HeaderPortal to="title">
+                <div className="flex-1 min-w-0 animate-in fade-in slide-in-from-left-4 duration-500">
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent truncate sm:whitespace-normal">
+                        {title}
+                    </h1>
+                    {subtitle && (
+                        <p className="text-xs sm:text-sm xl:text-base text-muted-foreground mt-1 sm:mt-2 max-w-2xl font-medium line-clamp-2 sm:line-clamp-none">
+                            {subtitle}
+                        </p>
+                    )}
+                </div>
+            </HeaderPortal>
+            {actions && (
+                <HeaderPortal to="actions">
+                    <div className="flex items-center gap-3 animate-in fade-in slide-in-from-right-4 duration-500">
+                        {actions}
+                    </div>
+                </HeaderPortal>
+            )}
+        </>
+    );
+}
+
+// Keep useHeader for backward compatibility but mark as deprecated
+export function useHeader(title: string, subtitle?: string | null, actions?: React.ReactNode | null) {
+    // This is now handled by DashboardHeader component using Portals
 }

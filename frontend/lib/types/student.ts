@@ -31,6 +31,7 @@ export interface Student {
   createdAt: string; // NGÀY TẠO HỒ SƠ
   totalPaid: number; // TỔNG TIỀN ĐÃ THANH TOÁN
   totalUnpaid: number; // TỔNG TIỀN CÒN NỢ (CHƯA ĐÓNG)
+  totalUnpaidTaught: number; // TỔNG TIỀN NỢ CHO CÁC BUỔI ĐÃ DẠY
   parent?: Parent; // THÔNG TIN PHỤ HUYNH LIÊN KẾT (OBJECT)
   parentId?: number; // ID CỦA PHỤ HUYNH (FOREIGN KEY)
   parentName?: string; // TÊN PHỤ HUYNH (DÙNG ĐỂ HIỂN THỊ NHANH)

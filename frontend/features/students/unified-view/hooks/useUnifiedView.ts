@@ -7,7 +7,7 @@ import { recurringSchedulesApi } from "@/lib/services/recurring-schedule";
 import type { Student, RecurringSchedule } from "@/lib/types";
 
 export function useUnifiedView() {
-    const { students, loading } = useStudents();
+    const { students, loading, isError, refetch } = useStudents();
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -64,7 +64,7 @@ export function useUnifiedView() {
         const inactive = students.filter(s => !s.active).length;
         const uniqueParents = new Set(students.filter(s => s.parentId).map(s => s.parentId));
 
-        const totalDebtValue = students.reduce((sum, s) => sum + (s.totalUnpaid || 0), 0);
+        const totalDebtValue = students.reduce((sum, s) => sum + (s.totalUnpaidTaught || 0), 0);
         const totalDebt = new Intl.NumberFormat('vi-VN', {
             notation: "compact",
             compactDisplay: "short",
@@ -133,9 +133,27 @@ export function useUnifiedView() {
         setDetailModalOpen(true);
     }, []);
 
+    // Sync selected student states with fresh data from students list
+    useEffect(() => {
+        if (selectedStudentDetail) {
+            const freshData = students.find(s => s.id === selectedStudentDetail.id);
+            if (freshData && freshData !== selectedStudentDetail) {
+                setSelectedStudentDetail(freshData);
+            }
+        }
+        if (selectedStudent) {
+            const freshData = students.find(s => s.id === selectedStudent.id);
+            if (freshData && freshData !== selectedStudent) {
+                setSelectedStudent(freshData);
+            }
+        }
+    }, [students, selectedStudentDetail, selectedStudent]);
+
     return {
         students: filteredStudents,
         loading,
+        isError,
+        refetch,
         stats,
         searchTerm,
         setSearchTerm,

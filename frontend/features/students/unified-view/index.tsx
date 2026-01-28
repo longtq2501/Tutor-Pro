@@ -6,13 +6,17 @@ import { AddSessionModal } from './components/AddSessionModal';
 import { EnhancedAddStudentModal } from './components/EnhancedAddStudentModal';
 import { OptimizedStudentGrid } from './components/OptimizedStudentGrid';
 import { StudentDetailModal } from './components/StudentDetailModal';
-import { UnifiedContactHeader } from './components/UnifiedContactHeader';
+import { UnifiedContactStats, UnifiedContactActions } from './components/UnifiedContactHeader';
 import { useUnifiedView } from './hooks/useUnifiedView';
+import { DashboardHeader } from '@/contexts/UIContext';
+import { useMemo } from 'react';
 
 export default function UnifiedContactManagement() {
     const {
         students,
         loading,
+        isError,
+        refetch,
         stats,
         searchTerm,
         setSearchTerm,
@@ -40,18 +44,31 @@ export default function UnifiedContactManagement() {
 
     return (
         <div className="p-4 sm:p-6 space-y-6 sm:space-y-8 w-full">
-            <UnifiedContactHeader
+            <DashboardHeader
+                title="Học Sinh & Phụ Huynh"
+                subtitle="Quản lý thông tin học sinh và phụ huynh trong hệ thống"
+                actions={
+                    <UnifiedContactActions
+                        searchTerm={searchTerm}
+                        onSearchChange={setSearchTerm}
+                        filter={filter}
+                        onFilterChange={setFilter}
+                        onAddStudent={handleAddStudent}
+                    />
+                }
+            />
+
+            <UnifiedContactStats
                 stats={stats}
-                searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
-                filter={filter}
-                onFilterChange={setFilter}
-                onAddStudent={handleAddStudent}
+                isLoading={loading}
+                isError={isError}
             />
 
             <OptimizedStudentGrid
                 students={students}
                 isLoading={loading}
+                isError={isError}
+                onRetry={refetch}
                 onViewSchedule={handleViewSchedule}
                 onAddSession={handleAddSession}
                 onEdit={handleEditStudent}

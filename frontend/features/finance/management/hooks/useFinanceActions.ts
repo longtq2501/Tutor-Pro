@@ -9,15 +9,30 @@ import { useFinanceData } from './useFinanceData';
 import { isCancelledStatus } from '@/lib/types/lesson-status';
 import type { SessionRecord } from '@/lib/types/finance';
 
-export function useFinanceActions() {
+interface UseFinanceActionsProps {
+  confirm?: (options: { title: string; description: string; confirmText?: string; cancelText?: string; variant?: 'default' | 'destructive' }) => Promise<boolean>;
+}
+
+export function useFinanceActions({ confirm }: UseFinanceActionsProps = {}) {
   const { refreshData, records } = useFinanceData();
   const { selectedStudentIds, clearSelection } = useFinanceContext();
   const queryClient = useQueryClient();
 
   const [generatingInvoice, setGeneratingInvoice] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
-  const [showEmailResult, setShowEmailResult] = useState(false);
-  const [emailResult, setEmailResult] = useState<any>(null);
+
+  // Helper to safely execute confirmation
+  const safeConfirm = async (message: string) => {
+    if (confirm) {
+      return await confirm({
+        title: 'Xác nhận hành động',
+        description: message,
+        confirmText: 'Đồng ý',
+        cancelText: 'Hủy bỏ'
+      });
+    }
+    return window.confirm(message);
+  };
 
   // Helper to get selected session Ids based on selected students
   const getSelectedSessionIds = () => {
@@ -36,9 +51,8 @@ export function useFinanceActions() {
       return;
     }
 
-    if (!confirm(`Đánh dấu ${sessionIds.length} buổi học của ${selectedStudentIds.length} học sinh là đã thanh toán?`)) {
-      return;
-    }
+    const isConfirmed = await safeConfirm(`Đánh dấu ${sessionIds.length} buổi học của ${selectedStudentIds.length} học sinh là đã thanh toán?`);
+    if (!isConfirmed) return;
 
     const promise = async () => {
       // Parallelize? Be careful with backend limits. Serial for safety.
@@ -126,46 +140,31 @@ export function useFinanceActions() {
       return;
     }
 
-    if (!confirm(`Gửi email báo giá cho ${selectedStudentIds.length} học sinh đã chọn?`)) {
-      return;
-    }
+    const isConfirmed = await safeConfirm(`Gửi email báo giá cho ${selectedStudentIds.length} học sinh đã chọn?`);
+    if (!isConfirmed) return;
 
     try {
       setSendingEmail(true);
-      const result = await invoicesApi.sendInvoiceEmailBatch({
+      await invoicesApi.sendInvoiceEmailBatch({
         selectedStudentIds: selectedStudentIds,
         sessionRecordIds: sessionIds,
         month: '' // Backend likely deduces or ignores if session IDs provided
       });
-      setEmailResult(result);
-      setShowEmailResult(true);
+      toast.success('Gửi email thành công!');
+      clearSelection();
     } catch (error: any) {
-      console.error('Email error:', error);
-      setEmailResult({
-        success: false,
-        message: error.response?.data?.error || 'Lỗi khi gửi email',
-      });
-      setShowEmailResult(true);
+      const message = error.response?.data?.message || error.response?.data?.error || 'Lỗi khi gửi email';
+      toast.error(message);
     } finally {
       setSendingEmail(false);
     }
   };
 
-  const closeEmailResult = () => {
-    setShowEmailResult(false);
-    setEmailResult(null);
-    clearSelection(); // Optional: clear after success?
-    refreshData();
-  };
-
   return {
     generatingInvoice,
     sendingEmail,
-    showEmailResult,
-    emailResult,
     markSelectedPaid,
     generateBulkInvoice,
-    sendBulkEmail,
-    closeEmailResult
+    sendBulkEmail
   };
 }

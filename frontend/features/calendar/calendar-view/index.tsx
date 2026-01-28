@@ -12,10 +12,12 @@ import {
 import { useState } from 'react';
 import type { SessionRecord } from '@/lib/types/finance';
 import { getStatusColors } from './utils/statusColors';
-import { CalendarHeader } from './components/CalendarHeader';
+import { CalendarActions as CalendarHeader } from './components/CalendarHeader';
 import { useCalendarView } from './useCalendarView';
 import { CalendarModals } from './components/CalendarModals';
 import { CalendarViewContent } from './components/CalendarViewContent';
+import { DashboardHeader } from '@/contexts/UIContext';
+import { MONTHS } from './constants';
 
 export default function CalendarView() {
   const view = useCalendarView();
@@ -37,25 +39,30 @@ export default function CalendarView() {
 
   return (
     <div className="bg-transparent">
-      <CalendarHeader
-        currentDate={view.currentDate}
-        currentView={view.currentView}
-        onNavigate={view.navigateMonth}
-        onToday={view.goToToday}
-        onViewChange={view.setCurrentView}
-        onAddSession={() => view.openAddSessionModal(view.selectedDateStr || new Date().toISOString().split('T')[0])}
-        onGenerateInvoice={view.exportToExcel}
-        onAutoGenerate={view.handleAutoGenerate}
-        isGenerating={view.isGenerating}
-        sessions={view.filteredSessions}
-        stats={view.stats}
-        isScrolled={view.isScrolled}
-        onFilterChange={view.setStatusFilter}
-        currentFilter={view.statusFilter}
-        searchQuery={view.searchQuery}
-        onSearchChange={view.setSearchQuery}
-        onDeleteMonth={() => view.setDeleteConfirmationOpen(true)}
-        isFetching={view.isFetching}
+      <DashboardHeader
+        title={`${MONTHS[view.currentDate.getMonth()]} ${view.currentDate.getFullYear()}`}
+        subtitle="Lịch trình dạy học"
+        actions={
+          <CalendarHeader
+            currentDate={view.currentDate}
+            currentView={view.currentView}
+            onNavigate={view.navigateMonth}
+            onToday={view.goToToday}
+            onViewChange={view.setCurrentView}
+            onAddSession={() => view.openAddSessionModal(view.selectedDateStr || new Date().toISOString().split('T')[0])}
+            onGenerateInvoice={view.exportToExcel}
+            onAutoGenerate={view.handleAutoGenerate}
+            isGenerating={view.isGenerating}
+            sessions={view.filteredSessions}
+            stats={view.stats}
+            onFilterChange={view.setStatusFilter}
+            currentFilter={view.statusFilter}
+            searchQuery={view.searchQuery}
+            onSearchChange={view.setSearchQuery}
+            onDeleteMonth={() => view.setDeleteConfirmationOpen(true)}
+            isFetching={view.isFetching}
+          />
+        }
       />
 
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEndInternal}>

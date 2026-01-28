@@ -12,6 +12,7 @@ export function useStudents() {
   const {
     data: students,
     isLoading: loading,
+    isError,
     refetch: loadStudents
   } = useQuery({
     queryKey: ['students'],
@@ -45,7 +46,8 @@ export function useStudents() {
   return {
     students: students?.content || [],
     loading,
-    loadStudents: async () => { await loadStudents(); },
+    isError,
+    refetch: loadStudents,
     deleteStudent
   };
 }

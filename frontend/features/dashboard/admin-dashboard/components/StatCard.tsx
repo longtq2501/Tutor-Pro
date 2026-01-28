@@ -7,7 +7,7 @@ import { TrendingDown, TrendingUp } from 'lucide-react';
 import { memo } from 'react';
 
 interface StatCardProps {
-  title: string;
+  title: React.ReactNode;
   value: string | number;
   subtitle?: string;
   icon: React.ReactNode;
@@ -154,9 +154,9 @@ export const StatCard = memo(({
         </div>
 
         {/* Label */}
-        <p className="text-xs sm:text-sm text-muted-foreground font-medium uppercase tracking-wide">
+        <div className="text-xs sm:text-sm text-muted-foreground font-medium uppercase tracking-wide">
           {title}
-        </p>
+        </div>
 
         {/* Value */}
         <div className="flex items-baseline gap-2">

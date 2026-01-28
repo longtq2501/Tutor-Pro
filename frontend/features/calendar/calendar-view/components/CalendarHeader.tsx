@@ -1,12 +1,11 @@
 'use client';
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from '@/lib/utils';
-import { Columns, List, Calendar as CalendarIcon } from 'lucide-react';
+import { Columns, List, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { StatsOverview } from './StatsOverview';
 import { FilterPopover } from './FilterPopover';
 import { HeaderActions } from './HeaderActions';
-import { HeaderNavigation } from './HeaderNavigation';
+import { Button } from '@/components/ui/button';
 import type { SessionRecord } from '@/lib/types/finance';
 import type { CalendarStats } from '../types';
 import type { CalendarViewType } from "./ViewSwitcher";
@@ -23,7 +22,6 @@ interface Props {
   isGenerating?: boolean;
   sessions: SessionRecord[];
   stats: CalendarStats;
-  isScrolled: boolean;
   currentFilter?: string;
   searchQuery?: string;
   onFilterChange?: (status: string | 'ALL') => void;
@@ -32,56 +30,57 @@ interface Props {
   isFetching?: boolean;
 }
 
-export const CalendarHeader = ({
+export const CalendarActions = ({
   currentDate, currentView, onViewChange, onNavigate, onToday, onAddSession,
   onAutoGenerate, onGenerateInvoice, isGenerating = false, sessions, stats,
-  isScrolled, onFilterChange, currentFilter = 'ALL', searchQuery = '',
+  onFilterChange, currentFilter = 'ALL', searchQuery = '',
   onSearchChange, onDeleteMonth, isFetching = false
 }: Props) => {
   return (
-    <header className={cn(
-      "sticky top-0 z-40 w-full transition-all duration-300 px-3 py-3 sm:px-6 sm:py-4",
-      isScrolled ? "bg-background/80 backdrop-blur-md border-b shadow-sm" : "bg-transparent"
-    )}>
-      <div className="max-w-[1600px] mx-auto space-y-4">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 flex-wrap">
-          <HeaderNavigation currentDate={currentDate} onNavigate={onNavigate} onToday={onToday} isFetching={isFetching} />
-          <StatsOverview stats={stats} />
-
-          <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 w-full lg:w-auto pb-1 sm:pb-0">
-            <div className="flex items-center gap-2">
-              <ViewTabs currentView={currentView} onViewChange={onViewChange} />
-              <FilterPopover currentFilter={currentFilter} searchQuery={searchQuery} onFilterChange={onFilterChange!} onSearchChange={onSearchChange!} />
-            </div>
-            <HeaderActions
-              onAddSession={onAddSession}
-              onGenerateInvoice={onGenerateInvoice}
-              onAutoGenerate={onAutoGenerate}
-              onDeleteMonth={onDeleteMonth!}
-              isGenerating={isGenerating}
-              sessionsCount={sessions.length}
-            />
-          </div>
-        </div>
+    <div className="flex flex-wrap items-center gap-3 sm:gap-4 lg:justify-end">
+      {/* Navigation Controls */}
+      <div className="flex items-center bg-muted/50 rounded-2xl p-0.5 border border-border/40 shadow-sm">
+        <Button variant="ghost" size="icon" onClick={() => onNavigate(-1)} className="rounded-xl h-8 w-8 sm:h-9 sm:w-9">
+          <ChevronLeft className="w-4 h-4" />
+        </Button>
+        <Button variant="ghost" onClick={onToday} className="px-3 font-black uppercase tracking-widest text-[10px] rounded-xl h-8 sm:h-9">
+          Tháng này
+        </Button>
+        <Button variant="ghost" size="icon" onClick={() => onNavigate(1)} className="rounded-xl h-8 w-8 sm:h-9 sm:w-9">
+          <ChevronRight className="w-4 h-4" />
+        </Button>
       </div>
-    </header>
+
+      {/* Stats - Hidden on very small screens, shown in header portal */}
+      <div className="hidden xl:flex items-center gap-2">
+        <StatsOverview stats={stats} />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Tabs value={currentView} onValueChange={(v) => onViewChange(v as CalendarViewType)} className="hidden sm:flex">
+          <TabsList className="bg-muted/50 p-1 rounded-2xl border border-border/40 h-9 sm:h-10">
+            <TabsTrigger value="month" className="rounded-xl px-3 font-black uppercase tracking-widest text-[9px]">Tháng</TabsTrigger>
+            <TabsTrigger value="week" className="rounded-xl px-3 font-black uppercase tracking-widest text-[9px]">Tuần</TabsTrigger>
+            <TabsTrigger value="list" className="rounded-xl px-3 font-black uppercase tracking-widest text-[9px]">D.Sách</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        <FilterPopover
+          currentFilter={currentFilter}
+          searchQuery={searchQuery}
+          onFilterChange={onFilterChange!}
+          onSearchChange={onSearchChange!}
+        />
+
+        <HeaderActions
+          onAddSession={onAddSession}
+          onGenerateInvoice={onGenerateInvoice}
+          onAutoGenerate={onAutoGenerate}
+          onDeleteMonth={onDeleteMonth!}
+          isGenerating={isGenerating}
+          sessionsCount={sessions.length}
+        />
+      </div>
+    </div>
   );
 };
-
-function ViewTabs({ currentView, onViewChange }: { currentView: CalendarViewType; onViewChange: (v: CalendarViewType) => void }) {
-  return (
-    <Tabs value={currentView} onValueChange={(v) => onViewChange(v as CalendarViewType)} className="flex">
-      <TabsList className="bg-muted/50 p-1 rounded-2xl border border-border/40 h-10">
-        <TabsTrigger value="month" className="rounded-xl px-2 sm:px-3 font-black uppercase tracking-widest text-[9px]">
-          <CalendarIcon size={14} className="sm:hidden" /> <span className="hidden sm:inline">Tháng</span>
-        </TabsTrigger>
-        <TabsTrigger value="week" className="rounded-xl px-2 sm:px-3 font-black uppercase tracking-widest text-[9px]">
-          <Columns size={14} className="sm:hidden" /> <span className="hidden sm:inline">Tuần</span>
-        </TabsTrigger>
-        <TabsTrigger value="list" className="rounded-xl px-2 sm:px-3 font-black uppercase tracking-widest text-[9px]">
-          <List size={14} className="sm:hidden" /> <span className="hidden sm:inline">D.Sách</span>
-        </TabsTrigger>
-      </TabsList>
-    </Tabs>
-  );
-}

@@ -248,6 +248,18 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, Lo
            "GROUP BY sr.student.id")
     List<Object[]> sumTotalUnpaidByStudentIdIn(@Param("studentIds") List<Long> studentIds);
 
+    @Query("SELECT sr.student.id, SUM(sr.totalAmount) FROM SessionRecord sr " +
+           "WHERE sr.student.id IN :studentIds AND sr.paid = true " +
+           "AND (sr.status IS NULL OR sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR)) " +
+           "GROUP BY sr.student.id")
+    List<Object[]> sumTotalPaidByStudentIdIn(@Param("studentIds") List<Long> studentIds);
+
+    @Query("SELECT sr.student.id, SUM(sr.totalAmount) FROM SessionRecord sr " +
+           "WHERE sr.student.id IN :studentIds AND sr.paid = false " +
+           "AND sr.status IN (com.tutor_management.backend.modules.finance.LessonStatus.COMPLETED, com.tutor_management.backend.modules.finance.LessonStatus.PENDING_PAYMENT) " +
+           "GROUP BY sr.student.id")
+    List<Object[]> sumTotalUnpaidTaughtByStudentIdIn(@Param("studentIds") List<Long> studentIds);
+
     /**
      * Checks if a student has access to a lesson via any session record.
      */

@@ -4,18 +4,24 @@ import { motion } from 'framer-motion';
 import { FinanceProvider } from '../context/FinanceContext';
 import { useFinanceActions } from '../hooks/useFinanceActions';
 import { BulkActionsToolbar } from './BulkActionsToolbar';
-import { EmailResultModal } from './EmailResultModal';
 import { FinanceContent } from './FinanceContent';
 import { FinanceHeader } from './FinanceHeader';
 import { FinanceStats } from './FinanceStats';
 import { MobileActionDrawer } from './MobileActionDrawer';
+import { DashboardHeader } from '@/contexts/UIContext';
+import { useConfirm } from '@/hooks/useConfirm';
 
 function DashboardInner() {
-    const { showEmailResult, emailResult, closeEmailResult, ...actions } = useFinanceActions();
+    const { confirm, ConfirmationDialog } = useConfirm();
+    const actions = useFinanceActions({ confirm });
 
     return (
         <div className="flex flex-col min-w-0 overflow-x-hidden relative">
-            <FinanceHeader />
+            <DashboardHeader
+                title="Quản Lý Tài Chính"
+                subtitle="Theo dõi doanh thu, công nợ và trạng thái thanh toán"
+                actions={<FinanceHeader />}
+            />
 
             <div className="p-3 md:p-8 space-y-4 md:space-y-8">
                 <motion.div
@@ -38,11 +44,7 @@ function DashboardInner() {
             <BulkActionsToolbar actions={actions} />
             <MobileActionDrawer actions={actions} />
 
-            <EmailResultModal
-                show={showEmailResult}
-                result={emailResult}
-                onClose={closeEmailResult}
-            />
+            <ConfirmationDialog />
         </div>
     );
 }

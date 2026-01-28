@@ -12,24 +12,51 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { parentsApi } from '@/lib/services';
 import { toast } from 'sonner';
-import { Loader2, Plus, UserPlus, X } from 'lucide-react';
+import { Edit2, Loader2, Plus, UserPlus, X } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface QuickAddParentModalProps {
     open: boolean;
     onClose: () => void;
     onSuccess: (newParentId?: number) => void;
+    initialData?: {
+        id: number;
+        name: string;
+        email?: string;
+        phone?: string;
+        notes?: string;
+    } | null;
 }
 
-export function QuickAddParentModal({ open, onClose, onSuccess }: QuickAddParentModalProps) {
+export function QuickAddParentModal({ open, onClose, onSuccess, initialData }: QuickAddParentModalProps) {
     const [loading, setLoading] = useState(false);
     const queryClient = useQueryClient();
     const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        phone: '',
-        notes: ''
+        name: initialData?.name || '',
+        email: initialData?.email || '',
+        phone: initialData?.phone || '',
+        notes: initialData?.notes || ''
     });
+
+    // Update form when initialData changes
+    React.useEffect(() => {
+        if (initialData) {
+            setFormData({
+                name: initialData.name,
+                email: initialData.email || '',
+                phone: initialData.phone || '',
+                notes: initialData.notes || ''
+            });
+        } else {
+            // Reset form when modal opens without initialData (for new parent)
+            setFormData({
+                name: '',
+                email: '',
+                phone: '',
+                notes: ''
+            });
+        }
+    }, [initialData, open]); // Added 'open' to dependencies to reset when modal opens for new entry
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -41,17 +68,25 @@ export function QuickAddParentModal({ open, onClose, onSuccess }: QuickAddParent
 
         try {
             setLoading(true);
-            const res = await parentsApi.create(formData);
-            toast.success('Thêm phụ huynh thành công');
+            let res;
+            if (initialData?.id) {
+                res = await parentsApi.update(initialData.id, formData);
+                toast.success('Cập nhật phụ huynh thành công');
+            } else {
+                res = await parentsApi.create(formData);
+                toast.success('Thêm phụ huynh thành công');
+            }
 
             // Invalidate parents list to refresh dropdowns
             await queryClient.invalidateQueries({ queryKey: ['parents'] });
+            // Also invalidate students if needed since parent info might be cached in student list
+            await queryClient.invalidateQueries({ queryKey: ['students'] });
 
             onSuccess(res.id);
             onClose();
-        } catch (error) {
-            console.error(error);
-            toast.error('Không thể thêm phụ huynh. Vui lòng thử lại.');
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.message || error.message || (initialData?.id ? 'Không thể cập nhật phụ huynh' : 'Không thể thêm phụ huynh');
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -59,7 +94,7 @@ export function QuickAddParentModal({ open, onClose, onSuccess }: QuickAddParent
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[500px] w-[95vw] max-w-[95vw] sm:w-full max-h-[92vh] p-0 overflow-hidden bg-card rounded-3xl shadow-2xl border-2 border-border/50 transition-all duration-300 flex flex-col">
+            <DialogContent hideOverlay className="sm:max-w-[500px] w-[95vw] max-w-[95vw] sm:w-full max-h-[92vh] p-0 overflow-hidden bg-card rounded-3xl shadow-2xl border-2 border-border/50 transition-all duration-300 flex flex-col">
                 {/* Header */}
                 <div className="p-6 border-b bg-gradient-to-br from-muted/30 to-muted/10 rounded-t-3xl flex-shrink-0">
                     <div className="flex items-center gap-4">
@@ -68,10 +103,10 @@ export function QuickAddParentModal({ open, onClose, onSuccess }: QuickAddParent
                         </div>
                         <div className="flex-1">
                             <DialogTitle className="text-xl font-bold tracking-tight">
-                                Thêm Phụ Huynh Mới
+                                {initialData?.id ? 'Chỉnh Sửa Phụ Huynh' : 'Thêm Phụ Huynh Mới'}
                             </DialogTitle>
                             <p className="text-sm text-muted-foreground mt-0.5">
-                                Thông tin liên hệ & ghi chú
+                                {initialData?.id ? 'Cập nhật thông tin liên hệ & ghi chú' : 'Thông tin liên hệ & ghi chú'}
                             </p>
                         </div>
                     </div>
@@ -152,10 +187,12 @@ export function QuickAddParentModal({ open, onClose, onSuccess }: QuickAddParent
                     >
                         {loading ? (
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : initialData?.id ? (
+                            <Edit2 className="w-4 h-4 mr-2" />
                         ) : (
                             <Plus className="w-4 h-4 mr-2" />
                         )}
-                        Thêm Mới
+                        {initialData?.id ? 'Cập nhật' : 'Thêm Mới'}
                     </Button>
                 </div>
             </DialogContent>

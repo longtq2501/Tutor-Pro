@@ -54,6 +54,11 @@ public class StudentResponse {
      */
     private Long totalUnpaid;
 
+    /**
+     * Outstanding balance for sessions already taught (COMPLETED or PENDING_PAYMENT).
+     */
+    private Long totalUnpaidTaught;
+
     // --- Parent Information ---
     private Long parentId;
     private String parentName;

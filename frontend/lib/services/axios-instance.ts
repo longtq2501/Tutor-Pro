@@ -15,6 +15,7 @@ const api = axios.create({
   baseURL: API_URL,
   headers: { 'Content-Type': 'application/json' },
   withCredentials: true,
+  timeout: 30000,
 });
 
 /** * INTERCEPTOR CHO REQUEST - TỰ ĐỘNG ĐÍNH KÈM TOKEN

@@ -23,10 +23,20 @@ public class StudentSummaryResponse {
     private Boolean active;
     
     /**
+     * Total tuition amount collected.
+     */
+    private Long totalPaid;
+
+    /**
      * Current outstanding tuition balance.
      * Calculated value, not stored directly in the student table.
      */
     private Long totalUnpaid;
+
+    /**
+     * Outstanding balance for sessions already taught (COMPLETED or PENDING_PAYMENT).
+     */
+    private Long totalUnpaidTaught;
 
     /**
      * Enrollment month (YYYY-MM).
@@ -40,4 +50,10 @@ public class StudentSummaryResponse {
 
     private String accountId;
     private String accountEmail;
+
+    // --- Parent Information ---
+    private Long parentId;
+    private String parentName;
+    private String parentEmail;
+    private String parentPhone;
 }

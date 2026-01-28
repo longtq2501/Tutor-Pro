@@ -127,8 +127,19 @@ public class StudentService {
 
         List<Long> studentIds = studentPage.getContent().stream().map(Student::getId).toList();
 
-        // Optimized batch load for only totalUnpaid - avoid loading full SessionRecord Entities
         Map<Long, Long> unpaidMap = sessionRecordRepository.sumTotalUnpaidByStudentIdIn(studentIds)
+                .stream().collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> (Long) row[1]
+                ));
+
+        Map<Long, Long> unpaidTaughtMap = sessionRecordRepository.sumTotalUnpaidTaughtByStudentIdIn(studentIds)
+                .stream().collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> (Long) row[1]
+                ));
+
+        Map<Long, Long> paidMap = sessionRecordRepository.sumTotalPaidByStudentIdIn(studentIds)
                 .stream().collect(Collectors.toMap(
                         row -> (Long) row[0],
                         row -> (Long) row[1]
@@ -137,7 +148,13 @@ public class StudentService {
         Map<Long, User> usersMap = userRepository.findByStudentIdIn(studentIds)
                 .stream().collect(Collectors.toMap(User::getStudentId, u -> u, (u1, u2) -> u1));
 
-        return studentPage.map(student -> convertToSummaryResponse(student, unpaidMap.getOrDefault(student.getId(), 0L), usersMap.get(student.getId())));
+        return studentPage.map(student -> convertToSummaryResponse(
+                student, 
+                unpaidMap.getOrDefault(student.getId(), 0L), 
+                unpaidTaughtMap.getOrDefault(student.getId(), 0L),
+                paidMap.getOrDefault(student.getId(), 0L),
+                usersMap.get(student.getId())
+        ));
     }
 
     /**
@@ -366,6 +383,9 @@ public class StudentService {
     private StudentResponse convertToResponseOptimized(Student student, List<SessionRecord> records, User user) {
         long totalPaid = records.stream().filter(SessionRecord::getPaid).mapToLong(SessionRecord::getTotalAmount).sum();
         long totalUnpaid = records.stream().filter(r -> !r.getPaid()).mapToLong(SessionRecord::getTotalAmount).sum();
+        long totalUnpaidTaught = records.stream()
+                .filter(r -> !r.getPaid() && r.getStatus() != null && r.getStatus().isCompleted())
+                .mapToLong(SessionRecord::getTotalAmount).sum();
 
         String lastActiveMonth = records.stream().map(SessionRecord::getMonth).max(String::compareTo).orElse(null);
         Integer monthsLearned = calculateMonthsLearned(student.getStartMonth(), lastActiveMonth);
@@ -385,6 +405,7 @@ public class StudentService {
                 .createdAt(student.getCreatedAt().format(ISO_FORMATTER))
                 .totalPaid(totalPaid)
                 .totalUnpaid(totalUnpaid)
+                .totalUnpaidTaught(totalUnpaidTaught)
                 .build();
 
         if (student.getParent() != null) {
@@ -403,7 +424,7 @@ public class StudentService {
         return response;
     }
 
-    private StudentSummaryResponse convertToSummaryResponse(Student student, Long totalUnpaid, User user) {
+    private StudentSummaryResponse convertToSummaryResponse(Student student, Long totalUnpaid, Long totalUnpaidTaught, Long totalPaid, User user) {
         String lastActiveMonth = student.getLastActiveMonth();
         Integer monthsLearned = calculateMonthsLearned(student.getStartMonth(), lastActiveMonth);
 
@@ -414,11 +435,17 @@ public class StudentService {
                 .schedule(student.getSchedule())
                 .pricePerHour(student.getPricePerHour())
                 .active(student.getActive())
+                .totalPaid(totalPaid)
                 .totalUnpaid(totalUnpaid)
+                .totalUnpaidTaught(totalUnpaidTaught)
                 .startMonth(student.getStartMonth())
                 .learningDuration(buildLearningDuration(student.getStartMonth(), monthsLearned))
                 .accountId(user != null ? user.getId().toString() : null)
                 .accountEmail(user != null ? user.getEmail() : null)
+                .parentId(student.getParent() != null ? student.getParent().getId() : null)
+                .parentName(student.getParent() != null ? student.getParent().getName() : null)
+                .parentEmail(student.getParent() != null ? student.getParent().getEmail() : null)
+                .parentPhone(student.getParent() != null ? student.getParent().getPhone() : null)
                 .build();
     }
 

@@ -24,9 +24,10 @@ const Label = ({ children, className }: { children: React.ReactNode, className?:
 interface StudentInfoSectionsProps {
     student: Student;
     onEdit: (student: Student) => void;
+    onEditParent?: (parent: any) => void;
 }
 
-export function StudentInfoSections({ student, onEdit }: StudentInfoSectionsProps) {
+export function StudentInfoSections({ student, onEdit, onEditParent }: StudentInfoSectionsProps) {
     return (
         <div className="space-y-8">
             {/* Account Information */}
@@ -95,42 +96,50 @@ export function StudentInfoSections({ student, onEdit }: StudentInfoSectionsProp
 
                 {/* Parent Details */}
                 <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                        <UserCircle className="w-5 h-5 text-purple-500" />
-                        <h4 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Phụ huynh liên kết</h4>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <UserCircle className="w-5 h-5 text-purple-500" />
+                            <h4 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Phụ huynh liên kết</h4>
+                        </div>
+                        {onEditParent && (student.parent || student.parentId) && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2 text-primary gap-1 font-bold text-xs hover:bg-primary/10"
+                                onClick={() => onEditParent(student.parent || {
+                                    id: student.parentId,
+                                    name: student.parentName,
+                                    email: student.parentEmail,
+                                    phone: student.parentPhone
+                                })}
+                            >
+                                <Edit2 className="w-3.5 h-3.5" />
+                                Sửa
+                            </Button>
+                        )}
                     </div>
-                    {student.parent ? (
+                    {(student.parent || student.parentName) ? (
                         <div className="space-y-4">
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground">Họ và tên:</span>
                                 <span className="font-bold text-foreground uppercase tracking-wide">
-                                    {student.parent.name}
+                                    {student.parent?.name || student.parentName}
                                 </span>
                             </div>
                             <Separator />
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground">Số điện thoại:</span>
                                 <span className="font-bold text-foreground">
-                                    {student.parent.phone || 'N/A'}
+                                    {student.parent?.phone || student.parentPhone || 'N/A'}
                                 </span>
                             </div>
                             <Separator />
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground">Email:</span>
-                                <span className="font-bold text-foreground truncate max-w-[150px]">
-                                    {student.parent.email || 'N/A'}
+                                <span className="font-bold text-foreground truncate max-w-[200px]">
+                                    {student.parent?.email || student.parentEmail || 'N/A'}
                                 </span>
                             </div>
-                            <Separator />
-                            <Button
-                                variant="secondary"
-                                size="sm"
-                                className="w-full h-9 rounded-lg gap-1.5 font-bold text-xs"
-                                onClick={() => window.open(`/parents/${student.parentId}`, '_blank')}
-                            >
-                                <ExternalLink className="w-3.5 h-3.5" />
-                                Xem chi tiết phụ huynh
-                            </Button>
                         </div>
                     ) : (
                         <div className="p-8 text-center bg-muted/20 border border-dashed rounded-2xl">

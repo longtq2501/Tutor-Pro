@@ -6,11 +6,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatCurrency(amount: number): string {
+export function formatCurrency(amount: number | null | undefined): string {
+  const safeAmount = (amount === null || amount === undefined || isNaN(amount)) ? 0 : amount;
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND',
-  }).format(amount);
+  }).format(safeAmount);
 }
 
 export function formatExerciseTitle(title: string): string {

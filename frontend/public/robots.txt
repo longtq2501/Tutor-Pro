@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /admin/
 
-# Sitemap
 Sitemap: https://tutor-management-e7zh.vercel.app/sitemap.xml

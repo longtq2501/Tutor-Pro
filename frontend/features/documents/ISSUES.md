@@ -21,21 +21,21 @@ Comprehensive refactor of the Document Library module from hardcoded categories 
 
 ---
 
-## 📋 Active Items
-
-### Tutor Personalization (Multi-tenancy) - 🔄 NEXT
-- [ ] [P1-High] **Backend: Multi-tenant Data Isolation**
-  - Task: Add `tutor_id` to `Document` entity and update `DocumentRepository` to filter by owner.
-  - Objective: Ensure Tutors only manage their own documents while Admins see all.
-- [ ] [P1-High] **Backend: Enable Upload for Tutors**
-  - Task: Update `DocumentController` permissions to allow `TUTOR` role to use `@PostMapping`.
-- [ ] [P2-Medium] **Frontend: Personalization UI**
-  - Task: Show "Tải lên" and "Sửa/Xóa" buttons for `TUTOR` role in `DocumentLibrary`.
-  - Task: Filter document list to show only relevant tutor's files.
-
 ---
 
+
 ## 📦 Archive: Completed Items
+
+### Tutor Personalization (Multi-tenancy) - ✅ DONE
+- [x] [P1-High] **Backend: Multi-tenant Data Isolation**
+  - Implementation: Added `tutor` relationship to `Document` entity. Updated `DocumentRepository` and `DocumentService` to filter by `tutorId` and `studentId` using security context.
+  - Result: Tutors only see their own documents. Students see public docs from their specific tutor or private docs assigned to them. Admins see everything.
+- [x] [P1-High] **Backend: Role Permissions**
+  - Action: Updated `DocumentController` to allow `TUTOR` role for Upload and Delete operations.
+  - Security: Added ownership check in `DocumentService.deleteDocument` to prevent tutors from deleting others' files.
+- [x] [P2-Medium] **Frontend: Multi-role Support**
+  - Action: Verified `DocumentLibrary` UI appropriately shows/hides "Tải lên" and "Xóa" buttons for Tutors vs Students.
+  - Type Safety: Added `tutorId` and `tutorName` to `Document` interface and response DTOs.
 
 ### UX / Permissions - ✅ DONE
 - [x] [P1-High] **Role-based Action Restriction (Student View)**

@@ -14,9 +14,15 @@ import com.tutor_management.backend.modules.lesson.repository.LessonCategoryRepo
 import com.tutor_management.backend.modules.lesson.repository.LessonRepository;
 import com.tutor_management.backend.modules.student.entity.Student;
 import com.tutor_management.backend.modules.student.repository.StudentRepository;
+import com.tutor_management.backend.modules.tutor.entity.Tutor;
+import com.tutor_management.backend.modules.tutor.repository.TutorRepository;
+import com.tutor_management.backend.modules.auth.User;
+import com.tutor_management.backend.modules.auth.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,8 +48,46 @@ public class AdminLessonService {
     private final StudentRepository studentRepository;
     private final LessonCategoryRepository categoryRepository;
     private final SessionRecordRepository sessionRecordRepository;
+    private final TutorRepository tutorRepository;
+    private final UserRepository userRepository;
 
     private static final String DEFAULT_TUTOR = "Thầy Quỳnh Long";
+
+    /**
+     * Resolves the current tutor ID from the security context.
+     * Returns NULL for ADMIN users (they see all lessons).
+     * 
+     * @return Tutor ID or NULL for admin access
+     */
+    private Long getCurrentTutorId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof User user)) {
+            return null;
+        }
+        if ("ADMIN".equals(user.getRole())) {
+            return null; // Admin sees all lessons
+        }
+        return tutorRepository.findByUserId(user.getId())
+                .map(Tutor::getId)
+                .orElse(null);
+    }
+
+    /**
+     * Verifies that the current user owns the lesson.
+     * Admins bypass this check.
+     * 
+     * @param lesson The lesson to verify ownership for
+     * @throws RuntimeException if ownership check fails
+     */
+    private void verifyLessonOwnership(Lesson lesson) {
+        Long currentTutorId = getCurrentTutorId();
+        if (currentTutorId == null) {
+            return; // Admin can access all
+        }
+        if (lesson.getTutor() == null || !lesson.getTutor().getId().equals(currentTutorId)) {
+            throw new RuntimeException("You do not have permission to modify this lesson");
+        }
+    }
 
     /**
      * Creates a central library lesson and optionally task it to multiple students.
@@ -71,14 +115,15 @@ public class AdminLessonService {
 
     /**
      * Lists all lessons in the system with their assignment metrics.
-     * Uses lightweight DTOs to minimize RAM usage.
+     * Filtered by current tutor for multi-tenancy isolation.
      * 
      * @param pageable The pagination information.
      * @return Page containing lesson summary details.
      */
     @Transactional(readOnly = true)
     public Page<AdminLessonSummaryResponse> getAllLessons(Pageable pageable) {
-        return lessonRepository.findAllWithAssignments(pageable)
+        Long tutorId = getCurrentTutorId();
+        return lessonRepository.findAllWithAssignments(tutorId, pageable)
                 .map(this::mapToSummary);
     }
 
@@ -95,7 +140,7 @@ public class AdminLessonService {
 
     /**
      * Updates a lesson's metadata and nested assets.
-     * Propagates changes to all assigned students simultaneously.
+     * Verifies ownership before allowing updates.
      */
     @CacheEvict(value = "lessons", allEntries = true)
     @Transactional
@@ -103,13 +148,14 @@ public class AdminLessonService {
         Lesson lesson = lessonRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài giảng ID: " + id));
 
+        verifyLessonOwnership(lesson);
         applyUpdateToLesson(lesson, request);
         return AdminLessonResponse.fromEntity(lessonRepository.save(lesson));
     }
 
     /**
      * Permanently removes a lesson and its student progress records.
-     * Also cleans up references in financial session records.
+     * Verifies ownership before allowing deletion.
      */
     @CacheEvict(value = "lessons", allEntries = true)
     @Transactional
@@ -117,6 +163,7 @@ public class AdminLessonService {
         Lesson lesson = lessonRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài giảng với ID: " + id));
 
+        verifyLessonOwnership(lesson);
         int count = lesson.getAssignedStudentCount();
         sessionRecordRepository.deleteLessonReferences(id);
         lessonRepository.delete(lesson);
@@ -175,7 +222,16 @@ public class AdminLessonService {
     // --- Private Logic ---
 
     private Lesson buildLessonFromRequest(CreateLessonRequest r) {
+        // Resolve current tutor
+        Long currentTutorId = getCurrentTutorId();
+        Tutor currentTutor = null;
+        if (currentTutorId != null) {
+            currentTutor = tutorRepository.findById(currentTutorId)
+                    .orElseThrow(() -> new RuntimeException("Tutor profile not found"));
+        }
+
         Lesson lesson = Lesson.builder()
+                .tutor(currentTutor)
                 .tutorName(r.getTutorName() != null ? r.getTutorName() : DEFAULT_TUTOR)
                 .title(r.getTitle()).summary(r.getSummary()).content(r.getContent())
                 .lessonDate(r.getLessonDate()).videoUrl(r.getVideoUrl()).thumbnailUrl(r.getThumbnailUrl())

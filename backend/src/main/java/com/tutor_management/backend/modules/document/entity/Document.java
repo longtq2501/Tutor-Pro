@@ -2,6 +2,7 @@ package com.tutor_management.backend.modules.document.entity;
 
 import com.tutor_management.backend.modules.document.DocumentCategoryType;
 import com.tutor_management.backend.modules.student.entity.Student;
+import com.tutor_management.backend.modules.tutor.entity.Tutor;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -77,9 +78,17 @@ public class Document {
      * Owner student if the document is private. 
      * If null, the document is available to all students (shared resource).
      */
-    @ManyToOne(fetch = FetchType.LAZY)
+     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id")
     private Student student;
+
+    /**
+     * Owner tutor who uploaded the document.
+     * Essential for multi-tenancy to ensure tutors only see/manage their own files.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tutor_id")
+    private Tutor tutor;
 
     /**
      * Statistics tracking for how many times the file has been opened/downloaded.

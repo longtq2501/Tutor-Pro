@@ -7,12 +7,29 @@
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CONTINUITY.md" beforeDir="false" afterPath="$PROJECT_DIR$/CONTINUITY.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/compile_errors.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/compile_errors_v2.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/compile_full.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/compile_log.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/dashboard/DashboardService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/document/controller/DocumentController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/document/controller/DocumentController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/document/dto/response/DocumentResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/document/dto/response/DocumentResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/document/entity/Document.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/document/entity/Document.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/document/repository/DocumentRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/document/repository/DocumentRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/document/service/DocumentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/document/service/DocumentService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/lesson/entity/Lesson.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/lesson/entity/Lesson.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/lesson/repository/LessonRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/lesson/repository/LessonRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/lesson/service/AdminLessonService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/lesson/service/AdminLessonService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/lesson/service/LessonLibraryService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/lesson/service/LessonLibraryService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/shared/service/CloudinaryService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/shared/service/CloudinaryService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/test_output.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/test_output_final.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/test_output_v3.txt" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/documents/ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/ISSUES.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-library/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-library/index.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/exercises/ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/exercises/ISSUES.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/features/learning/ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/ISSUES.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/types/document.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/types/document.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -330,6 +347,7 @@
       <workItem from="1769319214645" duration="3963000" />
       <workItem from="1769481523408" duration="10605000" />
       <workItem from="1769527053060" duration="619000" />
+      <workItem from="1769571941990" duration="5265000" />
     </task>
     <servers />
   </component>

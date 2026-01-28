@@ -1,6 +1,8 @@
 package com.tutor_management.backend.modules.document.service;
 
 import com.tutor_management.backend.exception.ResourceNotFoundException;
+import com.tutor_management.backend.modules.auth.Role;
+import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.document.repository.DocumentCategoryRepository;
 import com.tutor_management.backend.modules.document.DocumentCategoryType;
 import com.tutor_management.backend.modules.document.repository.DocumentRepository;
@@ -14,12 +16,16 @@ import com.tutor_management.backend.modules.finance.repository.SessionRecordRepo
 import com.tutor_management.backend.modules.shared.service.CloudinaryService;
 import com.tutor_management.backend.modules.student.entity.Student;
 import com.tutor_management.backend.modules.student.repository.StudentRepository;
+import com.tutor_management.backend.modules.tutor.entity.Tutor;
+import com.tutor_management.backend.modules.tutor.repository.TutorRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -42,26 +48,62 @@ public class DocumentService {
     private final DocumentRepository documentRepository;
     private final DocumentCategoryRepository documentCategoryRepository;
     private final StudentRepository studentRepository;
+    private final TutorRepository tutorRepository;
     private final SessionRecordRepository sessionRecordRepository;
     private final CloudinaryService cloudinaryService;
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+
+    /**
+     * Resolves the current student ID IF the user is a student.
+     * Used to filter documents intended for the specific student.
+     */
+    public Long getCurrentStudentId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof User user)) {
+            return null;
+        }
+
+        return user.getRole() == Role.STUDENT ? user.getStudentId() : null;
+    }
+
+    /**
+     * Resolves the current tutor ID based on the authenticated user.
+     * If ADMIN, returns null (sees all documents).
+     * If TUTOR, returns their specific tutor ID.
+     * If STUDENT, returns null (isolation is handled via student_id filtering if needed, 
+     * but usually students see documents from their tutor - this may need further refinement).
+     */
+    public Long getCurrentTutorId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof User user)) {
+            return null;
+        }
+
+        if (user.getRole() == Role.ADMIN) {
+            return null;
+        }
+
+        if (user.getRole() == Role.TUTOR) {
+            return tutorRepository.findByUserId(user.getId())
+                    .map(Tutor::getId)
+                    .orElse(null);
+        }
+
+        if (user.getRole() == Role.STUDENT && user.getStudentId() != null) {
+            return studentRepository.findById(user.getStudentId())
+                    .map(Student::getTutorId)
+                    .orElse(null);
+        }
+
+        return null;
+    }
 
     /**
      * Lists all documents with paged results for the admin library.
      */
     @Transactional(readOnly = true)
     public Page<DocumentResponse> getAllDocuments(Pageable pageable) {
-        return documentRepository.findAllWithStudent(pageable).map(this::convertToResponse);
-    }
-
-    /**
-     * Lists all documents as a flat list.
-     */
-    @Transactional(readOnly = true)
-    public List<DocumentResponse> getAllDocuments() {
-        return documentRepository.findAllWithStudent().stream()
-                .map(this::convertToResponse)
-                .collect(Collectors.toList());
+        return documentRepository.findAllWithStudent(getCurrentTutorId(), getCurrentStudentId(), pageable).map(this::convertToResponse);
     }
 
     /**
@@ -69,17 +111,7 @@ public class DocumentService {
      */
     @Transactional(readOnly = true)
     public Page<DocumentResponse> getDocumentsByCategory(DocumentCategoryType category, Pageable pageable) {
-        return documentRepository.findByCategoryCode(category.name(), pageable).map(this::convertToResponse);
-    }
-
-    /**
-     * Filters documents by category as a flat list.
-     */
-    @Transactional(readOnly = true)
-    public List<DocumentResponse> getDocumentsByCategory(DocumentCategoryType category) {
-        return documentRepository.findByCategoryCodeOrderByCreatedAtDesc(category.name()).stream()
-                .map(this::convertToResponse)
-                .collect(Collectors.toList());
+        return documentRepository.findByCategoryCode(category.name(), getCurrentTutorId(), getCurrentStudentId(), pageable).map(this::convertToResponse);
     }
 
     /**
@@ -87,7 +119,7 @@ public class DocumentService {
      */
     @Transactional(readOnly = true)
     public List<DocumentResponse> searchDocuments(String keyword) {
-        return documentRepository.findByTitleContainingIgnoreCaseOrderByCreatedAtDesc(keyword).stream()
+        return documentRepository.findByTitleContainingIgnoreCase(keyword, getCurrentTutorId(), getCurrentStudentId()).stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
@@ -101,7 +133,7 @@ public class DocumentService {
         validateFileUpload(file);
 
         try {
-            String cloudinaryUrl = cloudinaryService.uploadFile(file, "tutor-documents");
+            String cloudinaryUrl = cloudinaryService.uploadFile(file);
             
             Student student = null;
             if (request.getStudentId() != null) {
@@ -110,6 +142,13 @@ public class DocumentService {
 
             DocumentCategory category = documentCategoryRepository.findByCode(request.getCategory())
                     .orElseThrow(() -> new ResourceNotFoundException("Document category not found: " + request.getCategory()));
+
+            // Find current tutor to set ownership
+            Tutor tutor = null;
+            Long tutorId = getCurrentTutorId();
+            if (tutorId != null) {
+                tutor = tutorRepository.findById(tutorId).orElse(null);
+            }
 
             Document document = Document.builder()
                     .title(request.getTitle())
@@ -120,6 +159,7 @@ public class DocumentService {
                     .category(category)
                     .description(request.getDescription())
                     .student(student)
+                    .tutor(tutor)
                     .downloadCount(0L)
                     .build();
 
@@ -192,6 +232,17 @@ public class DocumentService {
         Document document = documentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found: " + id));
 
+        // Ownership check: Tutors can only delete their own documents.
+        // Admins can delete everything.
+        Long currentTutorId = getCurrentTutorId();
+        if (currentTutorId != null) {
+            if (document.getTutor() == null || !document.getTutor().getId().equals(currentTutorId)) {
+                log.warn("Unauthorized delete attempt: Tutor {} tried to delete document {} owned by {}", 
+                        currentTutorId, id, document.getTutor() != null ? document.getTutor().getId() : "null");
+                throw new RuntimeException("Bạn không có quyền xóa tài liệu này");
+            }
+        }
+
         try {
             cloudinaryService.deleteFile(document.getFilePath());
             sessionRecordRepository.deleteDocumentReferences(id);
@@ -207,21 +258,28 @@ public class DocumentService {
      * Generates a snapshot of document library usage stats.
      * Uses a single optimized database query for aggregated totals.
      */
-    @Cacheable("documentStats")
+    @Cacheable(value = "documentStats", key = "#tutorId?.toString() + '-' + #studentId?.toString()")
     @Transactional(readOnly = true)
-    public DocumentStats getStatistics() {
-        Object[] aggregatedStats = (Object[]) documentRepository.getAggregatedStats();
+    public DocumentStats getStatistics(Long tutorId, Long studentId) {
+        List<Object[]> aggregatedResult = documentRepository.getAggregatedStats(tutorId, studentId);
         
-        Long totalDocuments = (Long) aggregatedStats[0];
-        Long totalSize = (Long) aggregatedStats[1];
-        Long totalDownloads = (Long) aggregatedStats[2];
+        Long totalDocuments = 0L;
+        Long totalSize = 0L;
+        Long totalDownloads = 0L;
+
+        if (aggregatedResult != null && !aggregatedResult.isEmpty()) {
+            Object[] results = aggregatedResult.get(0);
+            totalDocuments = results[0] != null ? ((Number) results[0]).longValue() : 0L;
+            totalSize = results[1] != null ? ((Number) results[1]).longValue() : 0L;
+            totalDownloads = results[2] != null ? ((Number) results[2]).longValue() : 0L;
+        }
 
         Map<String, Long> statsMap = new HashMap<>();
         for (DocumentCategoryType type : DocumentCategoryType.values()) {
              statsMap.put(type.name(), 0L);
         }
 
-        documentRepository.countDocumentsByCategoryCode().forEach(row -> {
+        documentRepository.countDocumentsByCategoryCode(tutorId, studentId).forEach(row -> {
              String code = (String) row[0];
              Long count = (Long) row[1];
              if (code != null) statsMap.put(code, count);
@@ -230,7 +288,7 @@ public class DocumentService {
         return DocumentStats.builder()
                 .totalDocuments(totalDocuments)
                 .totalSize(totalSize)
-                .formattedTotalSize(formatFileSize(totalSize != null ? totalSize : 0))
+                .formattedTotalSize(formatFileSize(totalSize))
                 .totalDownloads(totalDownloads)
                 .categoryStats(statsMap)
                 .build();
@@ -262,6 +320,8 @@ public class DocumentService {
                 .categoryName(document.getCategory() != null ? document.getCategory().getName() : null)
                 .studentId(document.getStudent() != null ? document.getStudent().getId() : null)
                 .studentName(document.getStudent() != null ? document.getStudent().getName() : null)
+                .tutorId(document.getTutor() != null ? document.getTutor().getId() : null)
+                .tutorName(document.getTutor() != null ? document.getTutor().getFullName() : null)
                 .downloadCount(document.getDownloadCount())
                 .createdAt(document.getCreatedAt().format(formatter))
                 .updatedAt(document.getUpdatedAt().format(formatter))

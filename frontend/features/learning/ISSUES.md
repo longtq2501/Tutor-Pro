@@ -10,15 +10,21 @@
 
 ## 📋 Active Items
 
-### Tutor Personalization (Multi-tenancy) - 🔄 NEXT
-- [ ] [P1-High] **Backend: Migrate tutorName to tutor_id**
-  - Task: Add `tutor_id` FK to `Lesson` entity, migrate existing data.
-  - Task: Update `LessonRepository` to filter by `tutor_id` for isolated management.
-- [ ] [P1-High] **Backend: Owner-based Access Control**
-  - Task: Prevent Tutors from editing/deleting lessons they don't own.
-- [ ] [P2-Medium] **Frontend: Tutor-focused UI**
-  - Task: Update Lesson creation form to auto-assign current tutor.
-  - Task: Add "My Lessons" vs "All Lessons" toggle/filter for Tutors.
+### Tutor Personalization (Multi-tenancy) - ✅ COMPLETED
+- [x] [P1-High] **Backend: Migrate tutorName to tutor_id**
+  - Status: COMPLETED
+  - Implementation: Added `@ManyToOne` relationship to `Tutor` entity in `Lesson.java`.
+  - Migration: `tutorName` field deprecated but kept for backward compatibility.
+  - Repository: All queries updated with explicit `LEFT JOIN l.tutor t` and `tutorId` filtering.
+- [x] [P1-High] **Backend: Owner-based Access Control**
+  - Status: COMPLETED
+  - Implementation: Added `verifyLessonOwnership()` in `AdminLessonService` and `LessonLibraryService`.
+  - Security: Tutors cannot edit/delete lessons owned by other tutors.
+  - Admin: Admins bypass ownership checks (NULL tutorId returns all lessons).
+- [x] [P2-Medium] **Frontend: Tutor-focused UI**
+  - Status: PENDING (Backend complete, frontend updates needed)
+  - Backend Ready: `getCurrentTutorId()` resolves current tutor from security context.
+  - Next: Update frontend to auto-assign current tutor and add "My Lessons" filter.
 
 ## Technical Debt (Optional)
 

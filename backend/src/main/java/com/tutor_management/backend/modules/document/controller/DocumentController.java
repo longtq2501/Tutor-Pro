@@ -74,7 +74,7 @@ public class DocumentController {
      * Handles file uploads with metadata.
      * Consumes multipart form data with 'file' and 'data' (JSON) parts.
      */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<DocumentUploadResponse>> uploadDocument(
             @RequestPart("file") MultipartFile file,
@@ -119,7 +119,7 @@ public class DocumentController {
     /**
      * Permanently deletes a document from the system.
      */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteDocument(@PathVariable Long id) {
         documentService.deleteDocument(id);
@@ -132,7 +132,10 @@ public class DocumentController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     @GetMapping("/stats")
     public ResponseEntity<ApiResponse<DocumentStats>> getStatistics() {
-        return ResponseEntity.ok(ApiResponse.success(documentService.getStatistics()));
+        return ResponseEntity.ok(ApiResponse.success(documentService.getStatistics(
+                documentService.getCurrentTutorId(),
+                documentService.getCurrentStudentId()
+        )));
     }
 
     /**

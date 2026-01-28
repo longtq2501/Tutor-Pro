@@ -10,9 +10,15 @@ import com.tutor_management.backend.modules.lesson.repository.LessonRepository;
 import com.tutor_management.backend.modules.student.entity.Student;
 import com.tutor_management.backend.exception.ResourceNotFoundException;
 import com.tutor_management.backend.modules.student.repository.StudentRepository;
+import com.tutor_management.backend.modules.tutor.entity.Tutor;
+import com.tutor_management.backend.modules.tutor.repository.TutorRepository;
+import com.tutor_management.backend.modules.auth.User;
+import com.tutor_management.backend.modules.auth.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,22 +42,50 @@ public class LessonLibraryService {
     private final LessonAssignmentRepository assignmentRepository;
     private final StudentRepository studentRepository;
     private final LessonCategoryRepository categoryRepository;
+    private final TutorRepository tutorRepository;
+    private final UserRepository userRepository;
+
+    /**
+     * Resolves the current tutor ID from the security context.
+     * Returns NULL for ADMIN users (they see all lessons).
+     * 
+     * @return Tutor ID or NULL for admin access
+     */
+    private Long getCurrentTutorId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof User user)) {
+            return null;
+        }
+        if ("ADMIN".equals(user.getRole())) {
+            return null; // Admin sees all lessons
+        }
+        return tutorRepository.findByUserId(user.getId())
+                .map(Tutor::getId)
+                .orElse(null);
+    }
 
     /**
      * Retrieves all lessons in the library, including assignment metrics.
      */
+    /**
+     * Retrieves all lessons in the library, including assignment metrics.
+     * Filtered by tutor to ensure data isolation.
+     */
     @Transactional(readOnly = true)
     public Page<LibraryLessonResponse> getAllLibraryLessons(Pageable pageable) {
-        return lessonRepository.findAll(pageable)
+        Long tutorId = getCurrentTutorId();
+        return lessonRepository.findAllWithAssignments(tutorId, pageable)
                 .map(LibraryLessonResponse::fromEntity);
     }
 
     /**
      * Retrieves only lessons that have not been assigned to any students (pure library items).
+     * Filtered by current tutor for multi-tenancy isolation.
      */
     @Transactional(readOnly = true)
     public Page<LibraryLessonResponse> getUnassignedLessons(Pageable pageable) {
-        return lessonRepository.findByIsLibraryTrueOrderByCreatedAtDesc(pageable)
+        Long tutorId = getCurrentTutorId();
+        return lessonRepository.findByIsLibraryTrueOrderByCreatedAtDesc(tutorId, pageable)
                 .map(LibraryLessonResponse::fromEntity);
     }
 
@@ -60,7 +94,16 @@ public class LessonLibraryService {
      */
     @CacheEvict(value = "lessons", allEntries = true)
     public LibraryLessonResponse createLibraryLesson(CreateLessonRequest request) {
+        // Resolve current tutor
+        Long currentTutorId = getCurrentTutorId();
+        Tutor currentTutor = null;
+        if (currentTutorId != null) {
+            currentTutor = tutorRepository.findById(currentTutorId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Tutor profile not found"));
+        }
+
         Lesson lesson = Lesson.builder()
+                .tutor(currentTutor) // ✅ Auto-assign tutor
                 .tutorName(request.getTutorName()).title(request.getTitle())
                 .summary(request.getSummary()).content(request.getContent())
                 .lessonDate(request.getLessonDate()).videoUrl(request.getVideoUrl())

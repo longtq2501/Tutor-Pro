@@ -17,6 +17,8 @@ export interface Document {
   description?: string; // MÔ TẢ CHI TIẾT NỘI DUNG TÀI LIỆU
   studentId?: number; // ID HỌC SINH (NẾU TÀI LIỆU CHỈ DÀNH RIÊNG CHO 1 BẠN)
   studentName?: string; // TÊN HỌC SINH TƯƠNG ỨNG
+  tutorId?: number; // ID GIA SƯ (CHỦ SỞ HỮU TÀI LIỆU)
+  tutorName?: string; // TÊN GIA SƯ TƯƠNG ỨNG
   downloadCount: number; // TỔNG SỐ LƯỢT TẢI VỀ
   createdAt: string; // NGÀY TẢI LÊN HỆ THỐNG
   updatedAt: string; // NGÀY CẬP NHẬT GẦN NHẤT

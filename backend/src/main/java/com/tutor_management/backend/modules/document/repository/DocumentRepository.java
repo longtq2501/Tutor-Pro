@@ -19,86 +19,90 @@ import org.springframework.stereotype.Repository;
 public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     /**
-     * Retrieves all documents with their associated student and category pre-fetched.
-     * Prevents lazy loading issues when rendering document lists with owner names and category tags.
+     * Retrieves all documents with paged results, filtered by tutor if provided.
      */
-    @Query("SELECT d FROM Document d LEFT JOIN FETCH d.student LEFT JOIN FETCH d.category")
-    List<Document> findAllWithStudent();
+    @Query(value = "SELECT d FROM Document d " +
+           "LEFT JOIN FETCH d.student " +
+           "LEFT JOIN FETCH d.category " +
+           "LEFT JOIN FETCH d.tutor " +
+           "WHERE (:tutorId IS NULL OR d.tutor.id = :tutorId) " +
+           "AND (:studentId IS NULL OR d.student.id = :studentId OR d.student IS NULL)",
+           countQuery = "SELECT COUNT(d) FROM Document d WHERE (:tutorId IS NULL OR d.tutor.id = :tutorId) AND (:studentId IS NULL OR d.student.id = :studentId OR d.student IS NULL)")
+    Page<Document> findAllWithStudent(@Param("tutorId") Long tutorId, @Param("studentId") Long studentId, Pageable pageable);
 
     /**
-     * Paged version of {@link #findAllWithStudent()}.
-     * Includes a custom count query to maintain performance on large datasets.
+     * Filters documents by category code, tutor, and student.
      */
-    @Query(value = "SELECT d FROM Document d LEFT JOIN FETCH d.student LEFT JOIN FETCH d.category",
-           countQuery = "SELECT COUNT(d) FROM Document d")
-    Page<Document> findAllWithStudent(Pageable pageable);
+    @Query(value = "SELECT d FROM Document d " +
+           "LEFT JOIN FETCH d.student " +
+           "LEFT JOIN FETCH d.category " +
+           "LEFT JOIN FETCH d.tutor " +
+           "WHERE d.category.code = :categoryCode " +
+           "AND (:tutorId IS NULL OR d.tutor.id = :tutorId) " +
+           "AND (:studentId IS NULL OR d.student.id = :studentId OR d.student IS NULL)",
+           countQuery = "SELECT COUNT(d) FROM Document d WHERE d.category.code = :categoryCode AND (:tutorId IS NULL OR d.tutor.id = :tutorId) AND (:studentId IS NULL OR d.student.id = :studentId OR d.student IS NULL)")
+    Page<Document> findByCategoryCode(@Param("categoryCode") String categoryCode, @Param("tutorId") Long tutorId, @Param("studentId") Long studentId, Pageable pageable);
 
     /**
-     * Finds documents belonging to a specific category code, sorted by creation date.
-     * Pre-fetches student and category details for UI rendering.
+     * Searches for documents matching a keyword, filtered by tutor and student.
      */
     @Query("SELECT d FROM Document d " +
             "LEFT JOIN FETCH d.student " +
             "LEFT JOIN FETCH d.category " +
-            "WHERE d.category.code = :categoryCode " +
-            "ORDER BY d.createdAt DESC")
-    List<Document> findByCategoryCodeOrderByCreatedAtDesc(@Param("categoryCode") String categoryCode);
-
-    /**
-     * Paged version of document retrieval by category code.
-     */
-    @Query(value = "SELECT d FROM Document d LEFT JOIN FETCH d.student LEFT JOIN FETCH d.category WHERE d.category.code = :categoryCode",
-           countQuery = "SELECT COUNT(d) FROM Document d JOIN d.category c WHERE c.code = :categoryCode")
-    Page<Document> findByCategoryCode(@Param("categoryCode") String categoryCode, Pageable pageable);
-
-    /**
-     * Performs a case-insensitive search on document titles.
-     * Includes metadata pre-fetching for the search result list.
-     */
-    @Query("SELECT d FROM Document d " +
-            "LEFT JOIN FETCH d.student " +
-            "LEFT JOIN FETCH d.category " +
+            "LEFT JOIN FETCH d.tutor " +
             "WHERE LOWER(d.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "AND (:tutorId IS NULL OR d.tutor.id = :tutorId) " +
+            "AND (:studentId IS NULL OR d.student.id = :studentId OR d.student IS NULL) " +
             "ORDER BY d.createdAt DESC")
-    List<Document> findByTitleContainingIgnoreCaseOrderByCreatedAtDesc(@Param("keyword") String keyword);
+    List<Document> findByTitleContainingIgnoreCase(@Param("keyword") String keyword, @Param("tutorId") Long tutorId, @Param("studentId") Long studentId);
 
-    @Query("SELECT COUNT(d) FROM Document d WHERE d.category.code = :categoryCode")
-    Long countByCategoryCode(@Param("categoryCode") String categoryCode);
+    @Query("SELECT COUNT(d) FROM Document d WHERE d.category.code = :categoryCode AND (:tutorId IS NULL OR d.tutor.id = :tutorId) AND (:studentId IS NULL OR d.student.id = :studentId OR d.student IS NULL)")
+    Long countByCategoryCode(@Param("categoryCode") String categoryCode, @Param("tutorId") Long tutorId, @Param("studentId") Long studentId);
 
     /**
-     * Calculates the total storage footprint of all documents in the system.
+     * Calculates total storage footprint, filtered by tutor.
      */
-    @Query("SELECT COALESCE(SUM(d.fileSize), 0) FROM Document d")
-    Long sumTotalFileSize();
+    @Query("SELECT COALESCE(SUM(d.fileSize), 0) FROM Document d WHERE (:tutorId IS NULL OR d.tutor.id = :tutorId)")
+    Long sumTotalFileSize(@Param("tutorId") Long tutorId);
 
     /**
-     * Aggregates the total number of downloads across all resources.
+     * Aggregates downloads, filtered by tutor.
      */
-    @Query("SELECT COALESCE(SUM(d.downloadCount), 0) FROM Document d")
-    Long sumTotalDownloads();
+    @Query("SELECT COALESCE(SUM(d.downloadCount), 0) FROM Document d WHERE (:tutorId IS NULL OR d.tutor.id = :tutorId)")
+    Long sumTotalDownloads(@Param("tutorId") Long tutorId);
 
     /**
-     * Counts documents accessible to a specific student (private docs + public docs).
+     * Counts documents accessible to a student from a specific tutor.
      */
-    @Query("SELECT COUNT(d) FROM Document d WHERE d.student.id = :studentId OR d.student IS NULL")
-    Long countByStudentIdOrStudentIsNull(@Param("studentId") Long studentId);
+    @Query("SELECT COUNT(d) FROM Document d WHERE (d.student.id = :studentId OR d.student IS NULL) AND (:tutorId IS NULL OR d.tutor.id = :tutorId)")
+    Long countByStudentIdAndTutor(@Param("studentId") Long studentId, @Param("tutorId") Long tutorId);
 
     /**
-     * Groups document counts by category code for analytical dashboards.
+     * Groups counts by category, filtered by tutor and student.
      */
-    @Query("SELECT c.code, COUNT(d) FROM Document d JOIN d.category c GROUP BY c.code")
-    List<Object[]> countDocumentsByCategoryCode();
+    @Query("SELECT c.code, COUNT(d) FROM Document d " +
+           "JOIN d.category c " +
+           "LEFT JOIN d.tutor t " +
+           "LEFT JOIN d.student s " +
+           "WHERE (:tutorId IS NULL OR t.id = :tutorId) " +
+           "AND (:studentId IS NULL OR s.id = :studentId OR s IS NULL) " +
+           "GROUP BY c.code")
+    List<Object[]> countDocumentsByCategoryCode(@Param("tutorId") Long tutorId, @Param("studentId") Long studentId);
 
     /**
-     * Detaches all documents from a category before the category is deleted or deactivated.
+     * Detaches documents from a category. (No tutor filter needed as it's a structural change)
      */
     @Modifying
     @Query("UPDATE Document d SET d.category = null WHERE d.category.id = :categoryId")
     void clearCategoryReferences(@Param("categoryId") Long categoryId);
 
     /**
-     * Retrieves high-level totals (count, size, downloads) in a single optimized aggregate query.
+     * Optimized aggregate stats retrieval.
      */
-    @Query("SELECT COUNT(d), COALESCE(SUM(d.fileSize), 0), COALESCE(SUM(d.downloadCount), 0) FROM Document d")
-    Object getAggregatedStats();
+    @Query("SELECT COUNT(d), COALESCE(SUM(d.fileSize), 0), COALESCE(SUM(d.downloadCount), 0) FROM Document d " +
+           "LEFT JOIN d.tutor t " +
+           "LEFT JOIN d.student s " +
+           "WHERE (:tutorId IS NULL OR t.id = :tutorId) " +
+           "AND (:studentId IS NULL OR s.id = :studentId OR s IS NULL)")
+    List<Object[]> getAggregatedStats(@Param("tutorId") Long tutorId, @Param("studentId") Long studentId);
 }

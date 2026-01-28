@@ -120,7 +120,13 @@ public class DashboardService {
     public StudentDashboardStats getStudentDashboardStats(Long studentId, String month) {
         // 1. Fetch session records and shared documents
         var records = sessionRecordRepository.findByStudentIdAndMonth(studentId, month);
-        int documentCount = documentRepository.countByStudentIdOrStudentIsNull(studentId).intValue();
+        
+        // Find the tutor for this student to filter shared documents correctly (Multi-tenancy)
+        Long studentTutorId = studentRepository.findById(studentId)
+                .map(com.tutor_management.backend.modules.student.entity.Student::getTutorId)
+                .orElse(null);
+                
+        int documentCount = documentRepository.countByStudentIdAndTutor(studentId, studentTutorId).intValue();
 
         // 2. Aggregate metrics in memory
         int totalSessions = 0;

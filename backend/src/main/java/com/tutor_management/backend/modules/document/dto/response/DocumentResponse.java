@@ -53,6 +53,12 @@ public class DocumentResponse {
     /** Name of the student owner (if private) */
     private String studentName;
     
+    /** ID of the tutor who owns/uploaded this document */
+    private Long tutorId;
+    
+    /** Name of the tutor who owns/uploaded this document */
+    private String tutorName;
+    
     /** Usage statistics */
     private Long downloadCount;
     

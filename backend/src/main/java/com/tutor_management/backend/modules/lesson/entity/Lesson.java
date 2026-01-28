@@ -33,9 +33,19 @@ public class Lesson {
     private Long id;
 
     /**
-     * Name of the tutor who authored or handles this lesson.
+     * Foreign key to owning Tutor (multi-tenancy).
+     * Replaces the legacy tutorName string field.
      */
-    @Column(nullable = false, length = 255)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tutor_id")
+    private com.tutor_management.backend.modules.tutor.entity.Tutor tutor;
+
+    /**
+     * Legacy field - being migrated to tutor_id FK.
+     * @deprecated Use {@link #tutor} instead
+     */
+    @Deprecated
+    @Column(nullable = true, length = 255)
     private String tutorName;
 
     /**

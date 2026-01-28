@@ -17,6 +17,7 @@ import { CategoryView } from './components/CategoryView';
 import DocumentUploadModal from '@/features/documents/document-upload-modal';
 import DocumentPreviewModal from '@/features/documents/document-preview-modal';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function DocumentLibrary() {
   const {
@@ -39,6 +40,7 @@ export default function DocumentLibrary() {
 
   const { user } = useAuth();
   const isStudent = user?.role === 'STUDENT';
+  const queryClient = useQueryClient();
 
   const { handleDownload, handleDelete: executeDelete } = useDocumentActions(loadDocuments, loadCategoryDocuments, selectedCategory);
 
@@ -58,7 +60,17 @@ export default function DocumentLibrary() {
       if (previewDocument && previewDocument.id === deleteConfirmId) {
         setPreviewDocument(null);
       }
+      // Invalidate stats to refresh counts
+      queryClient.invalidateQueries({ queryKey: ['documents', 'stats'] });
     }
+  };
+
+  const handleUploadSuccess = () => {
+    setShowUploadModal(false);
+    loadDocuments();
+    loadCategoryDocuments();
+    // Invalidate stats to refresh counts
+    queryClient.invalidateQueries({ queryKey: ['documents', 'stats'] });
   };
 
   // if (loading) return <LoadingState />; // Removed to support Skeleton
@@ -96,7 +108,7 @@ export default function DocumentLibrary() {
         {showUploadModal && (
           <DocumentUploadModal
             onClose={() => setShowUploadModal(false)}
-            onSuccess={() => { setShowUploadModal(false); loadDocuments(); }}
+            onSuccess={handleUploadSuccess}
           />
         )}
       </>
@@ -126,7 +138,7 @@ export default function DocumentLibrary() {
       {showUploadModal && (
         <DocumentUploadModal
           onClose={() => setShowUploadModal(false)}
-          onSuccess={() => { setShowUploadModal(false); loadCategoryDocuments(); loadDocuments(); }}
+          onSuccess={handleUploadSuccess}
           defaultCategory={selectedCategory}
         />
       )}

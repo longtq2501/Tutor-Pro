@@ -25,12 +25,12 @@ public class CloudinaryService {
     /**
      * Uploads an external multipart file to Cloudinary.
      *
-     * @param file   The multipart file to upload.
-     * @param folder The target folder path in Cloudinary.
+     * @param file The multipart file to upload.
      * @return The secure URL of the uploaded file.
      * @throws IOException If the upload fails due to network or authentication issues.
      */
-    public String uploadFile(MultipartFile file, String folder) throws IOException {
+    public String uploadFile(MultipartFile file) throws IOException {
+        String folder = "tutor-documents"; // Default folder for all uploads
         log.debug("Uploading file {} to folder {}", file.getOriginalFilename(), folder);
 
         try {

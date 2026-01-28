@@ -92,22 +92,36 @@ Optimize existing TMS from "functional" to "production-ready":
     - **UX:** Refactored `LiveTeachingLobby` into "Today" and "Upcoming" sections for better visual organization and cognitive load reduction.
     - **Lobby Optimization (Phase 4.6):** Implemented `SessionListSkeleton` for perceived performance (replacing full-page loaders), added robust Error Handling (Alert/Retry), and auto-refresh (30s interval) to keep schedule synchronized. verified with 6 unit tests.
     - **Recording Integration (Phase 4.7):** Created `RecordingPromptDialog` ensuring informed consent (Video/Audio/Whiteboard types) and 2-hour limit warning. Implemented browser compatibility checks (`isMediaRecorderSupported`) preventing crashes on unsupported devices.
+- ✅ **Tutor Personalization (Multi-tenancy): Documents Module**
+    - **Achievements:** Implemented full backend data isolation using `tutor_id` and `student_id` filtering in `DocumentRepository`.
+    - **Security:** Integrated ownership checks in `DocumentService` to prevent cross-tutor document manipulation.
+    - **Permissions:** Enabled `TUTOR` role for document upload and deletion while maintaining restricted access for `STUDENT` role.
+    - **UX:** Verified multi-role UI visibility for "Tải lên" and "Sửa/Xóa" actions.
+    - **Quality:** Added `DocumentServiceTest` unit tests and ensured type safety with updated TypeScript definitions.
+- ✅ **Tutor Personalization (Multi-tenancy): Exercises Module**
+    - **Achievements:** Verified full backend data isolation using `tutorId` filtering in `ExerciseRepository`.
+    - **Security:** Ownership validation in `ExerciseServiceImpl.verifyExerciseOwnership` prevents cross-tutor manipulation.
+    - **Permissions:** Role-based UI controls in `ExerciseTable` and `ExerciseList` hide create/edit/delete for students.
+    - **Quality:** Existing implementation follows clean code standards with proper separation of concerns.
+- ✅ **Tutor Personalization (Multi-tenancy): Lessons Module (Backend)**
+    - **Migration:** Added `@ManyToOne` relationship to `Tutor` in `Lesson` entity while keeping deprecated `tutorName` for backward compatibility.
+    - **Repository:** Updated all queries in `LessonRepository` with explicit `LEFT JOIN l.tutor t` and `tutorId` filtering.
+    - **Security:** Implemented `verifyLessonOwnership()` in `AdminLessonService` and `LessonLibraryService` to prevent cross-tutor manipulation.
+    - **Service:** Added `getCurrentTutorId()` helper that returns NULL for admins (global access) and tutor ID for tutors (isolated access).
+    - **Quality:** All methods follow GEMINI.md standards (< 50 lines, proper naming, Javadoc).
 
 
 - [x] Complete Live Teaching (Interactive & Lifecycle)
 
 ### Now:
-- 🔄 **Calendar Module Upgrade**
-  - Goal: Enhance UX for online sessions.
+- 🔄 **Module Personalization Phase (Multi-tenancy)**
+  - Goal: Complete frontend UI updates for Lessons module.
+  - Status: Backend complete for Documents, Exercises, and Lessons. Frontend updates needed for Lessons.
   - Priority: P1
+
+
 
 ### Next:
-- 🔄 **Module Personalization Phase (Multi-tenancy)**
-  - Goal: Personalize Lessons, Documents, and Exercises for individual Tutors.
-  - Scope: Schema migration (`tutor_id`), Backend data isolation, and Tutor-specific UI/UX for management.
-  - Priority: P1
-
-- 🔄 **Exercise Module Upgrade** (Paused)
   - Goal: Implement pagination, "Pending" status tracking, and "Teacher-only" view.
   - Context: Currently exercises are global or unoptimized.
   - Priority: P1

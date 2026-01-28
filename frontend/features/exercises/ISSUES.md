@@ -2,12 +2,18 @@
 
 ## 📋 Active Items
 
-### Tutor Personalization (Multi-tenancy) - 🔄 NEXT
-- [ ] [P1-High] **Backend: Data Ownership Migration**
-  - Task: Implement `tutor_id` tracking for library exercises.
-  - Objective: Isolate exercise banks so Tutors only manage their own content.
-- [ ] [P2-Medium] **Frontend: Librarian View Personalization**
-  - Task: Add "My Bank" vs "Public Bank" filtering mechanism.
+### Tutor Personalization (Multi-tenancy) - ✅ COMPLETED
+- [x] [P1-High] **Backend: Data Ownership Migration**
+  - Status: COMPLETED
+  - Implementation: `tutorId` field exists in `Exercise` entity with proper indexing.
+  - Repository: `ExerciseRepository.findByFiltersOptimized` includes `tutorId` filtering.
+  - Service: `ExerciseServiceImpl.getTutorId` resolves current tutor from security context.
+  - Ownership: `verifyExerciseOwnership` prevents cross-tutor manipulation.
+- [x] [P2-Medium] **Frontend: Librarian View Personalization**
+  - Status: COMPLETED
+  - Implementation: Role-based UI controls in `ExerciseTable` and `ExerciseList`.
+  - Students: Cannot see "Create" button or edit/delete actions.
+  - Tutors/Admins: Full CRUD permissions with proper authorization checks.
 
 ## Completed Work
 

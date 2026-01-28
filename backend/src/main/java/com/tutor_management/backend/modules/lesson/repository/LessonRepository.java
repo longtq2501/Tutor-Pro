@@ -20,10 +20,19 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
 
     /**
      * Retrieves all lessons with their associated student assignments.
-     * Use Pageable for efficient memory management in administrative views.
+     * Filtered by tutor for multi-tenancy isolation.
+     * 
+     * @param tutorId Optional tutor ID filter (NULL for admin access)
+     * @param pageable Pagination information
      */
-    @Query("SELECT DISTINCT l FROM Lesson l LEFT JOIN FETCH l.assignments ORDER BY l.createdAt DESC")
-    org.springframework.data.domain.Page<Lesson> findAllWithAssignments(org.springframework.data.domain.Pageable pageable);
+    @Query("SELECT DISTINCT l FROM Lesson l " +
+           "LEFT JOIN FETCH l.assignments " +
+           "LEFT JOIN l.tutor t " +
+           "WHERE (:tutorId IS NULL OR (t.id IS NOT NULL AND t.id = :tutorId)) " +
+           "ORDER BY l.createdAt DESC")
+    org.springframework.data.domain.Page<Lesson> findAllWithAssignments(
+            @org.springframework.data.repository.query.Param("tutorId") Long tutorId,
+            org.springframework.data.domain.Pageable pageable);
 
     /**
      * Retrieves a memory-optimized summary of all published library lessons.
@@ -42,7 +51,11 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
     List<LessonSummaryProjection> findLibraryLessonsSummary();
 
     /**
-     * Paginated version of the library summary. Use Slice to avoid redundant COUNT queries.
+     * Paginated version of the library summary with tutor filtering.
+     * Use Slice to avoid redundant COUNT queries.
+     * 
+     * @param tutorId Optional tutor ID filter (NULL for admin access)
+     * @param pageable Pagination information
      */
     @Query("SELECT l.id as id, l.title as title, l.summary as summary, " +
             "l.thumbnailUrl as thumbnailUrl, l.difficultyLevel as difficultyLevel, " +
@@ -52,18 +65,30 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
             "l.averageRating as averageRating, l.reviewCount as reviewCount " +
             "FROM Lesson l " +
             "LEFT JOIN l.category " +
+            "LEFT JOIN l.tutor t " +
             "WHERE l.isLibrary = true AND l.isPublished = true " +
+            "AND (:tutorId IS NULL OR (t.id IS NOT NULL AND t.id = :tutorId)) " +
             "ORDER BY l.createdAt DESC")
-    Slice<LessonSummaryProjection> findLibraryLessonsSummaryPaginated(Pageable pageable);
+    Slice<LessonSummaryProjection> findLibraryLessonsSummaryPaginated(
+            @org.springframework.data.repository.query.Param("tutorId") Long tutorId,
+            Pageable pageable);
 
     /**
-     * Retrieves all library lessons as full entities (not projections).
+     * Retrieves all library lessons as full entities with tutor filtering.
      * Returns lessons ordered by creation date (newest first).
      * 
+     * @param tutorId Optional tutor ID filter (NULL for admin access)
      * @param pageable The pagination information.
      * @return Page of library lessons.
      */
-    org.springframework.data.domain.Page<Lesson> findByIsLibraryTrueOrderByCreatedAtDesc(org.springframework.data.domain.Pageable pageable);
+    @Query("SELECT l FROM Lesson l " +
+           "LEFT JOIN l.tutor t " +
+           "WHERE l.isLibrary = true " +
+           "AND (:tutorId IS NULL OR (t.id IS NOT NULL AND t.id = :tutorId)) " +
+           "ORDER BY l.createdAt DESC")
+    org.springframework.data.domain.Page<Lesson> findByIsLibraryTrueOrderByCreatedAtDesc(
+            @org.springframework.data.repository.query.Param("tutorId") Long tutorId,
+            org.springframework.data.domain.Pageable pageable);
 
     /**
      * Retrieves a lesson by ID with all associated collections eagerly fetched.

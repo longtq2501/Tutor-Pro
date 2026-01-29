@@ -137,16 +137,16 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
 
     return (
         <motion.div
-            className="relative w-full max-w-4xl mx-auto rounded-xl overflow-hidden bg-[#11111198] shadow-[0_0_20px_rgba(0,0,0,0.2)] backdrop-blur-sm"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            className="relative w-full h-full rounded-xl overflow-hidden bg-[#11111198] shadow-[0_0_20px_rgba(0,0,0,0.2)] backdrop-blur-sm no-scrollbar"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
             onMouseEnter={() => setShowControls(true)}
             onMouseLeave={() => setShowControls(false)}
         >
             <video
                 ref={videoRef}
-                className="w-full"
+                className="w-full h-full object-cover"
                 onTimeUpdate={handleTimeUpdate}
                 src={src}
                 poster={poster}
@@ -159,7 +159,7 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
             <AnimatePresence>
                 {showControls && (
                     <motion.div
-                        className="absolute bottom-0 mx-auto max-w-xl left-0 right-0 p-4 m-2 bg-[#11111198] backdrop-blur-md rounded-2xl"
+                        className="absolute bottom-0 mx-auto max-w-xl left-0 right-0 p-4 m-2 bg-black/80 backdrop-blur-md rounded-2xl border border-white/20"
                         initial={{ y: 20, opacity: 0, filter: "blur(10px)" }}
                         animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
                         exit={{ y: 20, opacity: 0, filter: "blur(10px)" }}
@@ -187,7 +187,7 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
                                         onClick={togglePlay}
                                         variant="ghost"
                                         size="icon"
-                                        className="text-white hover:bg-[#111111d1] hover:text-white"
+                                        className="text-white bg-white/20 hover:bg-white/30 ring-2 ring-white/40 hover:ring-white/60 transition-all"
                                     >
                                         {isPlaying ? (
                                             <Pause className="h-5 w-5" />

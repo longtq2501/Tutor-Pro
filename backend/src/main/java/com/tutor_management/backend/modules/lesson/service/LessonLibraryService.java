@@ -90,6 +90,29 @@ public class LessonLibraryService {
     }
 
     /**
+     * Retrieves full details for a specific library lesson by ID (including content).
+     * Filtered by current tutor for multi-tenancy isolation.
+     */
+    @Transactional(readOnly = true)
+    public LibraryLessonResponse getLibraryLessonById(Long lessonId) {
+        Lesson lesson = lessonRepository.findByIdWithDetails(lessonId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bài giảng với ID: " + lessonId));
+        
+        // Verify it's a library lesson
+        if (!lesson.getIsLibrary()) {
+            throw new IllegalArgumentException("Bài giảng này không thuộc thư viện");
+        }
+        
+        // Verify tutor ownership (unless admin)
+        Long tutorId = getCurrentTutorId();
+        if (tutorId != null && lesson.getTutor() != null && !lesson.getTutor().getId().equals(tutorId)) {
+            throw new IllegalArgumentException("Bạn không có quyền truy cập bài giảng này");
+        }
+        
+        return LibraryLessonResponse.fromEntity(lesson);
+    }
+
+    /**
      * Creates a new lesson record directly into the library.
      */
     @CacheEvict(value = "lessons", allEntries = true)

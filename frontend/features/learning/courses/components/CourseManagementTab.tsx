@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useState, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -59,7 +60,6 @@ import type { CourseDTO } from '../types';
 import { CourseBuilderDialog } from './CourseBuilderDialog';
 import { AssignCourseDialog } from './AssignCourseDialog';
 import { AdminCoursePreviewModal } from './AdminCoursePreviewModal';
-import { LessonDetailModal } from '../../lesson-view-wrapper/components/LessonDetailModal';
 import { EnhancedCourseCard } from './EnhancedCourseCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from '@/components/ui/input';
@@ -80,8 +80,6 @@ export function CourseManagementTab() {
 
     // Course Preview State
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-    const [isLessonPreviewOpen, setIsLessonPreviewOpen] = useState(false);
-    const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
 
     const { data: courses = [], isLoading } = useAdminCourses();
     const deleteMutation = useDeleteCourse();
@@ -114,10 +112,11 @@ export function CourseManagementTab() {
         setIsPreviewOpen(true);
     }, []);
 
+    const router = useRouter();
+
     const handleLessonPreview = useCallback((lessonId: number) => {
-        setSelectedLessonId(lessonId);
-        setIsLessonPreviewOpen(true);
-    }, []);
+        router.push(`/learning/lessons/${lessonId}?preview=true`);
+    }, [router]);
 
     const handleAssign = useCallback((course: CourseDTO) => {
         setSelectedCourse(course);
@@ -366,13 +365,6 @@ export function CourseManagementTab() {
                 onOpenChange={setIsPreviewOpen}
                 courseId={selectedCourse?.id || null}
                 onLessonPreview={handleLessonPreview}
-            />
-
-            <LessonDetailModal
-                open={isLessonPreviewOpen}
-                onClose={() => setIsLessonPreviewOpen(false)}
-                lessonId={selectedLessonId}
-                isPreview={true}
             />
 
             {/* Delete Confirmation */}

@@ -27,8 +27,8 @@ import {
   User,
   Users
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { memo, useCallback, useMemo, useState } from 'react';
-import { LessonDetailModal } from '../../lesson-view-wrapper/components/LessonDetailModal';
 import {
   useAdminLessons
 } from '../hooks/useAdminLessons';
@@ -114,9 +114,8 @@ const AdminLessonRow = memo(({ lesson, onPreview }: { lesson: any; onPreview: (i
 ));
 
 export function AdminLessonsTab() {
+  const router = useRouter();
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   const { data: lessonsData, isLoading } = useAdminLessons();
@@ -138,9 +137,8 @@ export function AdminLessonsTab() {
   }, {} as Record<number, number>), [lessons]);
 
   const handlePreview = useCallback((lessonId: number) => {
-    setSelectedLessonId(lessonId);
-    setIsPreviewOpen(true);
-  }, []);
+    router.push(`/learning/lessons/${lessonId}?preview=true`);
+  }, [router]);
 
   const filteredLessons = useMemo(() => selectedCategoryId
     ? lessons.filter(l => l.category?.id === selectedCategoryId)
@@ -263,13 +261,6 @@ export function AdminLessonsTab() {
         </CardContent>
       </Card>
 
-      {/* Preview Modal */}
-      <LessonDetailModal
-        lessonId={selectedLessonId}
-        open={isPreviewOpen}
-        onClose={() => setIsPreviewOpen(false)}
-        isPreview={true}
-      />
     </div>
   );
 }

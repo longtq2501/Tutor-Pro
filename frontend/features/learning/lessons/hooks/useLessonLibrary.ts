@@ -16,14 +16,23 @@ export const lessonLibraryKeys = {
     [...lessonLibraryKeys.all, 'students', lessonId] as const,
 };
 
-/**
- * Hook để lấy danh sách toàn bộ kho bài giảng
- */
 export const useLessonLibrary = () => {
   return useQuery({
     queryKey: lessonLibraryKeys.lists(),
     queryFn: lessonLibraryApi.getAll,
     staleTime: 5 * 60 * 1000, // 5 minutes cache
+  });
+};
+
+/**
+ * Hook để lấy chi tiết đầy đủ của một bài giảng (bao gồm content)
+ */
+export const useLessonLibraryById = (id: number | undefined) => {
+  return useQuery({
+    queryKey: [...lessonLibraryKeys.all, 'detail', id] as const,
+    queryFn: () => lessonLibraryApi.getById(id!),
+    enabled: !!id,
+    staleTime: 2 * 60 * 1000, // 2 minutes cache
   });
 };
 

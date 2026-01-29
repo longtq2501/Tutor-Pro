@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @plugin "tailwindcss-animate";
+@plugin "@tailwindcss/typography";
 /* @import "tw-animate-css"; */
 
 @custom-variant dark (&:is(.dark *));
@@ -251,8 +252,124 @@ body {
   }
 
 
-  /* Synchronized Background Control (Problem 2) */
+  /* Tiptap Editor Styles (Google Docs Hierarchy) */
+  .tiptap {
+    @apply focus:outline-none text-foreground;
+  }
 
+  /* Level 1: Tiêu đề (Document Title) - H1 */
+  .tiptap h1 {
+    @apply text-5xl font-black mb-8 mt-10 tracking-tight leading-tight border-none;
+  }
+
+  /* Level 2: Phụ đề (Subtitle) - H2 */
+  .tiptap h2 {
+    @apply text-2xl font-normal mb-8 text-muted-foreground leading-relaxed border-none;
+  }
+
+  /* Level 3: Tiêu đề 1 - H3 */
+  .tiptap h3 {
+    @apply text-3xl font-bold mb-4 mt-8 border-none;
+  }
+
+  /* Level 4: Tiêu đề 2 - H4 */
+  .tiptap h4 {
+    @apply text-2xl font-bold mb-3 mt-6 border-none;
+  }
+
+  /* Level 5: Tiêu đề 3 - H5 */
+  .tiptap h5 {
+    @apply text-xl font-bold mb-2 mt-4 border-none;
+  }
+
+  .tiptap p {
+    @apply mb-4 leading-relaxed;
+  }
+
+  /* Table Styles */
+  .tiptap table {
+    border-collapse: collapse;
+    margin: 0;
+    overflow: hidden;
+    table-layout: fixed;
+    width: 100%;
+    @apply my-6 border-collapse;
+  }
+
+  .tiptap table td,
+  .tiptap table th {
+    @apply border border-border p-4;
+  }
+
+  .tiptap table th {
+    @apply bg-muted/30 font-bold text-center;
+  }
+
+  .tiptap table .selectedCell:after {
+    background: rgba(200, 200, 255, 0.4);
+    content: "";
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    pointer-events: none;
+    position: absolute;
+    z-index: 2;
+  }
+
+  .tiptap table .column-resize-handle {
+    @apply bg-primary/30 w-1 absolute right-[-2px] top-0 bottom-[-2px] pointer-events-none;
+  }
+
+  .tiptap .tableWrapper {
+    @apply overflow-x-auto;
+  }
+
+  .tiptap .resize-cursor {
+    cursor: col-resize;
+  }
+
+  .tiptap ul {
+    @apply list-disc list-outside mb-4 ml-8 space-y-1;
+  }
+
+  .tiptap ol {
+    @apply list-decimal list-outside mb-4 ml-8 space-y-1;
+  }
+
+  .tiptap li p {
+    @apply my-0;
+  }
+
+  /* Placeholder logic */
+  .tiptap p.is-editor-empty:first-child::before {
+    @apply text-muted-foreground/50 content-[attr(data-placeholder)] float-left h-0 pointer-events-none;
+  }
+
+  /* Image styling in editor */
+  .tiptap img {
+    @apply rounded-xl border-2 border-transparent hover:border-primary/50 transition-all cursor-pointer shadow-lg mx-auto my-6;
+  }
+
+  .tiptap img.ProseMirror-selectednode {
+    @apply border-primary ring-4 ring-primary/20;
+  }
+
+  /* Tiptap Alignment */
+  .tiptap .text-center,
+  .tiptap [data-text-align="center"] {
+    text-align: center;
+  }
+
+  .tiptap .text-right,
+  .tiptap [data-text-align="right"] {
+    text-align: right;
+  }
+
+  .tiptap .text-left,
+  .tiptap [data-text-align="left"] {
+    text-align: left;
+  }
 }
 
 @utility animate-spin-slow {
@@ -264,8 +381,15 @@ body {
 }
 
 @keyframes pulse-subtle {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
 }
 
 @utility animate-shimmer {

@@ -49,6 +49,14 @@ public class LessonLibraryController {
     }
 
     /**
+     * Retrieves full details for a specific library lesson by ID (including content).
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<LibraryLessonResponse>> getLessonById(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(libraryService.getLibraryLessonById(id)));
+    }
+
+    /**
      * Creates a new standalone lesson in the library.
      */
     @PostMapping

@@ -40,6 +40,19 @@ export const lessonLibraryApi = {
   },
 
   /**
+   * LẤY CHI TIẾT ĐẦY ĐỦ CỦA BÀI GIẢNG TRONG KHO (BAO GỒM CONTENT)
+   * GET /api/lesson-library/{id}
+   * @param {number} id - ID bài giảng
+   * @returns {Promise<LessonLibraryDTO>} Thông tin chi tiết đầy đủ của bài giảng
+   */
+  getById: async (id: number): Promise<LessonLibraryDTO> => {
+    const response = await api.get<ApiResponse<LessonLibraryDTO>>(
+      `/lesson-library/${id}`
+    );
+    return response.data.data;
+  },
+
+  /**
    * LẤY DANH SÁCH HỌC SINH ĐÃ ĐƯỢC GIAO BÀI GIẢNG CỤ THỂ
    * GET /api/lesson-library/{lessonId}/students
    * @param {number} lessonId - ID của bài giảng

@@ -26,6 +26,7 @@ import {
     Users,
     Video
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { memo, useState } from 'react';
 import { LessonLibraryDTO } from '../types';
 
@@ -44,6 +45,7 @@ export const PremiumLessonCard = memo(({
     onAssign,
     onPreview
 }: PremiumLessonCardProps) => {
+    const router = useRouter();
     const [isHovered, setIsHovered] = useState(false);
 
     return (
@@ -58,7 +60,13 @@ export const PremiumLessonCard = memo(({
                 "hover:shadow-lg hover:border-primary/40",
                 "will-change-transform contain-layout"
             )}
-            onClick={() => onPreview?.(lesson.id)}
+            onClick={() => {
+                if (onPreview) {
+                    onPreview(lesson.id);
+                } else {
+                    router.push(`/learning/lessons/${lesson.id}?preview=true`);
+                }
+            }}
         >
             {/* Thumbnail Area - Ultra Compact [2.2/1] */}
             <div className="relative aspect-[2.2/1] bg-muted overflow-hidden shrink-0">
@@ -73,22 +81,6 @@ export const PremiumLessonCard = memo(({
                         <Video className="w-6 h-6 text-muted-foreground/30" />
                     </div>
                 )}
-
-                {/* Play Overlay - Minimal */}
-                <AnimatePresence>
-                    {isHovered && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-black/20 flex items-center justify-center z-10"
-                        >
-                            <div className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center shadow-lg backdrop-blur-sm">
-                                <Play className="w-3 h-3 text-primary fill-primary ml-0.5" />
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
 
                 {/* Category Badge - Tiny */}
                 {lesson.category && (
@@ -160,9 +152,37 @@ export const PremiumLessonCard = memo(({
                         Giao bài
                     </Button>
 
-                    <Button variant="ghost" size="icon" className="h-6 w-6 rounded-md hover:bg-muted">
-                        <MoreVertical className="w-3 h-3" />
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-md hover:bg-muted">
+                                <MoreVertical className="w-3 h-3" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 p-1.5 rounded-xl">
+                            <DropdownMenuItem
+                                onClick={(e) => { e.stopPropagation(); onAssign?.(lesson); }}
+                                className="rounded-lg py-2 cursor-pointer"
+                            >
+                                <Users className="mr-2.5 h-4 w-4 text-blue-500" />
+                                Giao cho học sinh
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                onClick={(e) => { e.stopPropagation(); onEdit?.(lesson); }}
+                                className="rounded-lg py-2 cursor-pointer"
+                            >
+                                <Pencil className="mr-2.5 h-4 w-4 text-emerald-500" />
+                                Chỉnh sửa
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="my-2" />
+                            <DropdownMenuItem
+                                className="text-destructive focus:text-destructive rounded-lg py-2 cursor-pointer"
+                                onClick={(e) => { e.stopPropagation(); onDelete?.(lesson); }}
+                            >
+                                <Trash2 className="mr-2.5 h-4 w-4" />
+                                Xóa bài giảng
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
         </motion.div>

@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/toggle-group';
 import { format } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import {
   BookOpen,
   Calendar,
@@ -51,7 +52,6 @@ import {
   Users
 } from 'lucide-react';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { LessonDetailModal } from '../../lesson-view-wrapper/components/LessonDetailModal';
 import { useLessonCategories } from '../hooks/useLessonCategories';
 import {
   useAssignLibraryLesson,
@@ -173,14 +173,12 @@ const LessonLibraryRow = memo(({
 ));
 
 export function LessonLibraryTab() {
+  const router = useRouter();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [selectedPreviewLessonId, setSelectedPreviewLessonId] = useState<number | null>(null);
-
   const [selectedLesson, setSelectedLesson] = useState<LessonLibraryDTO | null>(null);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -261,9 +259,8 @@ export function LessonLibraryTab() {
   }, [createMutation]);
 
   const handlePreviewClick = useCallback((lessonId: number) => {
-    setSelectedPreviewLessonId(lessonId);
-    setIsPreviewOpen(true);
-  }, []);
+    router.push(`/learning/lessons/${lessonId}?preview=true`);
+  }, [router]);
 
   const handleEditSubmit = useCallback((data: LessonFormData) => {
     if (!selectedLesson) return;
@@ -668,14 +665,6 @@ export function LessonLibraryTab() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Lesson Detail Preview Modal */}
-      <LessonDetailModal
-        open={isPreviewOpen}
-        onClose={() => setIsPreviewOpen(false)}
-        lessonId={selectedPreviewLessonId}
-        isPreview={true}
-      />
     </div>
   );
 }

@@ -31,7 +31,7 @@ export function LessonHeader({ lesson, markingComplete, onBack, onToggleComplete
       </div>
 
       <div className="space-y-4">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground leading-tight">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground leading-tight text-left">
           {lesson.title}
         </h1>
 

@@ -109,15 +109,30 @@ Optimize existing TMS from "functional" to "production-ready":
     - **Security:** Implemented `verifyLessonOwnership()` in `AdminLessonService` and `LessonLibraryService` to prevent cross-tutor manipulation.
     - **Service:** Added `getCurrentTutorId()` helper that returns NULL for admins (global access) and tutor ID for tutors (isolated access).
     - **Quality:** All methods follow GEMINI.md standards (< 50 lines, proper naming, Javadoc).
-
-
-- [x] Complete Live Teaching (Interactive & Lifecycle)
-
-### Now:
-- 🔄 **Module Personalization Phase (Multi-tenancy)**
+- ✅ **Module Personalization Phase (Multi-tenancy)**
   - Goal: Complete frontend UI updates for Lessons module.
   - Status: Backend complete for Documents, Exercises, and Lessons. Frontend updates needed for Lessons.
   - Priority: P1
+
+- [x] Complete Live Teaching (Interactive & Lifecycle)
+
+- ✅ **Lesson Module Refinement (Full-Screen Immersive Experience):**
+    - **Achievements:** 
+        - Transitioned lesson viewing from modal-based preview to a **dedicated full-screen route** (`/learning/lessons/[id]`).
+        - Implemented **responsive layout splitting**: Sidebar-controlled view with a draggable resizer for high-precision layout management.
+        - Optimized **video & image responsiveness**: Removed width constraints and horizontal padding to allow visual assets to fill the sidebar dynamically during resizing.
+        - **Theme Synchronization:** Abolished internal theme toggles in favor of automatic syncing with the application's global theme (via `next-themes`).
+    - **Quality:** Cleaned up technical debt by removing `LessonDetailModal` from 4+ entry points and unifying the learning experience across roles (Admin/Tutor preview & Student learning).
+    - **UX:** Added smart fallback for `thumbnailUrl` as a banner image when `videoUrl` is absent, ensuring every lesson feels premium.
+
+### Now:
+
+- 🔄 **Lesson Content Management Optimization**
+  - Goal: Migrate from HTML to Markdown for lesson content.
+  - Status: Backend complete for Documents, Exercises, and Lessons. Frontend updates needed for Lessons.
+  - Priority: P1
+
+
 
 
 
@@ -131,6 +146,6 @@ Optimize existing TMS from "functional" to "production-ready":
 ## Open Questions
 
 ### Working Set:
-Current module: frontend\features\calendar
-Active files or folders: [frontend/features/calendar]
+Current module: frontend\features\learning
+Active files or folders: [frontend/features/learning]
 Focus: Enhance UX for online sessions.

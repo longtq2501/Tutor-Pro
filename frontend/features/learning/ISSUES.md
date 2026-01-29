@@ -10,6 +10,12 @@
 
 ## 📋 Active Items
 
+### Lesson Content Management Optimization
+
+
+
+
+
 ### Tutor Personalization (Multi-tenancy) - ✅ COMPLETED
 - [x] [P1-High] **Backend: Migrate tutorName to tutor_id**
   - Status: COMPLETED
@@ -58,3 +64,22 @@
   - Solution: Removed `max-w-7xl`, implemented `flex-col h-[calc(100vh-3.5rem)]` layout with internal scrolling.
   - Performance impact: Improved screen utilization (100% width).
   - Tested: ✅
+
+- [x] [P1-High] **Migrate from HTML to Markdown for Lesson Content**
+  - **Solution**: Implemented Tiptap (WYSIWYG Markdown Editor) and React Markdown Viewer.
+  - **Changes**:
+    - Created `LessonEditor.tsx` with rich text toolbar.
+    - Updated `LessonForm.tsx` to use the editor.
+    - Updated `LessonContentTab.tsx` to use `react-markdown` with `rehype-raw` fallback for legacy HTML.
+  - **Impact**: Improved UX for creation, consistent styling, and simpler content storage.
+  - **Tested**: ✅ Linted and Verified.
+
+- [x] [P1-High] **Redesign Lesson Creation UI for Enhanced UX**
+  - **Solution**: Refactored `LessonForm` into a modern Tabbed Interface and implemented a Google Docs-style **Style Selector**.
+  - **Changes**:
+    - Split form into 3 logical tabs and maximized dialog space.
+    - Added a dropdown selector for: **Tiêu đề (H1), Phụ đề (H2), Tiêu đề 1-3 (H3-H5)**.
+    - Standardized font sizes, weights, and colors for both editor and viewer.
+    - Fixed dark mode text readability and list alignment.
+  - **Impact**: Professional document authoring experience, perfect dark mode support, and consistent "What You See Is What You Get" (WYSIWYG) output.
+  - **Tested**: ✅ Linted and Verified.

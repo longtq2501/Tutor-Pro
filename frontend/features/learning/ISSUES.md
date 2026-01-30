@@ -12,7 +12,71 @@
 
 ### Lesson Content Management Optimization
 
+- [x] [P0-Critical] **Fix Markdown Rendering Layout Issues**
+  - **Resolution**: This issue has been resolved by fundamentally migrating to a **Strictly Markdown Architecture**. All legacy HTML rendering paths have been removed, ensuring that 100% of content is rendered via a unified Markdown pipeline.
+  - **Outcome**: 100% visual consistency, zero layout shifts between lessons, and reduced technical debt.
+  - **Priority**: P0-Critical
+  - **Status**: Resolved (By Architecture Change)
 
+---
+
+- [x] [P0-Critical] **Fix Editor Not Loading Content When Editing Lessons**
+  - **Root cause**: `LessonEditor` component in edit mode fails to populate Tiptap editor with existing Markdown content from lesson.
+  - **Symptoms**:
+    - Open lesson for editing → Editor appears blank/empty
+    - User cannot see current content to make edits
+    - Saving would overwrite existing content with empty content (data loss risk!)
+  - **Investigation needed**:
+    - Check if `initialContent` or `value` prop is correctly passed to `LessonEditor`
+    - Verify Tiptap's `content` option receives the markdown string
+    - Check if content is being loaded asynchronously (race condition)
+    - Verify markdown content is in correct format (not HTML being passed to markdown editor)
+  - **Proposed solution**:
+    1. **Debug data flow**:
+       - In `LessonForm.tsx` edit mode, verify `lesson.content` contains markdown string
+       - Add console.log to confirm data reaches `LessonEditor` component
+       - Check if Tiptap's `useEditor` hook receives content correctly
+    2. **Fix Tiptap initialization**:
+       - Ensure `useEditor` is called with correct `content` option:
+  - **Testing requirements**:
+    - Edit 5-10 different lessons (both new markdown and old HTML)
+    - Verify content appears correctly in editor
+    - Make edits and save → verify changes persist
+    - Test with empty lessons, very short lessons, and very long lessons (10,000+ words)
+    - Verify no data loss occurs
+  - **Files to modify**:
+    - `frontend/features/learning/lessons/components/LessonEditor.tsx`
+    - `frontend/features/learning/lessons/components/LessonForm.tsx`
+    - Possibly add `turndown` dependency for HTML→Markdown conversion
+  - **Dependencies**:
+    - May need: `npm install turndown @types/turndown`
+  - **Priority**: P0-Critical (blocks editing functionality, data loss risk)
+  - **Estimated effort**: 3-4 hours
+
+---
+
+- [x] [P1-High] **Implement Video Progress-Based Lesson Unlocking System (Course-aware)**
+  - **Root cause**: Current system relies on manual completion marking which allows students to game the system without actually learning.
+  - **Current behavior**:
+    - Students can manually mark lessons as complete without watching videos
+    - No validation of actual learning engagement
+    - Easy to cheat: skip through entire course without retention
+    - Navigation between lessons not enforced by progress
+  - **Desired behavior**:
+    - **Dual-mode support**:
+      - **Standalone lessons** (legacy): Can be completed independently, no unlocking logic
+      - **Course lessons**: Sequential unlocking within course based on video progress
+    - Track video watch progress automatically (0-100%)
+    - Unlock next lesson in course only when current video reaches 70%+ completion
+    - Show clear progress status:
+      - **0-69%**: "Đang học" (In Progress) - Next lesson locked
+      - **70-99%**: "Gần hoàn thành" (Almost Complete) - Next lesson unlocked
+      - **100%**: "Đã hoàn thành" (Completed)
+    - Add Course-aware Previous/Next navigation:
+      - Previous: Navigate to previous lesson in same course (always allowed)
+      - Next: Navigate to next lesson in same course (requires 70%+ progress)
+      - Buttons only appear when viewing lesson within course context
+    - Persist progress across sessions (resume from last position)
 
 
 

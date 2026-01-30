@@ -252,66 +252,79 @@ body {
   }
 
 
-  /* Tiptap Editor Styles (Google Docs Hierarchy) */
+  /* Lesson Content & Tiptap Editor Unified Styles */
+  .lesson-content,
   .tiptap {
-    @apply focus:outline-none text-foreground;
+    @apply prose max-w-none focus:outline-none text-foreground dark:prose-invert transition-colors duration-500;
   }
 
-  /* Level 1: Tiêu đề (Document Title) - H1 */
-  .tiptap h1 {
-    @apply text-5xl font-black mb-8 mt-10 tracking-tight leading-tight border-none;
-  }
+  /* Typography Hierarchy (Google Docs Style) */
+  .lesson-content h1, .tiptap h1 { @apply text-5xl font-black mb-8 mt-10 tracking-tight leading-tight border-none; }
+  .lesson-content h2, .tiptap h2 { @apply text-2xl font-normal mb-8 text-muted-foreground leading-relaxed border-none; }
+  .lesson-content h3, .tiptap h3 { @apply text-3xl font-bold mb-4 mt-8 border-none; }
+  .lesson-content h4, .tiptap h4 { @apply text-2xl font-bold mb-3 mt-6 border-none; }
+  .lesson-content h5, .tiptap h5 { @apply text-xl font-bold mb-2 mt-4 border-none; }
+  .lesson-content p, .tiptap p { @apply mb-4 leading-8; }
 
-  /* Level 2: Phụ đề (Subtitle) - H2 */
-  .tiptap h2 {
-    @apply text-2xl font-normal mb-8 text-muted-foreground leading-relaxed border-none;
-  }
-
-  /* Level 3: Tiêu đề 1 - H3 */
-  .tiptap h3 {
-    @apply text-3xl font-bold mb-4 mt-8 border-none;
-  }
-
-  /* Level 4: Tiêu đề 2 - H4 */
-  .tiptap h4 {
-    @apply text-2xl font-bold mb-3 mt-6 border-none;
-  }
-
-  /* Level 5: Tiêu đề 3 - H5 */
-  .tiptap h5 {
-    @apply text-xl font-bold mb-2 mt-4 border-none;
-  }
-
-  .tiptap p {
-    @apply mb-4 leading-relaxed;
-  }
-
-  /* Table Styles */
-  .tiptap table {
-    border-collapse: collapse;
-    margin: 0;
-    overflow: hidden;
+  /* Table Styles - Unified for HTML and Markdown */
+  .lesson-content table, .tiptap table {
+    @apply my-8 border-collapse w-full overflow-hidden rounded-xl border border-border;
     table-layout: fixed;
-    width: 100%;
-    @apply my-6 border-collapse;
   }
 
-  .tiptap table td,
-  .tiptap table th {
+  .lesson-content table td, .tiptap table td,
+  .lesson-content table th, .tiptap table th {
     @apply border border-border p-4;
   }
 
-  .tiptap table th {
-    @apply bg-muted/30 font-bold text-center;
+  .lesson-content table th, .tiptap table th {
+    @apply bg-muted/40 font-bold text-center text-foreground transition-colors;
   }
 
+  .lesson-content .tableWrapper, .tiptap .tableWrapper {
+    @apply overflow-x-auto my-6 rounded-xl border border-border bg-card/30 shadow-sm transition-all;
+  }
+
+  /* List Styles */
+  .lesson-content ul, .tiptap ul { @apply list-disc list-outside mb-6 ml-8 space-y-2; }
+  .lesson-content ol, .tiptap ol { @apply list-decimal list-outside mb-6 ml-8 space-y-2; }
+  .lesson-content li p, .tiptap li p { @apply my-0; }
+
+  /* Image Styles */
+  .lesson-content img, .tiptap img {
+    @apply rounded-2xl shadow-xl mx-auto my-10 border border-border/40 transition-all;
+  }
+
+  /* Code & Pre Styles */
+  .lesson-content pre, .tiptap pre {
+    @apply bg-muted/50 text-foreground border border-border p-6 rounded-2xl my-8 overflow-x-auto;
+  }
+
+  .lesson-content code, .tiptap code {
+    @apply text-primary bg-primary/10 rounded-md px-1.5 py-0.5 font-medium before:content-none after:content-none;
+  }
+
+  /* Alignment Overrides (Essential for Tiptap & Markdown) */
+  .lesson-content .text-center, .tiptap .text-center,
+  .lesson-content [data-text-align="center"], .tiptap [data-text-align="center"] {
+    text-align: center !important;
+  }
+
+  .lesson-content .text-right, .tiptap .text-right,
+  .lesson-content [data-text-align="right"], .tiptap [data-text-align="right"] {
+    text-align: right !important;
+  }
+
+  .lesson-content .text-left, .tiptap .text-left,
+  .lesson-content [data-text-align="left"], .tiptap [data-text-align="left"] {
+    text-align: left !important;
+  }
+
+  /* Tiptap Editor Specifics */
   .tiptap table .selectedCell:after {
     background: rgba(200, 200, 255, 0.4);
     content: "";
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
+    left: 0; right: 0; top: 0; bottom: 0;
     pointer-events: none;
     position: absolute;
     z-index: 2;
@@ -321,54 +334,13 @@ body {
     @apply bg-primary/30 w-1 absolute right-[-2px] top-0 bottom-[-2px] pointer-events-none;
   }
 
-  .tiptap .tableWrapper {
-    @apply overflow-x-auto;
-  }
-
-  .tiptap .resize-cursor {
-    cursor: col-resize;
-  }
-
-  .tiptap ul {
-    @apply list-disc list-outside mb-4 ml-8 space-y-1;
-  }
-
-  .tiptap ol {
-    @apply list-decimal list-outside mb-4 ml-8 space-y-1;
-  }
-
-  .tiptap li p {
-    @apply my-0;
-  }
-
-  /* Placeholder logic */
+  .tiptap .resize-cursor { cursor: col-resize; }
   .tiptap p.is-editor-empty:first-child::before {
-    @apply text-muted-foreground/50 content-[attr(data-placeholder)] float-left h-0 pointer-events-none;
-  }
-
-  /* Image styling in editor */
-  .tiptap img {
-    @apply rounded-xl border-2 border-transparent hover:border-primary/50 transition-all cursor-pointer shadow-lg mx-auto my-6;
+    @apply text-muted-foreground/30 content-[attr(data-placeholder)] float-left h-0 pointer-events-none;
   }
 
   .tiptap img.ProseMirror-selectednode {
-    @apply border-primary ring-4 ring-primary/20;
-  }
-
-  /* Tiptap Alignment */
-  .tiptap .text-center,
-  .tiptap [data-text-align="center"] {
-    text-align: center;
-  }
-
-  .tiptap .text-right,
-  .tiptap [data-text-align="right"] {
-    text-align: right;
-  }
-
-  .tiptap .text-left,
-  .tiptap [data-text-align="left"] {
-    text-align: left;
+    @apply border-primary ring-4 ring-primary/20 shadow-primary/20;
   }
 }
 

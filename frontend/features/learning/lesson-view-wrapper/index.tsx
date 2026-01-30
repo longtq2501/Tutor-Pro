@@ -8,7 +8,7 @@ import CourseDetailView from '../courses/components/CourseDetailView';
 import MyCoursesView from '../courses/components/MyCoursesView';
 import LessonTimelineView from '../lesson-timeline-view';
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect } from 'react';
 
 /**
@@ -18,13 +18,15 @@ import { useCallback, useEffect } from 'react';
 export default function LessonViewWrapper() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const pathname = usePathname();
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<string>('courses');
 
   // Handle lesson navigation
-  const navigateToLesson = useCallback((lessonId: number) => {
-    router.push(`/learning/lessons/${lessonId}`);
+  const navigateToLesson = useCallback((lessonId: number, courseId?: number) => {
+    const url = courseId
+      ? `/learning/lessons/${lessonId}?courseId=${courseId}`
+      : `/learning/lessons/${lessonId}`;
+    router.push(url);
   }, [router]);
 
   // Logic to handle lessonId from URL (e.g., from Dashboard sessions list)
@@ -44,7 +46,7 @@ export default function LessonViewWrapper() {
         <CourseDetailView
           courseId={selectedCourseId}
           onBack={() => setSelectedCourseId(null)}
-          onLessonSelect={navigateToLesson}
+          onLessonSelect={(lessonId) => navigateToLesson(lessonId, selectedCourseId)}
         />
       </div>
     );

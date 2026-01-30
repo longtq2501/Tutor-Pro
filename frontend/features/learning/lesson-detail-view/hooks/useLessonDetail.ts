@@ -1,29 +1,26 @@
-// 📁 lesson-detail-view/hooks/useLessonDetail.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { lessonsApi } from '@/lib/services';
 import { toast } from 'sonner';
-import type { Lesson } from '@/lib/types';
-import type { LessonDTO } from '@/features/learning/lessons/types'; // Import DTO type
+import type { Lesson, CourseNavigation, LessonResource } from '@/lib/types';
 
 // Query keys for student lessons
 export const studentLessonKeys = {
   all: ['student-lessons'] as const,
   detail: (id: number) => [...studentLessonKeys.all, id] as const,
+  navigation: (courseId: number, lessonId: number) => [...studentLessonKeys.all, 'navigation', courseId, lessonId] as const,
 };
 
-export function useLessonDetail(lessonId: number, isPreview = false) {
+export function useLessonDetail(lessonId: number, isPreview = false, courseId?: number) {
   const queryClient = useQueryClient();
 
   // Fetch lesson data with React Query
   const { data: lesson, isLoading: loading } = useQuery({
     queryKey: isPreview ? ['admin-lesson-preview', lessonId] : studentLessonKeys.detail(lessonId),
     queryFn: async () => {
-      // Dynamic import to avoid circular dependency if needed, or use separate service
       if (isPreview) {
         const mod = await import('@/lib/services/lesson-admin');
         const adminLesson = await mod.adminLessonsApi.getById(lessonId);
 
-        // Map LessonDTO (Admin) to Lesson (Student View)
         const previewLesson: Lesson = {
           id: adminLesson.id,
           tutorName: adminLesson.tutorName,
@@ -33,13 +30,10 @@ export function useLessonDetail(lessonId: number, isPreview = false) {
           lessonDate: adminLesson.lessonDate,
           videoUrl: adminLesson.videoUrl,
           thumbnailUrl: adminLesson.thumbnailUrl,
-
-          // Default values for preview mode (Admin viewing as Student)
           studentId: 0,
           studentName: 'Preview Mode',
           isCompleted: false,
           viewCount: 0,
-
           images: (adminLesson.images || []).map(img => ({
             id: img.id || 0,
             imageUrl: img.imageUrl,
@@ -49,9 +43,9 @@ export function useLessonDetail(lessonId: number, isPreview = false) {
           resources: (adminLesson.resources || []).map(res => ({
             id: res.id || 0,
             title: res.resourceName,
-            description: '', // DTO doesn't have description
+            description: '',
             resourceUrl: res.resourceUrl,
-            resourceType: (res.resourceType as any) || 'DOCUMENT',
+            resourceType: (res.resourceType as LessonResource['resourceType']) || 'DOCUMENT',
             fileSize: res.fileSize,
             displayOrder: 0
           })),
@@ -63,8 +57,36 @@ export function useLessonDetail(lessonId: number, isPreview = false) {
       }
       return lessonsApi.getById(lessonId);
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: true, // Auto-refresh when tab gains focus
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
+  });
+
+  // Fetch course navigation if courseId is present
+  const { data: navigation } = useQuery({
+    queryKey: studentLessonKeys.navigation(courseId || 0, lessonId),
+    queryFn: () => lessonsApi.getNavigation(courseId!, lessonId),
+    enabled: !!courseId && !isPreview,
+    staleTime: 1 * 60 * 1000,
+  });
+
+  // Mutation for syncing video progress
+  const { mutate: syncProgress } = useMutation({
+    mutationFn: (progress: number) => lessonsApi.updateProgress(lessonId, progress),
+    onSuccess: (updatedProgress) => {
+      // Optimistically update the lesson cache if needed
+      if (updatedProgress.isCompleted && lesson && !lesson.isCompleted) {
+        queryClient.setQueryData<Lesson>(studentLessonKeys.detail(lessonId), (old) => {
+          if (!old) return old;
+          return { ...old, isCompleted: true, completedAt: new Date().toISOString() };
+        });
+        toast.success('🎉 Bạn đã hoàn thành bài học!');
+        queryClient.invalidateQueries({ queryKey: ['my-courses'] });
+      }
+      // Invalidate navigation to check for unlocks
+      if (courseId) {
+        queryClient.invalidateQueries({ queryKey: studentLessonKeys.navigation(courseId, lessonId) });
+      }
+    }
   });
 
   // Mutation for toggling completion status
@@ -77,13 +99,9 @@ export function useLessonDetail(lessonId: number, isPreview = false) {
         : lessonsApi.markCompleted(lessonId);
     },
     onMutate: async () => {
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: studentLessonKeys.detail(lessonId) });
-
-      // Snapshot previous value
       const previousLesson = queryClient.getQueryData<Lesson>(studentLessonKeys.detail(lessonId));
 
-      // Optimistically update UI
       if (previousLesson) {
         queryClient.setQueryData<Lesson>(studentLessonKeys.detail(lessonId), {
           ...previousLesson,
@@ -95,13 +113,8 @@ export function useLessonDetail(lessonId: number, isPreview = false) {
       return { previousLesson };
     },
     onSuccess: (updatedLesson) => {
-      // Update cache with backend response to prevent revert
       queryClient.setQueryData<Lesson>(studentLessonKeys.detail(lessonId), updatedLesson);
-
-      // Invalidate lesson list to update badges
       queryClient.invalidateQueries({ queryKey: studentLessonKeys.all });
-
-      // Invalidate course caches to update progress immediately
       queryClient.invalidateQueries({ queryKey: ['my-courses'] });
       queryClient.invalidateQueries({ queryKey: ['student-course-detail'] });
 
@@ -111,8 +124,7 @@ export function useLessonDetail(lessonId: number, isPreview = false) {
           : '❌ Đã bỏ đánh dấu'
       );
     },
-    onError: (error: any, _, context) => {
-      // Rollback on error
+    onError: (error: Error, _, context) => {
       if (context?.previousLesson) {
         queryClient.setQueryData(studentLessonKeys.detail(lessonId), context.previousLesson);
       }
@@ -121,5 +133,12 @@ export function useLessonDetail(lessonId: number, isPreview = false) {
     },
   });
 
-  return { lesson: lesson ?? null, loading, markingComplete, toggleComplete };
+  return {
+    lesson: lesson ?? null,
+    loading,
+    markingComplete,
+    toggleComplete,
+    navigation: (navigation as CourseNavigation) ?? null,
+    syncProgress
+  };
 }

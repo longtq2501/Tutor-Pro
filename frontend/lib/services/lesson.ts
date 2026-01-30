@@ -56,4 +56,22 @@ export const lessonsApi = {
     const response = await api.get<ApiResponse<LessonStats>>('/student/lessons/stats');
     return response.data.data;
   },
+
+  /** * CẬP NHẬT TIẾN ĐỘ XEM VIDEO
+   * @param {number} lessonId - ID bài học
+   * @param {number} progress - % tiến độ (0-100)
+   */
+  updateProgress: async (lessonId: number, progress: number): Promise<any> => {
+    const response = await api.post<ApiResponse<any>>(`/student/progress/${lessonId}`, { progress });
+    return response.data.data;
+  },
+
+  /** * LẤY THÔNG TIN ĐIỀU HƯỚNG TRONG KHÓA HỌC
+   * @param {number} courseId - ID khóa học
+   * @param {number} lessonId - ID bài học hiện tại
+   */
+  getNavigation: async (courseId: number, lessonId: number): Promise<any> => {
+    const response = await api.get<ApiResponse<any>>(`/student/progress/navigation/${courseId}/${lessonId}`);
+    return response.data.data;
+  },
 };

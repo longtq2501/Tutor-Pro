@@ -5,7 +5,10 @@ import LessonDetailView from '@/features/learning/lesson-detail-view';
 
 interface PageProps {
     params: Promise<{ id: string }>;
-    searchParams: Promise<{ preview?: string }>;
+    searchParams: Promise<{
+        preview?: string;
+        courseId?: string;
+    }>;
 }
 
 /**
@@ -17,6 +20,7 @@ export default function LessonPage({ params, searchParams }: PageProps) {
     const resolvedSearchParams = use(searchParams);
     const lessonId = parseInt(resolvedParams.id);
     const isPreview = resolvedSearchParams.preview === 'true';
+    const courseId = resolvedSearchParams.courseId ? parseInt(resolvedSearchParams.courseId) : undefined;
 
     if (isNaN(lessonId)) {
         return (
@@ -31,7 +35,11 @@ export default function LessonPage({ params, searchParams }: PageProps) {
 
     return (
         <main className="w-full h-screen overflow-hidden bg-zinc-100 dark:bg-zinc-950">
-            <LessonDetailView lessonId={lessonId} isPreview={isPreview} />
+            <LessonDetailView
+                lessonId={lessonId}
+                isPreview={isPreview}
+                courseId={courseId}
+            />
         </main>
     );
 }

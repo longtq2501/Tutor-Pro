@@ -6,9 +6,23 @@
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/contexts/UIContext.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/contexts/UIContext.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/students/student-list/hooks/useStudents.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/student-list/hooks/useStudents.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/students/student-list/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/students/student-list/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CONTINUITY.md" beforeDir="false" afterPath="$PROJECT_DIR$/CONTINUITY.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/course/entity/LessonProgress.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/course/entity/LessonProgress.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/course/repository/CourseLessonRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/course/repository/CourseLessonRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/course/repository/LessonProgressRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/course/repository/LessonProgressRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/globals.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/learning/lessons/[id]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/learning/lessons/[id]/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/ui/video-player.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/ui/video-player.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/ISSUES.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lesson-detail-view/components/CompletionStatus.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lesson-detail-view/components/CompletionStatus.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lesson-detail-view/components/LessonContentTab.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lesson-detail-view/components/LessonContentTab.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lesson-detail-view/hooks/useLessonDetail.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lesson-detail-view/hooks/useLessonDetail.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lesson-detail-view/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lesson-detail-view/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lesson-view-wrapper/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lesson-view-wrapper/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lessons/components/LessonEditor.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lessons/components/LessonEditor.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lessons/components/LessonForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lessons/components/LessonForm.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/services/lesson.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/lesson.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/types/lesson.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/types/lesson.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -329,6 +343,8 @@
       <workItem from="1769571941990" duration="5883000" />
       <workItem from="1769613265488" duration="5643000" />
       <workItem from="1769626319213" duration="57000" />
+      <workItem from="1769734970888" duration="938000" />
+      <workItem from="1769737474230" duration="1239000" />
     </task>
     <servers />
   </component>

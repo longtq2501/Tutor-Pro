@@ -1,13 +1,13 @@
-import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { BookOpen, Info, Play } from 'lucide-react';
+import Image from 'next/image';
+import { BookOpen, Info, Play, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useLessonDetail } from './hooks/useLessonDetail';
 import { LessonHeader } from './components/LessonHeader';
 import { LessonContentTab } from './components/LessonContentTab';
 import { CompletionStatus } from './components/CompletionStatus';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import VideoPlayer from '@/components/ui/video-player';
@@ -16,11 +16,24 @@ interface LessonDetailViewProps {
   lessonId: number;
   onClose?: () => void; // Optional callback to close modal
   isPreview?: boolean;
+  courseId?: number;
 }
 
-export default function LessonDetailView({ lessonId, onClose, isPreview = false }: LessonDetailViewProps) {
+export default function LessonDetailView({
+  lessonId,
+  onClose,
+  isPreview = false,
+  courseId
+}: LessonDetailViewProps) {
   const router = useRouter();
-  const { lesson, loading, markingComplete, toggleComplete } = useLessonDetail(lessonId, isPreview);
+  const {
+    lesson,
+    loading,
+    markingComplete,
+    toggleComplete,
+    navigation,
+    syncProgress
+  } = useLessonDetail(lessonId, isPreview, courseId);
   const [sidebarWidth, setSidebarWidth] = useState(45);
   const [isResizing, setIsResizing] = useState(false);
   const { theme, resolvedTheme } = useTheme();
@@ -79,6 +92,13 @@ export default function LessonDetailView({ lessonId, onClose, isPreview = false 
     } else {
       router.back();
     }
+  };
+
+  const navigateToLesson = (id: number) => {
+    const url = courseId
+      ? `/learning/lessons/${id}?courseId=${courseId}`
+      : `/learning/lessons/${id}`;
+    router.push(url);
   };
 
   // Loading Skeleton
@@ -152,7 +172,16 @@ export default function LessonDetailView({ lessonId, onClose, isPreview = false 
               <div className="px-6 sm:px-12 lg:px-16">
                 {lesson.videoUrl ? (
                   <div className="shadow-2xl rounded-2xl !overflow-hidden ring-1 ring-border/40 bg-black aspect-video relative">
-                    <VideoPlayer src={lesson.videoUrl} poster={lesson.thumbnailUrl} />
+                    <VideoPlayer
+                      src={lesson.videoUrl}
+                      poster={lesson.thumbnailUrl}
+                      onProgressUpdate={(p) => {
+                        const rounded = Math.floor(p);
+                        if (rounded > (lesson.videoProgress || 0) + 5 || rounded >= 70 || rounded === 100) {
+                          syncProgress(rounded);
+                        }
+                      }}
+                    />
                   </div>
                 ) : lesson.thumbnailUrl ? (
                   <div
@@ -162,9 +191,11 @@ export default function LessonDetailView({ lessonId, onClose, isPreview = false 
                       display: 'block',
                     }}
                   >
-                    <img
+                    <Image
                       src={lesson.thumbnailUrl}
                       alt={lesson.title}
+                      fill
+                      unoptimized
                       className="absolute inset-0 w-[101%] h-[101%] -left-[0.5%] -top-[0.5%] object-cover block transition-transform duration-700 group-hover:scale-105"
                       style={{
                         display: 'block',
@@ -189,6 +220,64 @@ export default function LessonDetailView({ lessonId, onClose, isPreview = false 
                 )}
               </div>
 
+              {/* Progress and Navigation Area */}
+              {navigation && (
+                <div className="px-6 sm:px-12 lg:px-16 space-y-4">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-primary/5 border border-primary/10 transition-all hover:bg-primary/10">
+                    <div className="flex-1 w-full space-y-1.5 px-2">
+                      <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-primary/70">
+                        <span>Tiến độ khóa học</span>
+                        <span>{navigation.courseProgressPercentage}%</span>
+                      </div>
+                      <div className="h-2 w-full bg-primary/10 rounded-full overflow-hidden">
+                        <motion.div
+                          className="h-full bg-primary"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${navigation.courseProgressPercentage}%` }}
+                          transition={{ duration: 1, ease: "easeOut" }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={!navigation.hasPrevious}
+                        onClick={() => navigation.previousLessonId && navigateToLesson(navigation.previousLessonId)}
+                        className="rounded-full px-4 h-9 font-bold text-xs"
+                      >
+                        Bài trước
+                      </Button>
+                      <div className="relative group/nav">
+                        {navigation.nextLessonLockedReason && !navigation.canNavigateNext && (
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-48 p-3 bg-zinc-900 border border-white/10 text-white text-[10px] font-medium rounded-xl opacity-0 group-hover/nav:opacity-100 transition-all pointer-events-none z-50 text-center shadow-2xl backdrop-blur-sm">
+                            {navigation.nextLessonLockedReason}
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-zinc-900" />
+                          </div>
+                        )}
+                        <Button
+                          variant={navigation.canNavigateNext ? "default" : "secondary"}
+                          size="sm"
+                          disabled={!navigation.hasNext || (!navigation.canNavigateNext && !isPreview)}
+                          onClick={() => navigation.nextLessonId && navigateToLesson(navigation.nextLessonId)}
+                          className={cn(
+                            "rounded-full px-6 h-9 font-black text-xs transition-all duration-300",
+                            navigation.canNavigateNext ? "shadow-lg shadow-primary/25" : "opacity-50 grayscale cursor-not-allowed"
+                          )}
+                        >
+                          {navigation.canNavigateNext ? "Bài tiếp theo" : (
+                            <span className="flex items-center gap-2">
+                              <Lock className="h-3.5 w-3.5" /> Bài tiếp theo
+                            </span>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Overview Card - Keep Padding */}
               {lesson.summary && (
                 <div className="px-8 sm:px-10 space-y-4">
@@ -202,16 +291,18 @@ export default function LessonDetailView({ lessonId, onClose, isPreview = false 
                 </div>
               )}
 
-              {lesson.isCompleted && lesson.completedAt && (
-                <div className="px-8 sm:px-10">
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    <CompletionStatus completedAt={lesson.completedAt} />
-                  </motion.div>
-                </div>
-              )}
+              <div className="px-8 sm:px-10">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <CompletionStatus
+                    completedAt={lesson.completedAt}
+                    learningStatus={lesson.learningStatus}
+                    videoProgress={lesson.videoProgress}
+                  />
+                </motion.div>
+              </div>
             </div>
           </div>
         </div>

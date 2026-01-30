@@ -53,6 +53,7 @@ const CustomSlider = ({ value, onChange, className }: CustomSliderProps) => {
 interface VideoPlayerProps {
     src: string;
     poster?: string;
+    onProgressUpdate?: (progress: number) => void;
 }
 
 /**
@@ -64,7 +65,7 @@ interface VideoPlayerProps {
  * - Progress bar with seek functionality
  * - Auto-hide controls on mouse leave
  */
-const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
+const VideoPlayer = ({ src, poster, onProgressUpdate }: VideoPlayerProps) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [volume, setVolume] = useState(1);
@@ -97,11 +98,17 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
 
     const handleTimeUpdate = () => {
         if (videoRef.current) {
-            const progress =
+            const calculatedProgress =
                 (videoRef.current.currentTime / videoRef.current.duration) * 100;
-            setProgress(isFinite(progress) ? progress : 0);
+            const finalProgress = isFinite(calculatedProgress) ? calculatedProgress : 0;
+
+            setProgress(finalProgress);
             setCurrentTime(videoRef.current.currentTime);
             setDuration(videoRef.current.duration);
+
+            if (onProgressUpdate) {
+                onProgressUpdate(finalProgress);
+            }
         }
     };
 

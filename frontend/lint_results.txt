@@ -1,0 +1,26 @@
+﻿
+> frontend@0.1.0 lint
+> eslint features/learning/lesson-detail-view/index.tsx features/learning/lesson-detail-view/hooks/useLessonDetail.ts features/learning/lesson-detail-view/components/CompletionStatus.tsx features/learning/lesson-view-wrapper/index.tsx components/ui/video-player.tsx app/learning/lessons/[id]/page.tsx
+
+
+D:\long-personal-project\Tutor-Management\frontend\features\learning\lesson-detail-view\components\CompletionStatus.tsx
+  19:3  warning  'learningStatusColor' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\long-personal-project\Tutor-Management\frontend\features\learning\lesson-detail-view\hooks\useLessonDetail.ts
+    5:15  warning  'LessonDTO' is defined but never used               @typescript-eslint/no-unused-vars
+   18:54  warning  'refetchLesson' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   49:48  error    Unexpected any. Specify a different type            @typescript-eslint/no-explicit-any
+  128:22  error    Unexpected any. Specify a different type            @typescript-eslint/no-explicit-any
+
+D:\long-personal-project\Tutor-Management\frontend\features\learning\lesson-detail-view\index.tsx
+    1:10  warning  'Card' is defined but never used                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+    1:16  warning  'CardContent' is defined but never used                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   10:18  warning  'AnimatePresence' is defined but never used                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  194:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  269:32  error    'Lock' is not defined                                                                                                                                                                                                                                                                    react/jsx-no-undef
+
+D:\long-personal-project\Tutor-Management\frontend\features\learning\lesson-view-wrapper\index.tsx
+  21:9  warning  'pathname' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+âœ– 11 problems (3 errors, 8 warnings)
+

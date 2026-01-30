@@ -1,6 +1,7 @@
 package com.tutor_management.backend.modules.course.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.tutor_management.backend.modules.course.entity.Course;
 import com.tutor_management.backend.modules.course.entity.CourseLesson;
@@ -37,4 +38,42 @@ public interface CourseLessonRepository extends JpaRepository<CourseLesson, Long
     @Modifying
     @Query("DELETE FROM CourseLesson cl WHERE cl.course = :course")
     void deleteAllByCourse(@Param("course") Course course);
+
+    /**
+     * Finds CourseLesson by course and lesson IDs.
+     */
+    Optional<CourseLesson> findByCourseIdAndLessonId(Long courseId, Long lessonId);
+
+    /**
+     * Finds the next lesson in sequence within a course.
+     */
+    @Query("""
+        SELECT cl FROM CourseLesson cl
+        WHERE cl.course.id = :courseId
+        AND cl.lessonOrder > :currentOrder
+        ORDER BY cl.lessonOrder ASC
+        LIMIT 1
+        """)
+    Optional<CourseLesson> findNextLesson(
+            @Param("courseId") Long courseId,
+            @Param("currentOrder") Integer currentOrder);
+
+    /**
+     * Finds the previous lesson in sequence within a course.
+     */
+    @Query("""
+        SELECT cl FROM CourseLesson cl
+        WHERE cl.course.id = :courseId
+        AND cl.lessonOrder < :currentOrder
+        ORDER BY cl.lessonOrder DESC
+        LIMIT 1
+        """)
+    Optional<CourseLesson> findPreviousLesson(
+            @Param("courseId") Long courseId,
+            @Param("currentOrder") Integer currentOrder);
+
+    /**
+     * Counts total lessons in a course.
+     */
+    long countByCourseId(Long courseId);
 }

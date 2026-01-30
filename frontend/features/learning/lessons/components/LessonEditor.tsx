@@ -440,6 +440,10 @@ const CustomHeading = Heading.extend({
     },
 });
 
+interface MarkdownStorage {
+    getMarkdown: () => string;
+}
+
 export function LessonEditor({ content, onChange, className, disabled = false }: LessonEditorProps) {
     const editor = useEditor({
         extensions: [
@@ -500,12 +504,17 @@ export function LessonEditor({ content, onChange, className, disabled = false }:
     useEffect(() => {
         if (!editor || content === undefined) return;
 
-        // Convert current markdown to check for changes
+        // Sync process:
+        // Get current markdown from editor
         const storage = editor.storage as unknown as { markdown: MarkdownStorage };
         const currentMarkdown = storage.markdown.getMarkdown();
 
+        // Update if there is a mismatch
         if (content !== currentMarkdown) {
-            // Always update on initial mount, or if not focused, or if content is being cleared
+            // Priority update:
+            // - Initial mount (content arriving late from API)
+            // - Editor not focused (avoid jumping while typing)
+            // - Explicit clearing of content
             if (isInitialMount.current || !editor.isFocused || content === '') {
                 editor.commands.setContent(content);
                 isInitialMount.current = false;

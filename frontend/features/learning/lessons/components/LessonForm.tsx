@@ -146,7 +146,7 @@ export function LessonForm({
   const { categories } = useLessonCategories();
 
   // Fetch full lesson details if editing a library lesson
-  const isLibraryLesson = mode === 'library' && lesson?.id;
+  const isLibraryLesson = mode === 'library' && !!lesson?.id;
   const { data: fullLessonData } = useLessonLibraryById(
     isLibraryLesson ? lesson?.id : undefined
   );
@@ -294,12 +294,20 @@ export function LessonForm({
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-600 uppercase tracking-wide border border-red-200">Bắt buộc</span>
                           </div>
                           <FormControl>
-                            <LessonEditor
-                              content={field.value}
-                              onChange={field.onChange}
-                              disabled={isLoading}
-                              className="flex-1 min-h-[400px] border-none"
-                            />
+                            <div className="flex-1 relative min-h-[400px]">
+                              {isLibraryLesson && !fullLessonData ? (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/50 z-10 gap-3 backdrop-blur-[2px]">
+                                  <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                                  <p className="text-sm font-medium text-muted-foreground">Đang tải nội dung chi tiết...</p>
+                                </div>
+                              ) : null}
+                              <LessonEditor
+                                content={field.value}
+                                onChange={field.onChange}
+                                disabled={isLoading || (isLibraryLesson && !fullLessonData)}
+                                className="h-full border-none"
+                              />
+                            </div>
                           </FormControl>
                           <FormMessage className="px-6 py-2" />
                         </FormItem>

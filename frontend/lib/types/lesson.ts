@@ -11,15 +11,19 @@ export interface Lesson {
   // DỮ LIỆU RIÊNG CỦA HỌC SINH (KHỚP VỚI LESSONRESPONSE DTO)
   studentId: number; // ID HỌC SINH ĐANG XEM
   studentName: string; // TÊN HỌC SINH ĐANG XEM
-  isCompleted: boolean; // TRẠNG THÁI HỌC SINH ĐÃ ĐÁNH DẤU HOÀN THÀNH
+  isCompleted: boolean; // TRẠNG THÁI HỌC SINH ĐÃ ĐÁNH DẤU HOÀN THÀNH
   completedAt?: string; // THỜI ĐIỂM HỌC SINH HOÀN THÀNH BÀI HỌC
-  viewCount: number; // TỔNG SỐ LẦN HỌC SINH ĐÃ TRUY CẬP BÀI NÀY
+  videoProgress?: number; // TIẾN ĐỘ XEM VIDEO (0-100)
+  learningStatus?: string; // TRẠNG THÁI HỌC TẬP (Đang học, Gần hoàn thành...)
+  learningStatusColor?: string; // MÀU SẮC GỢI Ý CHO TRẠNG THÁI
+  canUnlockNext?: boolean; // CÓ THỂ MỞ KHÓA BÀI HỌC TIẾP THEO
+  viewCount: number; // TỔNG SỐ LẦN HỌC SINH ĐÃ TRUY CẬP BÀI NÀY
   lastViewedAt?: string; // LẦN CUỐI CÙNG HỌC SINH XEM BÀI
 
   // MEDIA & TIMESTAMPS
   images: LessonImage[]; // DANH SÁCH ẢNH MINH HỌA TRONG BÀI HỌC
   resources: LessonResource[]; // DANH SÁCH TÀI LIỆU ĐÍNH KÈM (PDF, LINK...)
-  createdAt: string; // THỜI GIAN TẠO BÀI HỌC TRÊN HỆ THỐNG
+  createdAt: string; // THỜI GIAN TẠO BÀI HỌC TRÊN HỆ THỐNG
   updatedAt: string; // THỜI GIAN CẬP NHẬT BÀI HỌC GẦN NHẤT
   category?: {
     id: number;
@@ -27,6 +31,25 @@ export interface Lesson {
     color?: string;
     icon?: string;
   };
+}
+
+export interface CourseNavigation {
+  courseId: number;
+  courseTitle: string;
+  currentLessonId: number;
+  currentLessonOrder: number;
+  currentProgress: number;
+  previousLessonId: number | null;
+  previousLessonTitle: string | null;
+  hasPrevious: boolean;
+  nextLessonId: number | null;
+  nextLessonTitle: string | null;
+  hasNext: boolean;
+  canNavigateNext: boolean;
+  nextLessonLockedReason: string | null;
+  totalLessons: number;
+  completedLessons: number;
+  courseProgressPercentage: number;
 }
 
 export interface LessonImage {

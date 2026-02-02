@@ -8,7 +8,11 @@ import QueryProvider from '@/providers/QueryProvider';
 import { Toaster } from 'sonner';
 import { Prefetcher } from '@/components/shared/Prefetcher';
 
-const inter = Inter({ subsets: ['latin'], display: 'swap' });
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://tutor-management-e7zh.vercel.app'),
@@ -17,7 +21,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'vi_VN',
-    url: 'https://tutor-management-e7zh.vercel.app', // Thay bằng domain thực tế của bạn
+    url: 'https://tutor-management-e7zh.vercel.app',
     title: 'Tutor Pro - Hệ thống quản lý gia sư',
     description: 'Giải pháp quản lý gia sư, học sinh và học phí hiệu quả.',
     siteName: 'Tutor Pro',
@@ -58,7 +62,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`${inter.variable} font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

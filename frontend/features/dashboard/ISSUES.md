@@ -6,7 +6,8 @@ This document tracks problems, UX/UI improvements, and feature requests for the 
 
 | ID | Issue | Category | Priority | Impact |
 |:---|:---|:---|:---|:---|
-| - | No active issues | - | - | - |
+| - | No active issues (P0 Resolved) | - | - | - |
+| - | No active issues (P0 Resolved) | - | - | - |
 
 ---
 
@@ -14,6 +15,8 @@ This document tracks problems, UX/UI improvements, and feature requests for the 
 
 | ID | Issue | Category | Priority | Status |
 |:---|:---|:---|:---|:---|
+| **P0** | **Wrong Active Student Count** | Data Integrity | P0 | Fixed |
+| **P1** | **Time Filter Incorrect** | Functional | P1 | Fixed |
 | **P0** | Revenue detail button points to wrong month in Finance | UX / Functional | P0 | Fixed |
 | **P1** | Sidebar active state lost when navigating to Finance details | UI / UX | P1 | Fixed |
 | **P3** | Missing Revenue Growth Line Chart | UI / UX | P3 | Implemented |
@@ -21,6 +24,16 @@ This document tracks problems, UX/UI improvements, and feature requests for the 
 | **P4** | Missing "New Students this month" metric | UI | P4 | Implemented |
 
 ### Archive Details
+
+#### 6. (P0) Wrong Active Student Count
+- **Fixed**: Backend logic updated in `StudentRepository` (`countByActiveTrue`) and `DashboardService`.
+- **Result**: "Tổng Học Sinh" now strictly counts only students with `active = true` status, properly excluding dropped students.
+- **Verification**: Verified via Unit Test `DashboardServiceTest`.
+
+#### 7. (P1) Time Filter Incorrect
+- **Fixed**: Removed hardcoded `.slice(0, 6)` in `useMonthlyChartData.ts`.
+- **Result**: "1 Năm" filter now correctly displays up to 12 months of data on the Revenue Chart.
+- **Verification**: Verified code logic in `EnhancedRevenueChart`.
 
 #### 1. (P0) Revenue Detail Navigation Bug
 - **Fixed**: Updated `FinanceContext.tsx` to read the `month` parameter from the URL during initialization.

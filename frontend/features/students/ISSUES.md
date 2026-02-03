@@ -8,6 +8,9 @@
   - Solution: Created `StudentSummaryResponse` containing only essential fields for the student list view.
 
 ## UX Issues
+- [ ] [P2-Medium] **Header Title Improvement (Student View)**
+  - **Issue**: "Header show title chưa tốt, nhiều view chưa và để trống."
+  - **Target**: Review all Student Portal headers and ensure consistent, meaningful titles.
 - [x] [P1-High] Missing Skeleton Loaders
   - Solution: Implemented `StudentCardSkeleton` and integrated it into `student-list/index.tsx`.
 - [ ] [P1-High] Missing Search/Filter Persistence

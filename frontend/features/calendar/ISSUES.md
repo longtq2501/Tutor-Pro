@@ -1,5 +1,19 @@
 # Calendar - Issues & Optimization (Updated)
 
+## New Issues (Feb 3)
+### [ ] [P0-Critical] Component "Lịch học của bạn" (Student View) bị lỗi
+- **Issue**: Student calendar/schedule list is blank/broken.
+- **Priority**: Critical (Student cannot see schedule).
+
+### [ ] [P1-High] UI Đính kèm tài liệu/bài giảng vào Sessions (Tutor View)
+- **Problem**: 
+  - Horizontal scrollbar appears due to non-responsive category list.
+  - "Filter Mới & Tên" is redundant.
+- **Solution**: 
+  - Remove "Mới & Tên" filter on the right.
+  - Convert Category List (bottom) into a **Dropdown/Selection** placed where the filter was.
+  - Apply same fix for **Documents** and **Lessons** (Kho bài giảng).
+
 ## Performance Issues
 
 ### [x] [P0-Critical] CSV-based comment generator không scale được cho multi-user

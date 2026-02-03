@@ -2,6 +2,22 @@
 
 ## 📋 Active Items
 
+### User Feedback (Feb 3) - Tutor View
+- [ ] [P1-High] **Student Performance View Redesign**
+  - **Requirement**: Change from 3 Columns to **1 Column**. Each item should be a Row. Enhance UI.
+- [ ] [P0-Critical] **Exam Status Filter Bug**
+  - **Issue**: "Graded" count shows 1 (outside) but list is empty (0) inside. "Pending", "Submitted" have similar sync issues.
+- [ ] [P2-Medium] **Exercise Library Layout Fill**
+  - **Issue**: Too much empty space below component.
+  - **Goal**: Make component fill full screen height (keep inside viewport), enable scrolling within component. Redesign cards if needed.
+- [ ] [P3-Low] **Add Tooltips to Bulk Actions**
+
+### User Feedback (Feb 3) - Student View
+- [ ] [P1-High] **Upgrade Exam List UI**
+  - **Issue**: "Too empty". Missing Cursor Pagination.
+- [ ] [P1-High] **New Page for Taking Exam**
+  - **Req**: Move "Take Exam" from a View/Modal to a **New Full Page**. View is only for listing.
+
 ### Tutor Personalization (Multi-tenancy) - ✅ COMPLETED
 - [x] [P1-High] **Backend: Data Ownership Migration**
   - Status: COMPLETED

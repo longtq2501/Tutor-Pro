@@ -130,6 +130,21 @@
     </key>
   </component>
   <component name="RunManager" selected="Spring Boot.BackendApplication">
+    <configuration name="DashboardServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="backend" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.tutor_management.backend.modules.dashboard.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.tutor_management.backend.modules.dashboard" />
+      <option name="MAIN_CLASS_NAME" value="com.tutor_management.backend.modules.dashboard.DashboardServiceTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="OnlineSessionServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="backend" />
       <extension name="coverage">
@@ -156,22 +171,6 @@
       <option name="PACKAGE_NAME" value="com.tutor_management.backend.modules.onlinesession.service" />
       <option name="MAIN_CLASS_NAME" value="com.tutor_management.backend.modules.onlinesession.service.OnlineSessionServiceTest" />
       <option name="METHOD_NAME" value="convertToOnline_PastTime_ThrowsException" />
-      <option name="TEST_OBJECT" value="method" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="OnlineSessionServiceTest.convertToOnline_RaceCondition_ThrowsException" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="backend" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.tutor_management.backend.modules.onlinesession.service.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.tutor_management.backend.modules.onlinesession.service" />
-      <option name="MAIN_CLASS_NAME" value="com.tutor_management.backend.modules.onlinesession.service.OnlineSessionServiceTest" />
-      <option name="METHOD_NAME" value="convertToOnline_RaceCondition_ThrowsException" />
       <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -218,11 +217,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.DashboardServiceTest" />
         <item itemvalue="JUnit.SessionRecordServiceTest" />
         <item itemvalue="JUnit.OnlineSessionServiceTest" />
         <item itemvalue="JUnit.OnlineSessionServiceTest.getMySessions_Tutor_Success" />
         <item itemvalue="JUnit.OnlineSessionServiceTest.convertToOnline_PastTime_ThrowsException" />
-        <item itemvalue="JUnit.OnlineSessionServiceTest.convertToOnline_RaceCondition_ThrowsException" />
       </list>
     </recent_temporary>
   </component>

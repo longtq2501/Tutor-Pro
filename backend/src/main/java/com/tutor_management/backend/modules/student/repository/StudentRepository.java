@@ -96,5 +96,8 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     @Query("SELECT COUNT(s) FROM Student s WHERE s.createdAt >= :start AND s.createdAt <= :end AND s.tutorId = :tutorId")
     long countByCreatedAtBetweenAndTutorId(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end, @Param("tutorId") Long tutorId);
 
+    @Query("SELECT COUNT(s) FROM Student s WHERE s.active = true")
+    long countByActiveTrue();
+
     long countByTutorIdAndActiveTrue(Long tutorId);
 }

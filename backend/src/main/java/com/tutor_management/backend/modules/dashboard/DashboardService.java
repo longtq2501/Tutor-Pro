@@ -59,6 +59,13 @@ public class DashboardService {
             stats = new DashboardStats(0, 0L, 0L, 0L, 0L);
         }
 
+        // Fix: Query actual active students count instead of relying on aggregation
+        if (tutorId != null) {
+            stats.setTotalStudents((int) studentRepository.countByTutorIdAndActiveTrue(tutorId));
+        } else {
+            stats.setTotalStudents((int) studentRepository.countByActiveTrue());
+        }
+
         // 2. Format currencies for display
         stats.setTotalPaidAllTime(FormatterUtils.formatCurrency(stats.getTotalPaidRaw()));
         stats.setTotalUnpaidAllTime(FormatterUtils.formatCurrency(stats.getTotalUnpaidRaw()));

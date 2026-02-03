@@ -10,6 +10,19 @@
 
 ## 📋 Active Items
 
+### User Feedback (Feb 3)
+
+- [ ] [P0-Critical] **Student View: "Bài giảng lẻ" Tab Broken**
+  - **Issue**: Clicking on "Bài giảng lẻ" tab in Student view errors/crashes.
+  
+- [ ] [P1-High] **Tutor View: Force Delete Lesson from Session**
+  - **Issue**: Cannot delete a lesson if it's attached to a session. 
+  - **Requirement**: Allow "Force Delete" (cascade or detach) regardless of attachment status. "Xóa dứt hết".
+
+- [ ] [P2-Medium] **Overall UI Blurry**
+  - **Issue**: "Giao diện view bài giảng đang bị mờ mờ, không được nét."
+  - **Action**: Check CSS `filter`, `backdrop-filter`, `transform`, or font rendering settings.
+
 ### Lesson Content Management Optimization
 
 - [x] [P0-Critical] **Fix Markdown Rendering Layout Issues**

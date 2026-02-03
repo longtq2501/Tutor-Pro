@@ -48,7 +48,24 @@ Optimize existing TMS from "functional" to "production-ready":
         - Replaced slow frontend PDF generation with high-performance backend iText service.
         - Optimized PDF layout: 4-column compact summary, professional Vietnamese typography, and automatic payment QR integration.
         - Implemented `EnhancedRevenueChart` with seamless List/Chart view toggling.
+        - **Data Integrity:** Fixed Active Student Count logic to strictly use `active=true` instead of session data, ensuring 100% accuracy.
+        - **Data Integrity:** Fixed Time Range Filter to correctly display full 12-month history.
     - **Metrics:** PDF generation under 500ms, Backend caching (Caffeine) for frequent stats queries, Zero-clutter UI on mobile.
+
+### Now:
+- 🔄 **Feature: Finance Management**
+  - **Goal**: Fix UX glitches and simplify views.
+  - **Tasks**:
+    1. Fix Scrollbar Flicker (UX).
+    2. Remove Student View (Simplification).
+  - **Priority**: P1
+
+### Next:
+- **Calendar**: Fix Student Schedule (P0) & Resume Attachment UI.
+- **Learning**: Fix Student Lesson Tab (P0), Force Delete, & Blurry UI.
+- **Exercises**: Redesign Student Layout (Tutor View), Fix Counts, Full Screen UI.
+- **Documents**: Pagination & Layout tweaks.
+- **Student Portal**: Header Titles.
 - ✅ **Notification Module:** Comprehensive real-time engine with production-grade architecture.
     - **Achievements:** 100% Clean Code compliance, centralized logic (70% less duplication).
     - **Metrics:** Event latency <200ms, DB query <50ms (strategic indexing), UI delivery <500ms.
@@ -125,31 +142,10 @@ Optimize existing TMS from "functional" to "production-ready":
     - **Quality:** Cleaned up technical debt by removing `LessonDetailModal` from 4+ entry points and unifying the learning experience across roles (Admin/Tutor preview & Student learning).
     - **UX:** Added smart fallback for `thumbnailUrl` as a banner image when `videoUrl` is absent, ensuring every lesson feels premium.
 
-### Now:
+### Archive Details
+- **Document Module Refinement**: Implemented role-based permissions (Student view) and fixed iPhone 16 preview zoom issues.
+- **Live Teaching Interactive & Lifecycle (Production-Ready): Final Optimization**
 
-- ✅ **Lesson Content Management Optimization (Strict Markdown Standard)**
-  - **Goal**: Standardize strictly on Markdown for all lesson content.
-  - **Achievement**: Removed all legacy HTML rendering logic and specialized handlers. Every lesson is now delivered as Markdown (Google Docs format), ensuring 100% visual consistency and zero layout shifts.
-  - **Implementation**: Simplified `LessonContentTab.tsx` by removing `dangerouslySetInnerHTML` and legacy `useEffect` hooks.
-
-
-
-
-
-- ✅ **Lesson Progress & Sequential Unlocking (Production-Grade Tracking):**
-    - **Backend Engine:** Implemented a non-OSIV compliant `LessonProgressService` with second-level precision for video watch time.
-    - **Business Logic:** Enforced **70% watch threshold** for unlocking subsequent lessons, ensuring genuine student engagement.
-    - **Frontend Tracker:** Developed a debounced `onProgressUpdate` system in the `VideoPlayer` to sync watch time without overwhelming the API.
-    - **Navigation UI:** Added course-aware logic with dynamic "Prev/Next" buttons, real-time course progress bars, and informative "Locked" tooltips.
-    - **Metrics:** Progress sync latency < 500ms, Backend state transitions verified with unit tests.
-    - **Security:** Anti-cheat protection (backend only allows progress increases).
-    - **Content Standardization:** Successfully migrated typography styles into a unified `.lesson-content` system, ensuring 100% visual consistency between legacy HTML and Markdown lessons.
-    - **Responsive Tables:** Implemented dynamic wrapping for legacy HTML tables, preventing layout breaks on small Viewports (iPhone SE).
-
-### Next:
-  - Goal: Implement pagination, "Pending" status tracking, and "Teacher-only" view.
-  - Context: Currently exercises are global or unoptimized.
-  - Priority: P1
 
 - 🔄 **Optimization Phase Finalization**: Preparing for repository synchronization.
 

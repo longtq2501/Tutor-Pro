@@ -6,18 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="4b75c846-4195-468c-8139-e20c86cf492a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/CONTINUITY.md" beforeDir="false" afterPath="$PROJECT_DIR$/CONTINUITY.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/document/controller/DocumentCategoryController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/document/controller/DocumentCategoryController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/document/repository/DocumentCategoryRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/document/repository/DocumentCategoryRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/document/service/DocumentCategoryService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/tutor_management/backend/modules/document/service/DocumentCategoryService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/documents/ISSUES.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/ISSUES.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-library/components/CategoryGrid.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-library/components/CategoryGrid.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-library/hooks/useDocumentLibrary.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-library/hooks/useDocumentLibrary.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/documents/document-library/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/document-library/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/documents/hooks/useMasterDocuments.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/documents/hooks/useMasterDocuments.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lesson-detail-view/components/ImagesTab.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lesson-detail-view/components/ImagesTab.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/features/learning/lesson-detail-view/components/ResourcesTab.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/features/learning/lesson-detail-view/components/ResourcesTab.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/services/document.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/document.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/types/common.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/types/common.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -340,7 +328,7 @@
       <workItem from="1769626319213" duration="57000" />
       <workItem from="1769734970888" duration="938000" />
       <workItem from="1769737474230" duration="2432000" />
-      <workItem from="1770096622996" duration="4746000" />
+      <workItem from="1770096622996" duration="5379000" />
     </task>
     <servers />
   </component>

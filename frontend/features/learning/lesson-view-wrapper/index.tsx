@@ -10,6 +10,7 @@ import LessonTimelineView from '../lesson-timeline-view';
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect } from 'react';
+import { DashboardHeader } from '@/contexts/UIContext';
 
 /**
  * Wrapper component that manages both Timeline and Detail views
@@ -54,6 +55,10 @@ export default function LessonViewWrapper() {
 
   return (
     <div className="space-y-6">
+      <DashboardHeader
+        title="Bài Giảng"
+        subtitle="Khám phá các khóa học và bài giảng dành riêng cho lộ trình của bạn"
+      />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex items-center justify-between mb-8 pb-4 border-b">
           <TabsList className="grid w-[400px] grid-cols-2">

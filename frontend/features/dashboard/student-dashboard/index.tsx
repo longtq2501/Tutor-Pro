@@ -11,6 +11,7 @@ import { StatCard } from './components/StatCard';
 import { UnlinkedAccountState } from './components/UnlinkedAccountState';
 import { WelcomeSection } from './components/WelcomeSection';
 import { useStudentDashboard } from './useStudentDashboard';
+import { DashboardHeader } from '@/contexts/UIContext';
 
 /**
  * Component StudentDashboard (Refactoring Specialist Edition)
@@ -56,6 +57,10 @@ export default function StudentDashboard() {
           </motion.div>
         )}
       </AnimatePresence>
+      <DashboardHeader
+        title="Tổng Quan"
+        subtitle="Theo dõi tiến độ học tập và lịch học của bạn"
+      />
 
       {/* Lời chào */}
       <WelcomeSection

@@ -45,12 +45,14 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final UserRepository userRepository;
     private final ExerciseRepository exerciseRepository;
     private final QuestionRepository questionRepository;
+    private final com.tutor_management.backend.modules.exercise.repository.ExerciseAssignmentRepository assignmentRepository;
     private final ApplicationEventPublisher eventPublisher;
     
     @Override
     public SubmissionResponse saveDraft(CreateSubmissionRequest request, String studentId) {
         log.info("📝 Saving submission draft | Exercise: {} | Student: {}", request.getExerciseId(), studentId);
         Submission submission = syncDraftEntity(request, studentId);
+        syncAssignmentStatus(submission);
         return mapToSubmissionResponse(submission);
     }
     
@@ -66,6 +68,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         autoGradingService.gradeSubmission(submission);
         
         Submission saved = submissionRepository.save(submission);
+        syncAssignmentStatus(saved);
         publishSubmissionEvent(saved, studentId);
         
         return mapToSubmissionResponse(saved);
@@ -122,9 +125,28 @@ public class SubmissionServiceImpl implements SubmissionService {
         submission.setGradedAt(LocalDateTime.now());
         
         Submission graded = submissionRepository.save(submission);
+        syncAssignmentStatus(graded);
         publishGradingEvent(graded);
         
         return mapToSubmissionResponse(graded);
+    }
+
+    /**
+     * Synchronizes the exercise assignment status with the submission status.
+     * Ensures that the tutor dashboard and student views are consistent.
+     */
+    private void syncAssignmentStatus(Submission s) {
+        assignmentRepository.findByExerciseIdAndStudentId(s.getExerciseId(), s.getStudentId())
+            .ifPresent(assignment -> {
+                switch (s.getStatus()) {
+                    case DRAFT -> assignment.setStatus(com.tutor_management.backend.modules.exercise.domain.AssignmentStatus.STARTED);
+                    case SUBMITTED -> assignment.setStatus(com.tutor_management.backend.modules.exercise.domain.AssignmentStatus.SUBMITTED);
+                    case GRADED -> assignment.setStatus(com.tutor_management.backend.modules.exercise.domain.AssignmentStatus.GRADED);
+                    case PENDING -> assignment.setStatus(com.tutor_management.backend.modules.exercise.domain.AssignmentStatus.PENDING);
+                }
+                assignmentRepository.save(assignment);
+                log.info("Linked ExerciseAssignment {} synchronized to status {}", assignment.getId(), assignment.getStatus());
+            });
     }
 
     // --- Private Processors ---

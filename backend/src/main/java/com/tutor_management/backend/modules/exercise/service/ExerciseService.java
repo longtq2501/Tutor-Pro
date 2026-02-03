@@ -81,8 +81,12 @@ public interface ExerciseService {
 
     /**
      * Retrieves assigned materials for a student with pagination support.
+     * 
+     * @param studentId target student.
+     * @param tutorId optional filter by tutor ownership (multi-tenancy).
+     * @param pageable pagination metadata.
      */
-    Page<ExerciseListItemResponse> listAssignedExercises(String studentId, Pageable pageable);
+    Page<ExerciseListItemResponse> listAssignedExercises(String studentId, Long tutorId, Pageable pageable);
 
     /**
      * Aggregates completion statistics for students with pagination support.

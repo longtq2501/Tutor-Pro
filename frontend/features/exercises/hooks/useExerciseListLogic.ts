@@ -7,7 +7,7 @@ import { queryKeys } from '@/lib/hooks/useQueryKeys';
 import { studentsApi } from '@/lib/services/student';
 import { lessonCategoryApi } from '@/lib/services/lesson-category';
 import { toast } from 'sonner';
-import { useExercises, useAssignedExercises } from '../hooks/useExercises';
+import { useExercises, useInfiniteAssignedExercises } from '../hooks/useExercises';
 import { ExerciseListItemResponse } from '@/features/exercise-import/types/exercise.types';
 import { PageResponse } from '@/lib/types';
 import { LessonCategoryDTO } from '@/features/learning/lessons/types';
@@ -45,19 +45,27 @@ export const useExerciseListLogic = (role: string) => {
         enabled: !isStudent
     });
 
-    const { data: exercisesData, isLoading: isExercisesLoading } = isStudent
-        ? useAssignedExercises(page, pageSize)
-        : useExercises(
-            selectedCategory === 'ALL' ? undefined : selectedCategory,
-            undefined,
-            debouncedSearch || undefined,
-            page,
-            pageSize
-        );
+    const infiniteResult = useInfiniteAssignedExercises(12);
 
-    const exercises = (exercisesData as PageResponse<ExerciseListItemResponse>)?.content || [];
-    const totalElements = (exercisesData as PageResponse<ExerciseListItemResponse>)?.totalElements || 0;
-    const totalPages = (exercisesData as PageResponse<ExerciseListItemResponse>)?.totalPages || 1;
+    const { data: exercisesData, isLoading: isExercisesLoading } = useExercises(
+        selectedCategory === 'ALL' ? undefined : selectedCategory,
+        undefined,
+        debouncedSearch || undefined,
+        page,
+        pageSize
+    );
+
+    const exercises = isStudent
+        ? (infiniteResult.data?.pages.flatMap(p => p.content) || [])
+        : ((exercisesData as PageResponse<ExerciseListItemResponse>)?.content || []);
+
+    const totalElements = isStudent
+        ? (infiniteResult.data?.pages[0]?.totalElements || 0)
+        : ((exercisesData as PageResponse<ExerciseListItemResponse>)?.totalElements || 0);
+
+    const totalPages = isStudent
+        ? (infiniteResult.data?.pages[0]?.totalPages || 1)
+        : ((exercisesData as PageResponse<ExerciseListItemResponse>)?.totalPages || 1);
 
     const { data: students = [], isLoading: isStudentsLoading } = useQuery({
         queryKey: queryKeys.students.all,
@@ -114,7 +122,11 @@ export const useExerciseListLogic = (role: string) => {
         searchTerm, setSearchTerm,
         selectedCategory, setSelectedCategory,
         categories,
-        exercises, totalElements, totalPages, isExercisesLoading,
+        exercises, totalElements, totalPages,
+        isExercisesLoading: isStudent ? infiniteResult.isLoading : isExercisesLoading,
+        isFetchingNextPage: infiniteResult.isFetchingNextPage,
+        hasNextPage: infiniteResult.hasNextPage,
+        fetchNextPage: infiniteResult.fetchNextPage,
         students, isStudentsLoading,
         isAssignDialogOpen, setIsAssignDialogOpen,
         selectedExercise,

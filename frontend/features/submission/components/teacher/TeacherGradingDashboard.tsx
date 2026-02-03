@@ -6,6 +6,10 @@ interface TeacherGradingDashboardProps {
     exerciseId: string;
 }
 
+/**
+ * Teacher Grading Dashboard
+ * Lists student submissions for a specific exercise and allows inline grading.
+ */
 export const TeacherGradingDashboard: React.FC<TeacherGradingDashboardProps> = ({ exerciseId }) => {
     const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
     const [refreshKey, setRefreshKey] = useState(0);

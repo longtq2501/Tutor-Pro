@@ -37,7 +37,8 @@ public class TutorDashboardController {
      */
     @GetMapping("/students")
     public ResponseEntity<ApiResponse<Page<TutorStudentSummaryResponse>>> getStudentSummaries(
-            @PageableDefault(size = 10) Pageable pageable) {
+            @PageableDefault(size = 10) Pageable pageable,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal com.tutor_management.backend.modules.auth.User user) {
         log.info("Fetching student exercise summaries for tutor dashboard (page: {})", pageable.getPageNumber());
         
         Long tutorId = getCurrentTutorId();

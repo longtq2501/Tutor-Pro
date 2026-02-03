@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Question, QuestionType } from '@/features/exercise-import/types/exercise.types';
@@ -18,50 +18,70 @@ export const MCQQuestion: React.FC<MCQQuestionProps> = ({
     onAnswerChange,
 }) => {
     return (
-        <Card className="w-full">
-            <CardHeader>
-                <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg leading-relaxed">
+        <div className="w-full space-y-6">
+            <div className="space-y-4">
+                <div className="flex justify-between items-start gap-4">
+                    <h3 className="text-xl md:text-2xl font-bold leading-tight tracking-tight text-foreground">
                         {question.questionText}
-                    </CardTitle>
-                    <span className="text-sm font-medium text-muted-foreground whitespace-nowrap ml-4">
-                        {question.points} points
-                    </span>
+                    </h3>
+                    <Badge variant="secondary" className="shrink-0 mt-1 px-3 py-1 text-sm font-bold bg-primary/10 text-primary border-primary/20">
+                        {question.points} điểm
+                    </Badge>
                 </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
+            </div>
+
+            <div className="grid gap-3">
                 {question.options?.map((option) => {
                     const isSelected = selectedAnswer === option.label;
                     return (
                         <div
                             key={option.label}
+                            role="button"
+                            tabIndex={0}
                             className={cn(
-                                "flex items-start p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-accent",
+                                "group flex items-center p-5 rounded-2xl border-2 transition-all duration-300 relative overflow-hidden",
                                 isSelected
-                                    ? "border-primary bg-primary/5"
-                                    : "border-transparent bg-muted"
+                                    ? "border-primary bg-primary/5 shadow-md shadow-primary/10"
+                                    : "border-border/40 bg-card hover:border-primary/40 hover:bg-accent/50 hover:shadow-sm"
                             )}
                             onClick={() => onAnswerChange(option.label)}
                         >
-                            <div className="flex-shrink-0 mt-0.5 mr-3">
-                                {isSelected ? (
-                                    <CheckCircle2 className="h-5 w-5 text-primary" />
-                                ) : (
-                                    <Circle className="h-5 w-5 text-muted-foreground" />
-                                )}
+                            {/* Selection indicator background */}
+                            {isSelected && (
+                                <div className="absolute inset-0 bg-primary/5 pointer-events-none" />
+                            )}
+
+                            <div className={cn(
+                                "flex-shrink-0 h-12 w-12 rounded-xl border flex items-center justify-center text-lg font-black mr-5 transition-colors",
+                                isSelected
+                                    ? "bg-primary text-primary-foreground border-primary"
+                                    : "bg-muted text-muted-foreground border-border group-hover:border-primary/30"
+                            )}>
+                                {option.label}
                             </div>
+
                             <div className="flex-grow">
-                                <div className="font-semibold text-sm mb-1 text-muted-foreground">
-                                    Option {option.label}
-                                </div>
-                                <div className="text-sm">
+                                <div className={cn(
+                                    "text-base font-medium transition-colors",
+                                    isSelected ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
+                                )}>
                                     {option.optionText}
                                 </div>
+                            </div>
+
+                            <div className="flex-shrink-0 ml-4">
+                                {isSelected ? (
+                                    <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center animate-in zoom-in duration-300">
+                                        <CheckCircle2 className="h-4 w-4 text-primary-foreground" />
+                                    </div>
+                                ) : (
+                                    <div className="h-6 w-6 rounded-full border-2 border-muted group-hover:border-primary/40 transition-colors" />
+                                )}
                             </div>
                         </div>
                     );
                 })}
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 };

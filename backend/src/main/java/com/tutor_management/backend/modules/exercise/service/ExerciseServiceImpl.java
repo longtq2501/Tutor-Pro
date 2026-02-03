@@ -191,14 +191,19 @@ public class ExerciseServiceImpl implements ExerciseService {
         // Update or set the specific deadline for this student
         assignment.setDeadline(deadline != null ? deadline : sourceExercise.getDeadline());
         
+        // Migration fix: Ensure assignedBy is set even for legacy records
+        if (assignment.getAssignedBy() == null) {
+            assignment.setAssignedBy(tutorId);
+        }
+
         assignmentRepository.save(assignment);
         
         // Ensure a submission record exists with PENDING status
         submissionRepository.findByExerciseIdAndStudentId(exerciseId, studentId)
-                .orElseGet(() -> submissionRepository.save(Submission.builder()
+                .orElseGet(() -> submissionRepository.save(com.tutor_management.backend.modules.submission.entity.Submission.builder()
                         .exerciseId(exerciseId)
                         .studentId(studentId)
-                        .status(SubmissionStatus.PENDING)
+                        .status(com.tutor_management.backend.modules.submission.entity.SubmissionStatus.PENDING)
                         .build()));
 
         notifyStudentOfAssignment(sourceExercise, studentId, tutorId);
@@ -208,10 +213,14 @@ public class ExerciseServiceImpl implements ExerciseService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ExerciseListItemResponse> listAssignedExercises(String studentId, Pageable pageable) {
-        log.debug("Synthesizing assigned exercises view for student {} (page: {})", studentId, pageable.getPageNumber());
+    public Page<ExerciseListItemResponse> listAssignedExercises(String studentId, Long tutorId, Pageable pageable) {
+        log.debug("Synthesizing assigned exercises view for student {} (Filter TutorID: {}, Page: {})", studentId, tutorId, pageable.getPageNumber());
         
-        Page<ExerciseAssignment> assignmentsPage = assignmentRepository.findByStudentId(studentId, pageable);
+        // If tutorId is provided, filter assignments by that tutor via join (multi-tenancy)
+        Page<ExerciseAssignment> assignmentsPage = (tutorId != null) 
+                ? assignmentRepository.findByStudentIdAndTutorId(studentId, tutorId, pageable)
+                : assignmentRepository.findByStudentId(studentId, pageable);
+        
         if (assignmentsPage.isEmpty()) return Page.empty();
 
         List<ExerciseAssignment> assignments = assignmentsPage.getContent();
@@ -254,26 +263,32 @@ public class ExerciseServiceImpl implements ExerciseService {
                 .map(s -> s.getId().toString())
                 .collect(Collectors.toList());
 
-        var rawStats = submissionRepository.countByStudentIdInAndStatus(studentIds);
+        // Multi-tenancy count: only count assignments associated with exercises owned by this tutor
+        // Uses LEFT JOIN with submissions to handle tasks without submission records
+        var rawStats = assignmentRepository.countAssignmentsWithSubmissionStatus(studentIds, tutorId);
         
         // Map stats by studentId
-        Map<String, Map<SubmissionStatus, Integer>> statsMap = new HashMap<>();
+        Map<String, Map<com.tutor_management.backend.modules.submission.entity.SubmissionStatus, Integer>> statsMap = new HashMap<>(); 
         for (Object[] row : rawStats) {
             String studentId = (String) row[0];
-            SubmissionStatus status = (SubmissionStatus) row[1];
+            // If submission record is missing, treat as PENDING
+            com.tutor_management.backend.modules.submission.entity.SubmissionStatus status = 
+                (row[1] != null) ? (com.tutor_management.backend.modules.submission.entity.SubmissionStatus) row[1] : 
+                com.tutor_management.backend.modules.submission.entity.SubmissionStatus.PENDING;
             Integer count = ((Long) row[2]).intValue();
             
-            statsMap.computeIfAbsent(studentId, k -> new HashMap<>()).put(status, count);
+            statsMap.computeIfAbsent(studentId, k -> new HashMap<>())
+                    .merge(status, count, Integer::sum);
         }
         
         List<TutorStudentSummaryResponse> content = studentsPage.getContent().stream().map(student -> {
             String sId = student.getId().toString();
             var counts = statsMap.getOrDefault(sId, Collections.emptyMap());
             
-            int pending = counts.getOrDefault(SubmissionStatus.PENDING, 0);
-            int submitted = counts.getOrDefault(SubmissionStatus.SUBMITTED, 0) + 
-                            counts.getOrDefault(SubmissionStatus.DRAFT, 0);
-            int graded = counts.getOrDefault(SubmissionStatus.GRADED, 0);
+            int pending = counts.getOrDefault(com.tutor_management.backend.modules.submission.entity.SubmissionStatus.PENDING, 0);
+            int submitted = counts.getOrDefault(com.tutor_management.backend.modules.submission.entity.SubmissionStatus.SUBMITTED, 0) + 
+                            counts.getOrDefault(com.tutor_management.backend.modules.submission.entity.SubmissionStatus.DRAFT, 0);
+            int graded = counts.getOrDefault(com.tutor_management.backend.modules.submission.entity.SubmissionStatus.GRADED, 0);
             int total = pending + submitted + graded;
             
             return TutorStudentSummaryResponse.builder()

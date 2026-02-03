@@ -11,10 +11,12 @@ import { EssayQuestion } from './EssayQuestion';
 import { MCQQuestion } from './MCQQuestion';
 import { QuestionNav } from './QuestionNav';
 import { useAutoSave } from '../../hooks/useAutoSave';
+import { GradingView } from '../teacher/GradingView';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn, formatExerciseTitle } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ExercisePlayerProps {
     exerciseId: string;
@@ -31,6 +33,7 @@ export const ExercisePlayer: React.FC<ExercisePlayerProps> = ({ exerciseId, stud
     const [timeLeft, setTimeLeft] = useState<number | null>(null);
     const [submissionResult, setSubmissionResult] = useState<SubmissionResponse | null>(null);
     const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+    const [isReviewing, setIsReviewing] = useState(false);
 
     // Auto-save hook (Must be at top level, not conditional)
     const { isSaving, lastSaved } = useAutoSave(exerciseId, answers);
@@ -174,46 +177,73 @@ export const ExercisePlayer: React.FC<ExercisePlayerProps> = ({ exerciseId, stud
     if (!exercise) return <div className="p-8 text-center text-muted-foreground">Không tìm thấy bài tập</div>;
 
     if (submissionResult) {
+        if (isReviewing) {
+            return (
+                <div className="min-h-screen bg-background pt-8 px-4">
+                    <GradingView
+                        submissionId={submissionResult.id}
+                        onBack={() => setIsReviewing(false)}
+                        isReviewMode={true}
+                    />
+                </div>
+            );
+        }
+
         return (
-            <div className="flex justify-center items-center min-h-[80vh]">
-                <Card className="max-w-2xl w-full mx-4 shadow-lg border-2 border-primary/20 bg-card">
-                    <CardContent className="pt-10 pb-8 text-center space-y-8">
+            <div className="flex justify-center items-center min-h-screen relative overflow-hidden bg-background">
+                {/* Background orbs */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40">
+                    <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-green-500/10 blur-[120px]" />
+                    <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-green-500/10 blur-[120px]" />
+                </div>
+
+                <Card className="max-w-2xl w-full mx-4 shadow-2xl border-2 border-primary/20 bg-card/80 backdrop-blur-xl relative z-10 transition-all duration-700 animate-in zoom-in-95">
+                    <CardContent className="pt-12 pb-10 text-center space-y-8">
                         <div className="relative inline-block">
-                            <div className="absolute inset-0 bg-green-500/20 rounded-full blur-xl animate-pulse" />
-                            <CheckCircle className="h-24 w-24 text-green-500 relative z-10 mx-auto" />
+                            <div className="absolute inset-0 bg-green-500/30 rounded-full blur-2xl animate-pulse" />
+                            <div className="h-28 w-28 rounded-full bg-green-500 flex items-center justify-center relative z-10 shadow-lg shadow-green-500/20">
+                                <CheckCircle className="h-16 w-16 text-white" />
+                            </div>
                         </div>
 
                         <div>
-                            <h2 className="text-3xl font-bold tracking-tight mb-2">Hoàn Thành!</h2>
-                            <p className="text-muted-foreground">Bài làm của bạn đã được ghi nhận.</p>
+                            <h2 className="text-4xl font-black tracking-tighter mb-3 bg-gradient-to-br from-foreground to-foreground/60 bg-clip-text text-transparent italic">HOÀN THÀNH!</h2>
+                            <p className="text-muted-foreground font-medium uppercase tracking-[0.2em] text-xs">Bài làm của bạn đã được hệ thống ghi nhận</p>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-4">
-                            <div className="p-4 bg-muted/50 rounded-xl border">
-                                <div className="text-xs uppercase font-bold text-muted-foreground mb-1">Trắc nghiệm</div>
-                                <div className="text-3xl font-bold text-primary">{submissionResult.mcqScore || 0}</div>
+                        <div className="grid grid-cols-3 gap-4 px-4">
+                            <div className="p-5 bg-card border rounded-3xl shadow-sm group hover:border-primary/40 transition-all duration-300">
+                                <div className="text-[10px] uppercase font-black text-muted-foreground mb-2 tracking-widest">Trắc nghiệm</div>
+                                <div className="text-4xl font-black text-primary">{submissionResult.mcqScore || 0}</div>
                             </div>
-                            <div className="p-4 bg-muted/50 rounded-xl border">
-                                <div className="text-xs uppercase font-bold text-muted-foreground mb-1">Tự luận</div>
-                                <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-500">
+                            <div className="p-5 bg-card border rounded-3xl shadow-sm group hover:border-yellow-500/40 transition-all duration-300">
+                                <div className="text-[10px] uppercase font-black text-muted-foreground mb-2 tracking-widest">Tự luận</div>
+                                <div className="text-4xl font-black text-yellow-600 dark:text-yellow-500">
                                     {submissionResult.status === 'GRADED' ? (submissionResult.essayScore || 0) : '?'}
                                 </div>
                             </div>
-                            <div className="p-4 bg-muted/50 rounded-xl border">
-                                <div className="text-xs uppercase font-bold text-muted-foreground mb-1">Tổng điểm</div>
-                                <div className="text-3xl font-bold text-foreground">
+                            <div className="p-5 bg-card border rounded-3xl shadow-sm group hover:border-foreground/40 transition-all duration-300 border-primary/10">
+                                <div className="text-[10px] uppercase font-black text-muted-foreground mb-2 tracking-widest italic font-serif">Tổng điểm</div>
+                                <div className="text-4xl font-black text-foreground">
                                     {submissionResult.totalScore || submissionResult.mcqScore}
                                 </div>
                             </div>
                         </div>
 
                         {submissionResult.status !== 'GRADED' && (
-                            <div className="bg-blue-500/10 text-blue-700 dark:text-blue-300 p-4 rounded-xl text-sm">
-                                Các câu hỏi tự luận sẽ được giáo viên chấm điểm sau. Bạn sẽ nhận được thông báo khi có kết quả.
+                            <div className="bg-primary/5 text-primary/80 p-4 rounded-2xl text-xs font-medium border border-primary/10 max-w-md mx-auto leading-relaxed">
+                                Các câu hỏi tự luận sẽ được giáo viên chấm điểm sau. Bạn sẽ nhận được thông báo ngay khi có kết quả.
                             </div>
                         )}
 
-                        <Button onClick={onExit} size="lg" className="w-full">Quay về trang chủ</Button>
+                        <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                            <Button onClick={onExit} size="lg" variant="outline" className="flex-1 h-14 rounded-2xl font-bold border-border/60">
+                                Quay về trang chủ
+                            </Button>
+                            <Button onClick={() => setIsReviewing(true)} size="lg" className="flex-1 h-14 rounded-2xl font-black bg-primary text-primary-foreground shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                                Xem chi tiết bài làm
+                            </Button>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
@@ -226,14 +256,20 @@ export const ExercisePlayer: React.FC<ExercisePlayerProps> = ({ exerciseId, stud
     const totalCount = exercise.questions?.length || 0;
 
     return (
-        <div className="flex h-screen overflow-hidden bg-background">
+        <div className="flex h-screen overflow-hidden bg-background relative">
+            {/* Background elements for premium feel */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-30">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-primary/10 blur-[120px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-primary/10 blur-[120px]" />
+            </div>
+
             {/* Mobile Header */}
-            <div className="md:hidden fixed top-0 left-0 right-0 h-14 border-b bg-card z-30 flex items-center justify-between px-4">
+            <div className="md:hidden fixed top-0 left-0 right-0 h-16 border-b bg-card/80 backdrop-blur-md z-30 flex items-center justify-between px-4">
                 <div className="flex items-center gap-3">
                     <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
                         <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-9 w-9">
-                                <Menu className="h-5 w-5" />
+                            <Button variant="ghost" size="icon" className="h-10 w-10">
+                                <Menu className="h-6 w-6" />
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" className="p-0 w-80">
@@ -255,15 +291,15 @@ export const ExercisePlayer: React.FC<ExercisePlayerProps> = ({ exerciseId, stud
                             </div>
                         </SheetContent>
                     </Sheet>
-                    <h2 className="font-bold text-sm whitespace-pre-wrap line-clamp-2 max-w-[200px] leading-tight">
+                    <h2 className="font-bold text-base whitespace-pre-wrap line-clamp-1 max-w-[180px] leading-tight text-foreground">
                         {formatExerciseTitle(exercise.title)}
                     </h2>
                 </div>
 
                 <div className="flex items-center gap-2">
                     <div className={cn(
-                        "flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-mono font-bold border",
-                        timeLeft && timeLeft < 300 ? "bg-red-500/10 text-red-600 border-red-500/20 animate-pulse" : "bg-primary/5 text-primary border-primary/20"
+                        "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-bold border",
+                        timeLeft && timeLeft < 300 ? "bg-red-500/10 text-red-600 border-red-500/20 animate-pulse shadow-sm shadow-red-500/10" : "bg-primary/5 text-primary border-primary/20 shadow-sm shadow-primary/5"
                     )}>
                         <Clock className="h-3.5 w-3.5" />
                         {timeLeft !== null ? formatTime(timeLeft) : '--:--'}
@@ -272,7 +308,7 @@ export const ExercisePlayer: React.FC<ExercisePlayerProps> = ({ exerciseId, stud
             </div>
 
             {/* Desktop Sidebar (Left) */}
-            <div className="hidden md:flex w-80 border-r bg-card flex-col shrink-0 h-full">
+            <div className="hidden md:flex w-80 border-r bg-card/40 backdrop-blur-xl flex-col shrink-0 h-full relative z-20">
                 <SidebarContent
                     exercise={exercise}
                     currentQuestionIndex={currentQuestionIndex}
@@ -287,76 +323,67 @@ export const ExercisePlayer: React.FC<ExercisePlayerProps> = ({ exerciseId, stud
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col min-w-0 bg-background/50 h-full md:pt-0 pt-14">
-                <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
-                    <div className="max-w-3xl mx-auto space-y-6 pb-24 md:pb-8">
-                        {/* Question Badge and Nav (Mobile only) */}
-                        <div className="md:hidden flex items-center justify-between mb-2">
-                            <Badge variant="outline" className="text-[10px]">
-                                Câu {currentQuestionIndex + 1} / {exercise?.questions?.length || 0}
-                            </Badge>
-                            <span className="text-[10px] text-muted-foreground">
-                                {exercise?.questions?.[currentQuestionIndex]?.type === QuestionType.MCQ ? 'Trắc nghiệm' : 'Tự luận'}
-                            </span>
-                        </div>
-
-                        <Card className="shadow-sm border-border/60">
-                            <CardContent className="p-4 md:p-6">
-                                {exercise?.questions?.[currentQuestionIndex]?.type === QuestionType.MCQ ? (
-                                    <MCQQuestion
-                                        question={exercise.questions[currentQuestionIndex]}
-                                        selectedAnswer={answers.get(exercise.questions[currentQuestionIndex].id || '')?.selectedOption}
-                                        onAnswerChange={(val) => handleAnswerChange(exercise.questions![currentQuestionIndex].id || '', { selectedOption: val })}
-                                    />
-                                ) : exercise?.questions?.[currentQuestionIndex] ? (
-                                    <EssayQuestion
-                                        question={exercise.questions[currentQuestionIndex]}
-                                        essayText={answers.get(exercise.questions[currentQuestionIndex].id || '')?.essayText || ''}
-                                        onTextChange={(val) => handleAnswerChange(exercise.questions![currentQuestionIndex].id || '', { essayText: val })}
-                                    />
-                                ) : null}
-                            </CardContent>
-                        </Card>
-
-                        {/* Sticky Navigation Footer (Mobile) */}
-                        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-md border-t p-3 flex gap-3 z-30">
-                            <Button
-                                variant="outline"
-                                className="flex-1 h-10 text-xs"
-                                disabled={currentQuestionIndex === 0}
-                                onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
+            <div className="flex-1 flex flex-col min-w-0 h-full md:pt-0 pt-16 relative z-10">
+                <div className="flex-1 overflow-y-auto px-4 py-8 md:px-12 md:py-16 custom-scrollbar">
+                    <div className="max-w-4xl mx-auto min-h-full flex flex-col">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={currentQuestionIndex}
+                                initial={{ opacity: 0, scale: 0.98, x: 20 }}
+                                animate={{ opacity: 1, scale: 1, x: 0 }}
+                                exit={{ opacity: 0, scale: 0.98, x: -20 }}
+                                transition={{ duration: 0.3, ease: 'easeOut' }}
+                                className="flex-1 flex flex-col"
                             >
-                                <ArrowLeft className="mr-1.5 h-3.5 w-3.5" /> Trước
-                            </Button>
+                                {/* Question Header Overlay (Desktop) */}
+                                <div className="hidden md:flex items-center justify-between mb-8">
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-12 w-12 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground font-black text-xl shadow-lg shadow-primary/20">
+                                            {currentQuestionIndex + 1}
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Câu hỏi hiện tại</h4>
+                                            <div className="text-xs text-muted-foreground/60">Phần {currentQuestion?.type === QuestionType.MCQ ? 'Trắc nghiệm' : 'Tự luận'}</div>
+                                        </div>
+                                    </div>
+                                    <Badge variant="outline" className="px-4 py-1.5 rounded-full border-primary/20 text-primary font-bold bg-primary/5">
+                                        {currentQuestionIndex + 1} / {exercise.questions?.length || 0}
+                                    </Badge>
+                                </div>
 
-                            {currentQuestionIndex < (exercise.questions?.length || 0) - 1 ? (
-                                <Button
-                                    className="flex-1 h-10 text-xs"
-                                    onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
-                                >
-                                    Tiếp theo <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                                </Button>
-                            ) : (
-                                <Button
-                                    className="flex-1 h-10 text-xs bg-green-600 hover:bg-green-700 text-white"
-                                    onClick={handleSubmit}
-                                    disabled={isSubmitting}
-                                >
-                                    Nộp bài <CheckCircle className="ml-1.5 h-3.5 w-3.5" />
-                                </Button>
-                            )}
-                        </div>
+                                <div className="flex-1 flex items-center justify-center -mt-8 md:-mt-0">
+                                    <div className="w-full">
+                                        {exercise?.questions?.[currentQuestionIndex]?.type === QuestionType.MCQ ? (
+                                            <MCQQuestion
+                                                question={exercise.questions[currentQuestionIndex]}
+                                                selectedAnswer={answers.get(exercise.questions[currentQuestionIndex].id || '')?.selectedOption}
+                                                onAnswerChange={(val) => handleAnswerChange(exercise.questions![currentQuestionIndex].id || '', { selectedOption: val })}
+                                            />
+                                        ) : exercise?.questions?.[currentQuestionIndex] ? (
+                                            <EssayQuestion
+                                                question={exercise.questions[currentQuestionIndex]}
+                                                essayText={answers.get(exercise.questions[currentQuestionIndex].id || '')?.essayText || ''}
+                                                onTextChange={(val) => handleAnswerChange(exercise.questions![currentQuestionIndex].id || '', { essayText: val })}
+                                            />
+                                        ) : null}
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </AnimatePresence>
 
                         {/* Desktop Navigation Buttons */}
-                        <div className="hidden md:flex justify-between items-center pt-4">
+                        <div className="hidden md:flex justify-between items-center mt-12 mb-8 pt-8 border-t border-border/40">
                             <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="lg"
                                 disabled={currentQuestionIndex === 0}
                                 onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
-                                className="w-32"
+                                className="px-8 rounded-2xl hover:bg-accent hover:text-foreground transition-all flex items-center gap-3 font-bold group"
                             >
-                                <ArrowLeft className="mr-2 h-4 w-4" /> Trước
+                                <div className="h-8 w-8 rounded-lg border flex items-center justify-center group-hover:border-primary/40 group-hover:text-primary transition-colors">
+                                    <ArrowLeft className="h-4 w-4" />
+                                </div>
+                                Câu trước
                             </Button>
 
                             <div className="flex gap-4">
@@ -364,23 +391,58 @@ export const ExercisePlayer: React.FC<ExercisePlayerProps> = ({ exerciseId, stud
                                     <Button
                                         size="lg"
                                         onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
-                                        className="w-40"
+                                        className="px-10 rounded-2xl bg-foreground text-background hover:bg-foreground/90 transition-all font-bold flex items-center gap-3 h-14"
                                     >
-                                        Tiếp theo <ArrowRight className="ml-2 h-4 w-4" />
+                                        Câu tiếp theo
+                                        <div className="h-8 w-8 rounded-lg bg-background/10 flex items-center justify-center">
+                                            <ArrowRight className="h-4 w-4" />
+                                        </div>
                                     </Button>
                                 ) : (
                                     <Button
                                         size="lg"
-                                        className="bg-green-600 hover:bg-green-700 text-white w-40"
+                                        className="px-10 rounded-2xl bg-green-600 hover:bg-green-700 text-white transition-all font-bold flex items-center gap-3 h-14 shadow-lg shadow-green-500/20"
                                         onClick={handleSubmit}
                                         disabled={isSubmitting}
                                     >
-                                        Nộp bài <CheckCircle className="ml-2 h-4 w-4" />
+                                        Nộp bài thi
+                                        <div className="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center">
+                                            <CheckCircle className="h-4 w-4" />
+                                        </div>
                                     </Button>
                                 )}
                             </div>
                         </div>
                     </div>
+                </div>
+
+                {/* Sticky Navigation Footer (Mobile) */}
+                <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-md border-t p-4 flex gap-3 z-30">
+                    <Button
+                        variant="outline"
+                        className="flex-1 h-12 rounded-xl text-sm font-bold"
+                        disabled={currentQuestionIndex === 0}
+                        onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
+                    >
+                        <ArrowLeft className="mr-2 h-4 w-4" /> Trước
+                    </Button>
+
+                    {currentQuestionIndex < (exercise.questions?.length || 0) - 1 ? (
+                        <Button
+                            className="flex-1 h-12 rounded-xl text-sm font-bold bg-foreground text-background hover:bg-foreground/90"
+                            onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
+                        >
+                            Tiếp theo <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                    ) : (
+                        <Button
+                            className="flex-1 h-12 rounded-xl text-sm font-bold bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-500/20"
+                            onClick={handleSubmit}
+                            disabled={isSubmitting}
+                        >
+                            Nộp bài <CheckCircle className="ml-2 h-4 w-4" />
+                        </Button>
+                    )}
                 </div>
             </div>
         </div>
@@ -411,30 +473,48 @@ const SidebarContent = ({
     answers
 }: SidebarContentProps) => {
     return (
-        <div className="flex flex-col h-full">
-            <div className="p-6 border-b flex-shrink-0">
-                <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold tracking-tight">Làm bài tập</h2>
-                        <div className={cn(
-                            "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-mono font-bold",
-                            timeLeft && timeLeft < 300 ? "bg-red-500/10 text-red-600 animate-pulse" : "bg-primary/10 text-primary"
-                        )}>
-                            <Clock className="h-4 w-4" />
-                            {timeLeft !== null ? formatTimeHelper(timeLeft) : '--:--'}
-                        </div>
+        <div className="flex flex-col h-full overflow-hidden">
+            <div className="p-8 border-b border-border/40 bg-card/10">
+                <div className="flex flex-col gap-6">
+                    <div className="space-y-1">
+                        <h2 className="text-2xl font-black tracking-tight text-foreground">Làm bài tập</h2>
+                        <p className="text-xs text-muted-foreground/60 font-medium uppercase tracking-widest italic">{isSaving ? "Tự động lưu..." : "Đã lưu bản nháp"}</p>
                     </div>
-                    <div>
-                        <div className="flex justify-between text-xs mb-1.5">
-                            <span className="text-muted-foreground font-medium">Tiến độ bài làm</span>
-                            <span className="font-bold">{Math.round((currentQuestionIndex + 1) / (exercise.questions?.length || 1) * 100)}%</span>
+
+                    <div className={cn(
+                        "flex items-center justify-center gap-3 px-4 py-4 rounded-2xl text-2xl font-mono font-black transition-all duration-500 border-2",
+                        timeLeft && timeLeft < 300
+                            ? "bg-red-500/10 text-red-600 border-red-500/20 animate-pulse shadow-lg shadow-red-500/10"
+                            : "bg-primary/5 text-primary border-primary/10 shadow-lg shadow-primary/5"
+                    )}>
+                        <Clock className={cn("h-6 w-6", timeLeft && timeLeft < 300 ? "animate-bounce" : "")} />
+                        {timeLeft !== null ? formatTimeHelper(timeLeft) : '--:--'}
+                    </div>
+
+                    <div className="space-y-3">
+                        <div className="flex justify-between items-end">
+                            <span className="text-xs font-bold text-muted-foreground uppercase">Tiến độ</span>
+                            <span className="text-sm font-black text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+                                {Math.round((currentQuestionIndex + 1) / (exercise.questions?.length || 1) * 100)}%
+                            </span>
                         </div>
-                        <Progress value={((currentQuestionIndex + 1) / (exercise.questions?.length || 1)) * 100} className="h-1.5" />
+                        <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                            <motion.div
+                                className="h-full bg-primary"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${((currentQuestionIndex + 1) / (exercise.questions?.length || 1)) * 100}%` }}
+                                transition={{ duration: 0.5, ease: "easeOut" }}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                <div className="mb-4 flex items-center justify-between px-1">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">Danh sách câu hỏi</span>
+                    <span className="text-[10px] text-muted-foreground/40">{exercise.questions?.length} câu</span>
+                </div>
                 <QuestionNav
                     questions={exercise.questions || []}
                     currentIndex={currentQuestionIndex}
@@ -443,21 +523,20 @@ const SidebarContent = ({
                 />
             </div>
 
-            <div className="p-4 border-t bg-muted/20 space-y-3 mt-auto flex-shrink-0">
-                <div className="flex items-center justify-between px-1">
-                    <span className="text-[10px] text-muted-foreground italic h-4">
-                        {isSaving ? "Đang tự động lưu..." : "Đã lưu tất cả thay đổi"}
-                    </span>
-                </div>
-                <Button variant="outline" className="w-full justify-start h-10 font-medium" onClick={onSaveDraft}>
+            <div className="p-6 border-t border-border/40 bg-card/20 space-y-3 mt-auto flex-shrink-0">
+                <Button
+                    variant="outline"
+                    className="w-full justify-center h-12 font-bold rounded-2xl border-border/60 hover:bg-accent hover:border-primary/20 transition-all"
+                    onClick={onSaveDraft}
+                >
                     <Save className="mr-2 h-4 w-4" /> Lưu nháp
                 </Button>
                 <Button
-                    className="w-full bg-primary hover:bg-primary/90 h-11 font-bold text-base shadow-lg shadow-primary/20"
+                    className="w-full bg-primary hover:bg-primary/90 h-14 font-black text-lg rounded-2xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98]"
                     onClick={onSubmit}
                     disabled={isSubmitting}
                 >
-                    <CheckCircle className="mr-2 h-5 w-5" /> Nộp bài
+                    <CheckCircle className="mr-2 h-6 w-6" /> NỘP BÀI THI
                 </Button>
             </div>
         </div>

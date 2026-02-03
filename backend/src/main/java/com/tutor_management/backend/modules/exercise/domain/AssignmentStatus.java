@@ -15,12 +15,24 @@ public enum AssignmentStatus {
     PENDING,
 
     /**
-     * The student has started the exercise but has not submitted it yet.
+     * The student has started the exercise but has not submitted it yet (DRAFT).
      */
     STARTED,
 
     /**
-     * The student has completed and submitted the exercise for review or grading.
+     * The student has completed and submitted the exercise.
      */
+    SUBMITTED,
+
+    /**
+     * The exercise has been graded by a tutor.
+     */
+    GRADED,
+
+    /**
+     * The student has completed and submitted the exercise for review or grading.
+     * @deprecated Use SUBMITTED of GRADED for better precision.
+     */
+    @Deprecated
     COMPLETED
 }

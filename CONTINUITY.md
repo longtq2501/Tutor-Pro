@@ -60,19 +60,30 @@ Optimize existing TMS from "functional" to "production-ready":
     - **Student View:** Fixed 500-error crash for Students by updating `getCurrentTutorId` and ensured attachments load via `mapToFullResponse`.
     - **Attachment UI (Polish):** Replaced cluttered horizontal category list with a premium Shadcn UI `Select`. Fixed layout constraints to ensure internal scrolling (zero horizontal overflow).
     - **Code Quality:** Cleaned up obsolete `sortBy` state, improving component modularity and reducing re-renders.
-
-### Now:
-- 🔄 **Feature: Learning (Lessons)**
+- ✅ **Feature: Learning (Lessons)**
   - **Goal**: Fix Student Lesson Tab (P0), Force Delete, & Blurry UI.
   - **Tasks**:
     1. ✅ Fix Student Lesson Tab data loading.
     2. ✅ Implement Force Delete for Lessons.
-    3. Resolve Blurry UI issues in lesson preview.
+    3. ✅ Resolve Blurry UI issues in lesson preview.
   - **Priority**: P0
 
+- ✅ **Feature: Exercises**
+  - **Achievements**:
+    - **UI/UX**: Transitioned student "Take Exam" to a **dedicated full-screen route** (`/exercises/[id]/take`) with premium glassmorphism and dynamic backgrounds.
+    - **Optimization**: Implemented "Review Mode" for students to see detailed results and correct answers post-submission.
+    - **Layout**: Restored efficient **inline grading & review** for tutors within the dashboard.
+    - **Mobile**: Optimized success screen and navigation for iPhone SE/16.
+  - **Status**: All P0/P1 issues resolved.
+  - **Priority**: P1
+
+### Now:
+- 🔄 **Feature: Documents**
+  - **Goal**: Pagination & Layout tweaks.
+  - **Status**: Starting optimization.
+  - **Priority**: P2
+
 ### Next:
-- **Exercises**: Redesign Student Layout (Tutor View), Fix Counts, Full Screen UI.
-- **Documents**: Pagination & Layout tweaks.
 - **Student Portal**: Header Titles.
 - ✅ **Notification Module:** Comprehensive real-time engine with production-grade architecture.
     - **Achievements:** 100% Clean Code compliance, centralized logic (70% less duplication).

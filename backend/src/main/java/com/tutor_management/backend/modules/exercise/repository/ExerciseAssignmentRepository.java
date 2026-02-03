@@ -22,6 +22,14 @@ public interface ExerciseAssignmentRepository extends JpaRepository<ExerciseAssi
     org.springframework.data.domain.Page<ExerciseAssignment> findByStudentId(String studentId, org.springframework.data.domain.Pageable pageable);
 
     /**
+     * Lists assignments for a specific student filtered by tutor with pagination.
+     */
+    @Query("SELECT ea FROM ExerciseAssignment ea, Exercise e " +
+           "WHERE ea.exerciseId = e.id AND ea.studentId = :studentId " +
+           "AND (:tutorId IS NULL OR e.tutorId = :tutorId)")
+    org.springframework.data.domain.Page<ExerciseAssignment> findByStudentIdAndTutorId(@Param("studentId") String studentId, @Param("tutorId") Long tutorId, org.springframework.data.domain.Pageable pageable);
+
+    /**
      * Lists all assignments for a specific student.
      */
     List<ExerciseAssignment> findByStudentId(String studentId);
@@ -47,4 +55,17 @@ public interface ExerciseAssignmentRepository extends JpaRepository<ExerciseAssi
     @Modifying
     @Query("DELETE FROM ExerciseAssignment ea WHERE ea.exerciseId = :exerciseId")
     void deleteByExerciseId(@Param("exerciseId") String exerciseId);
+
+    /**
+     * Aggregates assignment counts grouped by their current submission status.
+     * Uses LEFT JOIN with submissions to ensure EVERY assignment is counted,
+     * defaulting to PENDING if no submission record exists.
+     */
+    @Query("SELECT ea.studentId, s.status, COUNT(ea) FROM ExerciseAssignment ea " +
+           "LEFT JOIN com.tutor_management.backend.modules.submission.entity.Submission s " +
+           "ON ea.exerciseId = s.exerciseId AND ea.studentId = s.studentId " +
+           "JOIN Exercise e ON ea.exerciseId = e.id " +
+           "WHERE ea.studentId IN :studentIds AND (:tutorId IS NULL OR e.tutorId = :tutorId) " +
+           "GROUP BY ea.studentId, s.status")
+    List<Object[]> countAssignmentsWithSubmissionStatus(@Param("studentIds") List<String> studentIds, @Param("tutorId") Long tutorId);
 }

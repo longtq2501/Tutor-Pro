@@ -6,6 +6,7 @@ import com.tutor_management.backend.modules.parent.entity.Parent;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * Domain entity representing a Student in the system.
@@ -104,10 +105,5 @@ public class Student {
         LocalDateTime now = LocalDateTime.now();
         createdAt = now;
         updatedAt = now;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
     }
 }

@@ -19,6 +19,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { lessonCategoryApi } from '@/lib/services/lesson-category';
 import { AlertTriangle, Check, CheckCircle2, Edit2, Plus, Save, Trash2 } from 'lucide-react';
+import { ActionTooltip } from '@/features/exercises/components/ActionTooltip';
 import React, { useEffect, useState } from 'react';
 import {
     CreateExerciseRequest,
@@ -49,12 +50,6 @@ export const ImportPreviewStep: React.FC<ImportPreviewStepProps> = ({
     const calculatedTotal = questions.reduce((sum, q) => sum + (q.points || 0), 0);
     const hasPointsMismatch = metadata.totalPoints !== undefined && metadata.totalPoints !== calculatedTotal;
 
-    // Optional: Auto-update ONLY if metadata totalPoints is 0 or undefined
-    useEffect(() => {
-        if (!metadata.totalPoints || metadata.totalPoints === 0) {
-            setMetadata(prev => ({ ...prev, totalPoints: calculatedTotal }));
-        }
-    }, [calculatedTotal]);
 
     const handleSaveQuestion = () => {
         if (editingQuestion) {
@@ -180,24 +175,26 @@ export const ImportPreviewStep: React.FC<ImportPreviewStepProps> = ({
             <div className="space-y-4">
                 <div className="flex justify-between items-center">
                     <h3 className="text-lg font-semibold">Questions ({questions.length})</h3>
-                    <Button variant="outline" size="sm" onClick={() => {
-                        const newQ: QuestionPreview = {
-                            type: QuestionType.MCQ,
-                            questionText: "New Question",
-                            points: 10,
-                            orderIndex: questions.length,
-                            options: [
-                                { label: "A", optionText: "Option A", isCorrect: true },
-                                { label: "B", optionText: "Option B", isCorrect: false },
-                                { label: "C", optionText: "Option C", isCorrect: false },
-                                { label: "D", optionText: "Option D", isCorrect: false },
-                            ]
-                        };
-                        setQuestions([...questions, newQ]);
-                        setEditingQuestion({ index: questions.length, data: newQ });
-                    }}>
-                        <Plus className="h-4 w-4 mr-2" /> Add Question
-                    </Button>
+                    <ActionTooltip label="Thêm một câu hỏi mới vào cuối danh sách">
+                        <Button variant="outline" size="sm" onClick={() => {
+                            const newQ: QuestionPreview = {
+                                type: QuestionType.MCQ,
+                                questionText: "New Question",
+                                points: 10,
+                                orderIndex: questions.length,
+                                options: [
+                                    { label: "A", optionText: "Option A", isCorrect: true },
+                                    { label: "B", optionText: "Option B", isCorrect: false },
+                                    { label: "C", optionText: "Option C", isCorrect: false },
+                                    { label: "D", optionText: "Option D", isCorrect: false },
+                                ]
+                            };
+                            setQuestions([...questions, newQ]);
+                            setEditingQuestion({ index: questions.length, data: newQ });
+                        }}>
+                            <Plus className="h-4 w-4 mr-2" /> Add Question
+                        </Button>
+                    </ActionTooltip>
                 </div>
 
                 <ScrollArea className="h-[600px] pr-4">
@@ -216,12 +213,16 @@ export const ImportPreviewStep: React.FC<ImportPreviewStepProps> = ({
                                             <span className="text-sm text-muted-foreground">{q.points} pts</span>
                                         </div>
                                         <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                                            <Button variant="ghost" size="icon" onClick={() => setEditingQuestion({ index: idx, data: q })}>
-                                                <Edit2 className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => handleDeleteQuestion(idx)}>
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                            <ActionTooltip label="Chỉnh sửa câu hỏi">
+                                                <Button variant="ghost" size="icon" onClick={() => setEditingQuestion({ index: idx, data: q })}>
+                                                    <Edit2 className="h-4 w-4" />
+                                                </Button>
+                                            </ActionTooltip>
+                                            <ActionTooltip label="Xóa câu hỏi">
+                                                <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => handleDeleteQuestion(idx)}>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </ActionTooltip>
                                         </div>
                                     </div>
                                     <CardTitle className="text-base mt-2">{q.questionText}</CardTitle>
@@ -381,7 +382,7 @@ const CategorySelect: React.FC<{ value: string; onChange: (val: string) => void 
             </SelectTrigger>
             <SelectContent>
                 <SelectItem value="NONE">No Category</SelectItem>
-                {categories.map((cat: any) => (
+                {categories.map((cat: { id: number; name: string }) => (
                     <SelectItem key={cat.id} value={cat.id.toString()}>
                         {cat.name}
                     </SelectItem>

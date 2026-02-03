@@ -37,6 +37,7 @@ import java.util.List;
 public class ExerciseController {
     
     private final ExerciseService exerciseService;
+    private final com.tutor_management.backend.modules.tutor.repository.TutorRepository tutorRepository;
     
     /**
      * Dry-run parsing of raw text into structured exercise data.
@@ -139,7 +140,8 @@ public class ExerciseController {
             @AuthenticationPrincipal User user,
             @PageableDefault(size = 10, sort = "assignedAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
         log.debug("Reading assigned materials for authenticated student {} (page: {})", user.getEmail(), pageable.getPageNumber());
-        Page<ExerciseListItemResponse> exercises = exerciseService.listAssignedExercises(user.getId().toString(), pageable);
+        // For students, we don't filter by teacherId
+        Page<ExerciseListItemResponse> exercises = exerciseService.listAssignedExercises(user.getId().toString(), null, pageable);
         return ResponseEntity.ok(ApiResponse.success(exercises));
     }
 
@@ -150,9 +152,19 @@ public class ExerciseController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
     public ResponseEntity<ApiResponse<Page<ExerciseListItemResponse>>> listStudentAssignedExercises(
             @PathVariable String studentId,
+            @AuthenticationPrincipal User user,
             @PageableDefault(size = 10, sort = "assignedAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
-        log.debug("Staff reading assigned materials for student {} (page: {})", studentId, pageable.getPageNumber());
-        Page<ExerciseListItemResponse> exercises = exerciseService.listAssignedExercises(studentId, pageable);
+        log.debug("Staff {} reading assigned materials for student {} (page: {})", user.getEmail(), studentId, pageable.getPageNumber());
+        
+        // Match multi-tenancy rule: Tutors only see what they assigned (linked via Exercise.tutorId)
+        Long tutorId = null;
+        if (user.getRole() == com.tutor_management.backend.modules.auth.Role.TUTOR) {
+            tutorId = tutorRepository.findByUserId(user.getId())
+                    .map(com.tutor_management.backend.modules.tutor.entity.Tutor::getId)
+                    .orElse(null);
+        }
+        
+        Page<ExerciseListItemResponse> exercises = exerciseService.listAssignedExercises(studentId, tutorId, pageable);
         return ResponseEntity.ok(ApiResponse.success(exercises));
     }
 }

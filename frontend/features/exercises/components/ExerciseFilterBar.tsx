@@ -11,6 +11,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { LessonCategoryDTO } from '@/features/learning/lessons/types';
+import { ActionTooltip } from './ActionTooltip';
 
 /**
  * Filter bar for exercise searching and category selection.
@@ -41,12 +42,14 @@ export const ExerciseFilterBar: React.FC<ExerciseFilterBarProps> = ({
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
                 {searchTerm && (
-                    <button
-                        onClick={() => setSearchTerm('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-foreground text-muted-foreground transition-colors"
-                    >
-                        <X className="h-4 w-4" />
-                    </button>
+                    <ActionTooltip label="Xóa tìm kiếm" side="right">
+                        <button
+                            onClick={() => setSearchTerm('')}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-foreground text-muted-foreground transition-colors"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    </ActionTooltip>
                 )}
             </div>
             <div className="w-full sm:w-[200px]">

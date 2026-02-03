@@ -2,11 +2,11 @@
 // ============================================================================
 // FILE: lib/hooks/useMasterData.ts
 // ============================================================================
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, keepPreviousData } from '@tanstack/react-query';
 import { documentsApi } from '@/lib/services';
 import { queryKeys } from '@/lib/hooks/useQueryKeys';
-import type { Document, DocumentCategory } from '@/lib/types';
-import type { PageResponse } from '@/lib/types/common';
+import type { Document, DocumentCategory, Category } from '@/lib/types';
+import type { PageResponse, CursorPageResponse } from '@/lib/types/common';
 
 // --- NEW PAGINATED HOOKS ---
 
@@ -43,6 +43,15 @@ export const useCategories = () => {
         queryKey: [...queryKeys.documents.all, 'categories'],
         queryFn: documentsApi.getCategories,
         staleTime: 24 * 60 * 60 * 1000, // Cache for 24h
+    });
+};
+
+export const useCategoriesPaginated = (limit = 10) => {
+    return useInfiniteQuery<CursorPageResponse<Category>>({
+        queryKey: [...queryKeys.documents.all, 'categories', 'paginated', limit],
+        queryFn: ({ pageParam }) => documentsApi.getCategoriesPaginated(pageParam as string | undefined, limit),
+        initialPageParam: undefined,
+        getNextPageParam: (lastPage) => lastPage.hasNext ? lastPage.nextCursor : undefined,
     });
 };
 

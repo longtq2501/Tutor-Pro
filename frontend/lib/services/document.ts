@@ -5,7 +5,7 @@ import type {
   DocumentUploadRequest,
   DocumentStats
 } from '../types';
-import type { PageResponse } from '../types/common';
+import type { CursorPageResponse, PageResponse } from '../types/common';
 import api from './axios-instance';
 
 export const documentsApi = {
@@ -103,6 +103,14 @@ export const documentsApi = {
   /** * LẤY DANH SÁCH CÁC DANH MỤC TÀI LIỆU HIỆN CÓ */
   getCategories: async (): Promise<any[]> => {
     const response = await api.get('/document-categories');
+    return response.data.data;
+  },
+
+  /** * LẤY DANH SÁCH CÁC DANH MỤC TÀI LIỆU (PHÂN TRANG CURSOR) */
+  getCategoriesPaginated: async (cursor?: string, limit = 10): Promise<CursorPageResponse<Category>> => {
+    const response = await api.get('/document-categories/paginated', {
+      params: { cursor, limit }
+    });
     return response.data.data;
   },
 

@@ -4,8 +4,11 @@ import com.tutor_management.backend.exception.ResourceNotFoundException;
 import com.tutor_management.backend.modules.document.repository.DocumentCategoryRepository;
 import com.tutor_management.backend.modules.document.repository.DocumentRepository;
 import com.tutor_management.backend.modules.document.entity.DocumentCategory;
+import com.tutor_management.backend.modules.shared.dto.response.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +25,48 @@ public class DocumentCategoryService {
 
     private final DocumentCategoryRepository categoryRepository;
     private final DocumentRepository documentRepository;
+
+    /**
+     * Lists all categories available for document classification using cursor-based pagination.
+     */
+    @Transactional(readOnly = true)
+    public CursorPageResponse<DocumentCategory> getCategoriesCursor(String cursor, int limit) {
+        Integer lastDisplayOrder = null;
+        Long lastId = null;
+
+        if (cursor != null && !cursor.isBlank()) {
+            try {
+                String[] parts = cursor.split(":");
+                if (parts.length == 2) {
+                    lastDisplayOrder = Integer.parseInt(parts[0]);
+                    lastId = Long.parseLong(parts[1]);
+                }
+            } catch (Exception e) {
+                log.warn("Invalid cursor format: {}", cursor);
+            }
+        }
+
+        // Fetch limit + 1 to determine hasNext
+        Pageable pageable = PageRequest.of(0, limit + 1);
+        List<DocumentCategory> items = categoryRepository.findCategoriesByCursor(lastDisplayOrder, lastId, pageable);
+
+        boolean hasNext = items.size() > limit;
+        if (hasNext) {
+            items = items.subList(0, limit);
+        }
+
+        String nextCursor = null;
+        if (hasNext && !items.isEmpty()) {
+            DocumentCategory lastItem = items.get(items.size() - 1);
+            nextCursor = lastItem.getDisplayOrder() + ":" + lastItem.getId();
+        }
+
+        return CursorPageResponse.<DocumentCategory>builder()
+                .items(items)
+                .nextCursor(nextCursor)
+                .hasNext(hasNext)
+                .build();
+    }
 
     /**
      * Lists all categories available for document classification.

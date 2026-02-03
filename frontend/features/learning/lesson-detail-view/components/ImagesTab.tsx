@@ -8,11 +8,11 @@ interface ImagesTabProps {
   images: Lesson['images'];
 }
 
-export function ImagesTab({ images }: ImagesTabProps) {
+export function ImagesTab({ images = [] }: ImagesTabProps) {
   return (
     <Card>
       <CardContent className="pt-6">
-        {images.length === 0 ? (
+        {!images || images.length === 0 ? (
           <div className="text-center text-gray-500 dark:text-gray-400 py-12">
             <ImageIcon className="h-12 w-12 mx-auto mb-4 text-gray-400 dark:text-gray-600" />
             <p>Chưa có hình ảnh nào</p>

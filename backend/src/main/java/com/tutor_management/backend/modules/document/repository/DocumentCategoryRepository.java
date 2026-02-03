@@ -25,4 +25,17 @@ public interface DocumentCategoryRepository extends JpaRepository<DocumentCatego
      * Retrieves all active categories, sorted for UI menu display.
      */
     List<DocumentCategory> findAllByActiveTrueOrderByDisplayOrderAsc();
+
+    /**
+     * Cursor-based query for categories.
+     * Uses displayOrder and id as the cursor to ensure unique, stable paging.
+     */
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM DocumentCategory c " +
+            "WHERE c.active = true " +
+            "AND (:lastDisplayOrder IS NULL OR c.displayOrder > :lastDisplayOrder OR (c.displayOrder = :lastDisplayOrder AND c.id > :lastId)) " +
+            "ORDER BY c.displayOrder ASC, c.id ASC")
+    List<DocumentCategory> findCategoriesByCursor(
+            @org.springframework.data.repository.query.Param("lastDisplayOrder") Integer lastDisplayOrder,
+            @org.springframework.data.repository.query.Param("lastId") Long lastId,
+            org.springframework.data.domain.Pageable pageable);
 }

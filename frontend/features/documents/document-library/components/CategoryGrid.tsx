@@ -1,7 +1,7 @@
 import type { DocumentCategory, Category } from '@/lib/types';
 import { memo, useState } from 'react';
 import { CATEGORIES } from '../constants';
-import { Trash2, Pencil, Plus } from 'lucide-react';
+import { Trash2, Pencil } from 'lucide-react';
 import { documentsApi } from '@/lib/services';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -12,11 +12,14 @@ import { CategoryFormModal } from './CategoryFormModal';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface Props {
-  categories: any[];
+  categories: Category[];
   counts: Record<string, number>;
   onCategoryClick: (category: DocumentCategory) => void;
   onDeleteCategory?: (id: number) => void;
   isLoading?: boolean;
+  loadMoreCategories?: () => void;
+  hasMoreCategories?: boolean;
+  isFetchingMoreCategories?: boolean;
 }
 
 const CategoryGridSkeleton = () => (
@@ -27,7 +30,16 @@ const CategoryGridSkeleton = () => (
   </div>
 );
 
-export const CategoryGrid = memo(({ categories, counts, onCategoryClick, onDeleteCategory, isLoading }: Props) => {
+export const CategoryGrid = memo(({
+  categories,
+  counts,
+  onCategoryClick,
+  onDeleteCategory,
+  isLoading,
+  loadMoreCategories,
+  hasMoreCategories,
+  isFetchingMoreCategories
+}: Props) => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const isStudent = user?.role === 'STUDENT';
@@ -35,7 +47,7 @@ export const CategoryGrid = memo(({ categories, counts, onCategoryClick, onDelet
   const [deleteName, setDeleteName] = useState<string>('');
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // CRUD State
+  // CRUD State (Edit only, Add moved to parent)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
@@ -82,16 +94,12 @@ export const CategoryGrid = memo(({ categories, counts, onCategoryClick, onDelet
     setDeleteName(name);
   };
 
-  const handleEditClick = (e: React.MouseEvent, category: any) => {
+  const handleEditClick = (e: React.MouseEvent, category: Category) => {
     e.stopPropagation();
     setEditingCategory(category);
     setIsFormOpen(true);
   };
 
-  const handleAddClick = () => {
-    setEditingCategory(null);
-    setIsFormOpen(true);
-  };
 
   if (isLoading && categories.length === 0) {
     return <CategoryGridSkeleton />;
@@ -101,9 +109,9 @@ export const CategoryGrid = memo(({ categories, counts, onCategoryClick, onDelet
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
         <AnimatePresence mode="popLayout">
-          {displayCategories.map((cat: any) => {
-            const code = cat.code || cat;
-            const name = cat.name || cat;
+          {displayCategories.map((cat: Category) => {
+            const code = cat.code;
+            const name = cat.name;
             const visual = CATEGORIES.find(c => c.key === code) || {
               icon: cat.icon || '📁',
               key: code
@@ -167,24 +175,20 @@ export const CategoryGrid = memo(({ categories, counts, onCategoryClick, onDelet
             );
           })}
 
-          {/* Add Category Button Card */}
-          {!isStudent && (
-            <motion.button
-              layout
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3 }}
-              onClick={handleAddClick}
-              className="w-full h-full min-h-[100px] border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl flex flex-col items-center justify-center p-4 text-gray-400 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all gap-2"
-            >
-              <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full group-hover:bg-primary/20">
-                <Plus size={24} />
-              </div>
-              <span className="font-medium text-sm">Thêm danh mục mới</span>
-            </motion.button>
-          )}
         </AnimatePresence>
       </div>
+
+      {hasMoreCategories && (
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={() => loadMoreCategories?.()}
+            disabled={isFetchingMoreCategories}
+            className="px-6 py-2 bg-muted hover:bg-muted/80 text-muted-foreground rounded-full text-sm font-medium transition-colors disabled:opacity-50"
+          >
+            {isFetchingMoreCategories ? 'Đang tải...' : 'Xem thêm danh mục'}
+          </button>
+        </div>
+      )}
 
       <ConfirmDialog
         open={!!deleteId}
@@ -204,3 +208,5 @@ export const CategoryGrid = memo(({ categories, counts, onCategoryClick, onDelet
     </>
   );
 });
+
+CategoryGrid.displayName = 'CategoryGrid';

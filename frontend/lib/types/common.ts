@@ -29,3 +29,9 @@ export interface WindowResponse<T> {
   last: boolean;
   position: any;
 }
+
+export interface CursorPageResponse<T> {
+  items: T[];
+  nextCursor: string | null;
+  hasNext: boolean;
+}

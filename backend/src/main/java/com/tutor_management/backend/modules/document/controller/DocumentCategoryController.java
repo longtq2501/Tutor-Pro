@@ -3,6 +3,7 @@ package com.tutor_management.backend.modules.document.controller;
 import com.tutor_management.backend.modules.document.service.DocumentCategoryService;
 import com.tutor_management.backend.modules.document.entity.DocumentCategory;
 import com.tutor_management.backend.modules.shared.dto.response.ApiResponse;
+import com.tutor_management.backend.modules.shared.dto.response.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,7 +22,18 @@ public class DocumentCategoryController {
     private final DocumentCategoryService categoryService;
 
     /**
-     * Lists all active categories for the document library.
+     * Lists categories using cursor-based pagination for high performance.
+     */
+    @PreAuthorize("permitAll()")
+    @GetMapping("/paginated")
+    public ResponseEntity<ApiResponse<CursorPageResponse<DocumentCategory>>> getCategoriesPaginated(
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "10") int limit) {
+        return ResponseEntity.ok(ApiResponse.success(categoryService.getCategoriesCursor(cursor, limit)));
+    }
+
+    /**
+     * Lists all active categories for the document library (Legacy).
      */
     @PreAuthorize("permitAll()")
     @GetMapping

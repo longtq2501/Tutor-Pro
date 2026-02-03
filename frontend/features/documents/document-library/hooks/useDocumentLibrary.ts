@@ -1,6 +1,6 @@
-import { useDocuments, useCategories } from '@/features/documents/hooks/useMasterDocuments';
+import { useDocuments, useCategoriesPaginated } from '@/features/documents/hooks/useMasterDocuments';
 import { documentsApi } from '@/lib/services';
-import type { Document, DocumentCategory } from '@/lib/types';
+import type { Document, DocumentCategory, Category } from '@/lib/types';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { formatFileSize } from '../utils';
@@ -26,8 +26,16 @@ export const useDocumentLibrary = () => {
     setPage(0);
   }, [selectedCategory]);
 
-  // 1. Fetch Categories
-  const { data: categories = [], isLoading: isCategoriesLoading } = useCategories();
+  // 1. Fetch Categories (Paginated)
+  const {
+    data: categoriesData,
+    isLoading: isCategoriesLoading,
+    fetchNextPage: loadMoreCategories,
+    hasNextPage: hasMoreCategories,
+    isFetchingNextPage: isFetchingMoreCategories
+  } = useCategoriesPaginated(12); // Use 12 for better grid layout
+
+  const categories = categoriesData?.pages.flatMap(page => page.items) || [];
 
   // 2. Decide what to fetch: Search Mode vs Browse Mode
   const isSearchMode = !!debouncedSearchQuery;
@@ -53,10 +61,7 @@ export const useDocumentLibrary = () => {
   const totalPages = isSearchMode ? 1 : (paginatedData?.totalPages || 0);
   const totalElements = isSearchMode ? documents.length : (paginatedData?.totalElements || 0);
 
-  // 4. Stats (Mocked or separate API call needed)
-  // Since we don't have all docs, we can't calc stats client side precisely.
-  // We can fetch stats from API if needed, or just show 0/estimates.
-  // Ideally use the existing getStats API.
+  // 4. Stats
   const { data: statsData } = useQuery({
     queryKey: ['documents', 'stats'],
     queryFn: documentsApi.getStats,
@@ -77,7 +82,7 @@ export const useDocumentLibrary = () => {
     categories,
     selectedCategory,
     setSelectedCategory,
-    categoryDocs: documents, // In unified mode, documents IS the categoryDocs
+    categoryDocs: documents,
     searchQuery,
     setSearchQuery,
     loading: cancelLoading && !isSearchMode,
@@ -89,6 +94,9 @@ export const useDocumentLibrary = () => {
     loadDocuments,
     loadCategoryDocuments,
     isSearchMode,
-    isCategoriesLoading
+    isCategoriesLoading,
+    loadMoreCategories,
+    hasMoreCategories,
+    isFetchingMoreCategories
   };
 };

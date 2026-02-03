@@ -18,9 +18,9 @@ Comprehensive refactor of the Document Library module from hardcoded categories 
 
 | ID | Issue | Priority | Status |
 |:---|:---|:---|:---|
-| **Doc-01** | **Add Cursor Pagination for Categories** <br> Enhance performance for large lists. | P1 | Pending |
-| **Doc-02** | **Remove Search Bar** <br> User request to clean up UI. | P2 | Pending |
-| **Doc-03** | **Move "New Category" Button** <br> Position next to "Upload" button. | P3 | Pending |
+| **Doc-01** | **Add Cursor Pagination for Categories** <br> Enhance performance for large lists. | P1 | ✅ Done |
+| **Doc-02** | **Remove Search Bar** <br> User request to clean up UI. | P2 | ✅ Done |
+| **Doc-03** | **Move "New Category" Button** <br> Position next to "Upload" button. | P3 | ✅ Done |
 
 **Ongoing Refinement:** Addressing role-based permissions and mobile response issues.
 - ✅ Phase 1-4 Core features completed

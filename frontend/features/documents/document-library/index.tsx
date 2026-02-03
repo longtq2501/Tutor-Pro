@@ -4,8 +4,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Upload } from 'lucide-react';
-import type { Document } from '@/lib/types';
+import { Upload, Plus } from 'lucide-react';
+import type { Document, DocumentCategory, Category } from '@/lib/types';
 import { useDocumentLibrary } from './hooks/useDocumentLibrary';
 import { useDocumentActions } from './hooks/useDocumentActions';
 import { StatsCards } from './components/StatsCards';
@@ -13,6 +13,7 @@ import { SearchBar } from './components/SearchBar';
 import { CategoryGrid } from './components/CategoryGrid';
 import { useAuth } from '@/contexts/AuthContext';
 import { CategoryView } from './components/CategoryView';
+import { CategoryFormModal } from './components/CategoryFormModal';
 import DocumentUploadModal from '@/features/documents/document-upload-modal';
 import DocumentPreviewModal from '@/features/documents/document-preview-modal';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -35,7 +36,10 @@ export default function DocumentLibrary() {
     page,
     setPage,
     totalPages,
-    isCategoriesLoading
+    isCategoriesLoading,
+    loadMoreCategories,
+    hasMoreCategories,
+    isFetchingMoreCategories
   } = useDocumentLibrary();
 
   const { user } = useAuth();
@@ -45,6 +49,8 @@ export default function DocumentLibrary() {
   const { handleDownload, handleDelete: executeDelete } = useDocumentActions(loadDocuments, loadCategoryDocuments, selectedCategory);
 
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [isCategoryFormOpen, setIsCategoryFormOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [previewDocument, setPreviewDocument] = useState<Document | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
@@ -80,21 +86,35 @@ export default function DocumentLibrary() {
           title="Kho Tài Liệu Tiếng Anh"
           subtitle="Quản lý tài liệu theo danh mục để dễ tìm kiếm sau này"
           actions={!isStudent && (
-            <button onClick={() => setShowUploadModal(true)} className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground px-4 lg:px-6 py-2.5 lg:py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors shadow-lg shadow-primary/20">
-              <Upload size={18} />
-              Tải lên
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => {
+                  setEditingCategory(null);
+                  setIsCategoryFormOpen(true);
+                }}
+                className="w-full sm:w-auto bg-muted hover:bg-muted/80 text-muted-foreground px-4 lg:px-6 py-2.5 lg:py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors border shadow-sm"
+              >
+                <Plus size={18} />
+                Thêm danh mục
+              </button>
+              <button onClick={() => setShowUploadModal(true)} className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground px-4 lg:px-6 py-2.5 lg:py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors shadow-lg shadow-primary/20">
+                <Upload size={18} />
+                Tải lên
+              </button>
+            </div>
           )}
         />
 
         <div className="space-y-6">
           <StatsCards stats={stats} />
-          <SearchBar value="" onChange={() => { }} disabled />
           <CategoryGrid
             categories={categories}
             counts={stats.categoryCounts}
             onCategoryClick={setSelectedCategory}
             isLoading={isCategoriesLoading}
+            loadMoreCategories={loadMoreCategories}
+            hasMoreCategories={hasMoreCategories}
+            isFetchingMoreCategories={isFetchingMoreCategories}
           />
         </div>
 
@@ -104,16 +124,23 @@ export default function DocumentLibrary() {
             onSuccess={handleUploadSuccess}
           />
         )}
+
+        <CategoryFormModal
+          open={isCategoryFormOpen}
+          onOpenChange={setIsCategoryFormOpen}
+          initialData={editingCategory}
+        />
       </>
     );
   }
 
-  const fullSelectedCategory = categories.find(c => c.code === selectedCategory) || selectedCategory;
+  const foundCategory = categories.find(c => c.code === selectedCategory);
+  const fullSelectedCategory = foundCategory || (selectedCategory as DocumentCategory);
 
   return (
     <>
       <CategoryView
-        category={fullSelectedCategory as any}
+        category={fullSelectedCategory}
         documents={categoryDocs}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}

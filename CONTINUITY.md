@@ -77,10 +77,12 @@ Optimize existing TMS from "functional" to "production-ready":
   - **Status**: All P0/P1 issues resolved.
   - **Priority**: P1
 
-### Now:
-- 🔄 **Feature: Documents**
-  - **Goal**: Pagination & Layout tweaks.
-  - **Status**: Starting optimization.
+- ✅ **Feature: Documents**
+  - **Achievements**:
+    - **Optimization**: Implemented **Cursor-based Pagination** for Document Categories (Backend + Frontend) using `displayOrder` and `id` for stable, high-performance fetching.
+    - **UX**: Added infinite loading ("Load More") for categories, providing a smoother experience for growing document libraries.
+    - **UI**: Relocated the **"New Category" button** to the `DashboardHeader` next to "Upload" for better management workflow and removed the obsolete search bar (`Doc-02`).
+  - **Status**: All P2/P3 issues resolved.
   - **Priority**: P2
 
 ### Next:

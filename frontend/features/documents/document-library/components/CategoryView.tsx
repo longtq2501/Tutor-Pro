@@ -3,13 +3,13 @@ import { CATEGORIES } from '../constants';
 import { SearchBar } from './SearchBar';
 import { DocumentList } from './DocumentList';
 import { DocumentListSkeleton } from './DocumentListSkeleton';
-import type { Document, DocumentCategory } from '@/lib/types';
+import type { Document, DocumentCategory, Category } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { DashboardHeader } from '@/contexts/UIContext';
 import { Button } from '@/components/ui/button';
 
 interface Props {
-  category: DocumentCategory;
+  category: DocumentCategory | Category;
   documents: Document[];
   searchQuery: string;
   onSearchChange: (value: string) => void;
@@ -30,9 +30,12 @@ export const CategoryView = ({
 }: Props) => {
   const { user } = useAuth();
   const isStudent = user?.role === 'STUDENT';
-  const categoryInfo = CATEGORIES.find(c => c.key === category);
-  const icon = (categoryInfo?.icon as string) || (typeof category === 'object' ? (category as any).icon : '📁');
-  const name = categoryInfo?.name || (typeof category === 'object' ? (category as any).name : category);
+
+  const categoryKey = typeof category === 'string' ? category : category.code;
+  const categoryInfo = CATEGORIES.find(c => c.key === categoryKey);
+
+  const icon = categoryInfo?.icon || (typeof category === 'object' ? category.icon : '📁');
+  const name = categoryInfo?.name || (typeof category === 'object' ? category.name : category);
 
   return (
     <div className="space-y-6">

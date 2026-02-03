@@ -8,7 +8,7 @@ interface ResourcesTabProps {
   resources: Lesson['resources'];
 }
 
-export function ResourcesTab({ resources }: ResourcesTabProps) {
+export function ResourcesTab({ resources = [] }: ResourcesTabProps) {
   const getResourceColor = (type: string) => {
     switch (type) {
       case 'PDF': return 'bg-red-100 text-red-700 dark:bg-red-600/20 dark:text-red-300';
@@ -21,7 +21,7 @@ export function ResourcesTab({ resources }: ResourcesTabProps) {
   return (
     <Card>
       <CardContent className="pt-6">
-        {resources.length === 0 ? (
+        {!resources || resources.length === 0 ? (
           <div className="text-center text-gray-500 dark:text-gray-400 py-12">
             <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400 dark:text-gray-600" />
             <p>Chưa có tài liệu nào</p>
@@ -56,8 +56,8 @@ export function ResourcesTab({ resources }: ResourcesTabProps) {
                         </p>
                       )}
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge 
-                          variant="outline" 
+                        <Badge
+                          variant="outline"
                           className={`text-xs ${getResourceColor(resource.resourceType)} border-transparent`}
                         >
                           {resource.resourceType}

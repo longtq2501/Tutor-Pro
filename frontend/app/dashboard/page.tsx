@@ -279,6 +279,7 @@ function AppContent() {
 
         return allItems.filter(item => {
             if (item.id === 'students' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
+            if (item.id === 'finance' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
             if (item.id === 'monthly' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
             if (item.id === 'unpaid' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;
             if (item.id === 'calendar' && !hasAnyRole(['ADMIN', 'TUTOR'])) return false;

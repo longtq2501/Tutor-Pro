@@ -51,17 +51,20 @@ Optimize existing TMS from "functional" to "production-ready":
         - **Data Integrity:** Fixed Active Student Count logic to strictly use `active=true` instead of session data, ensuring 100% accuracy.
         - **Data Integrity:** Fixed Time Range Filter to correctly display full 12-month history.
     - **Metrics:** PDF generation under 500ms, Backend caching (Caffeine) for frequent stats queries, Zero-clutter UI on mobile.
+- ✅ **Finance Management (Simplification & UX):**
+    - **UX:** Fixed "Scrollbar Flicker" by enforcing `min-h-screen` on dashboard container.
+    - **Security/UX:** Removed "Tài Chính" view from Student Sidebar to prevent confusion and clutter.
+    - **Status:** All P1 issues resolved.
 
 ### Now:
-- 🔄 **Feature: Finance Management**
-  - **Goal**: Fix UX glitches and simplify views.
+- 🔄 **Feature: Calendar Management**
+  - **Goal**: Fix Student Schedule bugs & Resume Attachment.
   - **Tasks**:
-    1. Fix Scrollbar Flicker (UX).
-    2. Remove Student View (Simplification).
-  - **Priority**: P1
+    1. Fix Student Schedule (P0) - likely missing data or filter bug.
+    2. Resume Attachment UI (UX).
+  - **Priority**: P0
 
 ### Next:
-- **Calendar**: Fix Student Schedule (P0) & Resume Attachment UI.
 - **Learning**: Fix Student Lesson Tab (P0), Force Delete, & Blurry UI.
 - **Exercises**: Redesign Student Layout (Tutor View), Fix Counts, Full Screen UI.
 - **Documents**: Pagination & Layout tweaks.

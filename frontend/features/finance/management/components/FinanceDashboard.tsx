@@ -16,7 +16,7 @@ function DashboardInner() {
     const actions = useFinanceActions({ confirm });
 
     return (
-        <div className="flex flex-col min-w-0 overflow-x-hidden relative">
+        <div className="flex flex-col min-w-0 overflow-x-hidden relative min-h-screen">
             <DashboardHeader
                 title="Quản Lý Tài Chính"
                 subtitle="Theo dõi doanh thu, công nợ và trạng thái thanh toán"

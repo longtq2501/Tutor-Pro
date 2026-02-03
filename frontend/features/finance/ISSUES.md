@@ -7,12 +7,12 @@
   - Metrics: Current load feels segmented.
 
 ## UX Issues
-- [ ] [P2-Medium] **Scrollbar Flicker**
+- [x] [P2-Medium] **Scrollbar Flicker**
   - **Context**: Switching from "Theo tháng" to "Công nợ".
   - **Issue**: Scrollbar appears momentarily then vanishes.
 
 ## Feature Requests
-- [ ] [P1-High] **Remove Student Finance View** (Student Portal)
+- [x] [P1-High] **Remove Student Finance View** (Student Portal)
   - **User Request**: "Bị thừa view này, hãy xóa nó đi khỏi giao diện của học sinh trong sidebar."
   - **Action**: Remove Finance route/link from Student Sidebar.
 - [x] [P1-High] Unwanted Horizontal Scrollbar

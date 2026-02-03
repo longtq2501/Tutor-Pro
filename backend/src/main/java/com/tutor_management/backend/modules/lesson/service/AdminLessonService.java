@@ -10,6 +10,8 @@ import com.tutor_management.backend.modules.lesson.entity.LessonAssignment;
 import com.tutor_management.backend.modules.lesson.entity.LessonImage;
 import com.tutor_management.backend.modules.lesson.entity.LessonResource;
 import com.tutor_management.backend.modules.lesson.repository.LessonAssignmentRepository;
+import com.tutor_management.backend.modules.course.repository.CourseLessonRepository;
+import com.tutor_management.backend.modules.course.repository.LessonProgressRepository;
 import com.tutor_management.backend.modules.lesson.repository.LessonCategoryRepository;
 import com.tutor_management.backend.modules.lesson.repository.LessonRepository;
 import com.tutor_management.backend.modules.student.entity.Student;
@@ -50,6 +52,8 @@ public class AdminLessonService {
     private final SessionRecordRepository sessionRecordRepository;
     private final TutorRepository tutorRepository;
     private final UserRepository userRepository;
+    private final CourseLessonRepository courseLessonRepository;
+    private final LessonProgressRepository lessonProgressRepository;
 
     private static final String DEFAULT_TUTOR = "Thầy Quỳnh Long";
 
@@ -165,7 +169,19 @@ public class AdminLessonService {
 
         verifyLessonOwnership(lesson);
         int count = lesson.getAssignedStudentCount();
+        
+        // Cleanup all external references (Force Delete)
         sessionRecordRepository.deleteLessonReferences(id);
+        courseLessonRepository.deleteByLessonId(id);
+        lessonProgressRepository.deleteByLessonId(id);
+        
+        // Purge legacy tables if they exist (Fix for DataIntegrityViolationException)
+        try {
+            lessonRepository.deleteLegacyAttachments(id);
+        } catch (Exception e) {
+            log.warn("Could not delete from legacy lesson_attachments table: {}", e.getMessage());
+        }
+        
         lessonRepository.delete(lesson);
         
         log.info("✅ Deleted lesson {} and removed {} student assignments", id, count);

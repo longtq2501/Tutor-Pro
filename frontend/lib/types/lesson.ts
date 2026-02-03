@@ -21,8 +21,8 @@ export interface Lesson {
   lastViewedAt?: string; // LẦN CUỐI CÙNG HỌC SINH XEM BÀI
 
   // MEDIA & TIMESTAMPS
-  images: LessonImage[]; // DANH SÁCH ẢNH MINH HỌA TRONG BÀI HỌC
-  resources: LessonResource[]; // DANH SÁCH TÀI LIỆU ĐÍNH KÈM (PDF, LINK...)
+  images?: LessonImage[]; // DANH SÁCH ẢNH MINH HỌA TRONG BÀI HỌC
+  resources?: LessonResource[]; // DANH SÁCH TÀI LIỆU ĐÍNH KÈM (PDF, LINK...)
   createdAt: string; // THỜI GIAN TẠO BÀI HỌC TRÊN HỆ THỐNG
   updatedAt: string; // THỜI GIAN CẬP NHẬT BÀI HỌC GẦN NHẤT
   category?: {

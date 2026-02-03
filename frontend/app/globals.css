@@ -260,64 +260,112 @@ body {
   }
 
   /* Typography Hierarchy (Google Docs Style) */
-  .lesson-content h1, .tiptap h1 { @apply text-5xl font-black mb-8 mt-10 tracking-tight leading-tight border-none; }
-  .lesson-content h2, .tiptap h2 { @apply text-2xl font-normal mb-8 text-muted-foreground leading-relaxed border-none; }
-  .lesson-content h3, .tiptap h3 { @apply text-3xl font-bold mb-4 mt-8 border-none; }
-  .lesson-content h4, .tiptap h4 { @apply text-2xl font-bold mb-3 mt-6 border-none; }
-  .lesson-content h5, .tiptap h5 { @apply text-xl font-bold mb-2 mt-4 border-none; }
-  .lesson-content p, .tiptap p { @apply mb-4 leading-8; }
+  .lesson-content h1,
+  .tiptap h1 {
+    @apply text-5xl font-black mb-8 mt-10 tracking-tight leading-tight border-none;
+  }
+
+  .lesson-content h2,
+  .tiptap h2 {
+    @apply text-2xl font-normal mb-8 text-muted-foreground leading-relaxed border-none;
+  }
+
+  .lesson-content h3,
+  .tiptap h3 {
+    @apply text-3xl font-bold mb-4 mt-8 border-none;
+  }
+
+  .lesson-content h4,
+  .tiptap h4 {
+    @apply text-2xl font-bold mb-3 mt-6 border-none;
+  }
+
+  .lesson-content h5,
+  .tiptap h5 {
+    @apply text-xl font-bold mb-2 mt-4 border-none;
+  }
+
+  .lesson-content p,
+  .tiptap p {
+    @apply mb-4 leading-8;
+  }
 
   /* Table Styles - Unified for HTML and Markdown */
-  .lesson-content table, .tiptap table {
+  .lesson-content table,
+  .tiptap table {
     @apply my-8 border-collapse w-full overflow-hidden rounded-xl border border-border;
     table-layout: fixed;
   }
 
-  .lesson-content table td, .tiptap table td,
-  .lesson-content table th, .tiptap table th {
+  .lesson-content table td,
+  .tiptap table td,
+  .lesson-content table th,
+  .tiptap table th {
     @apply border border-border p-4;
   }
 
-  .lesson-content table th, .tiptap table th {
+  .lesson-content table th,
+  .tiptap table th {
     @apply bg-muted/40 font-bold text-center text-foreground transition-colors;
   }
 
-  .lesson-content .tableWrapper, .tiptap .tableWrapper {
+  .lesson-content .tableWrapper,
+  .tiptap .tableWrapper {
     @apply overflow-x-auto my-6 rounded-xl border border-border bg-card/30 shadow-sm transition-all;
   }
 
   /* List Styles */
-  .lesson-content ul, .tiptap ul { @apply list-disc list-outside mb-6 ml-8 space-y-2; }
-  .lesson-content ol, .tiptap ol { @apply list-decimal list-outside mb-6 ml-8 space-y-2; }
-  .lesson-content li p, .tiptap li p { @apply my-0; }
+  .lesson-content ul,
+  .tiptap ul {
+    @apply list-disc list-outside mb-6 ml-8 space-y-2;
+  }
+
+  .lesson-content ol,
+  .tiptap ol {
+    @apply list-decimal list-outside mb-6 ml-8 space-y-2;
+  }
+
+  .lesson-content li p,
+  .tiptap li p {
+    @apply my-0;
+  }
 
   /* Image Styles */
-  .lesson-content img, .tiptap img {
+  .lesson-content img,
+  .tiptap img {
     @apply rounded-2xl shadow-xl mx-auto my-10 border border-border/40 transition-all;
   }
 
   /* Code & Pre Styles */
-  .lesson-content pre, .tiptap pre {
+  .lesson-content pre,
+  .tiptap pre {
     @apply bg-muted/50 text-foreground border border-border p-6 rounded-2xl my-8 overflow-x-auto;
   }
 
-  .lesson-content code, .tiptap code {
+  .lesson-content code,
+  .tiptap code {
     @apply text-primary bg-primary/10 rounded-md px-1.5 py-0.5 font-medium before:content-none after:content-none;
   }
 
   /* Alignment Overrides (Essential for Tiptap & Markdown) */
-  .lesson-content .text-center, .tiptap .text-center,
-  .lesson-content [data-text-align="center"], .tiptap [data-text-align="center"] {
+  .lesson-content .text-center,
+  .tiptap .text-center,
+  .lesson-content [data-text-align="center"],
+  .tiptap [data-text-align="center"] {
     text-align: center !important;
   }
 
-  .lesson-content .text-right, .tiptap .text-right,
-  .lesson-content [data-text-align="right"], .tiptap [data-text-align="right"] {
+  .lesson-content .text-right,
+  .tiptap .text-right,
+  .lesson-content [data-text-align="right"],
+  .tiptap [data-text-align="right"] {
     text-align: right !important;
   }
 
-  .lesson-content .text-left, .tiptap .text-left,
-  .lesson-content [data-text-align="left"], .tiptap [data-text-align="left"] {
+  .lesson-content .text-left,
+  .tiptap .text-left,
+  .lesson-content [data-text-align="left"],
+  .tiptap [data-text-align="left"] {
     text-align: left !important;
   }
 
@@ -325,7 +373,10 @@ body {
   .tiptap table .selectedCell:after {
     background: rgba(200, 200, 255, 0.4);
     content: "";
-    left: 0; right: 0; top: 0; bottom: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
     pointer-events: none;
     position: absolute;
     z-index: 2;
@@ -335,7 +386,10 @@ body {
     @apply bg-primary/30 w-1 absolute right-[-2px] top-0 bottom-[-2px] pointer-events-none;
   }
 
-  .tiptap .resize-cursor { cursor: col-resize; }
+  .tiptap .resize-cursor {
+    cursor: col-resize;
+  }
+
   .tiptap p.is-editor-empty:first-child::before {
     @apply text-muted-foreground/30 content-[attr(data-placeholder)] float-left h-0 pointer-events-none;
   }

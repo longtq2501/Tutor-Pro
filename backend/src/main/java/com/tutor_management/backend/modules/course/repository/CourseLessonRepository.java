@@ -40,6 +40,14 @@ public interface CourseLessonRepository extends JpaRepository<CourseLesson, Long
     void deleteAllByCourse(@Param("course") Course course);
 
     /**
+     * Detaches a specific lesson from all courses it belongs to.
+     * Part of the "Force Delete" logic.
+     */
+    @Modifying
+    @Query("DELETE FROM CourseLesson cl WHERE cl.lesson.id = :lessonId")
+    void deleteByLessonId(@Param("lessonId") Long lessonId);
+
+    /**
      * Finds CourseLesson by course and lesson IDs.
      */
     Optional<CourseLesson> findByCourseIdAndLessonId(Long courseId, Long lessonId);

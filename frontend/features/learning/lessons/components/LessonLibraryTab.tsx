@@ -645,7 +645,10 @@ export function LessonLibraryTab() {
             <AlertDialogDescription className="text-base">
               Bạn có chắc chắn muốn xóa bài giảng "
               <span className="font-bold text-foreground">{selectedLesson?.title}</span>"?
-              Hành động này sẽ xóa bài giảng khỏi kho và <span className="text-destructive font-semibold">không thể hoàn tác</span>.
+              <br /><br />
+              <span className="text-destructive font-semibold">Cảnh báo:</span> Hành động này sẽ gỡ bài giảng khỏi
+              <span className="font-bold"> toàn bộ buổi học và khóa học </span>
+              có liên quan. Dữ liệu <span className="text-destructive font-semibold">không thể hoàn tác</span>.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-3 sm:gap-0">

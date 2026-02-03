@@ -65,8 +65,8 @@ Optimize existing TMS from "functional" to "production-ready":
 - 🔄 **Feature: Learning (Lessons)**
   - **Goal**: Fix Student Lesson Tab (P0), Force Delete, & Blurry UI.
   - **Tasks**:
-    1. Fix Student Lesson Tab data loading.
-    2. Implement Force Delete for Lessons.
+    1. ✅ Fix Student Lesson Tab data loading.
+    2. ✅ Implement Force Delete for Lessons.
     3. Resolve Blurry UI issues in lesson preview.
   - **Priority**: P0
 

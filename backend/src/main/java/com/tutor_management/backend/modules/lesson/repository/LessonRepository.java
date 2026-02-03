@@ -103,4 +103,12 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
            "LEFT JOIN FETCH l.category " +
            "WHERE l.id = :id")
     java.util.Optional<Lesson> findByIdWithDetails(@org.springframework.data.repository.query.Param("id") Long id);
+
+    /**
+     * Purges legacy attachments that might exist in the database from previous versions.
+     * This is a "Force Delete" safety measure for database consistency.
+     */
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM lesson_attachments WHERE lesson_id = :lessonId", nativeQuery = true)
+    void deleteLegacyAttachments(@org.springframework.data.repository.query.Param("lessonId") Long lessonId);
 }

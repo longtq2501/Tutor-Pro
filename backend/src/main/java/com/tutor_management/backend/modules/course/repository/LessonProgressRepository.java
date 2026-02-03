@@ -19,6 +19,10 @@ public interface LessonProgressRepository extends JpaRepository<LessonProgress, 
 
     List<LessonProgress> findByStudentId(Long studentId);
 
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("DELETE FROM LessonProgress lp WHERE lp.lesson.id = :lessonId")
+    void deleteByLessonId(@Param("lessonId") Long lessonId);
+
     /**
      * Retrieves lesson progress for a student with lesson metadata pre-loaded.
      */

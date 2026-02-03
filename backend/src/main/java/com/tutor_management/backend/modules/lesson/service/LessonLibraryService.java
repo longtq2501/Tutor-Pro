@@ -14,6 +14,9 @@ import com.tutor_management.backend.modules.tutor.entity.Tutor;
 import com.tutor_management.backend.modules.tutor.repository.TutorRepository;
 import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.auth.UserRepository;
+import com.tutor_management.backend.modules.course.repository.CourseLessonRepository;
+import com.tutor_management.backend.modules.course.repository.LessonProgressRepository;
+import com.tutor_management.backend.modules.finance.repository.SessionRecordRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -44,6 +47,9 @@ public class LessonLibraryService {
     private final LessonCategoryRepository categoryRepository;
     private final TutorRepository tutorRepository;
     private final UserRepository userRepository;
+    private final SessionRecordRepository sessionRecordRepository;
+    private final CourseLessonRepository courseLessonRepository;
+    private final LessonProgressRepository lessonProgressRepository;
 
     /**
      * Resolves the current tutor ID from the security context.
@@ -62,6 +68,23 @@ public class LessonLibraryService {
         return tutorRepository.findByUserId(user.getId())
                 .map(Tutor::getId)
                 .orElse(null);
+    }
+
+    /**
+     * Verifies that the current user owns the lesson.
+     * Admins bypass this check.
+     * 
+     * @param lesson The lesson to verify ownership for
+     * @throws RuntimeException if ownership check fails
+     */
+    private void verifyLessonOwnership(Lesson lesson) {
+        Long currentTutorId = getCurrentTutorId();
+        if (currentTutorId == null) {
+            return; // Admin can access all
+        }
+        if (lesson.getTutor() == null || !lesson.getTutor().getId().equals(currentTutorId)) {
+            throw new RuntimeException("You do not have permission to modify this lesson");
+        }
     }
 
     /**
@@ -203,6 +226,22 @@ public class LessonLibraryService {
     public void deleteLibraryLesson(Long lessonId) {
         Lesson lesson = lessonRepository.findByIdWithDetails(lessonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài giảng."));
+        
+        verifyLessonOwnership(lesson);
+
+        // Cleanup external references (Force Delete)
+        sessionRecordRepository.deleteLessonReferences(lessonId);
+        courseLessonRepository.deleteByLessonId(lessonId);
+        lessonProgressRepository.deleteByLessonId(lessonId);
+
+        // Purge legacy tables if they exist (Fix for DataIntegrityViolationException)
+        try {
+            lessonRepository.deleteLegacyAttachments(lessonId);
+        } catch (Exception e) {
+            log.warn("Could not delete from legacy lesson_attachments table: {}", e.getMessage());
+        }
+
         lessonRepository.delete(lesson);
+        log.info("✅ Deleted library lesson {} and all references", lessonId);
     }
 }

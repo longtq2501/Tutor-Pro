@@ -20,8 +20,6 @@ interface EditModeFormProps {
     setActiveTab: (tab: 'lessons' | 'documents') => void;
     searchTerm: string;
     setSearchTerm: (term: string) => void;
-    sortBy: string;
-    setSortBy: (sort: string) => void;
     selectedCategory: string;
     setSelectedCategory: (cat: string) => void;
     categories: string[];
@@ -40,7 +38,7 @@ export function EditModeForm({
     ...libraryProps
 }: EditModeFormProps) {
     return (
-        <form id="premium-edit-form" onSubmit={handleSubmit} className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-300">
+        <form id="premium-edit-form" onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden space-y-4 animate-in fade-in slide-in-from-right-2 duration-300">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                     <label className="text-[10px] sm:text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Bắt đầu</label>

@@ -77,7 +77,7 @@ public class SessionRecordService {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("User not found"));
         
-        if (user.getRole() == Role.ADMIN) {
+        if (user.getRole() == Role.ADMIN || user.getRole() == Role.STUDENT) {
             return null;
         }
         
@@ -409,7 +409,7 @@ public class SessionRecordService {
         }
 
         return sessionRecordRepository.findByStudentAndMonthFilteredOrderByDateAsc(student, month).stream()
-                .map(this::mapToListResponse)
+                .map(this::mapToFullResponse)
                 .collect(Collectors.toList());
     }
 

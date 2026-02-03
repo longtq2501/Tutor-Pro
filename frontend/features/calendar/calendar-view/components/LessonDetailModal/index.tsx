@@ -32,8 +32,6 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
         setSearchTerm,
         selectedCategory,
         setSelectedCategory,
-        sortBy,
-        setSortBy,
         selectedLessonIds,
         selectedDocumentIds,
         filteredItems,
@@ -98,9 +96,12 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
                         "flex flex-col bg-background min-h-0",
                         isTaughtOrPaid
                             ? "lg:h-full lg:w-1/3 border-b lg:border-b-0 lg:border-r border-border/60"
-                            : "w-full"
+                            : "w-full h-full"
                     )}>
-                        <div className="flex-1 overflow-y-auto no-scrollbar p-4 sm:p-6 space-y-6">
+                        <div className={cn(
+                            "flex-1 no-scrollbar p-4 sm:p-6",
+                            mode === 'edit' ? "flex flex-col h-full overflow-hidden gap-6" : "overflow-y-auto space-y-6"
+                        )}>
                             <StudentCard session={localSession} />
 
                             {mode === 'view' ? (
@@ -114,8 +115,6 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
                                     setActiveTab={setActiveTab}
                                     searchTerm={searchTerm}
                                     setSearchTerm={setSearchTerm}
-                                    sortBy={sortBy}
-                                    setSortBy={setSortBy}
                                     selectedCategory={selectedCategory}
                                     setSelectedCategory={setSelectedCategory}
                                     categories={categories}

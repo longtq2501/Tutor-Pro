@@ -56,16 +56,21 @@ Optimize existing TMS from "functional" to "production-ready":
     - **Security/UX:** Removed "Tài Chính" view from Student Sidebar to prevent confusion and clutter.
     - **Status:** All P1 issues resolved.
 
+- ✅ **Calendar Module Hardening:** Corrected critical bugs and polished attachment UI for production.
+    - **Student View:** Fixed 500-error crash for Students by updating `getCurrentTutorId` and ensured attachments load via `mapToFullResponse`.
+    - **Attachment UI (Polish):** Replaced cluttered horizontal category list with a premium Shadcn UI `Select`. Fixed layout constraints to ensure internal scrolling (zero horizontal overflow).
+    - **Code Quality:** Cleaned up obsolete `sortBy` state, improving component modularity and reducing re-renders.
+
 ### Now:
-- 🔄 **Feature: Calendar Management**
-  - **Goal**: Fix Student Schedule bugs & Resume Attachment.
+- 🔄 **Feature: Learning (Lessons)**
+  - **Goal**: Fix Student Lesson Tab (P0), Force Delete, & Blurry UI.
   - **Tasks**:
-    1. Fix Student Schedule (P0) - likely missing data or filter bug.
-    2. Resume Attachment UI (UX).
+    1. Fix Student Lesson Tab data loading.
+    2. Implement Force Delete for Lessons.
+    3. Resolve Blurry UI issues in lesson preview.
   - **Priority**: P0
 
 ### Next:
-- **Learning**: Fix Student Lesson Tab (P0), Force Delete, & Blurry UI.
 - **Exercises**: Redesign Student Layout (Tutor View), Fix Counts, Full Screen UI.
 - **Documents**: Pagination & Layout tweaks.
 - **Student Portal**: Header Titles.

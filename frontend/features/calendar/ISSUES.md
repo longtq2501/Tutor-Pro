@@ -1,18 +1,23 @@
 # Calendar - Issues & Optimization (Updated)
 
 ## New Issues (Feb 3)
-### [ ] [P0-Critical] Component "Lịch học của bạn" (Student View) bị lỗi
-- **Issue**: Student calendar/schedule list is blank/broken.
-- **Priority**: Critical (Student cannot see schedule).
+### [x] [P0-Critical] Component "Lịch học của bạn" (Student View) bị lỗi
+- **Issue**: Student calendar/schedule list is blank/broken (Missing attachments).
+- **Resolution**: Updated `SessionRecordService` to use `mapToFullResponse` instead of `layoutResponse`, ensuring `documents` and `lessons` are included in the API response.
 
-### [ ] [P1-High] UI Đính kèm tài liệu/bài giảng vào Sessions (Tutor View)
-- **Problem**: 
-  - Horizontal scrollbar appears due to non-responsive category list.
-  - "Filter Mới & Tên" is redundant.
-- **Solution**: 
-  - Remove "Mới & Tên" filter on the right.
-  - Convert Category List (bottom) into a **Dropdown/Selection** placed where the filter was.
-  - Apply same fix for **Documents** and **Lessons** (Kho bài giảng).
+
+### [x] [P1-High] UI Đính kèm tài liệu/bài giảng vào Sessions (Tutor View) - Refactor Category
+- **Issue**: Horizontal scrollbar due to non-responsive category list and redundant sort filter.
+- **Resolution**: Replaced horizontal category list with a dropdown and removed redundant sort filter.
+
+### [ ] [P1-High] UI Đính kèm tài liệu/bài giảng - Polish & Layout
+- **Vấn đề 1**: Container chứa tài liệu hiển thị quá cao, gây ra thanh scroll lớn cho modal thay vì scroll nội bộ gọn gàng.
+- **Vấn đề 2**: Dropdown selection bị lỗi màu sắc (khi click mà chưa hover) và icon mũi tên bị lệch vị trí.
+- **Giải pháp**: 
+  - Điều chỉnh Flex layout để List chiếm đúng không gian còn lại (fill space) mà không làm modal bị tràn.
+  - Sử dụng Shadcn Select component thay cho native select để có UI/UX đồng nhất, chuẩn xác vị trí icon và màu sắc.
+
+
 
 ## Performance Issues
 

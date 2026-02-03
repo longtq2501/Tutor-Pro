@@ -48,7 +48,6 @@ export function useLessonDetailModal({ session, onClose, onUpdate, onDelete, ini
     const [searchTerm, setSearchTerm] = useState('');
     const debouncedSearch = useDebounce(searchTerm, 300);
     const [selectedCategory, setSelectedCategory] = useState('all');
-    const [sortBy, setSortBy] = useState('recent');
 
     // Library selection state
     const [selectedLessonIds, setSelectedLessonIds] = useState<Set<number>>(new Set());
@@ -211,14 +210,11 @@ export function useLessonDetailModal({ session, onClose, onUpdate, onDelete, ini
                 return true;
             })
             .sort((a, b) => {
-                if (sortBy === 'name') {
-                    return (a.title || '').localeCompare(b.title || '', 'vi');
-                }
                 const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
                 const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
                 return dateB - dateA;
             });
-    }, [activeTab, libraryLessons, libraryDocuments, debouncedSearch, selectedCategory, sortBy]);
+    }, [activeTab, libraryLessons, libraryDocuments, debouncedSearch, selectedCategory]);
 
     const categories: string[] = useMemo(() => {
         const items = activeTab === 'lessons' ? libraryLessons : libraryDocuments;
@@ -333,8 +329,6 @@ export function useLessonDetailModal({ session, onClose, onUpdate, onDelete, ini
         setSearchTerm,
         selectedCategory,
         setSelectedCategory,
-        sortBy,
-        setSortBy,
         selectedLessonIds,
         selectedDocumentIds,
 

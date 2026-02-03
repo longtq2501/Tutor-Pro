@@ -2,14 +2,19 @@ import { cn } from '@/lib/utils';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Check, Search, X } from 'lucide-react';
 import { useRef } from 'react';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 interface LibrarySelectionProps {
     activeTab: 'lessons' | 'documents';
     setActiveTab: (tab: 'lessons' | 'documents') => void;
     searchTerm: string;
     setSearchTerm: (term: string) => void;
-    sortBy: string;
-    setSortBy: (sort: string) => void;
     selectedCategory: string;
     setSelectedCategory: (cat: string) => void;
     categories: string[];
@@ -26,8 +31,6 @@ export function LibrarySelection({
     setActiveTab,
     searchTerm,
     setSearchTerm,
-    sortBy,
-    setSortBy,
     selectedCategory,
     setSelectedCategory,
     categories,
@@ -56,7 +59,7 @@ export function LibrarySelection({
     };
 
     return (
-        <div className="space-y-3 pt-3 border-t border-border/60 flex flex-col h-full overflow-hidden">
+        <div className="space-y-3 pt-3 border-t border-border/60 flex flex-col flex-1 min-h-0 overflow-hidden">
             {/* Stats Bar */}
             <div className="grid grid-cols-3 gap-2 px-1">
                 <div className="flex flex-col items-center p-1.5 sm:p-2 bg-primary/5 rounded-lg border border-primary/10">
@@ -122,41 +125,29 @@ export function LibrarySelection({
                         </button>
                     )}
                 </div>
-                <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="px-2 sm:px-3 py-2 border border-border/60 rounded-xl focus:border-primary/50 focus:ring-4 focus:ring-primary/10 bg-background text-[10px] font-bold outline-none cursor-pointer hover:bg-muted/30 transition-colors max-w-[80px] sm:max-w-none"
+                <Select
+                    value={selectedCategory}
+                    onValueChange={(val) => setSelectedCategory(val)}
                 >
-                    <option value="recent">Mới</option>
-                    <option value="name">Tên</option>
-                </select>
+                    <SelectTrigger className="w-auto min-w-[120px] h-10 border-border/60 rounded-xl bg-background text-[10px] sm:text-xs font-semibold hover:bg-muted/30 transition-colors focus:ring-4 focus:ring-primary/10">
+                        <SelectValue placeholder="Danh mục" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-border/60 shadow-xl max-h-[300px]">
+                        {categories.map(cat => (
+                            <SelectItem key={cat} value={cat} className="text-xs font-medium">
+                                {cat === 'all' ? '✨ Tất cả' : cat}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </div>
 
-            {/* Categories */}
-            {categories.length > 1 && (
-                <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar mask-gradient-right">
-                    {categories.map(cat => (
-                        <button
-                            key={cat}
-                            type="button"
-                            onClick={() => setSelectedCategory(cat)}
-                            className={cn(
-                                "px-2.5 py-1 rounded-full text-[9px] sm:text-[10px] font-bold whitespace-nowrap transition-all border",
-                                selectedCategory === cat
-                                    ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
-                                    : "bg-background border-border hover:border-primary/50 hover:bg-primary/5 text-muted-foreground"
-                            )}
-                        >
-                            {cat === 'all' ? '✨ Tất cả' : cat}
-                        </button>
-                    ))}
-                </div>
-            )}
+
 
             {/* Virtualized List - Dynamic Height */}
             <div
                 ref={parentRef}
-                className="flex-1 overflow-auto border border-border/60 rounded-xl bg-muted/20 min-h-[200px] sm:min-h-[300px] max-h-[40vh] sm:max-h-[50vh] no-scrollbar relative"
+                className="flex-1 overflow-auto border border-border/60 rounded-xl bg-muted/20 min-h-[150px] no-scrollbar relative"
             >
                 {filteredItems.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 animate-in fade-in zoom-in-95 duration-300">

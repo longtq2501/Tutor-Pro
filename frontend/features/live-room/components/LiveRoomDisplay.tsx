@@ -13,6 +13,7 @@ import { RoomHeader } from './RoomHeader';
 import { MobileNavigation, RoomTab } from './MobileNavigation';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { ErrorRecoveryDialog } from './ErrorRecoveryDialog';
+import { MediaFallbackUI } from './MediaFallbackUI';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useHeartbeat } from '../hooks/useHeartbeat';
 import { useRoomSync } from '../hooks/useRoomSync';
@@ -132,16 +133,29 @@ export const LiveRoomDisplay: React.FC<LiveRoomDisplayProps> = ({ roomId, curren
                         isRecording={media.isRecording}
                     />
 
-                    <RoomMainContent
-                        roomId={roomId}
-                        currentUserId={currentUserId}
-                        activeTab={activeTab}
-                        media={media}
-                        sendMessage={sendMessage}
-                        onTabChange={handleTabChange}
-                    />
+                    {media.error ? (
+                        <div className="flex-1 flex items-center justify-center bg-background/50 backdrop-blur-sm z-10">
+                            <MediaFallbackUI
+                                error={media.error}
+                                isLoading={media.isLoading}
+                                onRetry={() => media.retry()}
+                                devices={media.devices}
+                            />
+                        </div>
+                    ) : (
+                        <RoomMainContent
+                            roomId={roomId}
+                            currentUserId={currentUserId}
+                            activeTab={activeTab}
+                            media={media}
+                            sendMessage={sendMessage}
+                            onTabChange={handleTabChange}
+                        />
+                    )}
 
-                    <MobileNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+                    {isMobile && (
+                        <MobileNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+                    )}
                 </div>
             </div>
 

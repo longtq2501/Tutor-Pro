@@ -38,7 +38,7 @@ export const ExerciseTable: React.FC<ExerciseTableProps> = ({
     const isStudent = role === 'STUDENT';
 
     return (
-        <div className="relative">
+        <div className="relative overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
             <Table>
                 <TableHeader className="sticky top-0 bg-background/80 backdrop-blur-md z-20 shadow-sm border-b">
                     <TableRow className="hover:bg-transparent border-none">
@@ -97,7 +97,7 @@ export const ExerciseTable: React.FC<ExerciseTableProps> = ({
                                 {ex.createdAt ? format(new Date(ex.createdAt), 'dd/MM/yyyy') : '-'}
                             </TableCell>
                             <TableCell className="py-4 px-6 text-right">
-                                <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
+                                <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-0">
                                     {isStudent ? (
                                         <div className="flex gap-2">
                                             {ex.submissionId && (ex.submissionStatus === 'SUBMITTED' || ex.submissionStatus === 'GRADED') ? (

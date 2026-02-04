@@ -97,7 +97,7 @@ export default function ExerciseDashboard() {
 
     return (
         <TooltipProvider>
-            <div className={cn("flex flex-col", viewMode === 'LIST' ? "h-full space-y-4" : "space-y-6")}>
+            <div className={cn("flex flex-col min-h-0 overflow-hidden", viewMode === 'LIST' ? "max-h-[calc(100vh-13.5rem)] h-fit space-y-4" : "space-y-6")}>
                 <div className="shrink-0">
                     <DashboardHeader
                         title={headerContent.title}
@@ -131,42 +131,44 @@ export default function ExerciseDashboard() {
                 )}
 
                 {viewMode === 'LIST' && (
-                    isTeacher ? (
-                        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'STUDENTS' | 'LIBRARY')} className="w-full space-y-6">
-                            <TabsContent value="STUDENTS" className="mt-0 outline-none">
-                                {selectedStudent ? (
-                                    <StudentDetailView
-                                        studentSummary={selectedStudent}
-                                        onBack={() => setSelectedStudent(null)}
-                                        onViewExercise={(ex, action) => {
-                                            if (action === 'GRADE') {
-                                                setSelectedSubmissionId(ex.submissionId || '');
-                                                setViewMode('GRADE');
-                                            } else if (action === 'REVIEW') {
-                                                setSelectedSubmissionId(ex.submissionId || '');
-                                                setViewMode('REVIEW');
-                                            }
-                                        }}
-                                    />
-                                ) : (
-                                    <TutorStudentGrid onSelectStudent={setSelectedStudent} />
-                                )}
-                            </TabsContent>
+                    <div className="flex-1 flex flex-col min-h-0">
+                        {isTeacher ? (
+                            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'STUDENTS' | 'LIBRARY')} className="w-full flex-1 flex flex-col space-y-6">
+                                <TabsContent value="STUDENTS" className="mt-0 outline-none flex-1 flex flex-col">
+                                    {selectedStudent ? (
+                                        <StudentDetailView
+                                            studentSummary={selectedStudent}
+                                            onBack={() => setSelectedStudent(null)}
+                                            onViewExercise={(ex, action) => {
+                                                if (action === 'GRADE') {
+                                                    setSelectedSubmissionId(ex.submissionId || '');
+                                                    setViewMode('GRADE');
+                                                } else if (action === 'REVIEW') {
+                                                    setSelectedSubmissionId(ex.submissionId || '');
+                                                    setViewMode('REVIEW');
+                                                }
+                                            }}
+                                        />
+                                    ) : (
+                                        <TutorStudentGrid onSelectStudent={setSelectedStudent} />
+                                    )}
+                                </TabsContent>
 
-                            <TabsContent value="LIBRARY" className="mt-0 outline-none">
-                                <ExerciseList
-                                    role={role}
-                                    onSelectExercise={handleSelectExercise}
-                                    onCreateNew={() => setViewMode('IMPORT')}
-                                />
-                            </TabsContent>
-                        </Tabs>
-                    ) : (
-                        <ExerciseList
-                            role={role}
-                            onSelectExercise={handleSelectExercise}
-                        />
-                    )
+                                <TabsContent value="LIBRARY" className="mt-0 outline-none flex-1 flex flex-col">
+                                    <ExerciseList
+                                        role={role}
+                                        onSelectExercise={handleSelectExercise}
+                                        onCreateNew={() => setViewMode('IMPORT')}
+                                    />
+                                </TabsContent>
+                            </Tabs>
+                        ) : (
+                            <ExerciseList
+                                role={role}
+                                onSelectExercise={handleSelectExercise}
+                            />
+                        )}
+                    </div>
                 )}
             </div>
         </TooltipProvider>

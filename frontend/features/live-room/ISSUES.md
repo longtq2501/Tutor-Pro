@@ -81,17 +81,7 @@
   - **Impact**: Prevents "dialog hell" and allows users to gracefully return to the dashboard.
   - **Files Changed**: `LiveRoomDisplay.tsx`.
 
-## UI IssuesĐọc CONTINUITY.md, GEMINI.md, CLEAN_CODE_CRITERIA.md và frontend\features\live-room\ISSUES.md.
-
-Fix issue: [P0-Critical] Whiteboard real-time sync lag/dropouts.
-
-Requirements:
-- Follow GEMINI.md rules (naming, function length < 50, add tests)
-- Follow CLEAN_CODE_CRITERIA.md (JSDoc, error handling, validation)
-- Target performance < 2s
-- Update ISSUES.md when done
-
-Current code:
+## UI Issues
 - [x] [P0-Critical] Live Room UI not full-width/responsive
   - **RESOLVED**: Implemented Full-Screen Takeover in `DashboardPage`.
   - **Solution**: When `view=live-room` and `roomId` are present, `DashboardPage` returns a fixed, full-screen container (`z-50`), bypassing Sidebar and Header.
@@ -99,6 +89,10 @@ Current code:
   - **Files Changed**: `frontend/app/dashboard/page.tsx`
 
 ## Functional Issues
+- [x] [P1-High] **Media access failure: NotReadableError**
+  - **Status**: COMPLETED
+  - **Resolution**: Improved error normalization in `useMediaStream` to catch "Could not start video source" and other hardware lock scenarios. Integrated the previously unused `MediaFallbackUI` into `LiveRoomDisplay` to provide explicit Vietnamese guidance ("Vui lòng đóng các ứng dụng khác đang dùng Camera/Micro") instead of a generic failure modal or crash.
+  - **Image**: `uploaded_media_1770187682934.png`
 - [ ] [P0-Critical] Connection Failed modal stuck in infinite loop
   - Problem: User unable to exit "Connection Failed" modal. Reappears immediately after action.
   - Context: Potential regression of "Infinite retry loop".

@@ -73,6 +73,7 @@ Optimize existing TMS from "functional" to "production-ready":
     - **UI/UX**: Transitioned student "Take Exam" to a **dedicated full-screen route** (`/exercises/[id]/take`) with premium glassmorphism and dynamic backgrounds.
     - **Optimization**: Implemented "Review Mode" for students to see detailed results and correct answers post-submission.
     - **Layout**: Restored efficient **inline grading & review** for tutors within the dashboard.
+    - **Layout Polish**: Resolved critical scrollbar flicker and excessive footer space by implementing a purely flexbox-driven architecture across the list and table components.
     - **Mobile**: Optimized success screen and navigation for iPhone SE/16.
   - **Status**: All P0/P1 issues resolved.
   - **Priority**: P1

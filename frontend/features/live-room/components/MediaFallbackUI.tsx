@@ -68,8 +68,8 @@ export const MediaFallbackUI: React.FC<MediaFallbackUIProps> = ({
                 };
             case 'NotReadableError':
                 return {
-                    title: 'Thiết bị đang bận',
-                    description: 'Thiết bị đang được sử dụng bởi ứng dụng khác (vd: Zoom, Teams). Vui lòng đóng chúng.',
+                    title: 'Thiết bị đang bận hoặc lỗi phần cứng',
+                    description: 'Camera hoặc Micro đang được sử dụng bởi ứng dụng khác (vd: Zoom, Teams, Zalo) hoặc gặp lỗi phần cứng. Vui lòng đóng các ứng dụng khác và thử lại.',
                     icon: <MicOff className="h-6 w-6 text-orange-500" />
                 };
             case 'TypeError':

@@ -23,14 +23,15 @@ interface ExerciseListProps {
     onCreateNew?: () => void;
 }
 
+/**
+ * Empty state component shown when no exercises are found.
+ */
 const EmptyState = () => (
-    <div className="text-center py-12 space-y-3">
-        <div className="flex justify-center">
-            <div className="bg-muted p-4 rounded-full">
-                <FileText className="h-8 w-8 text-muted-foreground/50" />
-            </div>
+    <div className="flex flex-col items-center justify-center py-12 space-y-3 min-h-[200px]">
+        <div className="bg-muted p-4 rounded-full">
+            <FileText className="h-8 w-8 text-muted-foreground/50" />
         </div>
-        <p className="text-muted-foreground">Chưa có bài tập nào.</p>
+        <p className="text-muted-foreground font-medium">Chưa có bài tập nào.</p>
     </div>
 );
 
@@ -41,10 +42,16 @@ const EmptyState = () => (
 export const ExerciseList: React.FC<ExerciseListProps> = ({ role, onSelectExercise, onCreateNew }) => {
     const l = useExerciseListLogic(role);
 
-    if (l.isExercisesLoading) return <div className="h-[calc(100vh-14rem)]"><ExerciseListSkeleton /></div>;
+    if (l.isExercisesLoading) {
+        return (
+            <div className="w-full h-auto max-h-full">
+                <ExerciseListSkeleton />
+            </div>
+        );
+    }
 
     return (
-        <Card className="animate-in fade-in slide-in-from-bottom-2 duration-400 flex flex-col h-[calc(100vh-14rem)] overflow-hidden border-none shadow-xl bg-gradient-to-br from-card to-muted/20">
+        <Card className="animate-in fade-in slide-in-from-bottom-2 duration-400 flex flex-col h-auto max-h-full overflow-hidden border-none shadow-xl bg-gradient-to-br from-card to-muted/20">
             <CardHeader className="py-4 px-6 flex flex-row items-center justify-between border-b shrink-0 bg-background/50 backdrop-blur-sm z-10">
                 <CardTitle className="text-xl font-black flex items-center gap-2 tracking-tight">
                     <FileText className="h-5 w-5 text-primary" />

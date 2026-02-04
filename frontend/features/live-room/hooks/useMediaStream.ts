@@ -115,15 +115,32 @@ export const useMediaStream = (
         } catch (err: any) {
             // Silence console error for common/expected hardware missing scenarios 
             // the error is still propagated to the UI via state.
-            if (err.name !== 'NotFoundError' && err.name !== 'DevicesNotFoundError') {
-                console.error('Media access error:', err);
+            const errName = err.name || '';
+            const errMessage = err.message || '';
+
+            if (errName !== 'NotFoundError' && errName !== 'DevicesNotFoundError') {
+                console.warn('Media access error (handled):', { name: errName, message: errMessage });
             }
-            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') setError('NotAllowedError');
-            else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') setError('NotFoundError');
-            else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') setError('NotReadableError');
-            else if (err.name === 'OverconstrainedError') setError('OverconstrainedError');
-            else if (err.name === 'TypeError') setError('TypeError');
-            else setError('UnknownError');
+
+            if (errName === 'NotAllowedError' || errName === 'PermissionDeniedError' || errName === 'SecurityError') {
+                setError('NotAllowedError');
+            } else if (errName === 'NotFoundError' || errName === 'DevicesNotFoundError') {
+                setError('NotFoundError');
+            } else if (
+                errName === 'NotReadableError' ||
+                errName === 'TrackStartError' ||
+                errName === 'SourceUnavailableError' ||
+                errMessage.includes('Could not start video source') ||
+                errMessage.includes('hardware error')
+            ) {
+                setError('NotReadableError');
+            } else if (errName === 'OverconstrainedError') {
+                setError('OverconstrainedError');
+            } else if (errName === 'TypeError') {
+                setError('TypeError');
+            } else {
+                setError('UnknownError');
+            }
             setStream(null);
         } finally {
             setIsLoading(false);

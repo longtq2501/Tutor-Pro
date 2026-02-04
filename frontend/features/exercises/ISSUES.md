@@ -2,6 +2,14 @@
 
 ## 📋 Active Items
 
+### User Feedback (Feb 4) - Layout Polish
+- [x] [P2-Medium] **Unwanted Scrollbar in Exercise List**
+  - **Status**: COMPLETED
+  - **Resolution**: Replaced hardcoded height `calc` with a robust flexbox-based layout (`flex-1`) in `ExerciseList.tsx`. Optimized `ExerciseTable.tsx` with `overflow-x-auto` to handle horizontal overflow without breaking the dashboard layout. Ensured full-height inheritance through the `Tabs` and `TabsContent` hierarchy in `exercise-dashboard.tsx`.
+- [x] [P2-Medium] **Excessive Footer Space**
+  - **Status**: COMPLETED
+  - **Resolution**: Transitioned from a fixed `h-full` stretching architecture to an adaptive `h-fit` with `max-h` constraints. This allows the exercise card to shrink when items are few, eliminating the empty space, while still capping the height at the viewport limit and enabling internal scrolling for large datasets.
+
 ### User Feedback (Feb 3) - Tutor View
 - [x] [P1-High] **Student Performance View Redesign**
   - **Status**: COMPLETED

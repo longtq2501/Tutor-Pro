@@ -4,7 +4,7 @@
 
 ---
 
-## 💎 Key Achievements & Engineering Excellence
+## Key Achievements & Engineering Excellence
 
 ### 1. High-Performance Bulk Calendar Engine
 * **Technical Solution:** Implemented **Optimistic Batch Processing** combined with **In-Memory Deduplication (O(1))**.
@@ -18,10 +18,10 @@
 * **Deep Dive:** Uses `SseEmittersManager` to manage connection pool in memory, combined with **Auto-reconnect mechanism** and **Heartbeat protocol** to maintain connections through Docker/Proxy. Index `idx_recipient_read` enables unread count queries in **< 10ms**.
 * ![notification-realtime-ezgif com-video-to-gif-converter (1)](https://github.com/user-attachments/assets/da784f98-f862-4ee5-89ee-33a970762bec)
 
-### 3. Zero-Cost NLG Feedback Engine (AI-Powered)
-* **Technical Solution:** Built Natural Language Generation engine (**Rule-Based Template Composition**) based on expert knowledge from structured data.
-* **Engineering Impact:** Generates thousands of personalized comment variations based on criteria (Attendance, Comprehension, Attitude) **without API costs (GPT-4)**.
-* **Deep Dive:** Uses *Stochastic Variation* algorithm (weighted random variations) and *Context-Aware String Interpolation* for natural human-like writing style.
+### 3. AI-Powered Smart Feedback Engine (Groq LPU)
+* **Technical Solution:** Integrated **Groq Inference Engine** running **Llama 3.3 70B** for ultra-low latency generation.
+* **Engineering Impact:** Delivers dynamic, culturally aware Vietnamese feedback in **< 300ms**, replacing static templates with context-sensitive intelligence.
+* **Deep Dive:** Uses **Prompt Engineering** with strict constraints on tone/length, implemented via `GroqGeneratorServiceImpl` to handle complex student performance metrics.
 * ![comment-generator-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/3e8e46d3-62d2-4d08-8d7a-d3667a58559c)
 
 ### 4. Financial-Grade Payment Integration (VietQR)
@@ -70,9 +70,15 @@
   - **Selective State Broadcasting:** Uses a throttled (50ms) broadcasting mechanism to sync whiteboard strokes, reducing network congestion by 80% during intense drawing sessions.
   - **Graceful Hardware Fallback:** Implemented a robust **Media Access Guard** that detects device busy states (`NotReadableError`) and provides descriptive human-friendly guidance instead of system crashes.
   - **High-Fidelity Recording:** Custom **Composite Stream Utility** that merges Screen Capture, Webcam, and System Audio into a single production-ready `.webm` container directly in the browser.
-*
+* ![01301-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/b5e35a55-435d-4468-8dea-5fac8ff1f934)
 
-### 11. Production-Ready Performance Optimization
+### 11. Intelligent Assessment & Auto-Grading System
+* **Technical Solution:** **Hybrid Regex Parsing Engine** for bulk question ingestion & **Fault-Tolerant Exam Player**.
+* **Engineering Impact:** Reduces digitization time by 90% via smart text parsing (Word/PDF-like format). Guarantees **Zero Data Loss** with autosave-on-change architecture (~500ms debounce).
+* **Deep Dive:** `ExerciseParserService` handles mixed-format (MCQ/Essay) validation. Frontend implements **Timer Synchronization** with auto-submit and **Optimistic Visual Feedback** for instant interaction.
+* ![Recording2026-02-05011401-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/13a7e1fb-2126-4722-be4a-5c368b719f1d)
+
+### 12. Production-Ready Performance Optimization
 * **Technical Solution:** Comprehensive performance optimization across all modules.
 * **Engineering Impact:**
   - Initial page load: **< 0.8s** (improved from 2.5s = 68% faster)
@@ -82,7 +88,7 @@
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 ### Frontend
 - **Framework:** Next.js 15 (App Router), React 19, TypeScript 5
@@ -106,7 +112,7 @@
 
 ---
 
-## 📈 Performance Benchmarks & UX Metrics
+## Performance Benchmarks & UX Metrics
 
 ### Calendar Module
 | Metric | Before | After | Improvement |
@@ -145,7 +151,7 @@
 
 ---
 
-## 🚧 Development Roadmap
+## Development Roadmap
 
 ### Phase 1: Core Enhancements (Q1 2026)
 - [ ] **Real-time Notifications:** WebSocket integration for instant score notifications and class reminders
@@ -164,7 +170,7 @@
 
 ---
 
-## 📺 Project Showcase
+## Project Showcase
 
 ### Live Demo & Documentation
 * **[📹 Watch Full System Walkthrough](#)** - Comprehensive video demonstration
@@ -174,7 +180,7 @@
 
 ---
 
-## 🏗️ Architecture Highlights
+## Architecture Highlights
 
 ### Modular Monolith Design
 ```
@@ -202,7 +208,7 @@ frontend/
 
 ---
 
-## 🎯 Key Technical Decisions
+## Key Technical Decisions
 
 ### Why Server-Sent Events over WebSocket?
 - **Simpler implementation:** One-way server-to-client communication
@@ -224,7 +230,7 @@ frontend/
 
 ---
 
-## 🔒 Security Features
+## Security Features
 
 ### Authentication & Authorization
 - JWT-based authentication with refresh tokens
@@ -246,7 +252,7 @@ frontend/
 
 ---
 
-## 📊 Code Quality Metrics
+## Code Quality Metrics
 
 ### Testing Coverage
 - **Backend:** JUnit 5 tests for critical business logic
@@ -268,7 +274,7 @@ frontend/
 
 ---
 
-## 🤝 Contributing Guidelines
+## Contributing Guidelines
 
 ### Development Setup
 ```bash

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { UseFormReturn } from "react-hook-form";
+import { UseFormReturn, FieldValues } from "react-hook-form";
 import { feedbackService } from "../services/feedbackService";
 
 /**
@@ -9,7 +9,7 @@ import { feedbackService } from "../services/feedbackService";
  */
 interface UseSmartFeedbackProps {
     /** The react-hook-form instance */
-    form: UseFormReturn<any>;
+    form: UseFormReturn<FieldValues>;
     /** Field name for the rating value */
     ratingField: string;
     /** Field name for the comment textarea */
@@ -26,6 +26,14 @@ interface UseSmartFeedbackProps {
     language?: string;
 }
 
+// --- Constants for Static Fallback Keywords ---
+const STATIC_KEYWORDS: Record<string, string[]> = {
+    ATTITUDE: ['Tập trung', 'Hăng hái', 'Ngoan', 'Mất tập trung', 'Làm việc riêng', 'Tiếp thu tốt', 'Chưa nghiêm túc'],
+    ABSORPTION: ['Hiểu bài', 'Vận dụng tốt', 'Quên kiến thức', 'Cần ôn tập', 'Tốc độ chậm', 'Nhanh nhẹn', 'Hổng kiến thức'],
+    GAPS: ['Ngữ pháp', 'Từ vựng', 'Phát âm', 'Kỹ năng nghe', 'Kỹ năng nói', 'Cấu trúc câu'],
+    SOLUTIONS: ['Luyện tập thêm', 'Ôn bài cũ', 'Làm bài tập', 'Đọc thêm sách', 'Ghi chú kỹ']
+};
+
 /**
  * Custom hook to manage the state and logic for AI-powered smart feedback generation.
  * Handles keyword fetching, tag management, and API communication for comment generation.
@@ -40,7 +48,7 @@ export function useSmartFeedback({
     subject = "Tiếng Anh",
     language = "Vietnamese",
 }: UseSmartFeedbackProps) {
-    const [keywords, setKeywords] = useState<string[]>([]);
+    const [keywords, setKeywords] = useState<string[]>(STATIC_KEYWORDS[category] || STATIC_KEYWORDS.ATTITUDE);
     const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
     const [tone, setTone] = useState<string>("FRIENDLY");
@@ -49,49 +57,35 @@ export function useSmartFeedback({
 
     const currentRating = hideRating ? "ANY" : form.watch(ratingField);
 
+    // Update keywords when category changes
     useEffect(() => {
-        if (currentRating) {
-            fetchKeywords(currentRating);
-        }
-    }, [currentRating]);
+        setKeywords(STATIC_KEYWORDS[category] || STATIC_KEYWORDS.ATTITUDE);
+        setSelectedKeywords([]); // Reset selected when switching category
+    }, [category]);
 
     const mapRatingToLevel = (rating: string): string => {
         const ratingMap: Record<string, string> = {
-            "Xuất sắc": "XUAT_SAC",
-            "Xuất Sắc": "XUAT_SAC",
-            "Giỏi": "GIOI",
-            "Khá": "KHA",
-            "Trung bình": "TRUNG_BINH",
-            "Trung Bình": "TRUNG_BINH",
+            "Xuất sắc": "XS",
+            "Xuất Sắc": "XS",
+            "Giỏi": "TO",
+            "Khá": "OK",
+            "Trung bình": "TR",
+            "Trung Bình": "TR",
             "Tệ": "TE",
         };
-        return ratingMap[rating] || "ANY";
+        return ratingMap[rating] || "OK";
     };
 
-    const fetchKeywords = async (rating: string) => {
-        const isWildcardCategory = category === "GAPS" || category === "SOLUTIONS";
-        const levelToFetch = isWildcardCategory ? "ANY" : (hideRating ? "ANY" : mapRatingToLevel(rating));
-
-        try {
-            const kws = await feedbackService.getKeywords(category, levelToFetch);
-            setKeywords(kws);
-        } catch (e) {
-            console.error(e);
-            setKeywords([]);
-        }
-    };
-
-    const toggleKeyword = (keyword: string) => {
+    const toggleKeyword = (kw: string) => {
         setSelectedKeywords(prev =>
-            prev.includes(keyword)
-                ? prev.filter((k) => k !== keyword)
-                : [...prev, keyword]
+            prev.includes(kw) ? prev.filter(k => k !== kw) : [...prev, kw]
         );
     };
 
     const addCustomKeyword = (kw: string) => {
         const trimmed = kw.trim();
-        if (trimmed && !selectedKeywords.includes(trimmed)) {
+        if (trimmed && !keywords.includes(trimmed)) {
+            setKeywords(prev => [trimmed, ...prev]);
             setSelectedKeywords(prev => [...prev, trimmed]);
         }
     };
@@ -112,8 +106,7 @@ export function useSmartFeedback({
 
         setIsGenerating(true);
         try {
-            const isWildcardCategory = category === "GAPS" || category === "SOLUTIONS";
-            const level = isWildcardCategory ? "ANY" : (hideRating ? "ANY" : mapRatingToLevel(currentRating));
+            const level = hideRating ? "ANY" : mapRatingToLevel(currentRating);
 
             const res = await feedbackService.generateComment({
                 category,
@@ -134,8 +127,8 @@ export function useSmartFeedback({
                 addCustomKeyword(trimmedInput);
                 setInputValue("");
             }
-        } catch (error) {
-            console.error("Generate error", error);
+        } catch {
+            console.error("Generate error");
         } finally {
             setIsGenerating(false);
         }
@@ -144,8 +137,8 @@ export function useSmartFeedback({
     return {
         keywords,
         selectedKeywords,
-        isGenerating,
         currentRating,
+        isGenerating,
         tone,
         length,
         inputValue,

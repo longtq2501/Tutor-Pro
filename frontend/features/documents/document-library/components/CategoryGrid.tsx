@@ -1,7 +1,7 @@
+
 import type { DocumentCategory, Category } from '@/lib/types';
 import { memo, useState } from 'react';
-import { CATEGORIES } from '../constants';
-import { Trash2, Pencil } from 'lucide-react';
+import { Trash2, Pencil, FileText } from 'lucide-react';
 import { documentsApi } from '@/lib/services';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -80,7 +80,7 @@ export const CategoryGrid = memo(({
 
     try {
       await promise; // Wait for completion to update local state
-    } catch (e) {
+    } catch {
       // Handled by toast
     } finally {
       setIsDeleting(false);
@@ -112,11 +112,7 @@ export const CategoryGrid = memo(({
           {displayCategories.map((cat: Category) => {
             const code = cat.code;
             const name = cat.name;
-            const visual = CATEGORIES.find(c => c.key === code) || {
-              icon: cat.icon || '📁',
-              key: code
-            };
-            const icon = cat.icon || visual.icon || '📁';
+            const icon = <FileText className="w-6 h-6 lg:w-8 lg:h-8" />;
             const color = cat.color || '';
             const count = counts?.[code] || 0;
             const isDynamic = !!cat.id;
@@ -139,15 +135,17 @@ export const CategoryGrid = memo(({
                   className={`w-full ${bgClass} text-white rounded-xl p-4 lg:p-6 text-left hover:shadow-lg transition-all transform hover:scale-[1.02] will-change-transform contain-layout`}
                   style={color ? { backgroundColor: color } : {}}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2 lg:gap-3">
-                      <span className="text-2xl lg:text-3xl">{icon}</span>
-                      <div>
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-2 lg:gap-4 min-w-0 flex-1">
+                      <div className="shrink-0 p-2 lg:p-3 bg-white/20 rounded-xl backdrop-blur-md">
+                        {icon}
+                      </div>
+                      <div className="min-w-0 flex-1">
                         <h3 className="font-bold text-sm lg:text-lg truncate">{name}</h3>
-                        <p className="text-white/80 text-[10px] lg:text-sm">{count} tài liệu</p>
+                        <p className="text-white/80 text-[10px] lg:text-sm truncate">{count} tài liệu</p>
                       </div>
                     </div>
-                    <div className="bg-white/20 rounded-lg px-2 lg:px-3 py-1">
+                    <div className="shrink-0 ml-3 bg-white/20 rounded-lg px-2 lg:px-3 py-1">
                       <span className="text-xs lg:text-sm font-medium">{count}</span>
                     </div>
                   </div>
@@ -195,7 +193,7 @@ export const CategoryGrid = memo(({
         onOpenChange={(open) => !open && setDeleteId(null)}
         onConfirm={confirmDelete}
         title="Xác nhận xóa danh mục?"
-        description={`Bạn có chắc chắn muốn xóa danh mục "${deleteName}"? Hành động này không thể hoàn tác và sẽ xóa vĩnh viễn danh mục khỏi hệ thống.`}
+        description={`Bạn có chắc chắn muốn xóa danh mục "${deleteName}" ? Hành động này không thể hoàn tác và sẽ xóa vĩnh viễn danh mục khỏi hệ thống.`}
         confirmText={isDeleting ? "Đang xóa..." : "Xác nhận xóa"}
         variant="destructive"
       />

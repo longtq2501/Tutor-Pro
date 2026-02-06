@@ -27,10 +27,9 @@ export function MonthSelector({ selectedDate, onPrevMonth, onNextMonth, isVisibl
             <motion.div
                 initial={false}
                 animate={{
-                    width: isVisible ? 'auto' : 0,
                     opacity: isVisible ? 1 : 0,
                     scale: isVisible ? 1 : 0.9,
-                    marginLeft: isVisible ? 4 : 0
+                    x: isVisible ? 0 : -10
                 }}
                 className="flex-1 sm:flex-initial"
                 style={{ overflow: 'visible' }}

@@ -97,7 +97,7 @@ export default function ExerciseDashboard() {
 
     return (
         <TooltipProvider>
-            <div className={cn("flex flex-col min-h-0 overflow-hidden", viewMode === 'LIST' ? "max-h-[calc(100vh-13.5rem)] h-fit space-y-4" : "space-y-6")}>
+            <div className={cn("flex flex-col flex-1 min-h-0 overflow-hidden", viewMode === 'LIST' ? "md:max-h-none space-y-1.5 md:space-y-1.5" : "space-y-3 md:space-y-4")}>
                 <div className="shrink-0">
                     <DashboardHeader
                         title={headerContent.title}
@@ -133,7 +133,7 @@ export default function ExerciseDashboard() {
                 {viewMode === 'LIST' && (
                     <div className="flex-1 flex flex-col min-h-0">
                         {isTeacher ? (
-                            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'STUDENTS' | 'LIBRARY')} className="w-full flex-1 flex flex-col space-y-6">
+                            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'STUDENTS' | 'LIBRARY')} className="w-full flex-1 flex flex-col space-y-1 md:space-y-1.5">
                                 <TabsContent value="STUDENTS" className="mt-0 outline-none flex-1 flex flex-col">
                                     {selectedStudent ? (
                                         <StudentDetailView

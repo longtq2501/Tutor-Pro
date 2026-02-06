@@ -142,7 +142,7 @@ const AppHeader = React.memo(({ user, initials, roleBadge, logout }: {
                 </div>
 
                 {/* Hero Title & Actions Bar - Responsive layout */}
-                <div className="px-4 lg:px-8 pb-4 lg:pb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 lg:gap-8">
+                <div className="px-4 lg:px-8 pb-2 lg:pb-8 flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-8">
                     <div className="flex-1 min-w-0 w-full md:w-auto">
                         <HeaderSlot id="title" />
                     </div>
@@ -163,7 +163,7 @@ const MainContentSwitcher = React.memo(({ currentView, hasAnyRole }: {
     currentView: View;
     hasAnyRole: (roles: ("ADMIN" | "TUTOR" | "STUDENT")[]) => boolean;
 }) => (
-    <main className="flex-1 overflow-y-auto min-w-0 overscroll-none relative bg-background">
+    <main className="flex-1 overflow-y-auto min-w-0 overscroll-none relative bg-background [scrollbar-gutter:stable]">
         <AnimatePresence mode="wait" initial={false}>
             <motion.div
                 key={currentView}

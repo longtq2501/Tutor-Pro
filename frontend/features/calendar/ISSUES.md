@@ -10,7 +10,7 @@
 - **Issue**: Horizontal scrollbar due to non-responsive category list and redundant sort filter.
 - **Resolution**: Replaced horizontal category list with a dropdown and removed redundant sort filter.
 
-### [ ] [P1-High] UI Đính kèm tài liệu/bài giảng - Polish & Layout
+### [x] [P1-High] UI Đính kèm tài liệu/bài giảng - Polish & Layout
 - **Vấn đề 1**: Container chứa tài liệu hiển thị quá cao, gây ra thanh scroll lớn cho modal thay vì scroll nội bộ gọn gàng.
 - **Vấn đề 2**: Dropdown selection bị lỗi màu sắc (khi click mà chưa hover) và icon mũi tên bị lệch vị trí.
 - **Giải pháp**: 
@@ -79,9 +79,12 @@
   - Added comprehensive JSDoc to all relevant files.
 - **Metrics**: Main function lengths < 50 lines, 100% JSDoc coverage.
 
-### [ ] Refactor CSV parser thành modular service
-- **Root cause:** Logic đọc/parse CSV nằm trong controller
-- **Impact:** Khó maintain khi thêm formats mới
+### [x] [P2-Medium] [Cleanup] Remove legacy CSV-based comment generation logic
+- [x] [UX] Clean up legacy comment generation code (CSV logic) after Groq AI is fully working.
+    - Removed `FeedbackCsvImportService`, `FeedbackScenario` entity, and `feedback_scenarios.csv`.
+    - Refactored `SessionFeedbackService` to remove template fallback.
+    - Updated frontend keyword management to use static suggestions.
+- **Impact**: Reduces codebase size, eliminates dead code, and simplifies maintenance.
 
 ### [ ] Implement proper error handling và retry logic cho AI calls
 - **Root cause:** Không có fallback khi AI service down

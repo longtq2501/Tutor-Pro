@@ -21,7 +21,7 @@ export function FeedbackHeader({
     onExport,
 }: FeedbackHeaderProps) {
     return (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between py-3 px-4 sm:px-6 gap-3 border-b border-border/40 shrink-0 bg-background/95 backdrop-blur z-20">
+        <div className="flex items-center justify-between py-2 sm:py-3 px-4 sm:px-6 gap-3 border-b border-border/40 shrink-0 bg-background/95 backdrop-blur z-20">
             <div className="flex items-center gap-2">
                 <h3 className="text-xs sm:text-sm font-black uppercase tracking-widest bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent whitespace-nowrap">
                     {isEditing ? "Đang chỉnh sửa" : "Phiếu đánh giá"}

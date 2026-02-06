@@ -80,7 +80,7 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
                         ? "max-w-6xl h-[95vh] sm:h-[90vh]"
                         : mode === 'edit'
                             ? "max-w-4xl h-[95vh] sm:h-[90vh]"
-                            : "max-w-lg max-h-[90vh]"
+                            : "max-w-lg h-auto sm:max-h-[90vh]"
                 )}
             >
                 <ModalHeader session={localSession} onClose={onClose} />
@@ -99,8 +99,8 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
                             : "w-full h-full"
                     )}>
                         <div className={cn(
-                            "flex-1 no-scrollbar p-4 sm:p-6",
-                            mode === 'edit' ? "flex flex-col h-full overflow-hidden gap-6" : "overflow-y-auto space-y-6"
+                            "flex-1 p-4 sm:p-6",
+                            mode === 'edit' ? "flex flex-col h-full overflow-y-auto sm:overflow-hidden gap-4 sm:gap-6" : "overflow-y-auto space-y-6"
                         )}>
                             <StudentCard session={localSession} />
 

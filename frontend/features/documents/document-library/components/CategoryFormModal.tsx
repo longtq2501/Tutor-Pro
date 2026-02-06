@@ -34,7 +34,6 @@ export function CategoryFormModal({ open, onOpenChange, initialData, onSuccess }
         active: true,
         displayOrder: 0,
         color: '#3b82f6',
-        icon: '📁'
     });
 
     useEffect(() => {
@@ -46,7 +45,6 @@ export function CategoryFormModal({ open, onOpenChange, initialData, onSuccess }
                 active: initialData.active ?? true,
                 displayOrder: initialData.displayOrder || 0,
                 color: initialData.color || '#3b82f6',
-                icon: initialData.icon || '📁'
             });
         } else {
             // Reset for create mode
@@ -57,7 +55,6 @@ export function CategoryFormModal({ open, onOpenChange, initialData, onSuccess }
                 active: true,
                 displayOrder: 0,
                 color: '#3b82f6',
-                icon: '📁'
             });
         }
     }, [initialData, open]);
@@ -123,16 +120,7 @@ export function CategoryFormModal({ open, onOpenChange, initialData, onSuccess }
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="icon">Biểu tượng / Emoji</Label>
-                            <Input
-                                id="icon"
-                                placeholder="📁, 📚..."
-                                value={formData.icon}
-                                onChange={e => setFormData(prev => ({ ...prev, icon: e.target.value }))}
-                            />
-                        </div>
+                    <div className="grid grid-cols-1 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="color" className="flex items-center gap-2">
                                 <Palette size={14} /> Màu sắc

@@ -40,7 +40,7 @@ export default function CalendarView() {
   return (
     <div className="bg-transparent">
       <DashboardHeader
-        title={`${MONTHS[view.currentDate.getMonth()]} ${view.currentDate.getFullYear()}`}
+        title={`${MONTHS[view.currentDate.getMonth()]}, ${view.currentDate.getFullYear()}`}
         subtitle="Lịch trình dạy học"
         actions={
           <CalendarHeader

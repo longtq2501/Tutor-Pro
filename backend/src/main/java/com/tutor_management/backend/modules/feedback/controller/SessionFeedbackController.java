@@ -106,16 +106,6 @@ public class SessionFeedbackController {
         return ResponseEntity.ok(ApiResponse.success("Đã tạo nội dung nhận xét", response));
     }
 
-    /**
-     * Retrieves available thematic keywords for a category/rating level.
-     */
-    @GetMapping("/keywords")
-    public ResponseEntity<ApiResponse<List<String>>> getAvailableKeywords(
-            @RequestParam String category,
-            @RequestParam String ratingLevel) {
-        List<String> keywords = sessionFeedbackService.getAvailableKeywords(category, ratingLevel);
-        return ResponseEntity.ok(ApiResponse.success(keywords));
-    }
 
     /**
      * Formats feedback as a plain text block for external clipboard sharing.

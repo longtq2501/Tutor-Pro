@@ -47,19 +47,20 @@ export const useDocumentLibrary = () => {
     refetch: loadDocuments
   } = useDocuments(page, pageSize, selectedCategory || undefined);
 
-  // Query for Search Mode (List - Non Paginated for now as backend supports List only)
+  // Query for Search Mode (Paginated)
   const {
-    data: searchResults
+    data: searchResults,
+    isLoading: isSearchLoading
   } = useQuery({
-    queryKey: ['documents', 'search', debouncedSearchQuery],
-    queryFn: () => documentsApi.search(debouncedSearchQuery),
+    queryKey: ['documents', 'search', debouncedSearchQuery, selectedCategory, page, pageSize],
+    queryFn: () => documentsApi.search(debouncedSearchQuery, selectedCategory || undefined, page, pageSize),
     enabled: isSearchMode,
   });
 
   // 3. Unify Data Shape
-  const documents = isSearchMode ? (searchResults || []) : (paginatedData?.content || []);
-  const totalPages = isSearchMode ? 1 : (paginatedData?.totalPages || 0);
-  const totalElements = isSearchMode ? documents.length : (paginatedData?.totalElements || 0);
+  const documents = isSearchMode ? (searchResults?.content || []) : (paginatedData?.content || []);
+  const totalPages = isSearchMode ? (searchResults?.totalPages || 0) : (paginatedData?.totalPages || 0);
+  const totalElements = isSearchMode ? (searchResults?.totalElements || 0) : (paginatedData?.totalElements || 0);
 
   // 4. Stats
   const { data: statsData } = useQuery({
@@ -85,7 +86,7 @@ export const useDocumentLibrary = () => {
     categoryDocs: documents,
     searchQuery,
     setSearchQuery,
-    loading: cancelLoading && !isSearchMode,
+    loading: (cancelLoading && !isSearchMode) || (isSearchMode && isSearchLoading),
     stats,
     page,
     setPage,

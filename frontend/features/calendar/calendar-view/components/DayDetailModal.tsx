@@ -124,8 +124,8 @@ export const DayDetailModal = ({
         </div>
 
         {/* Content Area */}
-        <div className="relative z-10 -mt-8 mx-4 sm:mx-6 bg-card rounded-[2rem] border border-border/60 shadow-xl flex flex-col max-h-[60vh]">
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 sm:space-y-4 no-scrollbar">
+        <div className="relative z-10 -mt-8 mx-4 sm:mx-6 bg-card rounded-[2rem] border border-border/60 shadow-xl flex flex-col max-h-[65vh] overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 pr-2 sm:pr-4 space-y-3 sm:space-y-4">
             <AnimatePresence mode="popLayout">
               {day.sessions.length === 0 ? (
                 <motion.div

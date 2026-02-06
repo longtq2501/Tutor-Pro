@@ -32,7 +32,7 @@ export const ExerciseFilterBar: React.FC<ExerciseFilterBarProps> = ({
     categories
 }) => {
     return (
-        <div className="px-4 py-3 border-b bg-muted/20 flex flex-col sm:flex-row gap-3">
+        <div className="px-4 py-1.5 border-b bg-muted/20 flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input

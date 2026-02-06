@@ -62,5 +62,4 @@ export interface GenerateCommentRequest {
 
 export interface GenerateCommentResponse {
     generatedComment: string;
-    usedScenarioIds: number[];
 }

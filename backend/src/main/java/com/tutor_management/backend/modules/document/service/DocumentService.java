@@ -118,10 +118,9 @@ public class DocumentService {
      * Searches for documents by title (case-insensitive).
      */
     @Transactional(readOnly = true)
-    public List<DocumentResponse> searchDocuments(String keyword) {
-        return documentRepository.findByTitleContainingIgnoreCase(keyword, getCurrentTutorId(), getCurrentStudentId()).stream()
-                .map(this::convertToResponse)
-                .collect(Collectors.toList());
+    public Page<DocumentResponse> searchDocuments(String keyword, String categoryCode, Pageable pageable) {
+        return documentRepository.findByTitleContainingIgnoreCase(keyword, categoryCode, getCurrentTutorId(), getCurrentStudentId(), pageable)
+                .map(this::convertToResponse);
     }
 
     /**

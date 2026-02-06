@@ -57,8 +57,11 @@ public class DocumentController {
      */
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR', 'STUDENT')")
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<DocumentResponse>>> searchDocuments(@RequestParam String keyword) {
-        return ResponseEntity.ok(ApiResponse.success(documentService.searchDocuments(keyword)));
+    public ResponseEntity<ApiResponse<Page<DocumentResponse>>> searchDocuments(
+            @RequestParam String keyword,
+            @RequestParam(required = false) String category,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(documentService.searchDocuments(keyword, category, pageable)));
     }
 
     /**

@@ -2,13 +2,12 @@
 // ============================================================================
 // FILE: document-library/constants.ts
 // ============================================================================
-import type { DocumentCategory } from '@/lib/types';
 
 export const CATEGORIES = [
-  { key: 'GRAMMAR', name: 'Ngữ pháp', icon: '📚' },
-  { key: 'VOCABULARY', name: 'Từ vựng', icon: '📖' },
-  { key: 'EXERCISES', name: 'Bài tập', icon: '📝' },
-  { key: 'TICH_HOP', name: 'Tích hợp', icon: '📋' },
-  { key: 'IELTS', name: 'IELTS', icon: '🌐' },
-  { key: 'FLYERS', name: 'Flyers', icon: '📄' },
+  { key: 'GRAMMAR', name: 'Ngữ pháp' },
+  { key: 'VOCABULARY', name: 'Từ vựng' },
+  { key: 'EXERCISES', name: 'Bài tập' },
+  { key: 'TICH_HOP', name: 'Tích hợp' },
+  { key: 'IELTS', name: 'IELTS' },
+  { key: 'FLYERS', name: 'Flyers' },
 ] as const;

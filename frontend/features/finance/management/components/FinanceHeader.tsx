@@ -16,15 +16,15 @@ export function FinanceHeader() {
     const handleNextMonth = () => setSelectedDate(addMonths(selectedDate, 1));
 
     return (
-        <div className="flex flex-col sm:flex-row flex-wrap gap-2 items-stretch sm:items-center justify-end w-full animate-in fade-in slide-in-from-right-4 duration-500">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-2 items-stretch sm:items-center justify-start w-full animate-in fade-in slide-in-from-right-4 duration-500">
             <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
 
-            <MonthSelector
-                selectedDate={selectedDate}
-                onPrevMonth={handlePrevMonth}
-                onNextMonth={handleNextMonth}
-                isVisible={viewMode === 'MONTHLY'}
-            />
+            {viewMode === 'MONTHLY' && (
+                <MonthSelector
+                    selectedDate={selectedDate}
+                    onPrevMonth={handlePrevMonth}
+                    onNextMonth={handleNextMonth} isVisible={true} />
+            )}
         </div>
     );
 }

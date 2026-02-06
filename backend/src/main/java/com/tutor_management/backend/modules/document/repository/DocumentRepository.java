@@ -46,15 +46,20 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     /**
      * Searches for documents matching a keyword, filtered by tutor and student.
      */
-    @Query("SELECT d FROM Document d " +
+    @Query(value = "SELECT d FROM Document d " +
             "LEFT JOIN FETCH d.student " +
             "LEFT JOIN FETCH d.category " +
             "LEFT JOIN FETCH d.tutor " +
             "WHERE LOWER(d.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "AND (:categoryCode IS NULL OR d.category.code = :categoryCode) " +
             "AND (:tutorId IS NULL OR d.tutor.id = :tutorId) " +
-            "AND (:studentId IS NULL OR d.student.id = :studentId OR d.student IS NULL) " +
-            "ORDER BY d.createdAt DESC")
-    List<Document> findByTitleContainingIgnoreCase(@Param("keyword") String keyword, @Param("tutorId") Long tutorId, @Param("studentId") Long studentId);
+            "AND (:studentId IS NULL OR d.student.id = :studentId OR d.student IS NULL)",
+            countQuery = "SELECT COUNT(d) FROM Document d " +
+                    "WHERE LOWER(d.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+                    "AND (:categoryCode IS NULL OR d.category.code = :categoryCode) " +
+                    "AND (:tutorId IS NULL OR d.tutor.id = :tutorId) " +
+                    "AND (:studentId IS NULL OR d.student.id = :studentId OR d.student IS NULL)")
+    Page<Document> findByTitleContainingIgnoreCase(@Param("keyword") String keyword, @Param("categoryCode") String categoryCode, @Param("tutorId") Long tutorId, @Param("studentId") Long studentId, Pageable pageable);
 
     @Query("SELECT COUNT(d) FROM Document d WHERE d.category.code = :categoryCode AND (:tutorId IS NULL OR d.tutor.id = :tutorId) AND (:studentId IS NULL OR d.student.id = :studentId OR d.student IS NULL)")
     Long countByCategoryCode(@Param("categoryCode") String categoryCode, @Param("tutorId") Long tutorId, @Param("studentId") Long studentId);

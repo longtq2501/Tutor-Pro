@@ -52,16 +52,18 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({ role, onSelectExerci
 
     return (
         <Card className="animate-in fade-in slide-in-from-bottom-2 duration-400 flex flex-col h-auto max-h-full overflow-hidden border-none shadow-xl bg-gradient-to-br from-card to-muted/20">
-            <CardHeader className="py-4 px-6 flex flex-row items-center justify-between border-b shrink-0 bg-background/50 backdrop-blur-sm z-10">
-                <CardTitle className="text-xl font-black flex items-center gap-2 tracking-tight">
-                    <FileText className="h-5 w-5 text-primary" />
-                    Danh sách bài tập
-                    <Badge variant="secondary" className="ml-2 font-black text-xs h-6">{l.totalElements}</Badge>
+            <CardHeader className="py-1.5 md:py-2 px-4 md:px-6 flex flex-row items-center justify-between border-b shrink-0 bg-background/50 backdrop-blur-sm z-10">
+                <CardTitle className="text-lg md:text-xl font-black flex items-center gap-2 tracking-tight shrink min-w-0">
+                    <FileText className="h-4 w-4 md:h-5 md:w-5 text-primary shrink-0" />
+                    <span className="whitespace-nowrap truncate">Danh sách bài tập</span>
+                    <Badge variant="secondary" className="font-black text-[10px] md:text-xs h-5 md:h-6 shrink-0">{l.totalElements}</Badge>
                 </CardTitle>
                 {(role !== 'STUDENT') && (
                     <ActionTooltip label="Tạo bài tập mới bằng AI hoặc Thủ công" side="left">
-                        <Button onClick={onCreateNew} size="sm" className="h-9 shadow-lg rounded-xl font-bold px-4">
-                            <Plus className="mr-2 h-4 w-4" /> Tạo bài tập mới
+                        <Button onClick={onCreateNew} size="sm" className="h-9 shadow-lg rounded-xl font-bold px-3 sm:px-4 shrink-0 transition-all active:scale-95">
+                            <Plus className="sm:mr-2 h-4 w-4" />
+                            <span className="hidden sm:inline">Tạo bài tập mới</span>
+                            <span className="sm:hidden">Tạo mới</span>
                         </Button>
                     </ActionTooltip>
                 )}
@@ -78,11 +80,11 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({ role, onSelectExerci
                     </div>
                 )}
 
-                <CardContent className="p-0 flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
+                <CardContent className="p-0 flex-1 overflow-y-auto md:overflow-visible min-h-0 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
                     {l.exercises.length === 0 ? <EmptyState /> : (
                         role === 'STUDENT' ? (
-                            <div className="p-6 space-y-8">
-                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            <div className="p-4 md:p-6 space-y-8">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
                                     {l.exercises.map(ex => (
                                         <StudentExerciseCard
                                             key={ex.id}

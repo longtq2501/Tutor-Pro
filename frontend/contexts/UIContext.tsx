@@ -129,11 +129,11 @@ export function DashboardHeader({ title, subtitle, actions }: { title: string; s
         <>
             <HeaderPortal to="title">
                 <div className="flex-1 min-w-0 animate-in fade-in slide-in-from-left-4 duration-500">
-                    <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent truncate sm:whitespace-normal">
+                    <h1 className="text-xl sm:text-2xl md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl font-black tracking-tight leading-tight py-1 bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent sm:whitespace-normal">
                         {title}
                     </h1>
                     {subtitle && (
-                        <p className="text-xs sm:text-sm xl:text-base text-muted-foreground mt-1 sm:mt-2 max-w-2xl font-medium line-clamp-2 sm:line-clamp-none">
+                        <p className="text-[11px] sm:text-xs md:text-xs lg:text-sm xl:text-base text-muted-foreground mt-0.5 sm:mt-1 max-w-2xl font-medium line-clamp-2 sm:line-clamp-none">
                             {subtitle}
                         </p>
                     )}
@@ -141,7 +141,7 @@ export function DashboardHeader({ title, subtitle, actions }: { title: string; s
             </HeaderPortal>
             {actions && (
                 <HeaderPortal to="actions">
-                    <div className="flex items-center gap-3 animate-in fade-in slide-in-from-right-4 duration-500">
+                    <div className="flex items-center justify-end gap-3 animate-in fade-in slide-in-from-right-4 duration-500 w-full sm:w-auto">
                         {actions}
                     </div>
                 </HeaderPortal>

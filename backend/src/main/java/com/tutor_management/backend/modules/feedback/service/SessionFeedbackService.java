@@ -1,13 +1,11 @@
 package com.tutor_management.backend.modules.feedback.service;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.tutor_management.backend.exception.ResourceNotFoundException;
-import com.tutor_management.backend.modules.feedback.*;
-import com.tutor_management.backend.modules.feedback.entity.FeedbackScenario;
+import com.tutor_management.backend.modules.feedback.FeedbackStatus;
 import com.tutor_management.backend.modules.feedback.entity.SessionFeedback;
-import com.tutor_management.backend.modules.feedback.repository.FeedbackScenarioRepository;
 import com.tutor_management.backend.modules.feedback.repository.SessionFeedbackRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Standard implementation of the Feedback Management service.
- * Features a Smart Comment Generator that assembles narrative reports from thematic fragments.
+ * Features an AI-powered Smart Comment Generator.
  */
 @Service
 @RequiredArgsConstructor
@@ -37,7 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 public class SessionFeedbackService {
 
     private final SessionFeedbackRepository sessionFeedbackRepository;
-    private final FeedbackScenarioRepository feedbackScenarioRepository;
     private final SessionRecordRepository sessionRecordRepository;
     private final StudentRepository studentRepository;
     private final com.tutor_management.backend.modules.feedback.service.ai.AiGeneratorService aiGeneratorService;
@@ -110,165 +107,29 @@ public class SessionFeedbackService {
     // --- SMART GENERATOR LOGIC ---
 
     /**
-     * Assembles a natural-sounding Vietnamese comment based on ratings and selected keywords.
-     * Uses AI-powered generation with a template-based fallback system.
+     * Generates a natural-sounding Vietnamese comment based on ratings and selected keywords using AI.
      */
     @Cacheable(value = "aiGeneratedComments", 
                key = "{#request.category, #request.ratingLevel, #request.keywords, #request.tone, #request.length}",
                condition = "!#request.forceRefresh")
     public GenerateCommentResponse generateComment(GenerateCommentRequest request) {
-        log.info("Generating smart comment for student {} [Category: {}], ForceRefresh: {}", 
+        log.info("Generating AI comment for student {} [Category: {}], ForceRefresh: {}", 
                  request.getStudentName(), request.getCategory(), request.isForceRefresh());
         
-        // 1. Try AI Generation first (Groq)
         if (aiGeneratorService.isEnabled()) {
             String aiComment = aiGeneratorService.generate(request);
             if (aiComment != null && !aiComment.isEmpty()) {
                 log.info("Successfully generated AI comment for {}", request.getStudentName());
                 return GenerateCommentResponse.builder()
                         .generatedComment(aiComment)
-                        .usedScenarioIds(Collections.emptyList()) // AI doesn't use static scenarios
                         .build();
             }
-            log.warn("AI generation failed or returned empty content. Falling back to templates.");
-        }
-
-        // 2. Fallback to Template System
-        String studentName = (request.getStudentName() != null && !request.getStudentName().isEmpty()) 
-                ? request.getStudentName() : "Con";
-
-        List<FeedbackScenario> candidates = selectScenarioCandidates(request);
-        
-        if (candidates.isEmpty()) {
-            return generateEmptyResponse();
-        }
-
-        return assembleCommentFromScenarios(candidates, studentName);
-    }
-
-    /**
-     * Strategy for selecting the best fragments based on keywords or general fallback.
-     */
-    private List<FeedbackScenario> selectScenarioCandidates(GenerateCommentRequest request) {
-        List<FeedbackScenario> candidates = new ArrayList<>();
-        List<String> keywords = request.getKeywords();
-
-        if (keywords != null && !keywords.isEmpty()) {
-            // Priority: Keyword-specific matching
-            for (String kw : keywords) {
-                findBestScenarioForKeyword(request.getCategory(), request.getRatingLevel(), kw)
-                    .ifPresent(candidates::add);
-            }
-            // Ensure variety with general templates if needed
-            if (candidates.size() < 2) {
-                findBestScenarioForKeyword(request.getCategory(), request.getRatingLevel(), "GENERAL")
-                    .ifPresent(candidates::add);
-            }
-        } else {
-            // Fallback: Pick random general templates
-            List<FeedbackScenario> general = feedbackScenarioRepository.findScenarios(request.getCategory(), request.getRatingLevel(), "GENERAL");
-            if (!general.isEmpty()) {
-                Collections.shuffle(general);
-                candidates.add(general.get(0));
-                if (general.size() >= 2) candidates.add(general.get(1));
-            }
-        }
-
-        return deduplicateCandidates(candidates, keywords);
-    }
-
-    private Optional<FeedbackScenario> findBestScenarioForKeyword(String category, String rating, String keyword) {
-        List<FeedbackScenario> matched = feedbackScenarioRepository.findScenarios(category, rating, keyword);
-        if (matched.isEmpty()) {
-            // Fallback to ANY rating for this keyword
-            matched = feedbackScenarioRepository.findScenarios(category, "ANY", keyword);
-        }
-        
-        if (matched.isEmpty()) return Optional.empty();
-        return Optional.of(matched.get(new Random().nextInt(matched.size())));
-    }
-
-    private List<FeedbackScenario> deduplicateCandidates(List<FeedbackScenario> candidates, List<String> originalKeywords) {
-        List<FeedbackScenario> filtered = candidates.stream()
-                .filter(Objects::nonNull)
-                .distinct()
-                .collect(Collectors.toCollection(ArrayList::new));
-
-        // Logic to remove redundant GENERAL fragments if specialized ones exist
-        if (originalKeywords != null && !originalKeywords.isEmpty() && filtered.size() > 1) {
-            boolean hasSpecialized = filtered.stream().anyMatch(s -> !"GENERAL".equals(s.getKeyword()));
-            if (hasSpecialized) {
-                filtered.removeIf(s -> "GENERAL".equals(s.getKeyword()) && filtered.size() > 1);
-            }
-        }
-        return filtered;
-    }
-
-    /**
-     * Logic for joining fragments into a cohesive paragraph.
-     */
-    private GenerateCommentResponse assembleCommentFromScenarios(List<FeedbackScenario> scenarios, String studentName) {
-        StringBuilder sb = new StringBuilder();
-        List<Long> usedIds = new ArrayList<>();
-        
-        GenerationContext ctx = new GenerationContext(studentName);
-
-        for (FeedbackScenario scenario : scenarios) {
-            String text = processFragment(scenario.getTemplateText(), ctx);
-            if (text.isEmpty()) continue;
-
-            appendFragment(sb, text);
-            usedIds.add(scenario.getId());
+            log.warn("AI generation failed or returned empty content.");
         }
 
         return GenerateCommentResponse.builder()
-                .generatedComment(sb.toString().trim())
-                .usedScenarioIds(usedIds)
+                .generatedComment("")
                 .build();
-    }
-
-    private String processFragment(String template, GenerationContext ctx) {
-        String processed = template.trim();
-        String lower = processed.toLowerCase();
-
-        // 1. Deduplicate "Hôm nay" prefixes
-        if (ctx.isTodayAlreadyUsed() && (lower.startsWith("hôm nay ") || lower.startsWith("hôm nay,"))) {
-            int skip = lower.startsWith("hôm nay ") ? 8 : 9;
-            processed = processed.substring(skip);
-        } else if (lower.contains("hôm nay")) {
-            ctx.setTodayAlreadyUsed(true);
-        }
-
-        // 2. Pronoun handling
-        if (ctx.isNameAlreadyUsed()) {
-            processed = processed.replace("{Student}", "con");
-        } else if (processed.contains("{Student}")) {
-            processed = processed.replace("{Student}", ctx.getStudentName());
-            ctx.setNameAlreadyUsed(true);
-        }
-
-        return processed;
-    }
-
-    private void appendFragment(StringBuilder sb, String fragment) {
-        String text = fragment;
-        if (!sb.isEmpty()) {
-            String current = sb.toString().trim();
-            if (current.endsWith(".") || current.endsWith("!") || current.endsWith("?")) {
-                text = text.substring(0, 1).toUpperCase() + text.substring(1);
-                sb.append(" ");
-            } else {
-                sb.append(", ");
-                text = text.substring(0, 1).toLowerCase() + text.substring(1);
-            }
-        } else {
-            text = text.substring(0, 1).toUpperCase() + text.substring(1);
-        }
-        
-        sb.append(text);
-        if (!text.endsWith(".") && !text.endsWith("!") && !text.endsWith("?")) {
-            sb.append(".");
-        }
     }
 
     // --- Utility Methods ---
@@ -362,10 +223,6 @@ public class SessionFeedbackService {
         }
     }
 
-    public List<String> getAvailableKeywords(String category, String ratingLevel) {
-        return feedbackScenarioRepository.findKeywordsByCategoryAndRating(category, ratingLevel);
-    }
-
     private SessionFeedbackResponse convertToResponse(SessionFeedback fb) {
         return SessionFeedbackResponse.builder()
                 .id(fb.getId())
@@ -384,28 +241,5 @@ public class SessionFeedbackService {
                 .createdAt(fb.getCreatedAt())
                 .updatedAt(fb.getUpdatedAt())
                 .build();
-    }
-
-    private GenerateCommentResponse generateEmptyResponse() {
-        return GenerateCommentResponse.builder()
-                .generatedComment("")
-                .usedScenarioIds(Collections.emptyList())
-                .build();
-    }
-
-    /**
-     * Inner state container for tracking grammatical choices during comment generation.
-     */
-    private static class GenerationContext {
-        private final String studentName;
-        private boolean nameAlreadyUsed = false;
-        private boolean todayAlreadyUsed = false;
-
-        public GenerationContext(String studentName) { this.studentName = studentName; }
-        public String getStudentName() { return studentName; }
-        public boolean isNameAlreadyUsed() { return nameAlreadyUsed; }
-        public void setNameAlreadyUsed(boolean val) { nameAlreadyUsed = val; }
-        public boolean isTodayAlreadyUsed() { return todayAlreadyUsed; }
-        public void setTodayAlreadyUsed(boolean val) { todayAlreadyUsed = val; }
     }
 }

@@ -32,8 +32,8 @@ export const documentsApi = {
   },
 
   /** * TÌM KIẾM TÀI LIỆU THEO TỪ KHÓA */
-  search: async (keyword: string): Promise<AppDocument[]> => {
-    const response = await api.get('/documents/search', { params: { keyword } });
+  search: async (keyword: string, category?: string, page = 0, size = 10): Promise<PageResponse<AppDocument>> => {
+    const response = await api.get('/documents/search', { params: { keyword, category, page, size } });
     return response.data.data;
   },
 

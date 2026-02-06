@@ -42,12 +42,12 @@ export const ExerciseTable: React.FC<ExerciseTableProps> = ({
             <Table>
                 <TableHeader className="sticky top-0 bg-background/80 backdrop-blur-md z-20 shadow-sm border-b">
                     <TableRow className="hover:bg-transparent border-none">
-                        <TableHead className="py-4 px-6 font-bold text-xs uppercase tracking-widest text-muted-foreground/70">Tiêu đề bài tập</TableHead>
-                        <TableHead className="py-4 px-4 font-bold text-xs uppercase tracking-widest text-muted-foreground/70 text-center">Trạng thái</TableHead>
-                        <TableHead className="py-4 px-4 font-bold text-xs uppercase tracking-widest text-muted-foreground/70 text-center">Thời lượng</TableHead>
-                        <TableHead className="py-4 px-4 font-bold text-xs uppercase tracking-widest text-muted-foreground/70 text-center">Thang điểm</TableHead>
-                        <TableHead className="py-4 px-4 font-bold text-xs uppercase tracking-widest text-muted-foreground/70">Ngày tạo</TableHead>
-                        <TableHead className="py-4 px-6 font-bold text-xs uppercase tracking-widest text-muted-foreground/70 text-right">Thao tác</TableHead>
+                        <TableHead className="py-1.5 px-6 font-bold text-[10px] md:text-[11px] uppercase tracking-widest text-muted-foreground/70">Tiêu đề bài tập</TableHead>
+                        <TableHead className="py-1.5 px-4 font-bold text-[10px] md:text-[11px] uppercase tracking-widest text-muted-foreground/70 text-center">Trạng thái</TableHead>
+                        <TableHead className="py-1.5 px-4 font-bold text-[10px] md:text-[11px] uppercase tracking-widest text-muted-foreground/70 text-center">Thời lượng</TableHead>
+                        <TableHead className="py-1.5 px-4 font-bold text-[10px] md:text-[11px] uppercase tracking-widest text-muted-foreground/70 text-center">Thang điểm</TableHead>
+                        <TableHead className="py-1.5 px-4 font-bold text-[10px] md:text-[11px] uppercase tracking-widest text-muted-foreground/70">Ngày tạo</TableHead>
+                        <TableHead className="py-1.5 px-6 font-bold text-[10px] md:text-[11px] uppercase tracking-widest text-muted-foreground/70 text-right">Thao tác</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -60,17 +60,17 @@ export const ExerciseTable: React.FC<ExerciseTableProps> = ({
                                 else onSelectExercise(ex, 'GRADE');
                             }}
                         >
-                            <TableCell className="py-4 px-6 font-bold max-w-[400px]">
+                            <TableCell className="py-2.5 px-6 font-bold max-w-[400px]">
                                 <div className="flex items-start gap-3">
-                                    <div className="mt-0.5 p-1.5 rounded-lg bg-muted group-hover:bg-primary/10 transition-colors">
-                                        <FileText className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                    <div className="mt-0.5 p-1 rounded-lg bg-muted group-hover:bg-primary/10 transition-colors">
+                                        <FileText className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
                                     </div>
-                                    <div className="whitespace-pre-wrap leading-snug text-sm group-hover:text-primary transition-colors">
+                                    <div className="whitespace-pre-wrap leading-snug text-[12px] md:text-[13px] group-hover:text-primary transition-colors">
                                         {formatExerciseTitle(ex.title)}
                                     </div>
                                 </div>
                             </TableCell>
-                            <TableCell className="py-4 px-4 text-center">
+                            <TableCell className="py-2.5 px-4 text-center">
                                 <Badge
                                     variant={
                                         ex.submissionStatus === 'OVERDUE' ? 'destructive' :
@@ -84,20 +84,20 @@ export const ExerciseTable: React.FC<ExerciseTableProps> = ({
                                     {ex.submissionStatus === 'OVERDUE' ? 'QUÁ HẠN' : ex.status === ExerciseStatus.PUBLISHED ? 'CÔNG KHAI' : 'BẢN NHÁP'}
                                 </Badge>
                             </TableCell>
-                            <TableCell className="py-4 px-4 text-center">
+                            <TableCell className="py-1 px-4 text-center">
                                 <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50 text-xs font-bold text-muted-foreground">
                                     <Clock className="h-3 w-3" />
                                     {ex.timeLimit ? `${ex.timeLimit}'` : '∞'}
                                 </span>
                             </TableCell>
-                            <TableCell className="py-4 px-4 text-center">
-                                <span className="text-sm font-black text-foreground/80">{ex.totalPoints}</span>
+                            <TableCell className="py-1 px-4 text-center">
+                                <span className="text-[12px] md:text-[13px] font-black text-foreground/80">{ex.totalPoints}</span>
                             </TableCell>
-                            <TableCell className="py-4 px-4 text-xs font-semibold text-muted-foreground/60 tabular-nums">
+                            <TableCell className="py-1 px-4 text-[11px] font-semibold text-muted-foreground/60 tabular-nums">
                                 {ex.createdAt ? format(new Date(ex.createdAt), 'dd/MM/yyyy') : '-'}
                             </TableCell>
-                            <TableCell className="py-4 px-6 text-right">
-                                <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-0">
+                            <TableCell className="py-1 px-6 text-right">
+                                <div className="flex justify-end gap-1.5 lg:opacity-0 group-hover:opacity-100 transition-all">
                                     {isStudent ? (
                                         <div className="flex gap-2">
                                             {ex.submissionId && (ex.submissionStatus === 'SUBMITTED' || ex.submissionStatus === 'GRADED') ? (

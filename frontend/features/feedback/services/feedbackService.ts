@@ -29,7 +29,7 @@ export const feedbackService = {
         try {
             const response = await axios.get<ApiResponse<SessionFeedbackResponse>>(`${BASE_URL}/session/${sessionId}/student/${studentId}`);
             return response.data.data;
-        } catch (error) {
+        } catch {
             // Return null if not found (404)
             return null;
         }
@@ -39,13 +39,6 @@ export const feedbackService = {
 
     generateComment: async (req: GenerateCommentRequest): Promise<GenerateCommentResponse> => {
         const response = await axios.post<ApiResponse<GenerateCommentResponse>>(`${BASE_URL}/generate`, req);
-        return response.data.data;
-    },
-
-    getKeywords: async (category: string, ratingLevel: string): Promise<string[]> => {
-        const response = await axios.get<ApiResponse<string[]>>(`${BASE_URL}/keywords`, {
-            params: { category, ratingLevel }
-        });
         return response.data.data;
     },
 

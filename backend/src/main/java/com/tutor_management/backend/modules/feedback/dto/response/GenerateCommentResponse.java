@@ -18,9 +18,4 @@ public class GenerateCommentResponse {
      * The assembled narrative text in Vietnamese.
      */
     private String generatedComment;
-
-    /**
-     * List of scenario IDs used to build this comment (for tracking/debugging).
-     */
-    private List<Long> usedScenarioIds;
 }

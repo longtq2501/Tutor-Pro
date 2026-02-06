@@ -15,7 +15,7 @@ export function ModalHeader({ session, onClose }: ModalHeaderProps) {
 
     return (
         <div className={cn(
-            "relative p-6 transition-all duration-500 shrink-0 sticky top-0 z-50",
+            "relative p-2.5 sm:p-6 transition-all duration-500 shrink-0 sticky top-0 z-50",
             isPaid ? "bg-gradient-to-r from-emerald-600 to-teal-600" : "bg-gradient-to-r from-blue-600 to-indigo-600",
             isCancelled ? "from-slate-600 to-slate-700" : ""
         )}>
@@ -23,8 +23,8 @@ export function ModalHeader({ session, onClose }: ModalHeaderProps) {
 
             <div className="relative flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-sm shrink-0">
-                        <BookOpen size={20} className="sm:hidden" />
+                    <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-sm shrink-0">
+                        <BookOpen size={14} className="sm:hidden" />
                         <BookOpen size={24} className="hidden sm:block" />
                     </div>
                     <div>
@@ -42,7 +42,7 @@ export function ModalHeader({ session, onClose }: ModalHeaderProps) {
                                 </Badge>
                             )}
                         </div>
-                        <h1 className="text-lg sm:text-2xl font-black text-white tracking-tight leading-none">Thông tin lớp học</h1>
+                        <h1 className="text-[14px] sm:text-2xl font-black text-white tracking-tight leading-none">Thông tin lớp học</h1>
                     </div>
                 </div>
 
@@ -50,9 +50,9 @@ export function ModalHeader({ session, onClose }: ModalHeaderProps) {
                     variant="ghost"
                     size="icon"
                     onClick={onClose}
-                    className="rounded-full text-white hover:bg-white/20 h-8 w-8 sm:h-10 sm:w-10 shrink-0"
+                    className="rounded-full text-white hover:bg-white/20 h-6 w-6 sm:h-10 sm:w-10 shrink-0"
                 >
-                    <X size={18} className="sm:hidden" />
+                    <X size={14} className="sm:hidden" />
                     <X size={20} className="hidden sm:block" />
                 </Button>
             </div>

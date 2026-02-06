@@ -47,7 +47,7 @@ export const StudentDetailView: React.FC<StudentDetailViewProps> = ({
     const graded = exercises.filter(ex => ex.submissionStatus === 'GRADED');
 
     return (
-        <div className="space-y-8 pb-24 max-w-6xl mx-auto">
+        <div className="space-y-8 pb-24 w-full">
             <div className="flex items-center gap-4">
                 <Button variant="ghost" onClick={onBack} size="sm" className="h-9 hover:bg-muted/80 group rounded-xl px-4">
                     <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
@@ -57,20 +57,26 @@ export const StudentDetailView: React.FC<StudentDetailViewProps> = ({
 
             <StudentProfileHeader studentSummary={studentSummary} />
 
-            <div className="space-y-12">
-                <PerformanceSection title="Chờ làm" icon={<Clock className="h-5 w-5 text-orange-500" />} count={pending.length} isLoading={isLoading}>
-                    {pending.map(ex => <ExerciseRowCard key={ex.id} exercise={ex} disabled onClick={() => { }} />)}
-                </PerformanceSection>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-0 mt-8">
+                <div className="lg:pr-8 lg:border-r lg:border-dashed lg:border-muted-foreground/20">
+                    <PerformanceSection title="Chờ làm" icon={<Clock className="h-5 w-5 text-orange-500" />} count={pending.length} isLoading={isLoading}>
+                        {pending.map(ex => <ExerciseRowCard key={ex.id} exercise={ex} disabled onClick={() => { }} />)}
+                    </PerformanceSection>
+                </div>
 
-                <PerformanceSection title="Đang làm" icon={<FileText className="h-5 w-5 text-sky-500" />} count={inProgress.length} isLoading={isLoading}>
-                    {inProgress.map(ex => (
-                        <ExerciseRowCard key={ex.id} exercise={ex} label={ex.submissionStatus === 'SUBMITTED' ? 'Đã nộp bài' : 'Đang thực hiện'} onClick={() => onViewExercise(ex, 'GRADE')} />
-                    ))}
-                </PerformanceSection>
+                <div className="lg:px-8 lg:border-r lg:border-dashed lg:border-muted-foreground/20">
+                    <PerformanceSection title="Đang làm" icon={<FileText className="h-5 w-5 text-sky-500" />} count={inProgress.length} isLoading={isLoading}>
+                        {inProgress.map(ex => (
+                            <ExerciseRowCard key={ex.id} exercise={ex} label={ex.submissionStatus === 'SUBMITTED' ? 'Đã nộp bài' : 'Đang thực hiện'} onClick={() => onViewExercise(ex, 'GRADE')} />
+                        ))}
+                    </PerformanceSection>
+                </div>
 
-                <PerformanceSection title="Đã nộp & chấm điểm" icon={<Trophy className="h-5 w-5 text-green-500" />} count={graded.length} isLoading={isLoading}>
-                    {graded.map(ex => <ExerciseRowCard key={ex.id} exercise={ex} showScore onClick={() => onViewExercise(ex, 'REVIEW')} />)}
-                </PerformanceSection>
+                <div className="lg:pl-8">
+                    <PerformanceSection title="Đã nộp & chấm điểm" icon={<Trophy className="h-5 w-5 text-green-500" />} count={graded.length} isLoading={isLoading}>
+                        {graded.map(ex => <ExerciseRowCard key={ex.id} exercise={ex} showScore onClick={() => onViewExercise(ex, 'REVIEW')} />)}
+                    </PerformanceSection>
+                </div>
             </div>
         </div>
     );

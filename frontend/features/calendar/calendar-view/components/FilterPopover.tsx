@@ -41,29 +41,30 @@ export function FilterPopover({
                     </span>
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[calc(100vw-24px)] xs:w-72 sm:w-80 p-5 rounded-[2rem] border-border/60 shadow-2xl space-y-5 bg-background/95 backdrop-blur-xl animate-in fade-in zoom-in-95 data-[side=bottom]:slide-in-from-top-2 duration-300" align="end" sideOffset={8}>
-                <div className="space-y-3">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Tìm kiếm</p>
+            <PopoverContent className="w-[calc(100vw-24px)] xs:w-72 sm:w-80 p-3.5 sm:p-5 rounded-[1.5rem] sm:rounded-[2rem] border-border/60 shadow-2xl space-y-3.5 sm:space-y-5 bg-background/95 backdrop-blur-xl animate-in fade-in zoom-in-95 data-[side=bottom]:slide-in-from-top-2 duration-300" align="end" sideOffset={8}>
+                <div className="space-y-2 sm:space-y-3">
+                    <p className="text-[7.5px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Tìm kiếm</p>
                     <div className="relative group">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={16} />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={14} className="sm:hidden" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors hidden sm:block" size={16} />
                         <input
                             type="text"
                             placeholder="Tên học sinh, môn học..."
                             value={searchQuery}
                             onChange={(e) => onSearchChange(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 bg-muted/50 border border-border/60 rounded-2xl text-sm font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                            className="w-full pl-8 sm:pl-10 pr-4 h-[34px] sm:h-11 bg-muted/50 border border-border/60 rounded-xl sm:rounded-2xl text-[11px] sm:text-sm font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
                         />
                     </div>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                     <div className="flex items-center justify-between ml-1">
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Trạng thái</p>
+                        <p className="text-[7.5px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Trạng thái</p>
                         {currentFilter !== 'ALL' && (
-                            <button onClick={() => handleStatusSelect('ALL')} className="text-[9px] font-black uppercase text-primary hover:underline transition-all">Xóa lọc</button>
+                            <button onClick={() => handleStatusSelect('ALL')} className="text-[7.5px] sm:text-[9px] font-black uppercase text-primary hover:underline transition-all">Xóa lọc</button>
                         )}
                     </div>
-                    <div className="grid grid-cols-1 gap-1.5 mt-2 max-h-[40vh] overflow-y-auto no-scrollbar pr-1">
+                    <div className="grid grid-cols-1 gap-1 sm:gap-1.5 mt-1 sm:mt-2 max-h-[40vh] overflow-y-auto no-scrollbar pr-1">
                         <FilterButton isActive={currentFilter === 'ALL'} onClick={() => handleStatusSelect('ALL')} label="Tất cả trạng thái" />
                         {Object.entries(LESSON_STATUS_LABELS).map(([status, label]) => (
                             <FilterButton
@@ -78,8 +79,8 @@ export function FilterPopover({
                 </div>
 
                 {isFiltered && (
-                    <div className="pt-2">
-                        <Button variant="outline" size="sm" className="w-full rounded-xl h-11 font-black uppercase tracking-widest text-[9px] border-dashed text-muted-foreground hover:text-primary hover:border-primary/50 transition-all" onClick={() => { onSearchChange(''); onFilterChange('ALL'); setTimeout(() => setIsOpen(false), 300); }}>
+                    <div className="pt-1 sm:pt-2">
+                        <Button variant="outline" size="sm" className="w-full rounded-lg sm:rounded-xl h-9 sm:h-11 font-black uppercase tracking-widest text-[8px] sm:text-[9px] border-dashed text-muted-foreground hover:text-primary hover:border-primary/50 transition-all" onClick={() => { onSearchChange(''); onFilterChange('ALL'); setTimeout(() => setIsOpen(false), 300); }}>
                             Đặt lại tất cả filters
                         </Button>
                     </div>
@@ -95,16 +96,17 @@ function FilterButton({ isActive, onClick, label, status }: { isActive: boolean;
         <Button
             variant={isActive ? 'secondary' : 'ghost'}
             onClick={onClick}
-            className={cn("justify-start h-10 rounded-xl px-3 font-bold text-xs transition-all", isActive ? "bg-primary/10 text-primary hover:bg-primary/20" : "hover:bg-muted")}
+            className={cn("justify-start h-[32px] sm:h-10 rounded-lg sm:rounded-xl px-2.5 sm:px-3 font-bold text-[10px] sm:text-xs transition-all", isActive ? "bg-primary/10 text-primary hover:bg-primary/20" : "hover:bg-muted")}
         >
             <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-2">
-                    {colors && <div className={cn("w-2 h-2 rounded-full", colors.dot)} />}
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                    {colors && <div className={cn("w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full", colors.dot)} />}
                     <span className={cn(isActive && "text-primary")}>{label}</span>
                 </div>
                 {isActive && (
                     <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                        <CheckCircle2 size={14} className="text-primary" />
+                        <CheckCircle2 size={12} className="sm:hidden text-primary" />
+                        <CheckCircle2 size={14} className="hidden sm:block text-primary" />
                     </motion.div>
                 )}
             </div>

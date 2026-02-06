@@ -86,26 +86,27 @@ export default function DocumentLibrary() {
           title="Kho Tài Liệu Tiếng Anh"
           subtitle="Quản lý tài liệu theo danh mục để dễ tìm kiếm sau này"
           actions={!isStudent && (
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-row gap-2 sm:gap-3 w-full">
               <button
                 onClick={() => {
                   setEditingCategory(null);
                   setIsCategoryFormOpen(true);
                 }}
-                className="w-full sm:w-auto bg-muted hover:bg-muted/80 text-muted-foreground px-4 lg:px-6 py-2.5 lg:py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors border shadow-sm"
+                className="flex-1 sm:flex-none sm:w-auto bg-muted hover:bg-muted/80 text-muted-foreground px-3 sm:px-4 lg:px-6 py-2.5 lg:py-3 rounded-xl font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-all active:scale-95 border shadow-sm text-xs sm:text-base"
               >
-                <Plus size={18} />
-                Thêm danh mục
+                <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
+                <span className="hidden sm:inline">Thêm danh mục</span>
+                <span className="sm:hidden">Thêm</span>
               </button>
-              <button onClick={() => setShowUploadModal(true)} className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground px-4 lg:px-6 py-2.5 lg:py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors shadow-lg shadow-primary/20">
-                <Upload size={18} />
+              <button onClick={() => setShowUploadModal(true)} className="flex-1 sm:flex-none sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground px-3 sm:px-4 lg:px-6 py-2.5 lg:py-3 rounded-xl font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-all active:scale-95 shadow-lg shadow-primary/20 text-xs sm:text-base">
+                <Upload size={16} className="sm:w-[18px] sm:h-[18px]" />
                 Tải lên
               </button>
             </div>
           )}
         />
 
-        <div className="space-y-6">
+        <div className="space-y-6 pb-20 sm:pb-32">
           <StatsCards stats={stats} />
           <CategoryGrid
             categories={categories}

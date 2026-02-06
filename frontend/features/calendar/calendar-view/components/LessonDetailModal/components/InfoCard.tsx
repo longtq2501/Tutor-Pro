@@ -13,12 +13,12 @@ export const InfoCard = ({ icon, label, value, variant }: {
     };
 
     return (
-        <div className={cn("p-4 rounded-2xl border transition-all hover:shadow-md", variants[variant])}>
-            <div className="flex items-center gap-2 mb-2">
-                <span className="opacity-70">{icon}</span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{label}</span>
+        <div className={cn("p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all hover:shadow-md", variants[variant])}>
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
+                <span className="opacity-70 scale-90 sm:scale-100">{icon}</span>
+                <span className="text-[7px] sm:text-[10px] font-black uppercase tracking-widest text-muted-foreground">{label}</span>
             </div>
-            <div className="text-sm font-bold truncate">{value}</div>
+            <div className="text-[10px] sm:text-sm font-bold truncate">{value}</div>
         </div>
     );
 };

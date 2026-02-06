@@ -45,7 +45,7 @@ export function FilterPopover({
                 <div className="space-y-2 sm:space-y-3">
                     <p className="text-[7.5px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Tìm kiếm</p>
                     <div className="relative group">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={14} className="sm:hidden" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors sm:hidden" size={14} />
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors hidden sm:block" size={16} />
                         <input
                             type="text"

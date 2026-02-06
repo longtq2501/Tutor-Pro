@@ -49,3 +49,11 @@ backend/src/main/resources/application.yaml
 
 # Docker
 docker-compose.yml
+
+# IDE
+.idea/
+.vscode/
+
+#Postman
+postman/*
+uploads/*

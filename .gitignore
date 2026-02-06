@@ -57,3 +57,14 @@ docker-compose.yml
 #Postman
 postman/*
 uploads/*
+# Các file .md không cần track (TRỪ README.md)
+CLEAN_CODE_CRITERIA.md
+COMMIT_STRUCTURE.md
+CONTINUITY_GUIDE.md
+CONTINUITY.md
+GEMINI.md
+ISSUES_CRITERIA.md
+README_DEVELOP.md
+README_STRUCTURE_MODULE.md
+SEO_AUDIT_CHECKLIST.md
+README_DEPLOY.md

@@ -11,6 +11,11 @@ export interface StudentDashboardStats {
     totalAmountRaw: number;
     totalDocumentsRaw: number;
 
+    // LESSON PROGRESS
+    totalLessonsRaw: number;
+    completedLessonsRaw: number;
+    lessonProgressPercentage: number;
+
     // FORMATTED DATA
     totalHoursFormatted: string;
     totalPaidFormatted: string;

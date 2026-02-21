@@ -58,6 +58,8 @@ export interface AssignCourseRequest {
 export interface StudentCourseLessonDTO extends CourseLessonDTO {
     isCompleted: boolean;
     completedAt?: string;
+    videoProgress?: number;
+    canUnlockNext?: boolean;
 }
 
 export interface StudentCourseDetailDTO extends Omit<CourseDTO, 'lessonCount' | 'isPublished' | 'createdAt' | 'updatedAt'> {

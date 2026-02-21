@@ -8,7 +8,10 @@ import {
     GraduationCap, LayoutDashboard,
     LogOut,
     Menu,
+    Settings,
+    Shield,
     TrendingUp,
+    User,
     Users,
     Video
 } from 'lucide-react';
@@ -52,18 +55,12 @@ const LiveRoomFeature = dynamic(() => import('@/features/live-room'));
 import { ModeToggle } from '@/components/ModeToggle';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { NavItem, Sidebar, View } from '@/components/Sidebar';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
-import { UIProvider, useUI, HeaderSlot } from '@/contexts/UIContext';
+import { HeaderSlot, UIProvider, useUI } from '@/contexts/UIContext';
+import { type UserInfo } from '@/lib/services/auth';
 
 import ExerciseDashboard from '@/features/exercises/exercise-dashboard';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -73,10 +70,15 @@ import { NotificationBell } from '@/features/notifications/components/Notificati
 // MEMOIZED SUB-COMPONENTS FOR RENDERING ISOLATION
 // ============================================================================
 
+interface RoleBadge {
+    label: string;
+    color: string;
+}
+
 const AppHeader = React.memo(({ user, initials, roleBadge, logout }: {
-    user: any;
+    user: UserInfo | null;
     initials: string;
-    roleBadge: any;
+    roleBadge: RoleBadge | null;
     logout: () => void;
 }) => {
     const { setSidebarOpen } = useUI();
@@ -109,6 +111,7 @@ const AppHeader = React.memo(({ user, initials, roleBadge, logout }: {
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="relative h-9 w-9 lg:h-10 lg:w-10 rounded-full hover:bg-white/5 transition-colors">
                                     <Avatar className="h-9 w-9 lg:h-10 lg:w-10 border border-primary/20">
+                                        <AvatarImage src={user?.avatarUrl} alt={user?.fullName} className="object-cover" />
                                         <AvatarFallback className="bg-primary text-primary-foreground text-xs lg:text-sm font-bold">
                                             {initials}
                                         </AvatarFallback>
@@ -131,6 +134,11 @@ const AppHeader = React.memo(({ user, initials, roleBadge, logout }: {
                                         )}
                                     </div>
                                 </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => window.location.href = '/profile'} className="cursor-pointer p-3">
+                                    <User className="mr-2 h-4 w-4" />
+                                    <span className="font-bold">Thông tin cá nhân</span>
+                                </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={() => logout()} className="text-red-600 dark:text-red-400 cursor-pointer p-3">
                                     <LogOut className="mr-2 h-4 w-4" />

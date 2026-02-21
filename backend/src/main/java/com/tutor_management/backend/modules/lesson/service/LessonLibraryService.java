@@ -50,6 +50,7 @@ public class LessonLibraryService {
     private final SessionRecordRepository sessionRecordRepository;
     private final CourseLessonRepository courseLessonRepository;
     private final LessonProgressRepository lessonProgressRepository;
+    private final com.tutor_management.backend.util.SecurityContextUtils securityContextUtils;
 
     /**
      * Resolves the current tutor ID from the security context.
@@ -57,17 +58,11 @@ public class LessonLibraryService {
      * 
      * @return Tutor ID or NULL for admin access
      */
+    /**
+     * Resolves the current tutor ID.
+     */
     private Long getCurrentTutorId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !(auth.getPrincipal() instanceof User user)) {
-            return null;
-        }
-        if ("ADMIN".equals(user.getRole())) {
-            return null; // Admin sees all lessons
-        }
-        return tutorRepository.findByUserId(user.getId())
-                .map(Tutor::getId)
-                .orElse(null);
+        return securityContextUtils.getCurrentTutorId();
     }
 
     /**

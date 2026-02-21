@@ -50,29 +50,10 @@ public class StudentService {
     private final ParentRepository parentRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final com.tutor_management.backend.util.SecurityContextUtils securityContextUtils;
 
     private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
     private static final String DEFAULT_PASSWORD = "student123";
-
-    private Long getCurrentTutorId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            return null; // Should ideally throw specific exception or handle anonymous
-        }
-        String email = auth.getName();
-        
-        User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        if (user.getRole() == Role.ADMIN) {
-            return null;
-        }
-        
-        Tutor tutor = tutorRepository.findByUserId(user.getId())
-            .orElseThrow(() -> new RuntimeException("Tutor profile not found for user: " + user.getId()));
-        
-        return tutor.getId();
-    }
 
     /**
      * Retrieves all students with pre-calculated billing summaries and account links.
@@ -80,7 +61,7 @@ public class StudentService {
      */
     @Transactional(readOnly = true)
     public List<StudentResponse> getAllStudents() {
-        Long tutorId = getCurrentTutorId();
+        Long tutorId = securityContextUtils.getCurrentTutorId();
         List<Student> students;
         
         if (tutorId == null) {
@@ -114,7 +95,7 @@ public class StudentService {
      */
     @Transactional(readOnly = true)
     public Page<StudentSummaryResponse> getStudentsPaginated(Pageable pageable) {
-        Long tutorId = getCurrentTutorId();
+        Long tutorId = securityContextUtils.getCurrentTutorId();
         Page<Student> studentPage;
 
         if (tutorId == null) {
@@ -162,7 +143,7 @@ public class StudentService {
      */
     @Transactional(readOnly = true)
     public StudentResponse getStudentById(Long id) {
-        Long tutorId = getCurrentTutorId();
+        Long tutorId = securityContextUtils.getCurrentTutorId();
         Student student;
         
         if (tutorId == null) {
@@ -180,7 +161,7 @@ public class StudentService {
      */
     @Transactional
     public StudentResponse createStudent(StudentRequest request) {
-        Long tutorId = getCurrentTutorId();
+        Long tutorId = securityContextUtils.getCurrentTutorId();
         if (tutorId == null) {
             throw new RuntimeException("Admin cannot create students directly. Please sign in as a Tutor.");
         }
@@ -213,7 +194,7 @@ public class StudentService {
      */
     @Transactional
     public StudentResponse updateStudent(Long id, StudentRequest request) {
-        Long tutorId = getCurrentTutorId();
+        Long tutorId = securityContextUtils.getCurrentTutorId();
         log.info("Updating student ID: {}", id);
         
         Student student;
@@ -238,7 +219,7 @@ public class StudentService {
      */
     @Transactional
     public void deleteStudent(Long id) {
-        Long tutorId = getCurrentTutorId();
+        Long tutorId = securityContextUtils.getCurrentTutorId();
         log.warn("Deleting student ID: {}", id);
         
         Student student;

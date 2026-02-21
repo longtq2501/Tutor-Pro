@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { authService, type UserInfo } from '@/lib/services';
@@ -10,7 +9,10 @@ interface AuthContextType {
   user: UserInfo | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithToken: (token: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateAvatar: (file: File) => Promise<void>;
+  updateProfile: (data: { fullName: string }) => Promise<void>;
   isAuthenticated: boolean;
   hasRole: (role: 'ADMIN' | 'TUTOR' | 'STUDENT') => boolean;
   hasAnyRole: (roles: Array<'ADMIN' | 'TUTOR' | 'STUDENT'>) => boolean;
@@ -41,12 +43,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.removeItem('user');
           }
 
-          // Verify token is still valid
+          // Verify token is still valid (optional optimization: check if we actually need to fetch it)
           try {
             const response = await authService.getCurrentUser();
             setUser(response.data);
             localStorage.setItem('user', JSON.stringify(response.data));
-          } catch (error) {
+          } catch {
             // Token invalid, clear storage
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
@@ -64,6 +66,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadUser();
   }, []);
 
+  const loginWithToken = useCallback(async (token: string) => {
+    try {
+      setLoading(true);
+      localStorage.setItem('accessToken', token);
+
+      const response = await authService.getCurrentUser();
+      const userData = response.data;
+
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+
+      router.push('/dashboard');
+    } catch (error: unknown) {
+      console.error('Error logging in with token:', error);
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('user');
+      setUser(null);
+      const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Xác thực thất bại';
+      throw new Error(message);
+    } finally {
+      setLoading(false);
+    }
+  }, [router]);
+
   const login = useCallback(async (email: string, password: string) => {
     try {
       const response = await authService.login({ email, password });
@@ -79,11 +105,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Redirect to dashboard
       router.push('/dashboard');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Login error:', error);
-      throw new Error(error.response?.data?.message || 'Đăng nhập thất bại');
+      const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Đăng nhập thất bại';
+      throw new Error(message);
     }
   }, [router]);
+
+  const updateAvatar = useCallback(async (file: File) => {
+    try {
+      const response = await authService.updateAvatar(file);
+      const newAvatarUrl = response.data;
+
+      if (user) {
+        const updatedUser = { ...user, avatarUrl: newAvatarUrl };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+      }
+    } catch (error: unknown) {
+      console.error('Update avatar error:', error);
+      const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Cập nhật ảnh đại diện thất bại';
+      throw new Error(message);
+    }
+  }, [user]);
+
+  const updateProfile = useCallback(async (data: { fullName: string }) => {
+    try {
+      const response = await authService.updateProfile(data);
+      const updatedData = response.data;
+
+      if (user) {
+        const updatedUser = { ...user, fullName: updatedData.fullName };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+      }
+    } catch (error: unknown) {
+      console.error('Update profile error:', error);
+      const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Cập nhật thông tin thất bại';
+      throw new Error(message);
+    }
+  }, [user]);
 
   const logout = useCallback(async () => {
     try {
@@ -111,7 +172,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         loading,
         login,
+        loginWithToken,
         logout,
+        updateAvatar,
+        updateProfile,
         isAuthenticated: !!user,
         hasRole,
         hasAnyRole,

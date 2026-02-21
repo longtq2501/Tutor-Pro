@@ -171,6 +171,8 @@ public class CourseAssignmentService {
                             .isRequired(cl.getIsRequired())
                             .isCompleted(progress != null && Boolean.TRUE.equals(progress.getIsCompleted()))
                             .completedAt(progress != null ? progress.getCompletedAt() : null)
+                            .videoProgress(progress != null ? progress.getVideoProgress() : 0)
+                            .canUnlockNext(progress != null && progress.canUnlockNext())
                             .build();
                 })
                 .collect(Collectors.toList());

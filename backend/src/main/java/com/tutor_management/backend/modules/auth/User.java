@@ -49,6 +49,9 @@ public class User implements UserDetails {
     private Boolean accountNonLocked = true;
 
     // ✅ THÊM DUY NHẤT: Link to Student (for STUDENT role)
+    @Column(name = "avatar_url")
+    private String avatarUrl;
+
     @Column(name = "student_id")
     private Long studentId;
 

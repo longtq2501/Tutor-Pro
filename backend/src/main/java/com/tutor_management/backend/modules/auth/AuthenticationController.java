@@ -58,6 +58,7 @@ public class AuthenticationController {
                 .email(user.getEmail())
                 .fullName(user.getFullName())
                 .role(user.getRole())
+                .avatarUrl(user.getAvatarUrl())
                 .studentId(user.getStudentId())
                 .build();
         return ResponseEntity.ok(ApiResponse.success(userInfo));

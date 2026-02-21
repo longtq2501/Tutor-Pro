@@ -1,8 +1,10 @@
 package com.tutor_management.backend.modules.exercise.service;
 
 import com.tutor_management.backend.exception.ResourceNotFoundException;
+import com.tutor_management.backend.modules.auth.Role;
 import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.auth.UserRepository;
+import com.tutor_management.backend.util.SecurityContextUtils;
 import com.tutor_management.backend.modules.exercise.domain.*;
 import com.tutor_management.backend.modules.exercise.dto.request.CreateExerciseRequest;
 import com.tutor_management.backend.modules.exercise.dto.request.ImportExerciseRequest;
@@ -55,6 +57,7 @@ public class ExerciseServiceImpl implements ExerciseService {
     private final StudentRepository studentRepository;
     private final UserRepository userRepository;
     private final com.tutor_management.backend.modules.tutor.repository.TutorRepository tutorRepository;
+    private final SecurityContextUtils securityContextUtils;
     private final ApplicationEventPublisher eventPublisher;
 
     private Long getTutorId(String teacherId) {
@@ -146,10 +149,8 @@ public class ExerciseServiceImpl implements ExerciseService {
     @Override
     @Transactional(readOnly = true)
     public Page<ExerciseListItemResponse> listExercises(String classId, ExerciseStatus status, String search, Pageable pageable) {
-        // Assume context user is the teacher calling this
-        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(email).orElseThrow();
-        Long tutorId = getTutorId(user.getId().toString());
+        // Centralized identity resolution for multi-tenancy filtering
+        Long tutorId = securityContextUtils.getCurrentTutorId();
         
         log.debug("Listing exercises (TutorID={}, Filter: class={}, status={}, search={}, page={})", tutorId, classId, status, search, pageable.getPageNumber());
         return exerciseRepository.findByFiltersOptimized(classId, status, search, tutorId, pageable);
@@ -247,14 +248,20 @@ public class ExerciseServiceImpl implements ExerciseService {
     @Override
     @Transactional(readOnly = true)
     public Page<TutorStudentSummaryResponse> getStudentSummaries(Long tutorId, Pageable pageable) {
-        log.info("Aggregating student performance summaries for tutor dashboard (tutorId: {}, page: {})", tutorId, pageable.getPageNumber());
+        log.info("Aggregating student performance summaries (Input TutorId: {}, Page: {})", tutorId, pageable.getPageNumber());
+        
+        // Ensure we use the resolved identity if provided tutorId is null (though calling controller passes it)
+        Long activeTutorId = (tutorId != null) ? tutorId : securityContextUtils.getCurrentTutorId();
         
         Page<com.tutor_management.backend.modules.student.entity.Student> studentsPage;
-        if (tutorId != null) {
-            studentsPage = studentRepository.findByTutorIdAndActiveTrueWithParent(tutorId, pageable);
-        } else {
-            // Admin sees all
+        if (activeTutorId != null) {
+            studentsPage = studentRepository.findByTutorIdAndActiveTrueWithParent(activeTutorId, pageable);
+        } else if (securityContextUtils.getCurrentUser().map(u -> Role.ADMIN.equals(u.getRole())).orElse(false)) {
+            // Only Admins see everything if tutorId/activeTutorId is null
             studentsPage = studentRepository.findByActiveTrueWithParent(pageable);
+        } else {
+            // Unidentified non-admin sees nothing
+            return Page.empty();
         }
         
         if (studentsPage.isEmpty()) return Page.empty();
@@ -265,7 +272,7 @@ public class ExerciseServiceImpl implements ExerciseService {
 
         // Multi-tenancy count: only count assignments associated with exercises owned by this tutor
         // Uses LEFT JOIN with submissions to handle tasks without submission records
-        var rawStats = assignmentRepository.countAssignmentsWithSubmissionStatus(studentIds, tutorId);
+        var rawStats = assignmentRepository.countAssignmentsWithSubmissionStatus(studentIds, activeTutorId);
         
         // Map stats by studentId
         Map<String, Map<com.tutor_management.backend.modules.submission.entity.SubmissionStatus, Integer>> statsMap = new HashMap<>(); 

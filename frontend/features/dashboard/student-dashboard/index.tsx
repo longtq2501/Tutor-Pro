@@ -128,6 +128,9 @@ export default function StudentDashboard() {
         completedSessions={stats.completedSessionsRaw}
         totalHours={stats.totalHoursRaw}
         totalSessions={stats.totalSessionsRaw}
+        completedLessons={stats.completedLessonsRaw}
+        totalLessons={stats.totalLessonsRaw}
+        lessonProgressPercentage={stats.lessonProgressPercentage}
       />
     </div>
   );

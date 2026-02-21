@@ -1,5 +1,7 @@
 package com.tutor_management.backend.modules.exercise.service;
 
+import com.tutor_management.backend.util.SecurityContextUtils;
+
 import com.tutor_management.backend.modules.exercise.domain.AssignmentStatus;
 import com.tutor_management.backend.modules.exercise.dto.response.TutorStudentSummaryResponse;
 import com.tutor_management.backend.modules.exercise.repository.ExerciseAssignmentRepository;
@@ -34,6 +36,9 @@ class ExerciseServiceTest {
 
     @Mock
     private com.tutor_management.backend.modules.submission.repository.SubmissionRepository submissionRepository;
+
+    @Mock
+    private com.tutor_management.backend.util.SecurityContextUtils securityContextUtils;
 
     @InjectMocks
     private ExerciseServiceImpl exerciseService;

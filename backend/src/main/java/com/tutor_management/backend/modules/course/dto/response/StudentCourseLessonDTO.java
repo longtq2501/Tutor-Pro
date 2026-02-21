@@ -31,4 +31,14 @@ public class StudentCourseLessonDTO {
      * The timestamp when the student marked this lesson as complete.
      */
     private LocalDateTime completedAt;
+
+    /**
+     * Video watch percentage (0-100).
+     */
+    private Integer videoProgress;
+
+    /**
+     * Whether the student can unlock the next lesson in the curriculum.
+     */
+    private Boolean canUnlockNext;
 }

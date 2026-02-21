@@ -33,8 +33,8 @@ public class DashboardService {
     private final StudentRepository studentRepository;
     private final SessionRecordRepository sessionRecordRepository;
     private final DocumentRepository documentRepository;
-    private final com.tutor_management.backend.modules.auth.UserRepository userRepository;
-    private final com.tutor_management.backend.modules.tutor.repository.TutorRepository tutorRepository;
+    private final com.tutor_management.backend.modules.lesson.repository.LessonAssignmentRepository lessonAssignmentRepository;
+    private final com.tutor_management.backend.util.SecurityContextUtils securityContextUtils;
 
     /**
      * Retrieves overall system statistics for a specific month.
@@ -45,7 +45,7 @@ public class DashboardService {
      */
     @Cacheable(value = "dashboardStats", key = "{#currentMonth, T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().getName()}")
     public DashboardStats getDashboardStats(String currentMonth) {
-        Long tutorId = getCurrentTutorId();
+        Long tutorId = securityContextUtils.getCurrentTutorId();
         
         // 1. Fetch raw financial summary from repository
         DashboardStats stats;
@@ -132,7 +132,7 @@ public class DashboardService {
         Long studentTutorId = studentRepository.findById(studentId)
                 .map(com.tutor_management.backend.modules.student.entity.Student::getTutorId)
                 .orElse(null);
-                
+                 
         int documentCount = documentRepository.countByStudentIdAndTutor(studentId, studentTutorId).intValue();
 
         // 2. Aggregate metrics in memory
@@ -172,6 +172,11 @@ public class DashboardService {
         String quote = getMotivationalQuote(completedSessions, totalSessions);
         boolean shouldShowCelebration = totalSessions > 0 && completedSessions == totalSessions;
 
+        // 4. Calculate lesson progress
+        long totalLessonsRaw = lessonAssignmentRepository.countByStudentId(studentId);
+        long completedLessonsRaw = lessonAssignmentRepository.countByStudentIdAndIsCompletedTrue(studentId);
+        double lessonProgressPercentage = totalLessonsRaw > 0 ? (completedLessonsRaw * 100.0 / totalLessonsRaw) : 0.0;
+
         return StudentDashboardStats.builder()
                 .totalSessionsRaw(totalSessions)
                 .completedSessionsRaw(completedSessions)
@@ -180,6 +185,9 @@ public class DashboardService {
                 .totalUnpaidRaw(totalUnpaid)
                 .totalAmountRaw(totalAmount)
                 .totalDocumentsRaw(documentCount)
+                .totalLessonsRaw(totalLessonsRaw)
+                .completedLessonsRaw(completedLessonsRaw)
+                .lessonProgressPercentage(lessonProgressPercentage)
                 .totalHoursFormatted(String.format("%.1f giờ", totalHours))
                 .totalPaidFormatted(FormatterUtils.formatCurrency(totalPaid))
                 .totalUnpaidFormatted(FormatterUtils.formatCurrency(totalUnpaid))
@@ -224,35 +232,10 @@ public class DashboardService {
      */
     @Cacheable(value = "monthlyStats", key = "T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().getName()")
     public List<MonthlyStats> getMonthlyStats() {
-        Long tutorId = getCurrentTutorId();
+        Long tutorId = securityContextUtils.getCurrentTutorId();
         if (tutorId != null) {
             return sessionRecordRepository.findMonthlyStatsAggregatedByTutorId(tutorId);
         }
         return sessionRecordRepository.findAllMonthlyStatsAggregated();
-    }
-    
-    // --- Helper ---
-    
-    private Long getCurrentTutorId() {
-        try {
-            org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-            if (auth == null || !auth.isAuthenticated()) {
-                return null;
-            }
-            String email = auth.getName();
-            
-            User user = userRepository.findByEmail(email)
-                .orElse(null);
-            
-            if (user == null || user.getRole() == Role.ADMIN) {
-                return null;
-            }
-            
-            return tutorRepository.findByUserId(user.getId())
-                .map(com.tutor_management.backend.modules.tutor.entity.Tutor::getId)
-                .orElse(null);
-        } catch (Exception e) {
-            return null;
-        }
     }
 }

@@ -33,6 +33,17 @@ public class StudentDashboardStats {
     /** Count of learning documents/materials available to the student */
     private int totalDocumentsRaw;
 
+    // === LESSON PROGRESS DATA ===
+
+    /** Total number of lessons assigned to the student */
+    private long totalLessonsRaw;
+
+    /** Number of lessons marked as completed */
+    private long completedLessonsRaw;
+
+    /** Overall progress percentage (0.0 to 100.0) */
+    private double lessonProgressPercentage;
+
     // === FORMATTED DATA (For UI Display) ===
     
     /** Total hours with unit suffix, e.g., "12.5h" */

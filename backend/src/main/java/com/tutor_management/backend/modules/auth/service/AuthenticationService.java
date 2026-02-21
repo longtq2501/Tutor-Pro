@@ -22,6 +22,7 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final AuthenticationManager authenticationManager;
+    private final com.tutor_management.backend.modules.tutor.service.TutorService tutorService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -42,6 +43,9 @@ public class AuthenticationService {
 
         User savedUser = userRepository.save(user);
 
+        // ✅ CRITICAL: Auto-provision Tutor profile
+        tutorService.ensureTutorProfile(savedUser);
+
         // Generate tokens
         String accessToken = jwtService.generateToken(savedUser);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(savedUser.getId());
@@ -52,7 +56,6 @@ public class AuthenticationService {
     @Transactional
     public AuthResponse login(LoginRequest request) {
         // 1. Authenticate user
-        // authenticationManager.authenticate already calls UserDetailsService.loadUserByUsername()
         var authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
@@ -60,13 +63,14 @@ public class AuthenticationService {
                 )
         );
 
-        // 2. Get user from authentication principal (instead of another DB lookup)
+        // 2. Get user
         User user = (User) authentication.getPrincipal();
+
+        // ✅ Ensure profile exists on every login (idempotent)
+        tutorService.ensureTutorProfile(user);
 
         // 3. Generate tokens
         String accessToken = jwtService.generateToken(user);
-        
-        // ✅ UPSERT handles everything atomically
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
 
         return buildAuthResponse(user, accessToken, refreshToken.getToken());
@@ -100,6 +104,7 @@ public class AuthenticationService {
                         .email(user.getEmail())
                         .fullName(user.getFullName())
                         .role(user.getRole())
+                        .avatarUrl(user.getAvatarUrl())
                         .studentId(user.getStudentId())
                         .build())
                 .build();

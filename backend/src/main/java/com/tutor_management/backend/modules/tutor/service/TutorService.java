@@ -11,17 +11,22 @@ import com.tutor_management.backend.modules.tutor.dto.response.TutorResponse;
 import com.tutor_management.backend.modules.tutor.entity.Tutor;
 import com.tutor_management.backend.modules.tutor.repository.TutorRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
+
 /**
  * Service for managing Tutor entities.
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TutorService {
 
     private final TutorRepository tutorRepository;
@@ -32,37 +37,24 @@ public class TutorService {
 
     /**
      * Get all tutors with pagination and filtering.
-     * @param search Search term (name or email).
-     * @param status Subscription status filter (optional).
-     * @param pageable Pagination info.
-     * @return Page of TutorResponse.
      */
     @Transactional(readOnly = true)
     public Page<TutorResponse> getAllTutors(String search, String status, Pageable pageable) {
         Page<Tutor> tutors;
         
         if (search != null && !search.isBlank() && status != null && !status.isBlank()) {
-            // Both filters
             tutors = tutorRepository.searchByNameOrEmailAndStatus(search, status, pageable);
         } else if (search != null && !search.isBlank()) {
-            // Search only
             tutors = tutorRepository.searchByNameOrEmail(search, pageable);
         } else if (status != null && !status.isBlank()) {
-            // Status only
             tutors = tutorRepository.findBySubscriptionStatus(status, pageable);
         } else {
-            // No filters
             tutors = tutorRepository.findAll(pageable);
         }
         
         return tutors.map(this::mapToResponse);
     }
 
-    /**
-     * Get tutor by specific ID.
-     * @param id Tutor ID.
-     * @return TutorResponse.
-     */
     @Transactional(readOnly = true)
     public TutorResponse getTutorById(Long id) {
         Tutor tutor = tutorRepository.findById(id)
@@ -72,44 +64,30 @@ public class TutorService {
 
     /**
      * Create a new tutor.
-     * @param request Tutor creation request.
-     * @return Created TutorResponse.
      */
     @Transactional
     public TutorResponse createTutor(TutorRequest request) {
-        // 1. Validation: Check if Tutor email exists
         if (tutorRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new AlreadyExistsException("Tutor with this email already exists: " + request.getEmail());
         }
 
         User user;
-
-        // 2. Logic: If userId is provided, try to link to existing User
-        // When linking existing user, verify email matches
         if (request.getUserId() != null) {
             user = userRepository.findById(request.getUserId())
                     .orElseThrow(() -> new TutorNotFoundException(request.getUserId()));
 
-            // ADD: Verify emails match
             if (!user.getEmail().equals(request.getEmail())) {
-                throw new IllegalArgumentException(
-                        "User email doesn't match Tutor email. User: " + user.getEmail() +
-                                ", Tutor: " + request.getEmail()
-                );
+                throw new IllegalArgumentException("User email doesn't match Tutor email.");
             }
 
             if (tutorRepository.findByUserId(user.getId()).isPresent()) {
                 throw new AlreadyExistsException("User already has a Tutor profile");
             }
         } else {
-            // 3. Atomic Creation: Create new User if no ID provided
             if (request.getPassword() == null || request.getPassword().length() < 8) {
-                throw new IllegalArgumentException(
-                        "Password is required and must be at least 8 characters"
-                );
+                throw new IllegalArgumentException("Password must be at least 8 characters");
             }
 
-            // Check if User email exists (using same email as Tutor profile)
             if (userRepository.findByEmail(request.getEmail()).isPresent()) {
                  throw new AlreadyExistsException("User account with this email already exists: " + request.getEmail());
             }
@@ -126,7 +104,6 @@ public class TutorService {
             user = userRepository.save(user);
         }
 
-        // 4. Create Tutor linked to User
         Tutor tutor = Tutor.builder()
                 .user(user)
                 .fullName(request.getFullName())
@@ -140,17 +117,48 @@ public class TutorService {
     }
 
     /**
-     * Update an existing tutor.
-     * @param id Tutor ID.
-     * @param request Update request.
-     * @return Updated TutorResponse.
+     * Ensures a Tutor profile exists for the given User.
+     * Used during authentication to auto-provision profiles.
      */
+    @Transactional
+    public void ensureTutorProfile(User user) {
+        if (user == null || !com.tutor_management.backend.modules.auth.Role.TUTOR.equals(user.getRole())) {
+            return;
+        }
+
+        if (tutorRepository.findByUserId(user.getId()).isPresent()) {
+            return;
+        }
+
+        Optional<Tutor> existingTutor = tutorRepository.findByEmail(user.getEmail());
+        if (existingTutor.isPresent()) {
+            Tutor tutor = existingTutor.get();
+            if (tutor.getUser() == null || !tutor.getUser().getId().equals(user.getId())) {
+                log.info("Linking existing Tutor profile ({}) to User account ({})", user.getEmail(), user.getId());
+                tutor.setUser(user);
+                tutorRepository.save(tutor);
+            }
+            return;
+        }
+
+        Tutor tutor = Tutor.builder()
+                .user(user)
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .phone("N/A")
+                .subscriptionPlan("SOLO")
+                .subscriptionStatus("ACTIVE")
+                .build();
+        
+        tutorRepository.save(tutor);
+        log.info("Created automatic Tutor profile for user: {}", user.getEmail());
+    }
+
     @Transactional
     public TutorResponse updateTutor(Long id, TutorRequest request) {
         Tutor tutor = tutorRepository.findById(id)
                 .orElseThrow(() -> new TutorNotFoundException(id));
 
-        // Check email uniqueness (exclude current tutor)
         if (!tutor.getEmail().equals(request.getEmail())) {
             tutorRepository.findByEmail(request.getEmail()).ifPresent(existing -> {
                 if (!existing.getId().equals(id)) {
@@ -171,26 +179,16 @@ public class TutorService {
         return mapToResponse(tutorRepository.save(tutor));
     }
 
-    /**
-     * Get statistics for a tutor.
-     * @param id Tutor ID.
-     * @return TutorStatsDTO.
-     */
     @Transactional(readOnly = true)
     public TutorStatsDTO getTutorStats(Long id) {
-        // Validation check
         if (!tutorRepository.existsById(id)) {
             throw new RuntimeException("Tutor not found with id: " + id);
         }
 
-        // 1. Get active student count
         long studentCount = studentRepository.countByTutorIdAndActiveTrue(id);
-        
-        // 2. Get session count for current month
         String currentMonth = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("MM/yyyy"));
         Integer sessionCount = sessionRecordRepository.sumSessionsByMonthAndTutorId(currentMonth, id);
         
-        // 3. Get total revenue (Using paid + unpaid for total value generated)
         com.tutor_management.backend.modules.dashboard.dto.response.DashboardStats financeStats = 
                 sessionRecordRepository.getFinanceSummaryByTutorId(currentMonth, id);
         
@@ -208,10 +206,6 @@ public class TutorService {
                 .build();
     }
     
-    /**
-     * Delete a tutor.
-     * @param id Tutor ID.
-     */
     @Transactional
     public void deleteTutor(Long id) {
          if (!tutorRepository.existsById(id)) {
@@ -221,21 +215,20 @@ public class TutorService {
     }
 
     private TutorResponse mapToResponse(Tutor tutor) {
-    // Defensive check (even though @EntityGraph should load it)
-    if (tutor.getUser() == null) {
-        throw new IllegalStateException("Tutor.user not loaded for id: " + tutor.getId());
-    }
-    
-    return TutorResponse.builder()
-            .id(tutor.getId())
-            .userId(tutor.getUser().getId())
-            .fullName(tutor.getFullName())
-            .email(tutor.getEmail())
-            .phone(tutor.getPhone())
-            .subscriptionPlan(tutor.getSubscriptionPlan())
-            .subscriptionStatus(tutor.getSubscriptionStatus())
-            .createdAt(tutor.getCreatedAt())
-            .updatedAt(tutor.getUpdatedAt())
-            .build();
+        if (tutor.getUser() == null) {
+            throw new IllegalStateException("Tutor.user not loaded for id: " + tutor.getId());
+        }
+        
+        return TutorResponse.builder()
+                .id(tutor.getId())
+                .userId(tutor.getUser().getId())
+                .fullName(tutor.getFullName())
+                .email(tutor.getEmail())
+                .phone(tutor.getPhone())
+                .subscriptionPlan(tutor.getSubscriptionPlan())
+                .subscriptionStatus(tutor.getSubscriptionStatus())
+                .createdAt(tutor.getCreatedAt())
+                .updatedAt(tutor.getUpdatedAt())
+                .build();
     }
 }

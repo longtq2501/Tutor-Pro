@@ -8,7 +8,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import {
     ArrowLeft,
     CheckCircle2,
-    Circle,
     Clock,
     PlayCircle,
     Lock,
@@ -175,18 +174,21 @@ export default function CourseDetailView({ courseId, onBack, onLessonSelect }: C
 
                     {course.lessons.map((lesson, index) => {
                         const isCompleted = lesson.isCompleted;
-                        const isCurrent = !isCompleted && (index === 0 || course.lessons[index - 1].isCompleted);
-                        const isLocked = !isCompleted && !isCurrent && index > 0 && !course.lessons[index - 1].isCompleted;
+                        // Sequential unlocking: First lesson is always unlocked, 
+                        // subsequent lessons require previous lesson to have canUnlockNext=true
+                        const isUnlocked = index === 0 || (course.lessons[index - 1].canUnlockNext ?? false) || (course.lessons[index - 1].isCompleted ?? false);
+                        const isCurrent = !isCompleted && isUnlocked;
+                        const isLocked = !isCompleted && !isUnlocked;
 
                         return (
                             <div
                                 key={lesson.id}
                                 className={cn(
-                                    "relative flex sm:flex-row flex-col items-start gap-4 p-4 rounded-2xl border transition-all duration-300 cursor-pointer hover:shadow-md",
+                                    "relative flex sm:flex-row flex-col items-start gap-4 p-4 rounded-2xl border transition-all duration-300 group/item",
                                     isCompleted ? "bg-primary/5 border-primary/20 opacity-80" :
                                         isCurrent ? "bg-card border-primary shadow-lg scale-[1.02] z-10" :
                                             "bg-muted/30 border-transparent text-muted-foreground",
-                                    isLocked && "cursor-not-allowed"
+                                    isLocked ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:shadow-md"
                                 )}
                                 onClick={() => !isLocked && onLessonSelect(lesson.lessonId)}
                             >
@@ -204,20 +206,39 @@ export default function CourseDetailView({ courseId, onBack, onLessonSelect }: C
                                 </div>
 
                                 {/* Content */}
-                                <div className="flex-1 space-y-2">
+                                <div className="flex-1 space-y-3">
                                     <div className="flex flex-wrap items-center justify-between gap-2">
                                         <h3 className={cn("text-lg font-bold leading-none", isCurrent && "text-primary")}>
                                             {lesson.title}
                                         </h3>
-                                        {lesson.isRequired && !isCompleted && (
-                                            <Badge variant="secondary" className="text-[10px] uppercase tracking-tighter">Bắt buộc</Badge>
-                                        )}
+                                        <div className="flex items-center gap-2">
+                                            {lesson.isRequired && !isCompleted && (
+                                                <Badge variant="secondary" className="text-[10px] uppercase tracking-tighter">Bắt buộc</Badge>
+                                            )}
+                                        </div>
                                     </div>
+
                                     <p className="text-sm line-clamp-2 leading-relaxed">
                                         {lesson.summary || "Nội dung bài học chuẩn bị kỹ lưỡng bởi gia sư."}
                                     </p>
 
-                                    <div className="flex flex-wrap items-center gap-4 text-xs font-medium pt-2">
+                                    {/* Video Progress indicator for current/unlocked lessons */}
+                                    {!isCompleted && !isLocked && (lesson.videoProgress ?? 0) > 0 && (
+                                        <div className="space-y-1.5 pt-1">
+                                            <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-primary/70">
+                                                <span>Tiến độ xem video</span>
+                                                <span>{lesson.videoProgress}%</span>
+                                            </div>
+                                            <div className="h-1.5 w-full bg-primary/10 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-primary transition-all duration-1000"
+                                                    style={{ width: `${lesson.videoProgress}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="flex flex-wrap items-center gap-4 text-xs font-medium pt-1">
                                         {isCompleted && (
                                             <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
                                                 <CheckCircle2 className="h-3.5 w-3.5" />
@@ -227,13 +248,13 @@ export default function CourseDetailView({ courseId, onBack, onLessonSelect }: C
                                         {!isCompleted && !isLocked && (
                                             <span className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
                                                 <PlayCircle className="h-3.5 w-3.5" />
-                                                Sẵn sàng bắt đầu
+                                                {(lesson.videoProgress ?? 0) >= 70 ? 'Sẵn sàng sang bài tiếp' : 'Đang học'}
                                             </span>
                                         )}
                                         {isLocked && (
                                             <span className="flex items-center gap-1.5 text-muted-foreground">
                                                 <Lock className="h-3.5 w-3.5" />
-                                                Cần hoàn thành bài học trước
+                                                Cần hoàn thành bài học trước (70% video)
                                             </span>
                                         )}
                                     </div>
@@ -245,10 +266,14 @@ export default function CourseDetailView({ courseId, onBack, onLessonSelect }: C
                                         variant={isCurrent ? "default" : "outline"}
                                         size="sm"
                                         disabled={isLocked}
-                                        onClick={() => onLessonSelect(lesson.lessonId)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onLessonSelect(lesson.lessonId);
+                                        }}
                                         className={cn(
                                             "rounded-full px-6",
-                                            isCompleted && "bg-green-500 hover:bg-green-600 border-none text-white"
+                                            isCompleted && "bg-green-500 hover:bg-green-600 border-none text-white",
+                                            isLocked && "grayscale opacity-50"
                                         )}
                                     >
                                         {isCompleted ? "Xem lại" : isCurrent ? "Học ngay" : "Chưa mở"}

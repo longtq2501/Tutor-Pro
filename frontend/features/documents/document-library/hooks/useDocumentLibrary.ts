@@ -69,11 +69,31 @@ export const useDocumentLibrary = () => {
     staleTime: 60000
   });
 
+  // Chuẩn hóa thống kê theo category để khớp với code của Category
+  let categoryCounts: Record<string, number> = statsData?.categoryStats || {};
+
+  if (categories.length && Object.keys(categoryCounts).length) {
+    const sampleKey = Object.keys(categoryCounts)[0];
+    const isNumericKey = !Number.isNaN(Number(sampleKey));
+
+    // Nếu backend trả về key theo categoryId (dạng số), ánh xạ sang category.code
+    if (isNumericKey) {
+      const mapped: Record<string, number> = {};
+      for (const cat of categories) {
+        const value = categoryCounts[String(cat.id)];
+        if (value != null) {
+          mapped[cat.code] = value;
+        }
+      }
+      categoryCounts = mapped;
+    }
+  }
+
   const stats = {
     total: statsData?.totalDocuments || 0,
     downloads: statsData?.totalDownloads || 0,
     size: statsData?.formattedTotalSize || '0 B',
-    categoryCounts: statsData?.categoryStats || {}
+    categoryCounts
   };
 
   const loadCategoryDocuments = loadDocuments; // Alias

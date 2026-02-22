@@ -48,6 +48,7 @@ const LessonViewWrapper = dynamic(() => import('@/features/learning/lesson-view-
 const AdminLessonManager = dynamic(() => import('@/features/learning/lessons'));
 const TutorsFeature = dynamic(() => import('@/features/tutors'));
 const LiveRoomFeature = dynamic(() => import('@/features/live-room'));
+const SettingsView = dynamic(() => import('@/features/settings'));
 
 // ============================================================================
 // UI COMPONENTS (Keep in /components - not feature-specific)
@@ -82,6 +83,7 @@ const AppHeader = React.memo(({ user, initials, roleBadge, logout }: {
     logout: () => void;
 }) => {
     const { setSidebarOpen } = useUI();
+    const router = useRouter();
 
     return (
         <header className="border-b border-border bg-background/50 backdrop-blur-xl sticky top-0 z-20 transition-all duration-300">
@@ -135,7 +137,10 @@ const AppHeader = React.memo(({ user, initials, roleBadge, logout }: {
                                     </div>
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => window.location.href = '/profile'} className="cursor-pointer p-3">
+                                <DropdownMenuItem
+                                    onClick={() => router.push('/dashboard?view=settings')}
+                                    className="cursor-pointer p-3"
+                                >
                                     <User className="mr-2 h-4 w-4" />
                                     <span className="font-bold">Thông tin cá nhân</span>
                                 </DropdownMenuItem>
@@ -201,6 +206,9 @@ const MainContentSwitcher = React.memo(({ currentView, hasAnyRole }: {
 
                 {/* Live Room */}
                 {currentView === 'live-room' && <LiveRoomFeature />}
+
+                {/* Settings */}
+                {currentView === 'settings' && <SettingsView />}
 
                 {/* Student Lesson View */}
                 {currentView === 'lessons' && hasAnyRole(['STUDENT']) && <LessonViewWrapper />}
@@ -283,6 +291,7 @@ function AppContent() {
             // { id: 'unpaid', label: 'Công Nợ', icon: AlertCircle },
             { id: 'documents', label: 'Tài Liệu', icon: FileText },
             { id: 'live-room', label: 'Lớp học', icon: Video },
+            { id: 'settings', label: 'Cài đặt', icon: Settings },
         ];
 
         return allItems.filter(item => {

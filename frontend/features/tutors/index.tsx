@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Search } from 'lucide-react';
 import type { Tutor, TutorRequest } from '../../lib/services/tutor';
+import { DashboardHeader } from '@/contexts/UIContext';
 
 export default function TutorsFeature() {
     const {
@@ -56,11 +57,16 @@ export default function TutorsFeature() {
     };
 
     return (
-        <div className="space-y-6 p-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">Tutors Management</h1>
-                <Button onClick={handleCreate}><Plus className="mr-2 h-4 w-4" /> Add Tutor</Button>
-            </div>
+        <div className="space-y-6 p-6 w-full">
+            <DashboardHeader
+                title="Gia sư"
+                subtitle="Quản lý danh sách gia sư trong hệ thống"
+                actions={
+                    <Button onClick={handleCreate}>
+                        <Plus className="mr-2 h-4 w-4" /> Thêm gia sư
+                    </Button>
+                }
+            />
 
             <div className="flex items-center gap-4">
                 <div className="relative flex-1 max-w-sm">

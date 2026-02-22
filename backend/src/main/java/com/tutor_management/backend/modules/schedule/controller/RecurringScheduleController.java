@@ -14,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -125,8 +126,7 @@ public class RecurringScheduleController {
             @RequestBody Map<String, Object> request
     ) {
         String month = (String) request.get("month");
-        @SuppressWarnings("unchecked")
-        List<Long> studentIds = (List<Long>) request.get("studentIds");
+        List<Long> studentIds = parseStudentIds(request.get("studentIds"));
 
         if (month == null || month.isBlank()) {
             return ResponseEntity.badRequest().body(ApiResponse.error("Vui lòng cung cấp thông tin tháng (YYYY-MM)"));
@@ -163,8 +163,7 @@ public class RecurringScheduleController {
             @RequestBody Map<String, Object> request
     ) {
         String month = (String) request.get("month");
-        @SuppressWarnings("unchecked")
-        List<Long> studentIds = (List<Long>) request.get("studentIds");
+        List<Long> studentIds = parseStudentIds(request.get("studentIds"));
 
         if (month == null || month.isBlank()) {
             return ResponseEntity.badRequest().body(ApiResponse.error("Vui lòng cung cấp thông tin tháng (YYYY-MM)"));
@@ -172,5 +171,21 @@ public class RecurringScheduleController {
 
         int count = recurringScheduleService.countSessionsToGenerate(month, studentIds);
         return ResponseEntity.ok(ApiResponse.success("Sẽ có " + count + " buổi học được tạo", Map.of("month", month, "count", count)));
+    }
+
+    /**
+     * Parses studentIds from request body. JSON often deserializes numbers as Integer;
+     * convert to List&lt;Long&gt; so contains(student.getId()) matches in service.
+     */
+    @SuppressWarnings("unchecked")
+    private List<Long> parseStudentIds(Object studentIdsObj) {
+        if (studentIdsObj == null) return null;
+        if (!(studentIdsObj instanceof List)) return null;
+        List<?> list = (List<?>) studentIdsObj;
+        List<Long> result = new ArrayList<>();
+        for (Object o : list) {
+            if (o instanceof Number) result.add(((Number) o).longValue());
+        }
+        return result;
     }
 }

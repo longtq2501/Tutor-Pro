@@ -1,9 +1,8 @@
-// ============================================================================
-// 📁 student-modal/hooks/useStudentForm.ts
-// ============================================================================
 import { studentsApi } from '@/lib/services';
 import type { Student, StudentRequest } from '@/lib/types';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 const initialFormData: StudentRequest = {
   name: '',
@@ -22,6 +21,7 @@ const initialFormData: StudentRequest = {
 export function useStudentForm(student: Student | null, onSuccess: () => void) {
   const [formData, setFormData] = useState<StudentRequest>(initialFormData);
   const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!student) {
@@ -49,17 +49,23 @@ export function useStudentForm(student: Student | null, onSuccess: () => void) {
 
   const submit = async () => {
     if (!formData.name || !formData.schedule) {
-      alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
+      toast.error('Vui lòng điền đầy đủ thông tin bắt buộc!');
       return;
     }
 
     try {
       setLoading(true);
       await (student ? studentsApi.update(student.id, formData) : studentsApi.create(formData));
+      await queryClient.invalidateQueries({ queryKey: ['students'] });
       onSuccess();
-    } catch (error) {
-      console.error('Error saving student:', error);
-      alert('Không thể lưu thông tin học sinh!');
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      const message = err?.response?.data?.message || 'Không thể lưu thông tin học sinh!';
+      if (message.toLowerCase().includes('email') && message.toLowerCase().includes('tồn tại')) {
+        toast.error(`Lỗi: Email ${formData.email || ''} đã được sử dụng bởi một tài khoản khác.`);
+      } else {
+        toast.error(message);
+      }
     } finally {
       setLoading(false);
     }

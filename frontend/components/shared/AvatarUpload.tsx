@@ -1,11 +1,20 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Camera, Loader2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
+import Cropper, { type Area } from 'react-easy-crop';
+import { getCroppedImg } from '@/lib/utils/cropImage';
 
 interface AvatarUploadProps {
     size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -23,41 +32,61 @@ export function AvatarUpload({ size = 'md', className }: AvatarUploadProps) {
     const { user, updateAvatar } = useAuth();
     const [isUploading, setIsUploading] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [cropModalOpen, setCropModalOpen] = useState(false);
+    const [cropImageUrl, setCropImageUrl] = useState<string | null>(null);
+    const [crop, setCrop] = useState({ x: 0, y: 0 });
+    const [zoom, setZoom] = useState(1);
+    const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const onCropComplete = useCallback((_croppedArea: Area, croppedAreaPx: Area) => {
+        setCroppedAreaPixels(croppedAreaPx);
+    }, []);
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
-
-        // Validate type
         if (!file.type.startsWith('image/')) {
             toast.error('Vui lòng chọn file ảnh hợp lệ');
             return;
         }
-
-        // Validate size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
             toast.error('File ảnh không được vượt quá 5MB');
             return;
         }
-
-        // Show local preview
         const objectUrl = URL.createObjectURL(file);
-        setPreviewUrl(objectUrl);
+        setCropImageUrl(objectUrl);
+        setCrop({ x: 0, y: 0 });
+        setZoom(1);
+        setCroppedAreaPixels(null);
+        setCropModalOpen(true);
+        event.target.value = '';
+    };
 
+    const handleCropSave = async () => {
+        if (!cropImageUrl || !croppedAreaPixels) return;
+        setIsUploading(true);
         try {
-            setIsUploading(true);
+            const blob = await getCroppedImg(cropImageUrl, croppedAreaPixels);
+            const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
             await updateAvatar(file);
+            setPreviewUrl(URL.createObjectURL(blob));
             toast.success('Cập nhật ảnh đại diện thành công');
+            setCropModalOpen(false);
+            URL.revokeObjectURL(cropImageUrl);
+            setCropImageUrl(null);
         } catch (error: unknown) {
             const message = (error as { message?: string })?.message || 'Cập nhật ảnh đại diện thất bại';
             toast.error(message);
-            setPreviewUrl(null); // Revert preview on failure
         } finally {
             setIsUploading(false);
-            // Clean up object URL
-            URL.revokeObjectURL(objectUrl);
         }
+    };
+
+    const handleCropCancel = () => {
+        if (cropImageUrl) URL.revokeObjectURL(cropImageUrl);
+        setCropImageUrl(null);
+        setCropModalOpen(false);
     };
 
     const handleClick = () => {
@@ -66,19 +95,19 @@ export function AvatarUpload({ size = 'md', className }: AvatarUploadProps) {
 
     return (
         <div className={`relative group ${sizeClasses[size]} ${className || ''}`}>
-            <Avatar className={`h-full w-full border-2 border-background shadow-md`}>
+            <Avatar className="h-full w-full border-2 border-background shadow-md">
                 <AvatarImage
                     src={previewUrl || user?.avatarUrl}
                     alt={user?.fullName || 'Avatar'}
-                    className="object-cover"
+                    className="object-cover object-center"
                 />
                 <AvatarFallback className="bg-primary/5 text-primary text-xl font-bold">
                     {user?.fullName?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>
             </Avatar>
 
-            {/* Overlay on hover */}
             <button
+                type="button"
                 onClick={handleClick}
                 disabled={isUploading}
                 className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
@@ -90,7 +119,6 @@ export function AvatarUpload({ size = 'md', className }: AvatarUploadProps) {
                 )}
             </button>
 
-            {/* Hidden file input */}
             <input
                 type="file"
                 ref={fileInputRef}
@@ -99,9 +127,12 @@ export function AvatarUpload({ size = 'md', className }: AvatarUploadProps) {
                 className="hidden"
             />
 
-            {/* Upload button icon below for accessibility if needed (optional) */}
-            <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground p-1.5 rounded-full shadow-lg border-2 border-background cursor-pointer hover:bg-primary/90 transition-colors"
+            <div
+                className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground p-1.5 rounded-full shadow-lg border-2 border-background cursor-pointer hover:bg-primary/90 transition-colors"
                 onClick={handleClick}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === 'Enter' && handleClick()}
             >
                 {isUploading ? (
                     <Loader2 className="h-3 w-3 animate-spin" />
@@ -109,6 +140,42 @@ export function AvatarUpload({ size = 'md', className }: AvatarUploadProps) {
                     <Upload className="h-3 w-3" />
                 )}
             </div>
+
+            <Dialog open={cropModalOpen} onOpenChange={(open) => !open && handleCropCancel()}>
+                <DialogContent className="sm:max-w-[500px] p-0 gap-0 overflow-hidden rounded-2xl">
+                    <DialogHeader className="p-4 pb-0">
+                        <DialogTitle>Chỉnh ảnh đại diện</DialogTitle>
+                    </DialogHeader>
+                    <div className="relative h-[360px] w-full bg-muted">
+                        {cropImageUrl && (
+                            <Cropper
+                                image={cropImageUrl}
+                                crop={crop}
+                                zoom={zoom}
+                                aspect={1}
+                                onCropChange={setCrop}
+                                onCropComplete={onCropComplete}
+                                onZoomChange={setZoom}
+                            />
+                        )}
+                    </div>
+                    <DialogFooter className="p-4 border-t">
+                        <Button variant="outline" onClick={handleCropCancel} disabled={isUploading}>
+                            Hủy
+                        </Button>
+                        <Button onClick={handleCropSave} disabled={isUploading || !croppedAreaPixels}>
+                            {isUploading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Đang lưu...
+                                </>
+                            ) : (
+                                'Lưu'
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

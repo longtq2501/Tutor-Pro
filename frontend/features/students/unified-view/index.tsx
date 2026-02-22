@@ -79,8 +79,10 @@ export default function UnifiedContactManagement() {
                 <EnhancedAddStudentModal
                     open={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
-                    onSuccess={() => {
+                    onSuccess={async () => {
                         toast.success(editingStudent ? 'Cập nhật thành công' : 'Thêm mới thành công');
+                        // Đảm bảo danh sách học sinh được cập nhật ngay sau khi lưu
+                        await refetch();
                     }}
                     editingStudent={editingStudent}
                 />

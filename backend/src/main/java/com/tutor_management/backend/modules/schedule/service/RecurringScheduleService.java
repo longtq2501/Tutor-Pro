@@ -314,7 +314,8 @@ public class RecurringScheduleService {
             allActive = recurringScheduleRepository.findAllActiveWithStudent();
         }
         
-        if (studentIds == null || studentIds.isEmpty()) return allActive;
+        if (studentIds == null) return allActive;
+        if (studentIds.isEmpty()) return Collections.emptyList();
         return allActive.stream().filter(s -> studentIds.contains(s.getStudent().getId())).toList();
     }
 

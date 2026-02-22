@@ -131,14 +131,73 @@ export const useCalendarView = (): UseCalendarViewReturn => {
     const handleAutoGenerate = async () => {
         setIsGenerating(true);
         try {
-            const promise = recurringSchedulesApi.generateSessions(getMonthStr(currentDate));
+            const activeSchedules = await recurringSchedulesApi.getActive();
+            const studentList = students || [];
+            const scheduleStudentIds = activeSchedules?.length
+                ? [...new Set(activeSchedules.map((s) => s.studentId))]
+                : [];
+
+            // Nhóm C (Cảnh báo): Học sinh đang học nhưng chưa có lịch cố định -> chặn, không tạo cho ai
+            const activeWithoutSchedule = studentList.filter(
+                (s) => s.active && !scheduleStudentIds.includes(s.id)
+            );
+            if (activeWithoutSchedule.length > 0) {
+                const names = activeWithoutSchedule.map((s) => s.name).join(', ');
+                toast.error(
+                    `Không thể tạo lịch. Học sinh ${names} chưa có lịch cố định. Vui lòng bổ sung trước.`
+                );
+                return;
+            }
+
+            // Nhóm A (Hợp lệ): active + có lịch cố định. Nhóm B (Skip): inactive -> bỏ qua
+            const groupAStudentIds =
+                activeSchedules && activeSchedules.length > 0
+                    ? [...new Set(
+                          activeSchedules
+                              .filter((s) => {
+                                  const stu = studentList.find((st) => st.id === s.studentId);
+                                  return stu && stu.active;
+                              })
+                              .map((s) => s.studentId)
+                      )]
+                    : [];
+            const skipCount =
+                activeSchedules?.filter((s) => {
+                    const stu = studentList.find((st) => st.id === s.studentId);
+                    return stu && !stu.active;
+                }).length ?? 0;
+
+            if (!activeSchedules?.length) {
+                toast.error(
+                    'Bạn chưa thiết lập lịch cố định nào. Vui lòng tạo lịch cố định cho học sinh trước khi tự động tạo lịch dạy.'
+                );
+                return;
+            }
+
+            if (groupAStudentIds.length === 0) {
+                toast.info(
+                    skipCount > 0
+                        ? `Không có học sinh đang học nào có lịch cố định. (Đã bỏ qua ${skipCount} học sinh đang nghỉ).`
+                        : 'Không có học sinh đang học nào có lịch cố định để tạo lịch.'
+                );
+                return;
+            }
+
+            const monthStr = getMonthStr(currentDate);
+            const promise = recurringSchedulesApi.generateSessions(monthStr, groupAStudentIds);
             toast.promise(promise, {
                 loading: 'Đang tự động tạo lịch học...',
-                success: (result) => {
+                success: (result: { sessionsCreated?: number }) => {
                     loadData();
-                    return `✅ ${result.message || 'Đã tạo xong các buổi học!'}`;
+                    const created = result?.sessionsCreated ?? 0;
+                    const skipMsg =
+                        skipCount > 0 ? ` (Đã bỏ qua ${skipCount} học sinh đang nghỉ).` : '';
+                    if (created > 0) {
+                        return `Đã tạo lịch tự động cho các học sinh đang học.${skipMsg}`;
+                    }
+                    return `Không có buổi học mới nào được tạo cho tháng này.${skipMsg}`;
                 },
-                error: '❌ Không thể tạo buổi học tự động.'
+                error: 'Không thể tạo buổi học tự động.'
             });
             await promise;
         } finally {
@@ -259,8 +318,8 @@ export const useCalendarView = (): UseCalendarViewReturn => {
         };
         toast.promise(promise(), {
             loading: 'Đang thêm buổi học...',
-            success: '✅ Đã thêm buổi học thành công!',
-            error: '❌ Lỗi khi thêm buổi học. Vui lòng thử lại.'
+            success: 'Đã thêm buổi học thành công!',
+            error: 'Lỗi khi thêm buổi học. Vui lòng thử lại.'
         });
     };
 

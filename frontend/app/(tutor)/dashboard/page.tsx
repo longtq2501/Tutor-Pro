@@ -53,9 +53,9 @@ const SettingsView = dynamic(() => import('@/features/settings'));
 // ============================================================================
 // UI COMPONENTS (Keep in /components - not feature-specific)
 // ============================================================================
-import { ModeToggle } from '@/components/ModeToggle';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import { NavItem, Sidebar, View } from '@/components/Sidebar';
+import { ModeToggle } from '@/components/shared/ModeToggle';
+import ProtectedRoute from '@/components/shared/ProtectedRoute';
+import { NavItem, Sidebar, View } from '@/components/tutor/Sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';

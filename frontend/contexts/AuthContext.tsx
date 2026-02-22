@@ -70,11 +70,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       localStorage.setItem('accessToken', token);
+      document.cookie = `accessToken=${token}; path=/; max-age=604800; samesite=lax`;
 
       const response = await authService.getCurrentUser();
       const userData = response.data;
 
       localStorage.setItem('user', JSON.stringify(userData));
+      document.cookie = `userRole=${userData.role}; path=/; max-age=604800; samesite=lax`;
       setUser(userData);
 
       router.push('/dashboard');
@@ -82,6 +84,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Error logging in with token:', error);
       localStorage.removeItem('accessToken');
       localStorage.removeItem('user');
+      document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      document.cookie = 'userRole=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
       setUser(null);
       const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Xác thực thất bại';
       throw new Error(message);
@@ -101,6 +105,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('refreshToken', refreshToken);
       localStorage.setItem('user', JSON.stringify(userData));
 
+      document.cookie = `accessToken=${accessToken}; path=/; max-age=604800; samesite=lax`;
+      document.cookie = `userRole=${userData.role}; path=/; max-age=604800; samesite=lax`;
+
       setUser(userData);
 
       // Redirect to dashboard
@@ -111,6 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(message);
     }
   }, [router]);
+
 
   const updateAvatar = useCallback(async (file: File) => {
     try {
@@ -153,10 +161,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Clear all React Query cache to prevent stale data between sessions
       queryClient.clear();
 
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      document.cookie = 'userRole=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+
       setUser(null);
       router.push('/login');
     }
   }, [router, queryClient]);
+
 
   const hasRole = useCallback((role: 'ADMIN' | 'TUTOR' | 'STUDENT'): boolean => {
     return user?.role === role;

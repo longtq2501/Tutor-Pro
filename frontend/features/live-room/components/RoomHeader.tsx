@@ -3,7 +3,7 @@
 import React from 'react';
 import { BillableTimer } from './BillableTimer';
 import { ParticipantPresence } from './ParticipantPresence';
-import { ModeToggle } from '@/components/ModeToggle';
+import { ModeToggle } from '@/components/shared/ModeToggle';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Copy, Check } from 'lucide-react';
 

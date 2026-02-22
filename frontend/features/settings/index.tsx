@@ -1,6 +1,6 @@
 "use client";
 
-import ProfilePage from '@/app/profile/page';
+import ProfilePage from '@/app/(tutor)/profile/page';
 import { DashboardHeader } from '@/contexts/UIContext';
 
 export default function SettingsView() {

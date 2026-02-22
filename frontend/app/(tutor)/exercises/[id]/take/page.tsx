@@ -4,7 +4,7 @@ import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import { ExercisePlayer } from '@/features/submission/components/student/ExercisePlayer';
 import { useAuth } from '@/contexts/AuthContext';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/shared/ProtectedRoute';
 
 interface PageProps {
     params: Promise<{ id: string }>;

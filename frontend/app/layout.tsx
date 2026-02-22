@@ -16,8 +16,13 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://tutor-management-e7zh.vercel.app'),
-  title: 'Tutor Pro - Quản lý gia sư',
+  title: 'Tutor Pro',
   description: 'Hệ thống quản lý gia sư chuyên nghiệp, tối ưu hóa quy trình dạy và học.',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
   openGraph: {
     type: 'website',
     locale: 'vi_VN',

@@ -172,22 +172,8 @@ export const Sidebar = memo(({ currentView, setCurrentView, navItems }: SidebarP
                         })}
                     </nav>
 
-                    {/* Footer / Profile - Nâng tầm sự chuyên nghiệp */}
-                    <div className={cn("p-4 border-t border-border mt-auto", effectiveCollapsed ? "flex justify-center" : "")}>
-                        <div className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-blue-400 shrink-0" />
-                            {!effectiveCollapsed && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="flex flex-col overflow-hidden"
-                                >
-                                    <span className="text-sm font-semibold truncate">Tôn Quỳnh Long</span>
-                                    <span className="text-[10px] text-muted-foreground truncate">Admin</span>
-                                </motion.div>
-                            )}
-                        </div>
-                    </div>
+                    {/* Footer / Profile slot (hiện tại bỏ trống để tránh UI dư thừa) */}
+                    <div className="mt-auto p-4 border-t border-border" />
                 </motion.aside>
             </LayoutGroup>
         </>

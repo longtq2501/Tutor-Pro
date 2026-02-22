@@ -142,24 +142,26 @@ export function AvatarUpload({ size = 'md', className }: AvatarUploadProps) {
             </div>
 
             <Dialog open={cropModalOpen} onOpenChange={(open) => !open && handleCropCancel()}>
-                <DialogContent className="sm:max-w-[500px] p-0 gap-0 overflow-hidden rounded-2xl">
-                    <DialogHeader className="p-4 pb-0">
+                <DialogContent className="w-full max-w-[520px] md:max-w-[640px] lg:max-w-[720px] p-0 gap-0 overflow-hidden rounded-2xl">
+                    <DialogHeader className="px-5 pt-4 pb-0">
                         <DialogTitle>Chỉnh ảnh đại diện</DialogTitle>
                     </DialogHeader>
-                    <div className="relative h-[360px] w-full bg-muted">
+                    <div className="relative w-full bg-background flex items-center justify-center px-6 pt-4 pb-6">
+                        <div className="relative w-full max-w-[360px] md:max-w-[420px] aspect-square rounded-xl overflow-hidden bg-muted">
                         {cropImageUrl && (
-                            <Cropper
-                                image={cropImageUrl}
-                                crop={crop}
-                                zoom={zoom}
-                                aspect={1}
-                                onCropChange={setCrop}
-                                onCropComplete={onCropComplete}
-                                onZoomChange={setZoom}
-                            />
-                        )}
+                                <Cropper
+                                    image={cropImageUrl}
+                                    crop={crop}
+                                    zoom={zoom}
+                                    aspect={1}
+                                    onCropChange={setCrop}
+                                    onCropComplete={onCropComplete}
+                                    onZoomChange={setZoom}
+                                />
+                            )}
+                        </div>
                     </div>
-                    <DialogFooter className="p-4 border-t">
+                    <DialogFooter className="px-5 py-4 border-t bg-background">
                         <Button variant="outline" onClick={handleCropCancel} disabled={isUploading}>
                             Hủy
                         </Button>

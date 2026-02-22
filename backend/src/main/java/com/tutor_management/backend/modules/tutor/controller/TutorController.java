@@ -4,6 +4,9 @@ import com.tutor_management.backend.modules.shared.dto.response.ApiResponse;
 import com.tutor_management.backend.modules.tutor.dto.TutorStatsDTO;
 import com.tutor_management.backend.modules.tutor.dto.request.TutorRequest;
 import com.tutor_management.backend.modules.tutor.dto.response.TutorResponse;
+import com.tutor_management.backend.modules.student.dto.response.StudentResponse;
+import com.tutor_management.backend.modules.finance.dto.response.SessionRecordResponse;
+import com.tutor_management.backend.modules.document.dto.response.DocumentResponse;
 import com.tutor_management.backend.modules.tutor.service.TutorService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -55,5 +58,32 @@ public class TutorController {
     @GetMapping("/{id}/stats")
     public ApiResponse<TutorStatsDTO> getTutorStats(@PathVariable Long id) {
         return ApiResponse.success(tutorService.getTutorStats(id));
+    }
+
+    @PutMapping("/{id}/toggle-status")
+    public ApiResponse<TutorResponse> toggleTutorStatus(@PathVariable Long id) {
+        return ApiResponse.success(tutorService.toggleTutorStatus(id));
+    }
+
+    @GetMapping("/{id}/students")
+    public ApiResponse<Page<StudentResponse>> getTutorStudents(
+            @PathVariable Long id,
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ApiResponse.success(tutorService.getTutorStudents(id, pageable));
+    }
+
+    @GetMapping("/{id}/sessions")
+    public ApiResponse<Page<SessionRecordResponse>> getTutorSessions(
+            @PathVariable Long id,
+            @RequestParam(required = false) String month,
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ApiResponse.success(tutorService.getTutorSessions(id, month, pageable));
+    }
+
+    @GetMapping("/{id}/documents")
+    public ApiResponse<Page<DocumentResponse>> getTutorDocuments(
+            @PathVariable Long id,
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ApiResponse.success(tutorService.getTutorDocuments(id, pageable));
     }
 }

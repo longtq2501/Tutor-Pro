@@ -20,16 +20,16 @@ function LoginForm() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const isRegistered = searchParams.get('registered') === 'true';
 
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push('/dashboard');
+    if (isAuthenticated && user) {
+      router.push(user.role === 'ADMIN' ? '/overview' : '/dashboard');
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, user, router]);
 
 
   const handleSubmit = async (e: React.FormEvent) => {

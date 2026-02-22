@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { TrendingUp, Download, Filter, Plus } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { StatCard } from '@/components/admin/StatCard';
@@ -7,9 +8,60 @@ import { RevenueChart } from '@/features/admin/overview/RevenueChart';
 import { QuickStats } from '@/features/admin/overview/QuickStats';
 import { RecentTutors } from '@/features/admin/overview/RecentTutors';
 import { ActivityFeed } from '@/features/admin/overview/ActivityFeed';
-import { mainStats, revenueData } from '@/features/admin/overview/mock-data';
+import { adminStatsApi } from '@/lib/services/admin-stats';
+import type { OverviewStats, MonthlyRevenue } from '@/lib/types/admin';
 
 export default function OverviewPage() {
+    const [stats, setStats] = useState<OverviewStats | null>(null);
+    const [revenue, setRevenue] = useState<MonthlyRevenue[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [overviewData, revenueData] = await Promise.all([
+                    adminStatsApi.getOverview(),
+                    adminStatsApi.getMonthlyRevenue(6)
+                ]);
+                setStats(overviewData);
+                setRevenue(revenueData);
+            } catch (error) {
+                console.error('Failed to fetch overview data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    const statCards = [
+        {
+            label: 'Tổng Doanh Thu',
+            value: stats?.totalRevenueAllTime || '0 ₫',
+            badge: { text: 'All time', variant: 'green' as const },
+            glowColor: '#22c55e',
+        },
+        {
+            label: 'Tổng Gia Sư',
+            value: (stats?.totalTutors || 0).toString(),
+            badge: { text: `${stats?.proAccounts || 0} Pro`, variant: 'accent' as const },
+            glowColor: '#6366f1',
+        },
+        {
+            label: 'Học Sinh Active',
+            value: (stats?.activeStudents || 0).toString(),
+            badge: { text: `${stats?.totalStudents || 0} Total`, variant: 'green' as const },
+            glowColor: '#22c55e',
+        },
+        {
+            label: 'Yêu Cầu Hỗ Trợ',
+            value: (stats?.pendingIssues || 0).toString().padStart(2, '0'),
+            badge: { text: 'Pending', variant: 'amber' as const },
+            glowColor: '#f59e0b',
+        },
+    ];
+
     return (
         <div className="flex flex-col gap-8 pb-12">
             {/* Page Header */}
@@ -38,7 +90,7 @@ export default function OverviewPage() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {mainStats.map((stat, idx) => (
+                {statCards.map((stat, idx) => (
                     <StatCard key={stat.label} {...stat} index={idx} />
                 ))}
             </div>
@@ -46,9 +98,9 @@ export default function OverviewPage() {
             {/* Charts Row */}
             <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-1">
-                    <RevenueChart data={revenueData} />
+                    <RevenueChart data={revenue.map(r => ({ month: r.month, value: r.totalRevenue }))} />
                 </div>
-                <QuickStats />
+                <QuickStats stats={stats} />
             </div>
 
             {/* Tables Row */}

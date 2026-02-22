@@ -79,7 +79,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       document.cookie = `userRole=${userData.role}; path=/; max-age=604800; samesite=lax`;
       setUser(userData);
 
-      router.push('/dashboard');
+      if (userData.role === 'ADMIN') {
+        router.push('/overview');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (error: unknown) {
       console.error('Error logging in with token:', error);
       localStorage.removeItem('accessToken');
@@ -111,7 +115,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(userData);
 
       // Redirect to dashboard
-      router.push('/dashboard');
+      if (userData.role === 'ADMIN') {
+        router.push('/overview');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (error: unknown) {
       console.error('Login error:', error);
       const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Đăng nhập thất bại';

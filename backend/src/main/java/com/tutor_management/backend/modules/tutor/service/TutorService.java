@@ -10,6 +10,16 @@ import com.tutor_management.backend.modules.tutor.dto.request.TutorRequest;
 import com.tutor_management.backend.modules.tutor.dto.response.TutorResponse;
 import com.tutor_management.backend.modules.tutor.entity.Tutor;
 import com.tutor_management.backend.modules.tutor.repository.TutorRepository;
+import com.tutor_management.backend.modules.student.dto.response.StudentResponse;
+import com.tutor_management.backend.modules.finance.dto.response.SessionRecordResponse;
+import com.tutor_management.backend.modules.document.dto.response.DocumentResponse;
+import com.tutor_management.backend.modules.document.entity.Document;
+import com.tutor_management.backend.modules.document.repository.DocumentRepository;
+import com.tutor_management.backend.modules.student.entity.Student;
+import com.tutor_management.backend.modules.finance.entity.SessionRecord;
+import com.tutor_management.backend.modules.finance.service.SessionRecordService;
+import com.tutor_management.backend.modules.student.service.StudentService;
+import com.tutor_management.backend.modules.document.service.DocumentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -34,6 +44,13 @@ public class TutorService {
     private final PasswordEncoder passwordEncoder;
     private final com.tutor_management.backend.modules.student.repository.StudentRepository studentRepository;
     private final com.tutor_management.backend.modules.finance.repository.SessionRecordRepository sessionRecordRepository;
+    private final DocumentRepository documentRepository;
+    private final com.tutor_management.backend.modules.admin.service.AdminStatsService adminStatsService;
+    
+    // Inject services for mapping/logic reuse
+    private final StudentService studentService;
+    private final SessionRecordService sessionRecordService;
+    private final DocumentService documentService;
 
     /**
      * Get all tutors with pagination and filtering.
@@ -173,7 +190,24 @@ public class TutorService {
         tutor.setSubscriptionPlan(request.getSubscriptionPlan());
 
         if (request.getSubscriptionStatus() != null) {
+            if (!request.getSubscriptionStatus().equals(tutor.getSubscriptionStatus())) {
+                adminStatsService.logActivity(
+                        "TUTOR_STATUS_CHANGE",
+                        "Admin",
+                        "ADMIN",
+                        "Trạng thái Tutor " + tutor.getFullName() + " thay đổi: " + tutor.getSubscriptionStatus() + " -> " + request.getSubscriptionStatus()
+                );
+            }
             tutor.setSubscriptionStatus(request.getSubscriptionStatus());
+        }
+
+        if (request.getSubscriptionPlan() != null && !request.getSubscriptionPlan().equals(tutor.getSubscriptionPlan())) {
+            adminStatsService.logActivity(
+                    "TUTOR_TIER_UPGRADE",
+                    "Admin",
+                    "ADMIN",
+                    "Gói cước Tutor " + tutor.getFullName() + " thay đổi: " + tutor.getSubscriptionPlan() + " -> " + request.getSubscriptionPlan()
+            );
         }
 
         return mapToResponse(tutorRepository.save(tutor));
@@ -212,6 +246,105 @@ public class TutorService {
             throw new RuntimeException("Tutor not found with id: " + id);
         }
         tutorRepository.deleteById(id);
+    }
+
+    @Transactional
+    public TutorResponse toggleTutorStatus(Long id) {
+        Tutor tutor = tutorRepository.findById(id)
+                .orElseThrow(() -> new TutorNotFoundException(id));
+        
+        String oldStatus = tutor.getSubscriptionStatus();
+        String newStatus = "ACTIVE".equalsIgnoreCase(oldStatus) ? "SUSPENDED" : "ACTIVE";
+        
+        tutor.setSubscriptionStatus(newStatus);
+        
+        // Log activity
+        adminStatsService.logActivity(
+                "TUTOR_STATUS_TOGGLE",
+                "Admin",
+                "ADMIN",
+                "Trạng thái Tutor " + tutor.getFullName() + " đổi từ " + oldStatus + " sang " + newStatus
+        );
+        
+        return mapToResponse(tutorRepository.save(tutor));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<StudentResponse> getTutorStudents(Long tutorId, Pageable pageable) {
+        if (!tutorRepository.existsById(tutorId)) {
+            throw new TutorNotFoundException(tutorId);
+        }
+        return studentRepository.findAllByTutorIdWithParent(tutorId, pageable)
+                .map(this::mapToStudentResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<SessionRecordResponse> getTutorSessions(Long tutorId, String month, Pageable pageable) {
+        if (!tutorRepository.existsById(tutorId)) {
+            throw new TutorNotFoundException(tutorId);
+        }
+        
+        Page<SessionRecord> sessions;
+        if (month != null && !month.isBlank()) {
+            sessions = sessionRecordRepository.findByMonthAndTutorIdOrderByCreatedAtDesc(month, tutorId, pageable);
+        } else {
+            sessions = sessionRecordRepository.findAllByTutorIdOrderByCreatedAtDesc(tutorId, pageable);
+        }
+        
+        return sessions.map(this::mapToSessionResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<DocumentResponse> getTutorDocuments(Long tutorId, Pageable pageable) {
+        if (!tutorRepository.existsById(tutorId)) {
+            throw new TutorNotFoundException(tutorId);
+        }
+        return documentRepository.findAllWithStudent(tutorId, null, pageable)
+                .map(this::mapToDocumentResponse);
+    }
+
+    private StudentResponse mapToStudentResponse(Student student) {
+        // Use studentService.convertToResponse if available, otherwise manual map
+        // studentService.convertToResponse is private in many projects, so let's see.
+        // For now, I'll attempt to use a helper or manual map if I can't access it.
+        // Actually, let's look at StudentService to see if it has a public mapper.
+        return StudentResponse.builder()
+                .id(student.getId())
+                .name(student.getName())
+                .phone(student.getPhone())
+                .active(student.getActive())
+                .pricePerHour(student.getPricePerHour())
+                .parentName(student.getParent() != null ? student.getParent().getName() : null)
+                .build();
+    }
+
+    private SessionRecordResponse mapToSessionResponse(SessionRecord r) {
+        // Manual map to avoid dependency issues if SessionRecordService mapper is private
+        return SessionRecordResponse.builder()
+                .id(r.getId())
+                .studentId(r.getStudent().getId())
+                .studentName(r.getStudent().getName())
+                .month(r.getMonth())
+                .sessions(r.getSessions())
+                .hours(r.getHours())
+                .totalAmount(r.getTotalAmount())
+                .paid(r.getPaid())
+                .sessionDate(r.getSessionDate().toString())
+                .subject(r.getSubject())
+                .status(r.getStatus() != null ? r.getStatus().name() : null)
+                .build();
+    }
+
+    private DocumentResponse mapToDocumentResponse(Document d) {
+        return DocumentResponse.builder()
+                .id(d.getId())
+                .title(d.getTitle())
+                .fileName(d.getFileName())
+                .filePath(d.getFilePath())
+                .fileSize(d.getFileSize())
+                .tutorName(d.getTutor() != null ? d.getTutor().getFullName() : null)
+                .createdAt(d.getCreatedAt().toString())
+                .build();
     }
 
     private TutorResponse mapToResponse(Tutor tutor) {

@@ -63,6 +63,7 @@ public class SessionRecordService {
     private final com.tutor_management.backend.modules.auth.UserRepository userRepository;
     private final com.tutor_management.backend.modules.tutor.repository.TutorRepository tutorRepository;
     private final OnlineSessionRepository onlineSessionRepository;
+    private final com.tutor_management.backend.modules.admin.service.AdminStatsService adminStatsService;
 
     private final DateTimeFormatter isoFormatter = DateTimeFormatter.ISO_DATE_TIME;
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
@@ -469,6 +470,14 @@ public class SessionRecordService {
             record.setPaid(true);
             record.setCompleted(true);
             if (record.getPaidAt() == null) record.setPaidAt(LocalDateTime.now());
+
+            // Log administrative activity
+            adminStatsService.logActivity(
+                    "PAYMENT_CONFIRMED",
+                    record.getStudent().getName(),
+                    "SYSTEM",
+                    "Thanh toán thành công cho buổi học: " + record.getSubject() + " (Tháng " + record.getMonth() + ")"
+            );
         } else if (next == LessonStatus.COMPLETED || next == LessonStatus.PENDING_PAYMENT) {
             record.setCompleted(true);
         }

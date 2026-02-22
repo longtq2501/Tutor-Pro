@@ -50,7 +50,8 @@ public class DocumentService {
     private final StudentRepository studentRepository;
     private final TutorRepository tutorRepository;
     private final SessionRecordRepository sessionRecordRepository;
-    private final CloudinaryService cloudinaryService;
+    private final com.tutor_management.backend.modules.shared.service.CloudinaryService cloudinaryService;
+    private final com.tutor_management.backend.modules.admin.service.AdminStatsService adminStatsService;
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
 
     /**
@@ -164,6 +165,16 @@ public class DocumentService {
 
             Document saved = documentRepository.save(document);
             log.info("Document '{}' uploaded successfully with ID: {}", saved.getTitle(), saved.getId());
+
+            // Log administrative activity
+            String actorName = tutor != null ? tutor.getFullName() : "Admin";
+            String actorRole = tutor != null ? "TUTOR" : "ADMIN";
+            adminStatsService.logActivity(
+                    "DOCUMENT_UPLOAD",
+                    actorName,
+                    actorRole,
+                    "Đã tải lên tài liệu mới: " + saved.getTitle()
+            );
 
             return DocumentUploadResponse.builder()
                     .id(saved.getId())

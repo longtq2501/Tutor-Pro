@@ -23,6 +23,7 @@ public class AuthenticationService {
     private final RefreshTokenService refreshTokenService;
     private final AuthenticationManager authenticationManager;
     private final com.tutor_management.backend.modules.tutor.service.TutorService tutorService;
+    private final com.tutor_management.backend.modules.admin.service.AdminStatsService adminStatsService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -45,6 +46,14 @@ public class AuthenticationService {
 
         // ✅ CRITICAL: Auto-provision Tutor profile
         tutorService.ensureTutorProfile(savedUser);
+
+        // Log administrative activity
+        adminStatsService.logActivity(
+                "TUTOR_REGISTER",
+                savedUser.getFullName(),
+                savedUser.getRole().name(),
+                "Tutor mới đăng ký hệ thống: " + savedUser.getEmail()
+        );
 
         // Generate tokens
         String accessToken = jwtService.generateToken(savedUser);

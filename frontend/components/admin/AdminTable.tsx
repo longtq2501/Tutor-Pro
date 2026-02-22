@@ -14,16 +14,19 @@ interface AdminTableProps<T> {
     columns: Column<T>[];
     data: T[];
     onRowClick?: (item: T) => void;
+    loading?: boolean;
     pagination?: {
         current: number;
         total: number;
         pageSize: number;
+        onPageChange?: (page: number) => void;
     };
 }
 
 export function AdminTable<T extends { id: string | number }>({
     columns,
     data,
+    loading,
     onRowClick,
     pagination
 }: AdminTableProps<T>) {
@@ -72,7 +75,7 @@ export function AdminTable<T extends { id: string | number }>({
                         Hiện {(pagination.current - 1) * pagination.pageSize + 1}-{Math.min(pagination.current * pagination.pageSize, pagination.total)} trong tổng số {pagination.total.toLocaleString()}
                     </span>
                     <div className="flex items-center gap-2">
-                        <button className="p-1.5 rounded-lg border border-[var(--admin-border)] text-[var(--admin-text3)] hover:text-[var(--admin-text)] disabled:opacity-50 transition-colors" disabled={pagination.current === 1}>
+                        <button className="p-1.5 rounded-lg border border-[var(--admin-border)] text-[var(--admin-text3)] hover:text-[var(--admin-text)] disabled:opacity-50 transition-colors" disabled={pagination.current === 1} onClick={() => pagination.onPageChange?.(pagination.current - 1)}>
                             <ChevronLeft className="h-4 w-4" />
                         </button>
                         <div className="flex items-center gap-1">
@@ -82,12 +85,13 @@ export function AdminTable<T extends { id: string | number }>({
                                     className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${page === pagination.current ? 'bg-[var(--admin-accent)] text-[var(--admin-bg)] shadow-md' : 'text-[var(--admin-text3)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface2)]'
                                         }`}
                                     disabled={typeof page !== 'number'}
+                                    onClick={() => typeof page === 'number' && pagination.onPageChange?.(page)}
                                 >
                                     {page}
                                 </button>
                             ))}
                         </div>
-                        <button className="p-1.5 rounded-lg border border-[var(--admin-border)] text-[var(--admin-text3)] hover:text-[var(--admin-text)] disabled:opacity-50 transition-colors" disabled={pagination.current * pagination.pageSize >= pagination.total}>
+                        <button className="p-1.5 rounded-lg border border-[var(--admin-border)] text-[var(--admin-text3)] hover:text-[var(--admin-text)] disabled:opacity-50 transition-colors" disabled={pagination.current * pagination.pageSize >= pagination.total} onClick={() => pagination.onPageChange?.(pagination.current + 1)}>
                             <ChevronRight className="h-4 w-4" />
                         </button>
                     </div>

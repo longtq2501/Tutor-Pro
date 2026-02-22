@@ -1,6 +1,6 @@
 import api from './axios-instance';
 import type { PageResponse } from '../types/common';
-import { Tutor, TutorRequest, TutorStats } from '@/lib/types/tutor';  
+import { Tutor, TutorRequest, TutorStats } from '@/lib/types/tutor';
 
 
 export const tutorsApi = {
@@ -60,6 +60,40 @@ export const tutorsApi = {
    */
   getStats: async (id: number): Promise<TutorStats> => {
     const response = await api.get(`/admin/tutors/${id}/stats`);
+    return response.data.data;
+  },
+
+  /**
+   * Toggle tutor account status
+   */
+  toggleStatus: async (id: number): Promise<Tutor> => {
+    const response = await api.put(`/admin/tutors/${id}/toggle-status`);
+    return response.data.data;
+  },
+
+  /**
+   * Get students belonging to a specific tutor
+   */
+  getStudents: async (id: number, page = 0, size = 10): Promise<PageResponse<any>> => {
+    const response = await api.get(`/admin/tutors/${id}/students?page=${page}&size=${size}`);
+    return response.data.data;
+  },
+
+  /**
+   * Get sessions belonging to a specific tutor
+   */
+  getSessions: async (id: number, month?: string, page = 0, size = 10): Promise<PageResponse<any>> => {
+    let url = `/admin/tutors/${id}/sessions?page=${page}&size=${size}`;
+    if (month) url += `&month=${month}`;
+    const response = await api.get(url);
+    return response.data.data;
+  },
+
+  /**
+   * Get documents belonging to a specific tutor
+   */
+  getDocuments: async (id: number, page = 0, size = 10): Promise<PageResponse<any>> => {
+    const response = await api.get(`/admin/tutors/${id}/documents?page=${page}&size=${size}`);
     return response.data.data;
   },
 };

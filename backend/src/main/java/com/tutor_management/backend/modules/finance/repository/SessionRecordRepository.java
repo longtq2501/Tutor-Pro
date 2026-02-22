@@ -265,4 +265,10 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, Lo
      */
     @Query("SELECT COUNT(sr) > 0 FROM SessionRecord sr JOIN sr.lessons l WHERE sr.student.id = :studentId AND l.id = :lessonId")
     boolean existsByStudentIdAndLessonId(@Param("studentId") Long studentId, @Param("lessonId") Long lessonId);
+
+    @Query("SELECT COALESCE(SUM(sr.totalAmount), 0) FROM SessionRecord sr WHERE sr.status IS NULL OR sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR)")
+    Long sumNonCancelledTotalAmount();
+
+    @Query("SELECT COALESCE(SUM(sr.sessions), 0) FROM SessionRecord sr WHERE sr.status IS NULL OR sr.status NOT IN (com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_STUDENT, com.tutor_management.backend.modules.finance.LessonStatus.CANCELLED_BY_TUTOR)")
+    Long countNonCancelledSessions();
 }

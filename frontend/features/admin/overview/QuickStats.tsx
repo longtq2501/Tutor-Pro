@@ -1,44 +1,47 @@
-'use client';
-
 import {
     UserCheck,
     Crown,
     AlertCircle,
     Clock
 } from 'lucide-react';
+import type { OverviewStats } from '@/lib/types/admin';
 
-const stats = [
-    {
-        label: 'Gia sư Active',
-        value: '184',
-        progress: 82,
-        icon: UserCheck,
-        color: 'var(--admin-green)',
-    },
-    {
-        label: 'Tài khoản PRO',
-        value: '42',
-        progress: 65,
-        icon: Crown,
-        color: 'var(--admin-accent)',
-    },
-    {
-        label: 'Tổng nợ hệ thống',
-        value: '12.5M',
-        progress: 15,
-        icon: AlertCircle,
-        color: 'var(--admin-red)',
-    },
-    {
-        label: 'Chờ xử lý',
-        value: '14',
-        progress: 40,
-        icon: Clock,
-        color: 'var(--admin-amber)',
-    },
-];
+interface QuickStatsProps {
+    stats: OverviewStats | null;
+}
 
-export function QuickStats() {
+export function QuickStats({ stats }: QuickStatsProps) {
+    const displayStats = [
+        {
+            label: 'Gia sư Active',
+            value: (stats?.activeTutors || 0).toString(),
+            progress: stats ? (stats.activeTutors / (stats.totalTutors || 1)) * 100 : 0,
+            icon: UserCheck,
+            color: 'var(--admin-green)',
+        },
+        {
+            label: 'Tài khoản PRO',
+            value: (stats?.proAccounts || 0).toString(),
+            progress: stats ? (stats.proAccounts / (stats.totalTutors || 1)) * 100 : 0,
+            icon: Crown,
+            color: 'var(--admin-accent)',
+        },
+        {
+            label: 'Tài khoản FREE',
+            value: (stats?.freeAccounts || 0).toString(),
+            progress: stats ? (stats.freeAccounts / (stats.totalTutors || 1)) * 100 : 0,
+            icon: AlertCircle,
+            color: 'var(--admin-amber)',
+        },
+        {
+            label: 'Chờ xử lý',
+            value: (stats?.pendingIssues || 0).toString().padStart(2, '0'),
+            progress: stats?.pendingIssues ? 40 : 0,
+            icon: Clock,
+            color: 'var(--admin-amber)',
+        },
+    ];
+
     return (
         <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-2xl p-6 flex flex-col gap-6 w-[360px] shrink-0">
             <div className="flex flex-col gap-1">
@@ -47,7 +50,7 @@ export function QuickStats() {
             </div>
 
             <div className="flex flex-col gap-5">
-                {stats.map((stat) => (
+                {displayStats.map((stat) => (
                     <div key={stat.label} className="flex flex-col gap-2">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">

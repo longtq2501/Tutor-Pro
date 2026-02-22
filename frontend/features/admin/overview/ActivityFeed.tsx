@@ -1,57 +1,47 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import {
     UserPlus,
     Crown,
     FileUp,
     Lock,
-    CreditCard
+    CreditCard,
+    AlertCircle
 } from 'lucide-react';
+import { adminStatsApi } from '@/lib/services/admin-stats';
+import type { ActivityLog } from '@/lib/types/admin';
+import { formatDistanceToNow } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
-const activities = [
-    {
-        id: 1,
-        type: 'register',
-        text: 'Gia sư Nguyễn Văn A vừa đăng ký mới',
-        time: '2 phút trước',
-        icon: UserPlus,
-        color: 'var(--admin-green)'
-    },
-    {
-        id: 2,
-        type: 'upgrade',
-        text: 'Lê Hoàng C vừa nâng cấp gói PRO',
-        time: '15 phút trước',
-        icon: Crown,
-        color: 'var(--admin-accent)'
-    },
-    {
-        id: 3,
-        type: 'document',
-        text: 'Tài liệu "Toán 12 nâng cao" được tải lên',
-        time: '1 giờ trước',
-        icon: FileUp,
-        color: 'var(--admin-accent)'
-    },
-    {
-        id: 4,
-        type: 'ban',
-        text: 'Tài khoản Phạm Minh D bị tạm khoá',
-        time: '3 giờ trước',
-        icon: Lock,
-        color: 'var(--admin-red)'
-    },
-    {
-        id: 5,
-        type: 'payment',
-        text: 'Thanh toán hoá đơn #INV-2024-001 thành công',
-        time: 'Hôm qua',
-        icon: CreditCard,
-        color: 'var(--admin-green)'
-    },
-];
+const activityConfig: Record<string, { icon: React.ElementType; color: string }> = {
+    'TUTOR_REGISTER': { icon: UserPlus, color: 'var(--admin-green)' },
+    'TUTOR_TIER_UPGRADE': { icon: Crown, color: 'var(--admin-accent)' },
+    'TUTOR_STATUS_TOGGLE': { icon: Lock, color: 'var(--admin-red)' },
+    'DOCUMENT_UPLOAD': { icon: FileUp, color: 'var(--admin-accent)' },
+    'PAYMENT_CONFIRMED': { icon: CreditCard, color: 'var(--admin-green)' },
+    'DEFAULT': { icon: AlertCircle, color: 'var(--admin-text3)' }
+};
 
 export function ActivityFeed() {
+    const [activities, setActivities] = useState<ActivityLog[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchActivities = async () => {
+            try {
+                const data = await adminStatsApi.getActivityLog(0, 5);
+                setActivities(data.content);
+            } catch (error) {
+                console.error('Failed to fetch activities:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchActivities();
+    }, []);
+
     return (
         <div className="flex-1 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-2xl flex flex-col overflow-hidden">
             <div className="p-6 border-b border-[var(--admin-border)]">
@@ -60,25 +50,36 @@ export function ActivityFeed() {
             </div>
 
             <div className="flex flex-col flex-1 divide-y divide-[var(--admin-border)]">
-                {activities.map((activity) => (
-                    <div key={activity.id} className="p-4 flex items-start gap-4 hover:bg-[var(--admin-surface2)]/30 transition-colors group">
-                        <div
-                            className="p-2 rounded-lg bg-[var(--admin-surface2)] group-hover:scale-110 transition-transform"
-                            style={{ color: activity.color }}
-                        >
-                            <activity.icon className="h-4 w-4" />
-                        </div>
+                {loading ? (
+                    <div className="p-8 text-center text-xs text-[var(--admin-text3)]">Đang tải hoạt động...</div>
+                ) : activities.length === 0 ? (
+                    <div className="p-8 text-center text-xs text-[var(--admin-text3)]">Chưa có hoạt động nào.</div>
+                ) : (
+                    activities.map((activity) => {
+                        const config = activityConfig[activity.type] || activityConfig['DEFAULT'];
+                        const Icon = config.icon;
 
-                        <div className="flex flex-col gap-1 flex-1">
-                            <p className="text-xs font-medium text-[var(--admin-text2)] leading-tight">
-                                {activity.text}
-                            </p>
-                            <span className="text-[10px] text-[var(--admin-text3)] font-medium">
-                                {activity.time}
-                            </span>
-                        </div>
-                    </div>
-                ))}
+                        return (
+                            <div key={activity.id} className="p-4 flex items-start gap-4 hover:bg-[var(--admin-surface2)]/30 transition-colors group">
+                                <div
+                                    className="p-2 rounded-lg bg-[var(--admin-surface2)] group-hover:scale-110 transition-transform"
+                                    style={{ color: config.color }}
+                                >
+                                    <Icon className="h-4 w-4" />
+                                </div>
+
+                                <div className="flex flex-col gap-1 flex-1">
+                                    <p className="text-xs font-medium text-[var(--admin-text2)] leading-tight">
+                                        {activity.description}
+                                    </p>
+                                    <span className="text-[10px] text-[var(--admin-text3)] font-medium">
+                                        {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true, locale: vi })}
+                                    </span>
+                                </div>
+                            </div>
+                        );
+                    })
+                )}
             </div>
 
             <div className="p-4 border-t border-[var(--admin-border)] bg-[var(--admin-surface2)]/30">

@@ -68,4 +68,8 @@ public interface TutorRepository extends JpaRepository<Tutor, Long> {
     @Override
     @EntityGraph(attributePaths = {"user"})
     Page<Tutor> findAll(Pageable pageable);
+
+    long countBySubscriptionStatus(String status);
+
+    long countBySubscriptionPlan(String plan);
 }

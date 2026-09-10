@@ -1,0 +1,32 @@
+spring:
+  datasource:
+    url: jdbc:h2:file:./data/tutor_pro_db;AUTO_SERVER=TRUE;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;NON_KEYWORDS=MONTH,USER,VALUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: false
+        auto_quote_keyword: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: false
+
+app:
+  frontend:
+    url: http://localhost:3000
+  init-data:
+    enabled: true
+    default-password: password123
+
+cors:
+  allowed-origins: http://localhost:3000,http://localhost:5173

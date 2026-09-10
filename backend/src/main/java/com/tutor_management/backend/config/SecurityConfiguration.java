@@ -51,12 +51,13 @@ public class SecurityConfiguration {
                                 .includeSubDomains(true)
                                 .maxAgeInSeconds(31536000))
                         .xssProtection(HeadersConfigurer.XXssConfig::disable)
-                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::deny)
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
                 )
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll() // Thêm dòng này để UptimeRobot truy cập được
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/api/notifications/**").permitAll()

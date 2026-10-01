@@ -128,7 +128,7 @@ server:
     accept-count: 200
 
 cors:
-  allowed-origins: ${FRONTEND_URL:https://tutor-pro-app.vercel.app},http://localhost:3000,http://localhost:5173
+  allowed-origins: ${FRONTEND_URL:https://tutorpro.id.vn,https://www.tutorpro.id.vn,https://tutorpro.vn,https://www.tutorpro.vn,https://tutor-pro-app.vercel.app},http://localhost:3000,http://localhost:5173
   allowed-methods: "GET,POST,PUT,DELETE,OPTIONS,PATCH"
   allowed-headers: "*"
   allow-credentials: true

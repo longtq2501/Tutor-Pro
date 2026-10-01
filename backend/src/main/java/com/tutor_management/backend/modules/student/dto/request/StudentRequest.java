@@ -35,6 +35,9 @@ public class StudentRequest {
 
     private Boolean active;
 
+    /** Student source: trung_tam or day_rieng. */
+    private String nguon;
+
     /**
      * Enrollment month in YYYY-MM format.
      */

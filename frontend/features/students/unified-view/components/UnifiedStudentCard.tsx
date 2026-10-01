@@ -97,6 +97,15 @@ export const UnifiedStudentCard = memo(function UnifiedStudentCard({
                                     ● {student.active ? "Đang học" : "Đã nghỉ"}
                                 </Badge>
 
+                                <Badge className={cn(
+                                    "border font-bold text-[10px]",
+                                    student.nguon === 'day_rieng'
+                                        ? "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/20 dark:text-purple-300"
+                                        : "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300"
+                                )}>
+                                    {student.nguon === 'day_rieng' ? 'Dạy riêng' : 'Trung tâm'}
+                                </Badge>
+
                                 {onEdit && (
                                     <button
                                         onClick={(e) => { e.stopPropagation(); onEdit(student); }}

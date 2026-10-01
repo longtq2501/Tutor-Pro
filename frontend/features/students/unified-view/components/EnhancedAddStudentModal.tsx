@@ -268,6 +268,30 @@ export function EnhancedAddStudentModal({
                                 </div>
                             </div>
 
+                            <div className="space-y-3">
+                                <Label className="text-sm font-medium">Nguồn học sinh</Label>
+                                <div className="bg-muted/50 p-1.5 rounded-xl inline-flex w-full shadow-sm border border-border/30">
+                                    {([
+                                        ['trung_tam', 'Trung tâm'],
+                                        ['day_rieng', 'Dạy riêng'],
+                                    ] as const).map(([value, label]) => (
+                                        <button
+                                            key={value}
+                                            type="button"
+                                            onClick={() => updateField('nguon', value)}
+                                            className={cn(
+                                                "flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200",
+                                                formData.nguon === value
+                                                    ? "bg-background text-foreground shadow-md border border-border/50"
+                                                    : "text-muted-foreground hover:bg-background/50 hover:text-foreground"
+                                            )}
+                                        >
+                                            {label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
                             <Separator className="my-4" />
 
                             {/* Hourly Rate */}

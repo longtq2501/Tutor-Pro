@@ -24,6 +24,7 @@ export interface Student {
   pricePerHour: number; // HỌC PHÍ TRÊN MỖI GIỜ
   notes?: string; // GHI CHÚ VỀ TÌNH HÌNH HỌC TẬP
   active: boolean; // TRẠNG THÁI ĐANG HỌC HAY ĐÃ NGHỈ
+  nguon: StudentSource;
   startMonth: string; // THÁNG BẮT ĐẦU NHẬP HỌC
   lastActiveMonth?: string; // THÁNG CUỐI CÙNG CÒN HOẠT ĐỘNG
   monthsLearned?: number; // TỔNG SỐ THÁNG ĐÃ THEO HỌC
@@ -49,6 +50,7 @@ export interface StudentRequest {
   pricePerHour: number; // MỨC HỌC PHÍ THỎA THUẬN
   notes?: string | null; // GHI CHÚ BAN ĐẦU
   active?: boolean; // THIẾT LẬP TRẠNG THÁI HOẠT ĐỘNG
+  nguon?: StudentSource;
   startMonth?: string | null; // THÁNG BẮT ĐẦU (ĐỊNH DẠNG YYYY-MM)
   parentId?: number | null; // LIÊN KẾT VỚI ID PHỤ HUYNH CÓ SẴN
 
@@ -57,3 +59,5 @@ export interface StudentRequest {
   email?: string | null;
   password?: string | null;
 }
+
+export type StudentSource = 'trung_tam' | 'day_rieng';

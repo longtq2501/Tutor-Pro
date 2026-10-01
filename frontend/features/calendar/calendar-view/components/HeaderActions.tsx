@@ -2,10 +2,12 @@
 
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Plus, Info, Sparkles } from 'lucide-react';
+import { Plus, Info, Sparkles, FileText, Loader2 } from 'lucide-react';
 import { LESSON_STATUS_LABELS, type LessonStatus } from '@/lib/types/lesson-status';
 import { getStatusColors } from '../utils/statusColors';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
+import type { ReportScope } from '../utils/monthlyFeeReport';
 
 interface HeaderActionsProps {
     onAddSession: () => void;
@@ -14,6 +16,8 @@ interface HeaderActionsProps {
     onDeleteMonth: () => void;
     isGenerating: boolean;
     sessionsCount: number;
+    onReport: (scope: ReportScope) => void;
+    reportLoading?: boolean;
 }
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
@@ -24,9 +28,29 @@ export function HeaderActions({
     onDeleteMonth,
     isGenerating,
     sessionsCount,
+    onReport,
+    reportLoading = false,
 }: HeaderActionsProps) {
+    const [reportOpen, setReportOpen] = useState(false);
+    const [reportScope, setReportScope] = useState<ReportScope>('trung_tam');
     return (
         <div className="flex items-center gap-1.5 min-w-0 flex-shrink-1">
+            <Popover open={reportOpen} onOpenChange={setReportOpen}>
+                <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" disabled={sessionsCount === 0 || reportLoading} className="h-8 2xl:h-10 rounded-2xl border-slate-300 bg-white px-2 sm:px-3 font-black uppercase tracking-tighter text-slate-900 hover:bg-slate-100 hover:text-slate-900 disabled:bg-slate-100 disabled:text-slate-500 disabled:opacity-100 text-[8px] 2xl:text-[10px]">
+                        {reportLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4 2xl:mr-1.5" />}
+                        <span className="hidden sm:inline">Báo cáo</span>
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-52 p-2 rounded-xl" align="end">
+                    {([['trung_tam', 'Trung tâm'], ['day_rieng', 'Dạy riêng'], ['tat_ca', 'Tất cả']] as const).map(([value, label]) => (
+                        <Button key={value} variant={reportScope === value ? 'secondary' : 'ghost'} className="w-full justify-start rounded-lg font-bold" onClick={() => { setReportScope(value); setReportOpen(false); onReport(value); }}>
+                            {label}
+                        </Button>
+                    ))}
+                </PopoverContent>
+            </Popover>
+
             <Button data-tour="calendar-add-session" size="sm" className="h-8 2xl:h-10 rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-tighter 2xl:tracking-widest text-[8px] 2xl:text-[10px] px-2 sm:px-3 2xl:px-6 shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all" onClick={onAddSession}>
                 <Plus className="w-4 h-4 2xl:mr-1.5" strokeWidth={3} />
                 <span className="hidden sm:inline">Tiết học mới</span>

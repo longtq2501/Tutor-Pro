@@ -4,6 +4,7 @@ export interface SessionRecord {
   id: number; // ID BUỔI HỌC
   studentId: number; // ID HỌC SINH
   studentName: string; // TÊN HỌC SINH
+  nguon?: 'trung_tam' | 'day_rieng';
   month: string; // THÁNG CỦA BUỔI HỌC (YYYY-MM)
   sessions: number; // SỐ BUỔI HỌC (THƯỜNG LÀ 1 CHO MỖI BẢN GHI)
   hours: number; // TỔNG SỐ GIỜ HỌC TRONG BUỔI

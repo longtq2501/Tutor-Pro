@@ -26,15 +26,19 @@ interface Props {
   searchQuery?: string;
   onFilterChange?: (status: string | 'ALL') => void;
   onSearchChange?: (query: string) => void;
+  currentSource?: 'ALL' | 'trung_tam' | 'day_rieng';
+  onSourceChange?: (source: 'ALL' | 'trung_tam' | 'day_rieng') => void;
   onDeleteMonth?: () => void;
   isFetching?: boolean;
+  onReport: (scope: import('../utils/monthlyFeeReport').ReportScope) => void;
+  reportLoading?: boolean;
 }
 
 export const CalendarActions = ({
   currentDate, currentView, onViewChange, onNavigate, onToday, onAddSession,
   onAutoGenerate, onGenerateInvoice, isGenerating = false, sessions, stats,
   onFilterChange, currentFilter = 'ALL', searchQuery = '',
-  onSearchChange, onDeleteMonth, isFetching = false
+  onSearchChange, onDeleteMonth, isFetching = false, currentSource = 'ALL', onSourceChange, onReport, reportLoading
 }: Props) => {
   return (
     // Outer wrapper: stack vertically on small screens, row on xl+
@@ -93,6 +97,8 @@ export const CalendarActions = ({
             searchQuery={searchQuery}
             onFilterChange={onFilterChange!}
             onSearchChange={onSearchChange!}
+            currentSource={currentSource}
+            onSourceChange={onSourceChange!}
           />
           <HeaderActions
             onAddSession={onAddSession}
@@ -101,6 +107,8 @@ export const CalendarActions = ({
             onDeleteMonth={onDeleteMonth!}
             isGenerating={isGenerating}
             sessionsCount={sessions.length}
+            onReport={onReport}
+            reportLoading={reportLoading}
           />
         </div>
       </div>

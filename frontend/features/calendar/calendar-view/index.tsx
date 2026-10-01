@@ -10,7 +10,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { SessionRecord } from '@/lib/types/finance';
 import { getStatusColors } from './utils/statusColors';
 import { CalendarActions as CalendarHeader } from './components/CalendarHeader';
@@ -19,10 +19,38 @@ import { CalendarModals } from './components/CalendarModals';
 import { CalendarViewContent } from './components/CalendarViewContent';
 import { DashboardHeader } from '@/contexts/UIContext';
 import { MONTHS } from './constants';
+import { MonthlyFeeReport } from './components/MonthlyFeeReport';
+import { buildMonthlyFeeReport, type ReportScope } from './utils/monthlyFeeReport';
+import { toPng } from 'html-to-image';
+import { toast } from 'sonner';
 
 export default function CalendarView() {
   const view = useCalendarView();
   const [activeSession, setActiveSession] = useState<SessionRecord | null>(null);
+  const [reportData, setReportData] = useState<ReturnType<typeof buildMonthlyFeeReport> | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
+
+  const handleReport = async (scope: ReportScope) => {
+    setReportLoading(true);
+    try {
+      const report = buildMonthlyFeeReport(view.sessions, view.currentDate, scope);
+      setReportData(report);
+      await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      if (!reportRef.current) throw new Error('Report element is unavailable');
+      const dataUrl = await toPng(reportRef.current, { cacheBust: true, pixelRatio: 2, backgroundColor: '#ffffff' });
+      const anchor = document.createElement('a');
+      anchor.href = dataUrl;
+      anchor.download = `bao-cao-hoc-phi-${scope === 'trung_tam' ? 'trung-tam' : scope === 'day_rieng' ? 'day-rieng' : 'tat-ca'}-thang-${String(view.currentDate.getMonth() + 1).padStart(2, '0')}-${view.currentDate.getFullYear()}.png`;
+      anchor.click();
+      toast.success('Xuất báo cáo thành công');
+    } catch (error) {
+      console.error(error);
+      toast.error('Xuất báo cáo thất bại, vui lòng thử lại');
+    } finally {
+      setReportLoading(false);
+    }
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -60,8 +88,12 @@ export default function CalendarView() {
             currentFilter={view.statusFilter}
             searchQuery={view.searchQuery}
             onSearchChange={view.setSearchQuery}
+            currentSource={view.sourceFilter}
+            onSourceChange={view.setSourceFilter}
             onDeleteMonth={() => view.setDeleteConfirmationOpen(true)}
             isFetching={view.isFetching}
+            onReport={handleReport}
+            reportLoading={reportLoading}
           />
         }
       />
@@ -92,6 +124,10 @@ export default function CalendarView() {
           )}
         </DragOverlay>
       </DndContext>
+
+      <div className="fixed -left-[10000px] top-0 pointer-events-none" aria-hidden="true">
+        {reportData && <MonthlyFeeReport ref={reportRef} report={reportData} />}
+      </div>
 
       <CalendarModals
         currentDate={view.currentDate}

@@ -80,6 +80,8 @@ export function useUnifiedView() {
         return students.filter(student => {
             if (filter === 'active' && !student.active) return false;
             if (filter === 'inactive' && student.active) return false;
+            if (filter === 'trung_tam' && student.nguon !== 'trung_tam') return false;
+            if (filter === 'day_rieng' && student.nguon !== 'day_rieng') return false;
 
             if (debouncedSearchTerm) {
                 const lowerTerm = debouncedSearchTerm.toLowerCase();

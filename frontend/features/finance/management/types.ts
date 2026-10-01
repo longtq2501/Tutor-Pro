@@ -1,6 +1,7 @@
 import type { SessionRecord } from '@/lib/types';
 
 export type FinanceViewMode = 'MONTHLY' | 'DEBT';
+export type StudentSourceFilter = 'ALL' | 'trung_tam' | 'day_rieng';
 
 export interface FinanceGroupedRecord {
   studentId: number;
@@ -20,6 +21,7 @@ export interface FinanceState {
   selectedDate: Date;
   selectedStudentIds: number[];
   searchTerm: string;
+  sourceFilter: StudentSourceFilter;
 }
 
 export interface FinanceContextType extends FinanceState {
@@ -28,6 +30,7 @@ export interface FinanceContextType extends FinanceState {
   setSelectedDate: (date: Date) => void;
   setSelectedStudentIds: (ids: number[]) => void;
   setSearchTerm: (term: string) => void;
+  setSourceFilter: (source: StudentSourceFilter) => void;
   toggleStudentSelection: (studentId: number) => void;
   toggleSelectAll: (studentIds: number[]) => void;
   clearSelection: () => void;

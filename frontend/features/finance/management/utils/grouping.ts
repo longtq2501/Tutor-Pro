@@ -1,6 +1,13 @@
 import { SessionRecord } from '@/lib/types';
 import { FinanceGroupedRecord } from '../types';
 
+export const isTaughtSession = (record: SessionRecord) => {
+  const isCancelled = record.status === 'CANCELLED_BY_STUDENT' || record.status === 'CANCELLED_BY_TUTOR';
+  return !isCancelled && (record.status
+    ? ['COMPLETED', 'PAID', 'PENDING_PAYMENT'].includes(record.status)
+    : record.completed === true);
+};
+
 export const groupSessionsByStudent = (records: SessionRecord[]): FinanceGroupedRecord[] => {
   if (!Array.isArray(records)) return [];
   const grouped = records.reduce((acc, record) => {
@@ -19,20 +26,17 @@ export const groupSessionsByStudent = (records: SessionRecord[]): FinanceGrouped
       };
     }
 
-    // Exclude CANCELLED sessions from financial totals
-    const isCancelled = record.status === 'CANCELLED_BY_STUDENT' || record.status === 'CANCELLED_BY_TUTOR';
+    // Financial totals only include sessions that have actually been taught.
+    const isTaught = isTaughtSession(record);
 
     // Always add to the list so user can see history
     acc[key].sessions.push(record);
     acc[key].totalSessions += 1;
 
-    if (!isCancelled) {
+    if (isTaught) {
       acc[key].totalHours += record.hours || 0;
       acc[key].totalAmount += record.totalAmount || 0;
 
-      // Only count non-cancelled sessions towards "allPaid" behavior
-      // A session is considered "unpaid" if it's NOT paid and meant to be paid (not cancelled)
-      // We rely on record.paid boolean for simplicity, or we can check status === 'PAID'
       if (!record.paid) {
         acc[key].allPaid = false;
       }

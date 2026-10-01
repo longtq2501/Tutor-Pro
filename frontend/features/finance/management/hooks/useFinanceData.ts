@@ -11,7 +11,7 @@ import { useFinanceContext } from '../context/FinanceContext';
 import { groupSessionsByStudent } from '../utils/grouping';
 
 export function useFinanceData() {
-  const { viewMode, selectedDate, searchTerm, displayLimit, resetPagination } = useFinanceContext();
+  const { viewMode, selectedDate, searchTerm, sourceFilter, displayLimit, resetPagination } = useFinanceContext();
   const queryClient = useQueryClient();
 
   const formattedMonth = useMemo(() => format(selectedDate, 'yyyy-MM'), [selectedDate]);
@@ -55,17 +55,20 @@ export function useFinanceData() {
   }, [rawRecords]);
 
   const filteredRecords = useMemo(() => {
-    if (!searchTerm.trim()) return records;
+    const sourceRecords = sourceFilter === 'ALL'
+      ? records
+      : records.filter(record => (record.nguon || 'trung_tam') === sourceFilter);
+    if (!searchTerm.trim()) return sourceRecords;
     const term = searchTerm.toLowerCase();
 
     // Helper to check safely
     const matches = (s?: string | null) => (s ?? '').toLowerCase().includes(term);
 
-    return records.filter((r: SessionRecord) =>
+    return sourceRecords.filter((r: SessionRecord) =>
       matches(r.studentName) ||
       matches(r.subject)
     );
-  }, [records, searchTerm]);
+  }, [records, searchTerm, sourceFilter]);
 
   const allGroupedRecords = useMemo(() => {
     return groupSessionsByStudent(filteredRecords);
@@ -86,7 +89,7 @@ export function useFinanceData() {
   // Reset pagination when view mode or search term changes
   useEffect(() => {
     resetPagination();
-  }, [viewMode, searchTerm, resetPagination]);
+  }, [viewMode, searchTerm, sourceFilter, resetPagination]);
 
   // Shared Actions
   const deleteRecord = async (id: number) => {

@@ -21,6 +21,7 @@ public class StudentResponse {
     private Long pricePerHour;
     private String notes;
     private Boolean active;
+    private String nguon;
     
     /**
      * Enrollment month (YYYY-MM).

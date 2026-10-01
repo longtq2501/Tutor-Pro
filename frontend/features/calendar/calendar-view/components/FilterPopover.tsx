@@ -14,6 +14,8 @@ interface FilterPopoverProps {
     searchQuery: string;
     onFilterChange: (status: string | 'ALL') => void;
     onSearchChange: (query: string) => void;
+    currentSource: 'ALL' | 'trung_tam' | 'day_rieng';
+    onSourceChange: (source: 'ALL' | 'trung_tam' | 'day_rieng') => void;
 }
 
 export function FilterPopover({
@@ -21,6 +23,8 @@ export function FilterPopover({
     searchQuery,
     onFilterChange,
     onSearchChange,
+    currentSource,
+    onSourceChange,
 }: FilterPopoverProps) {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -54,6 +58,15 @@ export function FilterPopover({
                             onChange={(e) => onSearchChange(e.target.value)}
                             className="w-full pl-8 sm:pl-10 pr-4 h-[34px] sm:h-11 bg-muted/50 border border-border/60 rounded-xl sm:rounded-2xl text-[11px] sm:text-sm font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
                         />
+                    </div>
+                </div>
+
+                <div className="space-y-2 sm:space-y-3">
+                    <p className="text-[7.5px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Nguồn học sinh</p>
+                    <div className="grid grid-cols-3 gap-1 sm:gap-1.5">
+                        {([['ALL', 'Tất cả'], ['trung_tam', 'Trung tâm'], ['day_rieng', 'Dạy riêng']] as const).map(([value, label]) => (
+                            <FilterButton key={value} isActive={currentSource === value} onClick={() => onSourceChange(value)} label={label} />
+                        ))}
                     </div>
                 </div>
 

@@ -1,91 +1,97 @@
-# Calendar - Issues & Optimization (Updated)
+# Task: Phân loại học sinh theo nguồn + Xuất báo cáo học phí tháng
 
-## New Issues (Feb 3)
-### [x] [P0-Critical] Component "Lịch học của bạn" (Student View) bị lỗi
-- **Issue**: Student calendar/schedule list is blank/broken (Missing attachments).
-- **Resolution**: Updated `SessionRecordService` to use `mapToFullResponse` instead of `layoutResponse`, ensuring `documents` and `lessons` are included in the API response.
+## 0. Hướng dẫn cho Agent
+- Đọc codebase trước để nhận diện stack, thư viện toast, cách lưu dữ liệu và
+  hàm tính học phí đang dùng ở module Tài Chính. KHÔNG tự đổi stack.
+- Tái sử dụng logic tính tiền của module Tài Chính, không viết công thức mới,
+  để số liệu báo cáo luôn khớp trang Tài Chính.
+- Chỉ thêm duy nhất 1 dependency mới nếu chưa có: `html-to-image`.
+- Làm theo thứ tự Phần A -> B -> C. Mỗi phần chạy được độc lập.
 
+## Phần A. Gán nhãn nguồn học sinh
 
-### [x] [P1-High] UI Đính kèm tài liệu/bài giảng vào Sessions (Tutor View) - Refactor Category
-- **Issue**: Horizontal scrollbar due to non-responsive category list and redundant sort filter.
-- **Resolution**: Replaced horizontal category list with a dropdown and removed redundant sort filter.
+### A1. Dữ liệu
+- Thêm trường `nguon` cho học sinh: `"trung_tam" | "day_rieng"`.
+- Migration: học sinh cũ mặc định `"trung_tam"`.
+- Học sinh mới: mặc định `"trung_tam"`.
 
-### [x] [P1-High] UI Đính kèm tài liệu/bài giảng - Polish & Layout
-- **Vấn đề 1**: Container chứa tài liệu hiển thị quá cao, gây ra thanh scroll lớn cho modal thay vì scroll nội bộ gọn gàng.
-- **Vấn đề 2**: Dropdown selection bị lỗi màu sắc (khi click mà chưa hover) và icon mũi tên bị lệch vị trí.
-- **Giải pháp**: 
-  - Điều chỉnh Flex layout để List chiếm đúng không gian còn lại (fill space) mà không làm modal bị tràn.
-  - Sử dụng Shadcn Select component thay cho native select để có UI/UX đồng nhất, chuẩn xác vị trí icon và màu sắc.
+### A2. Form Thêm/Sửa học sinh (TÁI SỬ DỤNG form wizard 3 bước hiện có)
+- KHÔNG tạo form hoặc modal mới. Chỉ thêm 1 trường vào form hiện có;
+  form Thêm mới và form Sửa thông tin dùng chung nên thêm 1 lần là đủ cho cả hai.
+- Vị trí: Bước 2 "Thiết lập học vụ & ghi chú", đặt ngay dưới "Trạng thái học tập"
+  và phía trên "Học phí / giờ (VNĐ)".
+- Control: nhãn "Nguồn học sinh", dạng segmented 2 lựa chọn
+  "Trung tâm" | "Dạy riêng". Dùng lại đúng component/style của segmented
+  "Đang học | Đã nghỉ / Tạm dừng" ở cùng bước.
+- Giá trị mặc định khi thêm mới: "Trung tâm".
+- Khi mở form Sửa: hiển thị đúng giá trị `nguon` hiện tại của học sinh.
+- Không cần validate thêm (luôn có giá trị).
+- Lưu `nguon` cùng payload với các trường khác khi bấm "Tạo Hồ Sơ" / lưu chỉnh sửa.
 
+### A3. Hiển thị
+- Trang Học Sinh & PH: badge nhỏ trên mỗi card học sinh
+  (Trung tâm: màu xanh dương nhạt; Dạy riêng: màu tím nhạt).
+- Thêm bộ lọc nguồn: Tất cả | Trung tâm | Dạy riêng (cạnh bộ lọc
+  Tất cả/Đang học/Đã nghỉ hiện có).
+- Trang Tài Chính và Lịch Dạy: thêm lọc theo nguồn vào "Bộ lọc" hiện có.
+  Các số liệu tổng (doanh thu, số buổi, số học sinh) phải cập nhật theo bộ lọc.
+- Lịch Dạy: thẻ buổi học có thể hiển thị chấm nhỏ phân biệt nguồn (tùy chọn).
 
+## Phần B. Nút "Báo cáo" trong Lịch Dạy
 
-## Performance Issues
+### B1. Nút
+- Vị trí: cạnh nút "Bộ lọc". Nhãn "Báo cáo" + icon FileText.
+- Kiểu nút phụ (nền trắng, viền nhạt, bo tròn, chữ in hoa đậm) giống "Bộ lọc".
+- Trạng thái: hover, loading (disable + spinner), disabled nếu tháng không có buổi.
 
-### [x] [P0-Critical] CSV-based comment generator không scale được cho multi-user
-- **RESOLVED**: Transitioned from static CSV templates to AI-powered generation via Groq API (Llama 3.3).
-- **Solution**: 
-  - Backend: Implemented `GroqGeneratorServiceImpl` with template-based fallback.
-  - API: Updated `GenerateCommentRequest` to support `subject` and `language`.
-  - Frontend: Refactored components to pass contextual metadata (Subject, Language) to the generator.
-- **Impact**: Supports unlimited subjects and languages with high personalization.
-- **Metrics**: 100% subject coverage, < 2s response time.
+### B2. Chọn phạm vi
+- Bấm nút -> popover 3 lựa chọn: "Trung tâm" (mặc định, nổi bật),
+  "Dạy riêng", "Tất cả".
+- Chọn xong là xuất ngay, không cần thêm nút xác nhận.
+- Nhớ lựa chọn gần nhất (state phía client là đủ).
 
-### [x] [P1-High] Không có cache layer cho generated comments
-- **RESOLVED**: Implemented in-memory caching using **Caffeine** with a composite key (Category, Rating, Keywords, Tone, Length).
-- **Metric**: Instant response for repeated requests, reducing Groq API costs and improving UX.
+### B3. Luồng xuất
+1. Lấy tháng đang xem trên lịch (VD: 09/2026) + phạm vi đã chọn.
+2. Tổng hợp dữ liệu bằng chính hàm của module Tài Chính.
+3. Render component báo cáo ẩn ngoài màn hình, chụp PNG (pixelRatio 2).
+4. Tự tải về, tên file: `bao-cao-hoc-phi-trung-tam-thang-09-2026.png`
+   (phần giữa đổi theo phạm vi: `trung-tam` | `day-rieng` | `tat-ca`).
+5. Toast thành công: "Xuất báo cáo thành công".
+   Lỗi: toast "Xuất báo cáo thất bại, vui lòng thử lại".
 
----
+### B4. Quy tắc tính toán
+- Nguồn dữ liệu dùng chung module Tài Chính.
+- Chỉ lấy buổi thuộc tháng đang xem và thuộc học sinh trong phạm vi đã chọn.
+- "Đã dạy": trạng thái "Đã dạy". Buổi chưa diễn ra không tính.
+- "Đã nghỉ": trạng thái "Học sinh hủy". Buổi nghỉ miễn tiền hoàn toàn.
+- Học phí học sinh = tổng giờ đã dạy x đơn giá/giờ của học sinh đó.
+- Tổng học phí = tổng học phí các học sinh trong phạm vi.
 
-## UX Issues
+### B5. Nội dung ảnh - Chi tiết từng học sinh (cập nhật)
+- Báo cáo LUÔN hiển thị đơn giá/giờ trong từng card học sinh
+  (không có công tắc ẩn).
+- Mỗi card gồm: tên; số buổi đã dạy / số buổi nghỉ; tổng giờ dạy;
+  đơn giá/giờ; thành tiền; chip ngày học (ngày nghỉ gạch ngang, màu xám).
 
-### [x] [P1-High] User không thể customize văn phong, độ dài, tone của comment
-- **RESOLVED**: Added `GeneratorStyleSelector` component allowing users to choose Tone (Friendly/Professional) and Length (Short/Medium/Long).
-- **Backend**: Updated AI prompt engineering to strictly follow these constraints.
+### B6. Giao diện
+- Đồng bộ màu, font, bo góc với UI hiện tại; dễ đọc trên điện thoại.
+- Tiền định dạng VNĐ: 5.484.000 đ.
+- Chiều cao ảnh tự giãn theo số lượng học sinh.
 
-### [x] [P1-High] Chưa có nút xóa tất cả buổi học trong 1 tháng cụ thể
-- **RESOLVED**: Added "Xóa tất cả buổi học" button in the Calendar header (Info Popover).
-- **Safety**: Integrated with `AlertDialog` confirmation to prevent accidental deletion.
-- **Backend**: Verified tutor isolation for bulk deletion.
+## Phần C. Tiêu chí nghiệm thu
+- [ ] Học sinh cũ đều có nhãn "Trung tâm" sau migration.
+- [ ] Đổi nhãn 1 học sinh sang "Dạy riêng": biến mất khỏi báo cáo Trung tâm,
+      xuất hiện ở báo cáo Dạy riêng, cả hai cộng lại = báo cáo Tất cả.
+- [ ] Tổng tiền trong báo cáo khớp với trang Tài Chính khi lọc cùng nguồn.
+- [ ] Buổi "Học sinh hủy" không cộng vào tiền, hiển thị gạch ngang.
+- [ ] Toast thành công/thất bại hiển thị đúng; file PNG tải về đúng tên.
+- [ ] Tháng không có buổi nào: nút bị disable.
+- [ ] Giao diện sáng/tối không làm ảnh xuất bị lỗi màu (ảnh luôn nền trắng).
+- [ ] Form Thêm mới và Sửa đều có trường "Nguồn học sinh" ở bước 2,
+      mặc định "Trung tâm"; đổi giá trị rồi lưu thì card học sinh
+      cập nhật badge ngay.
 
-### [ ] [P2-Medium] Không có preview real-time khi điều chỉnh keywords
-- **Root cause:** Generator chỉ chạy khi click button
-- **Target:** Add debounced auto-preview với loading states
-- **Impact:** Reduce user errors 40%
-
----
-
-## UI Issues
-
-### [x] [P2-Medium] NEW - Cần thiết kế lại UI nhập keywords inline thay vì badges gợi ý
-- **RESOLVED**: Implemented `InlineKeywordInput` with tag-based entry (typing + Enter) while keeping smart suggestions.
-- **UX**: Tutors can now add custom context that wasn't in the predefined badge list.
-
-### [x] [P3-Low] Không có dark mode support cho generator component
-- **RESOLVED**: Added `dark:` utility classes and theme-aware borders/backgrounds to all generator sub-components.
-
-### [x] [P1-High] NEW - Feedback Form UI bị hẹp ("khó thở") trong Modal
-- **Root cause:** `FeedbackFormFields.tsx` sử dụng `grid-cols-2` cho các block nhận xét AI, dẫn đến bề ngang quá hẹp khi hiển thị trong LessonDetailModal (có sidebar).
-- **Target:** Chuyển sang layout 1 cột (stack) hoặc tối ưu max-width/padding để text có không gian hiển thị "dễ thở" hơn.
-- **Impact:** Cải thiện readability cho các nhận xét dài của AI.
-
----
-
-## Technical Debt
-
-### [x] GEMINI.md Compliance: Refactor function length và add JSDoc
-- **RESOLVED**: 
-  - Split `CommentGenerator.tsx` into modular sub-components.
-  - Refactored `FeedbackFormFields.tsx` into logical sections.
-  - Added comprehensive JSDoc to all relevant files.
-- **Metrics**: Main function lengths < 50 lines, 100% JSDoc coverage.
-
-### [x] [P2-Medium] [Cleanup] Remove legacy CSV-based comment generation logic
-- [x] [UX] Clean up legacy comment generation code (CSV logic) after Groq AI is fully working.
-    - Removed `FeedbackCsvImportService`, `FeedbackScenario` entity, and `feedback_scenarios.csv`.
-    - Refactored `SessionFeedbackService` to remove template fallback.
-    - Updated frontend keyword management to use static suggestions.
-- **Impact**: Reduces codebase size, eliminates dead code, and simplifies maintenance.
-
-### [ ] Implement proper error handling và retry logic cho AI calls
-- **Root cause:** Không có fallback khi AI service down
-- **Impact:** User experience bị gián đoạn
+## Ngoài phạm vi (làm sau)
+- Xuất PDF; báo cáo riêng từng học sinh gửi phụ huynh.
+- Quản lý nhiều trung tâm (hiện chỉ có 1 nhóm "Trung tâm").
+- Chọn khoảng thời gian tùy ý.

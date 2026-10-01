@@ -2,7 +2,7 @@
 
 import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { FinanceContextType, FinanceViewMode } from '../types';
+import { FinanceContextType, FinanceViewMode, StudentSourceFilter } from '../types';
 
 const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
 
@@ -26,6 +26,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     const [selectedDate, setSelectedDate] = useState<Date>(initialDate);
     const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [sourceFilter, setSourceFilter] = useState<StudentSourceFilter>('ALL');
     const [displayLimit, setDisplayLimit] = useState(20); // Pagination: initial limit
 
     const toggleStudentSelection = useCallback((studentId: number) => {
@@ -70,11 +71,13 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         selectedDate,
         selectedStudentIds,
         searchTerm,
+        sourceFilter,
         displayLimit,
         setViewMode,
         setSelectedDate,
         setSelectedStudentIds,
         setSearchTerm,
+        setSourceFilter,
         toggleStudentSelection,
         toggleSelectAll,
         clearSelection,

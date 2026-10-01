@@ -76,6 +76,10 @@ public class Student {
     @Column(nullable = false)
     private Boolean active = true;
 
+    @Builder.Default
+    @Column(name = "nguon", nullable = false, columnDefinition = "varchar(20) default 'trung_tam'")
+    private String nguon = "trung_tam";
+
     /**
      * The first month the student enrolled (YYYY-MM).
      */

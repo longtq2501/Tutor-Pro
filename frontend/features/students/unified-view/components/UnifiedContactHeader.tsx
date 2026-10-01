@@ -93,6 +93,8 @@ export function UnifiedContactActions(props: Omit<UnifiedContactHeaderProps, 'st
                         <TabsTrigger value="all" className="flex-1 sm:flex-none rounded-lg font-bold text-[10px] h-8 px-2 sm:px-3">Tất cả</TabsTrigger>
                         <TabsTrigger value="active" className="flex-1 sm:flex-none rounded-lg font-bold text-[10px] h-8 px-2 sm:px-3">Đang học</TabsTrigger>
                         <TabsTrigger value="inactive" className="flex-1 sm:flex-none rounded-lg font-bold text-[10px] h-8 px-2 sm:px-3">Đã nghỉ</TabsTrigger>
+                        <TabsTrigger value="trung_tam" className="flex-1 sm:flex-none rounded-lg font-bold text-[10px] h-8 px-2 sm:px-3">Trung tâm</TabsTrigger>
+                        <TabsTrigger value="day_rieng" className="flex-1 sm:flex-none rounded-lg font-bold text-[10px] h-8 px-2 sm:px-3">Dạy riêng</TabsTrigger>
                     </TabsList>
                 </Tabs>
 

@@ -21,6 +21,7 @@ public class StudentSummaryResponse {
     private String schedule;
     private Long pricePerHour;
     private Boolean active;
+    private String nguon;
     
     /**
      * Total tuition amount collected.

@@ -589,6 +589,7 @@ public class SessionRecordService {
     private SessionRecordResponse mapToResponse(SessionRecord r, boolean lightweight) {
         SessionRecordResponse.SessionRecordResponseBuilder b = SessionRecordResponse.builder()
             .id(r.getId()).studentId(r.getStudent().getId()).studentName(r.getStudent().getName())
+            .nguon("day_rieng".equals(r.getStudent().getNguon()) ? "day_rieng" : "trung_tam")
             .month(r.getMonth()).sessions(r.getSessions()).hours(r.getHours())
             .pricePerHour(r.getPricePerHour()).totalAmount(r.getTotalAmount())
             .paid(r.getPaid()).paidAt(formatDateTime(r.getPaidAt())).notes(r.getNotes())

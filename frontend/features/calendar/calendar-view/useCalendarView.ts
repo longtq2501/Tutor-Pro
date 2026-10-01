@@ -37,6 +37,7 @@ export const useCalendarView = (): UseCalendarViewReturn => {
 
     // === 2. State Lọc (Logic chuyển từ UI index.tsx sang) ===
     const [statusFilter, setStatusFilter] = useState<string | 'ALL'>('ALL');
+    const [sourceFilter, setSourceFilter] = useState<'ALL' | 'trung_tam' | 'day_rieng'>('ALL');
     const [searchQuery, setSearchQuery] = useState('');
 
     // === 3. Xử lý Hiệu năng (Scroll listener) ===
@@ -86,12 +87,13 @@ export const useCalendarView = (): UseCalendarViewReturn => {
     // Grouping status filter logic for reuse
     const applyFilters = useCallback((s: SessionRecord) => {
         const matchesStatus = statusFilter === 'ALL' || s.status === statusFilter;
+        const matchesSource = sourceFilter === 'ALL' || (s.nguon || 'trung_tam') === sourceFilter;
         const matchesSearch = !searchQuery ||
             s.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
             (s.subject && s.subject.toLowerCase().includes(searchQuery.toLowerCase()));
 
-        return matchesStatus && matchesSearch;
-    }, [statusFilter, searchQuery]);
+        return matchesStatus && matchesSource && matchesSearch;
+    }, [statusFilter, sourceFilter, searchQuery]);
 
     // Lọc sessions dựa trên statusFilter và searchQuery
     const filteredSessions = useMemo(() => sortedSessions.filter(applyFilters), [sortedSessions, applyFilters]);
@@ -414,8 +416,8 @@ export const useCalendarView = (): UseCalendarViewReturn => {
         currentDate, currentView, isGenerating, selectedDay, selectedSession, showAddSessionModal,
         selectedDateStr, modalMode, contextMenu, deleteConfirmationOpen, loadingSessions, isScrolled,
         loading, isInitialLoad, isFetching, statusFilter, searchQuery, filteredSessions, filteredCalendarDays, stats,
-        currentDayInfo, students, setCurrentView, setSelectedDay, setSelectedSession, setContextMenu,
-        setStatusFilter, setSearchQuery, setDeleteConfirmationOpen, navigateMonth, goToToday, handleAutoGenerate,
+        currentDayInfo, students, sessions: sortedSessions, setCurrentView, setSelectedDay, setSelectedSession, setContextMenu,
+        setStatusFilter, sourceFilter, setSourceFilter, setSearchQuery, setDeleteConfirmationOpen, navigateMonth, goToToday, handleAutoGenerate,
         handleUpdateSession, handleDeleteSession, handleSessionClick, handleSessionEdit,
         handleTogglePayment, handleToggleComplete, handleAddSessionSubmit, openAddSessionModal,
         closeAddSessionModal, handleConfirmDeleteAll, exportToExcel, handleContextMenu, handleDragEnd

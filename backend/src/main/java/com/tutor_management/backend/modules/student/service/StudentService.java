@@ -173,6 +173,7 @@ public class StudentService {
                 .pricePerHour(request.getPricePerHour())
                 .notes(request.getNotes())
                 .active(request.getActive() != null ? request.getActive() : true)
+                .nguon(normalizeNguon(request.getNguon()))
                 .startMonth(request.getStartMonth() != null ? request.getStartMonth() : YearMonth.now().toString())
                 .build();
 
@@ -324,7 +325,12 @@ public class StudentService {
         student.setPricePerHour(request.getPricePerHour());
         student.setNotes(request.getNotes());
         if (request.getActive() != null) student.setActive(request.getActive());
+        if (request.getNguon() != null) student.setNguon(normalizeNguon(request.getNguon()));
         if (request.getStartMonth() != null) student.setStartMonth(request.getStartMonth());
+    }
+
+    private String normalizeNguon(String nguon) {
+        return "day_rieng".equals(nguon) ? "day_rieng" : "trung_tam";
     }
 
     private User createUserRecord(Student student, String email, String rawPassword) {
@@ -379,6 +385,7 @@ public class StudentService {
                 .pricePerHour(student.getPricePerHour())
                 .notes(student.getNotes())
                 .active(student.getActive())
+                .nguon(normalizeNguon(student.getNguon()))
                 .startMonth(student.getStartMonth())
                 .lastActiveMonth(lastActiveMonth)
                 .monthsLearned(monthsLearned)
@@ -417,6 +424,7 @@ public class StudentService {
                 .schedule(student.getSchedule())
                 .pricePerHour(student.getPricePerHour())
                 .active(student.getActive())
+                .nguon(normalizeNguon(student.getNguon()))
                 .totalPaid(totalPaid)
                 .totalUnpaid(totalUnpaid)
                 .totalUnpaidTaught(totalUnpaidTaught)

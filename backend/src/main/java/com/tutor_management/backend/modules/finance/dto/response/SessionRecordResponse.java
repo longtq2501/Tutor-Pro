@@ -19,6 +19,7 @@ public class SessionRecordResponse {
     private Long id;
     private Long studentId;
     private String studentName;
+    private String nguon;
     private String month;
     private Integer sessions;
     private Double hours;

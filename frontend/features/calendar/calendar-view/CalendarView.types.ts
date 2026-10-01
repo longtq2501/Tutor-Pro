@@ -28,8 +28,10 @@ export interface UseCalendarViewReturn {
 
     // === Data Filtered (Logic moved from UI) ===
     statusFilter: string | 'ALL';
+    sourceFilter: 'ALL' | 'trung_tam' | 'day_rieng';
     searchQuery: string;
     filteredSessions: SessionRecord[];
+    sessions: SessionRecord[];
     filteredCalendarDays: CalendarDay[];
     stats: CalendarStats;
     currentDayInfo: CalendarDay | null;
@@ -41,6 +43,7 @@ export interface UseCalendarViewReturn {
     setSelectedSession: (session: SessionRecord | null) => void;
     setContextMenu: (menu: { x: number; y: number; session: SessionRecord } | null) => void;
     setStatusFilter: (filter: string | 'ALL') => void;
+    setSourceFilter: (filter: 'ALL' | 'trung_tam' | 'day_rieng') => void;
     setSearchQuery: (query: string) => void;
     setDeleteConfirmationOpen: (open: boolean) => void;
 

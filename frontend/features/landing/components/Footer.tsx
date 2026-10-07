@@ -1,7 +1,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { GraduationCap } from 'lucide-react';
+import { TutorProLogo } from '@/components/shared/TutorProLogo';
 
 const Footer: React.FC = () => {
     return (
@@ -10,10 +10,7 @@ const Footer: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-20">
                     <div className="col-span-1 md:col-span-1">
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-sky-200 bg-white text-sky-700">
-                                <GraduationCap size={18} />
-                            </div>
-                            <span className="text-xl font-bold tracking-tight text-slate-900">Tutor Pro</span>
+                            <TutorProLogo iconClassName="h-8 w-8" className="text-slate-900" />
                         </div>
                         <p className="text-sm leading-relaxed text-slate-600">
                             Kiến tạo tương lai giáo dục 1-1 tại Việt Nam bằng công nghệ và trí tuệ nhân tạo.

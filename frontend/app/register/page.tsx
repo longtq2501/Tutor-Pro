@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { GraduationCap, Loader2, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Loader2, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { TutorProLogo } from '@/components/shared/TutorProLogo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -75,7 +76,7 @@ export default function RegisterPage() {
             <Card className="w-full max-w-md relative z-10 shadow-2xl border-2">
                 <CardHeader className="space-y-4 text-center pb-2">
                     <div className="mx-auto w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center">
-                        <GraduationCap className="w-8 h-8 text-primary" />
+                        <TutorProLogo collapsed iconClassName="h-12 w-12" />
                     </div>
                     <div>
                         <CardTitle className="text-3xl font-bold">

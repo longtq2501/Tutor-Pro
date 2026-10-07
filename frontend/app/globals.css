@@ -99,6 +99,32 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+.tutor-pro-logo {
+  --logo-stem: #10151c;
+  --logo-left-page: #0f4c5c;
+  --logo-right-page: #f2a541;
+  color: var(--logo-stem);
+  font-family: var(--font-be-vietnam-pro), sans-serif;
+}
+
+.tutor-pro-logo .logo-stem {
+  fill: var(--logo-stem, #10151c);
+}
+
+.tutor-pro-logo .logo-left-page {
+  fill: var(--logo-left-page, #0f4c5c);
+}
+
+.tutor-pro-logo .logo-right-page {
+  fill: var(--logo-right-page, #f2a541);
+}
+
+.dark .tutor-pro-logo {
+  --logo-stem: #f4f6f8;
+  --logo-left-page: #6fd0c0;
+  --logo-right-page: #f2a541;
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

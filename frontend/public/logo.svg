@@ -1,0 +1,19 @@
+<svg width="40" height="40" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tutor Pro">
+  <style>
+    :root {
+      --logo-stem: #10151c;
+      --logo-left-page: #0f4c5c;
+      --logo-right-page: #f2a541;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --logo-stem: #f4f6f8;
+        --logo-left-page: #6fd0c0;
+        --logo-right-page: #f2a541;
+      }
+    }
+  </style>
+  <rect x="28" y="28" width="8" height="30" rx="3" fill="var(--logo-stem)"/>
+  <path d="M32 20C26 15 17 13 6 13V31C16 31 25 33 32 38Z" fill="var(--logo-left-page)"/>
+  <path d="M32 20C38 15 47 13 58 13V31C48 31 39 33 32 38Z" fill="var(--logo-right-page)"/>
+</svg>

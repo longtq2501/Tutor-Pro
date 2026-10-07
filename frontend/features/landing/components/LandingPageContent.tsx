@@ -6,7 +6,8 @@ import dynamic from 'next/dynamic';
 
 import Footer from './Footer';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, GraduationCap, ShieldCheck, Clock3, BadgeCheck } from 'lucide-react';
+import { Menu, X, ShieldCheck, Clock3, BadgeCheck } from 'lucide-react';
+import { TutorProLogo } from '@/components/shared/TutorProLogo';
 import { useState } from 'react';
 
 const navItems = [
@@ -61,12 +62,7 @@ const LandingPageContent: React.FC = () => {
                         whileHover={{ scale: 1.05 }}
                         onClick={() => router.push('/')}
                     >
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-sky-200 bg-white/85 shadow-sm transition-all group-hover:border-sky-400">
-                            <GraduationCap className="w-5 h-5 text-sky-700" />
-                        </div>
-                        <span className="text-xl font-black tracking-tight text-slate-900">
-                            Tutor Pro
-                        </span>
+                        <TutorProLogo iconClassName="h-10 w-10" className="text-slate-900" />
                     </motion.div>
 
                     {/* Desktop Nav */}

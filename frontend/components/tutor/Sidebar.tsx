@@ -10,8 +10,9 @@ import {
     type ResponsiveDensity,
 } from '@/lib/ui/responsive';
 import { cn } from '@/lib/utils';
+import { TutorProLogo } from '@/components/shared/TutorProLogo';
 import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
-import { ChevronLeft, GraduationCap } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import React, { memo, useEffect, useMemo, useState } from 'react';
 
 // Types (Giữ nguyên)
@@ -223,25 +224,14 @@ export const Sidebar = memo(({ currentView, setCurrentView, navItems, isLocked =
 
                     {/* Logo Header - Smooth Scaling */}
                     <div className={cn('flex items-center overflow-hidden shrink-0', responsiveConfig.headerClass)}>
-                        <div className="flex items-center gap-4 min-w-max">
-                            <motion.div
-                                layout
-                                className="bg-primary/10 flex items-center justify-center rounded-xl text-primary"
-                                style={{ width: responsiveConfig.logoBoxSize, height: responsiveConfig.logoBoxSize }}
-                            >
-                                <GraduationCap size={responsiveConfig.logoIconSize} />
-                            </motion.div>
-
-                            {!effectiveCollapsed && (
-                                <motion.span
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
-                                    className="font-bold text-xl tracking-tight whitespace-nowrap"
-                                >
-                                    Tutor Pro
-                                </motion.span>
-                            )}
+                        <div className="min-w-max">
+                            <TutorProLogo
+                                collapsed={effectiveCollapsed}
+                                iconClassName={cn(
+                                    'rounded-xl',
+                                    effectiveCollapsed ? 'h-10 w-10' : 'h-10 w-10'
+                                )}
+                            />
                         </div>
                     </div>
 

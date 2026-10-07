@@ -17,6 +17,7 @@ import {
     ChevronRight,
     UserCog
 } from 'lucide-react';
+import { TutorProLogo } from '@/components/shared/TutorProLogo';
 import {
     Tooltip,
     TooltipContent,
@@ -93,11 +94,10 @@ export function AdminSidebar({
             {/* Logo area */}
             <div className="h-[52px] px-4 flex items-center justify-between border-b border-[var(--admin-border)]">
                 <div className={`flex items-center gap-3 overflow-hidden ${collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'} transition-all`}>
-                    <GraduationCap className="h-6 w-6 text-[var(--admin-accent)] shrink-0" />
-                    <span className="font-black text-lg tracking-tighter whitespace-nowrap">TUTOR <span className="text-[var(--admin-accent)]">PRO</span></span>
+                    <TutorProLogo iconClassName="h-8 w-8" />
                 </div>
                 {collapsed && (
-                    <GraduationCap className="h-6 w-6 text-[var(--admin-accent)] mx-auto" />
+                    <TutorProLogo collapsed iconClassName="h-8 w-8" className="mx-auto" />
                 )}
 
                 <button

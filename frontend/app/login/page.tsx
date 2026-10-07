@@ -4,7 +4,8 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, GraduationCap, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { TutorProLogo } from '@/components/shared/TutorProLogo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -165,7 +166,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md relative z-10 shadow-2xl border-2">
         <CardHeader className="space-y-4 text-center">
           <div className="mx-auto w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center">
-            <GraduationCap className="w-8 h-8 text-primary" />
+            <TutorProLogo collapsed iconClassName="h-12 w-12" />
           </div>
           <div>
             <CardTitle className="text-3xl font-bold">Tutor Pro</CardTitle>

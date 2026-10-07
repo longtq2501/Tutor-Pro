@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Be_Vietnam_Pro, Inter } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/shared/theme-provider';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -13,12 +13,22 @@ const inter = Inter({
     variable: '--font-inter',
 });
 
+const beVietnamPro = Be_Vietnam_Pro({
+    subsets: ['vietnamese', 'latin'],
+    display: 'swap',
+    weight: ['600'],
+    variable: '--font-be-vietnam-pro',
+});
+
 export const metadata: Metadata = {
     metadataBase: new URL('https://tutorpro.id.vn'),
     title: 'Tutor Pro — Hệ thống quản lý gia sư 1-1',
     description: 'Nền tảng quản lý gia sư toàn diện: lịch dạy, tài chính, lớp học trực tuyến, AI feedback. Dùng thử miễn phí.',
     keywords: ['gia su', 'quan ly gia su', 'phan mem gia su', 'tutor management'],
     manifest: '/manifest.json',
+    icons: {
+        icon: '/logo.svg',
+    },
     openGraph: {
         type: 'website',
         locale: 'vi_VN',
@@ -71,7 +81,7 @@ export default function RootLayout({
 }) {
     return (
         <html lang="vi" suppressHydrationWarning>
-            <body className={`${inter.variable} font-sans antialiased`}>
+            <body className={`${inter.variable} ${beVietnamPro.variable} font-sans antialiased`}>
                 <QueryProvider>
                     <AuthProvider>
                         <ThemeProvider

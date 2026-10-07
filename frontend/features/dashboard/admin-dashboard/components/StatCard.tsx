@@ -52,25 +52,16 @@ export const StatCard = memo(({
   if (isLoading) {
     return (
       <div className={cn(
-        "rounded-2xl sm:rounded-3xl border p-5 sm:p-6 lg:p-7",
+        "h-full rounded-2xl border p-[10px] px-3 sm:p-4 lg:p-5",
         "animate-pulse",
         bgColors[variant]
       )}>
-        <div className="space-y-4">
-          {/* 1. Header Row (Icon & Trend) */}
-          <div className="flex items-start justify-between">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-muted/50 rounded-2xl sm:rounded-3xl" />
-            <div className="h-6 w-16 bg-muted/50 rounded-full" />
+        <div className="flex h-full items-center gap-3">
+          <div className="h-8 w-8 shrink-0 rounded-xl bg-muted/50 sm:h-10 sm:w-10" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="h-3 w-24 rounded bg-muted/50" />
+            <div className="h-5 w-32 rounded bg-muted/50" />
           </div>
-
-          {/* 2. Label - Khớp với height thực tế */}
-          <div className="h-3 sm:h-4 bg-muted/50 rounded w-24" />
-
-          {/* 3. Value - Chỉnh lại h-8/h-9 để không bị cao hơn thực tế */}
-          <div className="h-6 sm:h-7 lg:h-8 bg-muted/50 rounded w-48" />
-
-          {/* 4. Footer Placeholder (Badge/Subtitle) - Dùng h-5/h-6 để vừa khít */}
-          <div className="h-5 sm:h-6 bg-muted/40 rounded w-2/3" />
         </div>
       </div>
     );
@@ -83,9 +74,8 @@ export const StatCard = memo(({
       transition={{ duration: 0.3 }}
       whileHover={{ y: -4, scale: 1.02 }}
       className={cn(
-        "group relative overflow-hidden",
-        "rounded-2xl sm:rounded-3xl border",
-        "p-5 sm:p-6 lg:p-7",
+        "group relative h-full min-w-0 overflow-hidden rounded-2xl border",
+        "p-[10px] px-3 sm:p-4 lg:p-5",
         "transition-all duration-300",
         bgColors[variant],
         "hover:shadow-2xl hover:shadow-black/10 hover:border-transparent",
@@ -109,109 +99,100 @@ export const StatCard = memo(({
       )} />
 
       {/* Content */}
-      <div className="relative space-y-4">
-        {/* Header Row */}
-        <div className="flex items-start justify-between">
-          {/* Icon */}
-          <motion.div
-            whileHover={{ rotate: 5, scale: 1.1 }}
-            className={cn(
-              "flex items-center justify-center",
-              "w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16",
-              "rounded-2xl sm:rounded-3xl shadow-lg",
-              "bg-gradient-to-br",
-              gradients[variant],
-              "transition-transform duration-300"
-            )}
-          >
-            <div className="text-white [&>svg]:w-6 [&>svg]:h-6 sm:[&>svg]:w-7 sm:[&>svg]:h-7 lg:[&>svg]:w-8 lg:[&>svg]:h-8">
-              {icon}
-            </div>
-          </motion.div>
-
-          {/* Trend Badge */}
-          {trend && (
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.2, type: "spring" }}
-              className={cn(
-                "flex items-center gap-1 px-2.5 py-1 rounded-full",
-                "text-xs font-medium",
-                trend.direction === 'up'
-                  ? "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400"
-                  : "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400"
-              )}
-            >
-              {trend.direction === 'up' ? (
-                <TrendingUp className="w-3 h-3" />
-              ) : (
-                <TrendingDown className="w-3 h-3" />
-              )}
-              {trend.value > 0 ? '+' : ''}{trend.value}%
-            </motion.div>
+      <div className="relative flex h-full min-w-0 items-center gap-3">
+        {/* Icon */}
+        <motion.div
+          whileHover={{ rotate: 5, scale: 1.1 }}
+          className={cn(
+            "flex shrink-0 items-center justify-center",
+            "h-8 w-8 rounded-xl shadow-lg sm:h-10 sm:w-10 lg:h-12 lg:w-12",
+            "bg-gradient-to-br",
+            gradients[variant],
+            "transition-transform duration-300"
           )}
-        </div>
+        >
+          <div className="text-white [&>svg]:h-4 [&>svg]:w-4 sm:[&>svg]:h-5 sm:[&>svg]:w-5 lg:[&>svg]:h-6 lg:[&>svg]:w-6">
+            {icon}
+          </div>
+        </motion.div>
 
-        {/* Label */}
-        <div className="text-xs sm:text-sm text-muted-foreground font-medium uppercase tracking-wide">
-          {title}
-        </div>
-
-        {/* Value */}
-        <div className="flex items-baseline gap-2">
-          <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums break-all">
-            {value}
-          </h3>
-        </div>
-
-        {/* Badge or Subtitle */}
-        {badge && (
-          <motion.div
-            initial={{ x: -10, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            {badge}
-          </motion.div>
-        )}
-
-        {subtitle && !progressBar && !badge && (
-          <motion.div
-            initial={{ x: -10, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-xs text-muted-foreground font-medium truncate"
-          >
-            {subtitle}
-          </motion.div>
-        )}
-
-        {/* Progress Bar */}
-        {progressBar && (
-          <div className="space-y-2 pt-2">
-            {/* Progress Bar */}
-            <div className="h-2 sm:h-2.5 rounded-full bg-muted overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${progressBar.percentage}%` }}
-                transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
-                className={cn(
-                  "h-full rounded-full",
-                  progressBar.color === 'green' && "bg-gradient-to-r from-green-500 to-emerald-500",
-                  progressBar.color === 'red' && "bg-gradient-to-r from-red-500 to-rose-500"
-                )}
-              />
+        <div className="min-w-0 flex-1">
+          {/* Header Row */}
+          <div className="flex min-w-0 items-center gap-1.5">
+            <div className="min-w-0 flex-1 truncate whitespace-nowrap text-[10px] font-medium tracking-normal text-muted-foreground sm:text-xs lg:text-sm">
+              {title}
             </div>
 
-            {/* Subtitle below progress */}
-            {subtitle && (
-              <p className="text-xs text-muted-foreground">
-                {subtitle}
-              </p>
+            {badge && (
+              <motion.div
+                initial={{ x: -6, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="min-w-0 shrink truncate"
+              >
+                {badge}
+              </motion.div>
+            )}
+
+            {/* Trend Badge */}
+            {trend && (
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2, type: "spring" }}
+                className={cn(
+                  "flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5",
+                  "text-[10px] font-medium sm:text-xs",
+                  trend.direction === 'up'
+                    ? "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400"
+                    : "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400"
+                )}
+              >
+                {trend.direction === 'up' ? (
+                  <TrendingUp className="h-3 w-3" />
+                ) : (
+                  <TrendingDown className="h-3 w-3" />
+                )}
+                {trend.value > 0 ? '+' : ''}{trend.value}%
+              </motion.div>
             )}
           </div>
-        )}
+
+          {/* Value */}
+          <h3 className="mt-1 truncate whitespace-nowrap text-lg font-bold tabular-nums sm:text-xl lg:text-2xl">
+            {value}
+          </h3>
+
+          {subtitle && !progressBar && !badge && (
+            <motion.div
+              initial={{ x: -10, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="mt-1 truncate text-[10px] font-medium text-muted-foreground sm:text-xs"
+            >
+              {subtitle}
+            </motion.div>
+          )}
+
+          {/* Progress Bar */}
+          {progressBar && (
+            <div className="mt-2 space-y-1">
+              <div className="h-2 overflow-hidden rounded-full bg-muted">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressBar.percentage}%` }}
+                  transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
+                  className={cn(
+                    "h-full rounded-full",
+                    progressBar.color === 'green' && "bg-gradient-to-r from-green-500 to-emerald-500",
+                    progressBar.color === 'red' && "bg-gradient-to-r from-red-500 to-rose-500"
+                  )}
+                />
+              </div>
+              {subtitle && <p className="truncate text-[10px] text-muted-foreground sm:text-xs">{subtitle}</p>}
+            </div>
+          )}
+        </div>
       </div>
     </motion.div>
   );

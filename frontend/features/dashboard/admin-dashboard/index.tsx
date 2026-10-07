@@ -95,7 +95,7 @@ export default function AdminDashboard() {
       />
 
       {/* Stats Cards Grid */}
-      <div data-tour="dashboard-stats" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+      <div data-tour="dashboard-stats" className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
 
         {/* Total Students */}
         <StatCard
@@ -106,9 +106,9 @@ export default function AdminDashboard() {
           isLoading={isGlobalLoading}
           subtitle={safeStats.newStudentsCurrentMonth !== undefined ? `${safeStats.newStudentsCurrentMonth} học sinh mới tháng này` : undefined}
           badge={
-            <div className="flex items-center text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/20 w-fit px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800/30">
-              <TrendingUp size={12} className="mr-1 flex-shrink-0" />
-              <span className="whitespace-nowrap">{safeStats.activeStudents || 0} đang học</span>
+            <div className="flex items-center whitespace-nowrap text-[10px] font-medium text-muted-foreground sm:text-xs">
+              <TrendingUp size={11} className="mr-0.5 shrink-0 text-emerald-500" />
+              <span>{safeStats.activeStudents || 0} đang học</span>
             </div>
           }
         />
@@ -136,9 +136,9 @@ export default function AdminDashboard() {
         {/* Total Debt (Unpaid) */}
         <StatCard
           title={
-            <div className="flex items-center gap-1.5">
-              <span>Còn Nợ</span>
-              <span className="text-[10px] font-medium opacity-60">(chưa thanh toán)</span>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <span className="truncate">Còn Nợ</span>
+              <span className="hidden shrink-0 text-[10px] font-medium opacity-60 sm:inline">(chưa thanh toán)</span>
             </div>
           }
           value={safeStats.totalDebtAllTime || safeStats.totalUnpaidAllTime}

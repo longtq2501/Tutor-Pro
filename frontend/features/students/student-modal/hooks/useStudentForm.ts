@@ -57,7 +57,20 @@ export function useStudentForm(student: Student | null, onSuccess: () => void) {
 
     try {
       setLoading(true);
-      await (student ? studentsApi.update(student.id, formData) : studentsApi.create(formData));
+      const savedStudent = await (student ? studentsApi.update(student.id, formData) : studentsApi.create(formData));
+      queryClient.setQueryData<{ content: Student[]; totalElements?: number }>(['students'], current => {
+        if (!current) return current;
+        const content = student
+          ? current.content.map(item => item.id === savedStudent.id ? savedStudent : item)
+          : [savedStudent, ...current.content];
+        return {
+          ...current,
+          content,
+          ...(typeof current.totalElements === 'number' && !student
+            ? { totalElements: current.totalElements + 1 }
+            : {})
+        };
+      });
       await queryClient.invalidateQueries({ queryKey: ['students'] });
       onSuccess();
     } catch (error: unknown) {

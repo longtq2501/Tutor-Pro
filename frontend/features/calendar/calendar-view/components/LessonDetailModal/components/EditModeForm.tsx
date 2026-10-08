@@ -47,7 +47,7 @@ export function EditModeForm({
                 <div className="space-y-4 lg:space-y-3">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2 sm:gap-3">
                         <div className="space-y-1 sm:space-y-1.5">
-                            <label className="text-[7.5px] sm:text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Bắt đầu</label>
+                            <label className="text-[11px] sm:text-[12px] font-medium text-muted-foreground ml-1">Bắt đầu</label>
                             <div className="relative">
                                 <input
                                     type="time"
@@ -59,7 +59,7 @@ export function EditModeForm({
                             </div>
                         </div>
                         <div className="space-y-1 sm:space-y-1.5">
-                            <label className="text-[7.5px] sm:text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Kết thúc</label>
+                            <label className="text-[11px] sm:text-[12px] font-medium text-muted-foreground ml-1">Kết thúc</label>
                             <div className="relative">
                                 <input
                                     type="time"
@@ -69,12 +69,16 @@ export function EditModeForm({
                                 />
                                 <Clock className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground pointer-events-none" />
                             </div>
+                            {/* D5: inline validation error */}
+                            {formData.startTime && formData.endTime && formData.endTime <= formData.startTime && (
+                                <p className="text-[10px] text-red-500 ml-1 mt-0.5">Giờ kết thúc phải sau giờ bắt đầu</p>
+                            )}
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2 sm:gap-3">
                         <div className="space-y-1 sm:space-y-1.5">
-                            <label className="text-[7.5px] sm:text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Môn học</label>
+                            <label className="text-[11px] sm:text-[12px] font-medium text-muted-foreground ml-1">Môn học</label>
                             <input
                                 type="text"
                                 value={formData.subject}
@@ -85,7 +89,7 @@ export function EditModeForm({
                         </div>
 
                         <div className="space-y-1 sm:space-y-1.5">
-                            <label className="text-[7.5px] sm:text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Trạng thái</label>
+                            <label className="text-[11px] sm:text-[12px] font-medium text-muted-foreground ml-1">Trạng thái</label>
                             <Select
                                 value={formData.status}
                                 onValueChange={(val) => setFormData({ ...formData, status: val as LessonStatus })}
@@ -101,11 +105,16 @@ export function EditModeForm({
                                     ))}
                                 </SelectContent>
                             </Select>
+                            {(formData.status === 'CANCELLED_BY_STUDENT' || formData.status === 'CANCELLED_BY_TUTOR') && (
+                                <p className="text-[10px] text-amber-600 dark:text-amber-400 ml-1">
+                                    Buổi học hủy sẽ tính 0đ và không tính vào học phí
+                                </p>
+                            )}
                         </div>
                     </div>
 
                     <div className="space-y-1 sm:space-y-1.5">
-                        <label className="text-[7.5px] sm:text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Ghi chú</label>
+                        <label className="text-[11px] sm:text-[12px] font-medium text-muted-foreground ml-1">Ghi chú</label>
                         <textarea
                             value={formData.notes}
                             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}

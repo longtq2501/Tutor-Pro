@@ -1,97 +1,91 @@
-# Task: Phân loại học sinh theo nguồn + Xuất báo cáo học phí tháng
+# Nhiệm vụ: Tinh chỉnh UI theme sáng cho module "Lịch dạy" (không thiết kế lại)
 
-## 0. Hướng dẫn cho Agent
-- Đọc codebase trước để nhận diện stack, thư viện toast, cách lưu dữ liệu và
-  hàm tính học phí đang dùng ở module Tài Chính. KHÔNG tự đổi stack.
-- Tái sử dụng logic tính tiền của module Tài Chính, không viết công thức mới,
-  để số liệu báo cáo luôn khớp trang Tài Chính.
-- Chỉ thêm duy nhất 1 dependency mới nếu chưa có: `html-to-image`.
-- Làm theo thứ tự Phần A -> B -> C. Mỗi phần chạy được độc lập.
+## Bối cảnh
+Ứng dụng quản lý lịch dạy kèm cho giáo viên. Có 3 màn hình liên quan:
+1. Lịch tháng (calendar).
+2. Modal "Lịch dạy trong ngày": danh sách card từng buổi dạy.
+3. Modal "Chi tiết buổi học" khi bấm vào một card, có 2 giao diện tùy trạng thái:
+   - Đã dạy: bên trái là thông tin (học sinh, ngày, giờ, thanh toán, ghi chú), bên phải là "Phiếu đánh giá" gồm 5 trường (nội dung bài học, thái độ học tập, khả năng tiếp thu, kiến thức chưa nắm vững, lý do/giải pháp).
+   - Dự kiến (đang chờ, màu xám): form chỉnh sửa gồm bắt đầu, kết thúc, môn học, trạng thái, ghi chú, và bên phải là kho bài giảng/tài liệu (thống kê danh mục/tìm thấy/đã chọn, tab, ô tìm kiếm, bộ lọc, danh sách).
 
-## Phần A. Gán nhãn nguồn học sinh
+Theme tối hiện tại trông gọn và dễ nhìn. Theme sáng đang bị rối. Mục tiêu: đưa theme sáng đạt độ gọn tương đương theme tối.
 
-### A1. Dữ liệu
-- Thêm trường `nguon` cho học sinh: `"trung_tam" | "day_rieng"`.
-- Migration: học sinh cũ mặc định `"trung_tam"`.
-- Học sinh mới: mặc định `"trung_tam"`.
+## Nguyên tắc quan trọng
+- Chỉ tinh chỉnh giao diện. KHÔNG đổi cấu trúc layout tổng thể, luồng thao tác, tên trường dữ liệu hay logic nghiệp vụ, trừ các điểm nêu rõ bên dưới.
+- Theme tối phải giữ nguyên, không được bị ảnh hưởng.
+- Dùng design token / CSS variable sẵn có của dự án. Chỉ thêm token mới khi thật sự cần. Không hardcode màu.
+- Bước đầu tiên: đọc codebase, xác định stack (framework, thư viện UI, cách khai báo theme) và liệt kê các file sẽ sửa trước khi sửa.
 
-### A2. Form Thêm/Sửa học sinh (TÁI SỬ DỤNG form wizard 3 bước hiện có)
-- KHÔNG tạo form hoặc modal mới. Chỉ thêm 1 trường vào form hiện có;
-  form Thêm mới và form Sửa thông tin dùng chung nên thêm 1 lần là đủ cho cả hai.
-- Vị trí: Bước 2 "Thiết lập học vụ & ghi chú", đặt ngay dưới "Trạng thái học tập"
-  và phía trên "Học phí / giờ (VNĐ)".
-- Control: nhãn "Nguồn học sinh", dạng segmented 2 lựa chọn
-  "Trung tâm" | "Dạy riêng". Dùng lại đúng component/style của segmented
-  "Đang học | Đã nghỉ / Tạm dừng" ở cùng bước.
-- Giá trị mặc định khi thêm mới: "Trung tâm".
-- Khi mở form Sửa: hiển thị đúng giá trị `nguon` hiện tại của học sinh.
-- Không cần validate thêm (luôn có giá trị).
-- Lưu `nguon` cùng payload với các trường khác khi bấm "Tạo Hồ Sơ" / lưu chỉnh sửa.
+## Quy tắc nghiệp vụ cần phản ánh trong UI
+- Buổi bị học sinh hủy KHÔNG tính phí. Số tiền của buổi hủy là 0 đồng, không hiển thị đơn giá × số giờ, không hiển thị nút thanh toán, và không cộng vào "Tổng". Hiển thị dòng phụ "Không tính phí".
 
-### A3. Hiển thị
-- Trang Học Sinh & PH: badge nhỏ trên mỗi card học sinh
-  (Trung tâm: màu xanh dương nhạt; Dạy riêng: màu tím nhạt).
-- Thêm bộ lọc nguồn: Tất cả | Trung tâm | Dạy riêng (cạnh bộ lọc
-  Tất cả/Đang học/Đã nghỉ hiện có).
-- Trang Tài Chính và Lịch Dạy: thêm lọc theo nguồn vào "Bộ lọc" hiện có.
-  Các số liệu tổng (doanh thu, số buổi, số học sinh) phải cập nhật theo bộ lọc.
-- Lịch Dạy: thẻ buổi học có thể hiển thị chấm nhỏ phân biệt nguồn (tùy chọn).
+## Yêu cầu chỉnh sửa
 
-## Phần B. Nút "Báo cáo" trong Lịch Dạy
+### A. Cho theme sáng (ưu tiên cao nhất)
+1. Bỏ bóng đổ ở card con và các ô thông tin. Thay bằng viền 1px màu xám rất nhạt. Chỉ giữ một bóng duy nhất cho chính modal.
+2. Các ô thông tin (Ngày dạy, Thời gian, Thanh toán, Ghi chú, thẻ Học sinh) dùng chung một nền trung tính (xám rất nhạt hoặc trắng có viền). Không dùng mỗi ô một tông pastel khác nhau. Màu chỉ dành cho trạng thái: đã dạy, hủy, đã thu.
+3. Header modal dùng màu phẳng, bỏ gradient. Nút tròn cam ở ô thanh toán bỏ glow/bóng.
+4. Nhãn nhỏ ("Học sinh", "Thời gian", "Thanh toán"...) dùng chữ thường (sentence case), cỡ 12px, màu xám trung tính, không in hoa, không giãn chữ rộng.
+5. Badge trạng thái giảm độ bão hòa: nền rất nhạt, chữ đậm cùng tông màu.
+6. Tên học sinh dùng sentence/Title Case, weight 500-600, cỡ 15-17px (không in hoa toàn bộ, không dùng font display quá rộng).
 
-### B1. Nút
-- Vị trí: cạnh nút "Bộ lọc". Nhãn "Báo cáo" + icon FileText.
-- Kiểu nút phụ (nền trắng, viền nhạt, bo tròn, chữ in hoa đậm) giống "Bộ lọc".
-- Trạng thái: hover, loading (disable + spinner), disabled nếu tháng không có buổi.
+### B. Card trong "Lịch dạy trong ngày"
+1. Giờ học nằm ở cột trái (giờ bắt đầu trên, giờ kết thúc dưới, dùng số cùng độ rộng). Mọi card dùng cùng một layout, không để giờ xuống dòng lệch nhau.
+2. Bỏ gạch chân ở số tiền. Dùng `font-variant-numeric: tabular-nums`. Dòng phụ "2h × 77.000 đ/h" tối thiểu 12px, đủ tương phản (4.5:1).
+3. Thanh màu trạng thái bên trái mỏng 3-4px.
+4. Hai nút bật/tắt cùng kích thước, cùng kiểu dáng, nhãn mô tả đúng trạng thái hiện tại:
+   - Đã dạy: tắt = "Đánh dấu đã dạy" (outline xám, icon vòng tròn rỗng); bật = "Đã dạy" (nền xanh lá nhạt, chữ xanh lá đậm, icon check).
+   - Thanh toán: tắt = "Chưa thu"; bật = "Đã thu" (nền xanh dương nhạt).
+   - Trạng thái bật phải nổi bật hơn trạng thái tắt. Có thể bỏ tooltip "Hủy đánh dấu dạy" vì nhãn đã đủ rõ.
+   - Vùng bấm tối thiểu cao 36px, trên mobile 44px.
+5. Buổi học sinh hủy: dùng màu vàng cam dịu thay cho đỏ, ẩn nút thanh toán, hiển thị "Không tính phí".
+6. Nút xóa chuyển vào menu "⋯" của card, kèm toast "Hoàn tác" khoảng 6 giây. Menu này cũng có mục "Học sinh hủy buổi" / "Khôi phục buổi".
+7. Bỏ dấu "·" lẻ loi sau tên môn.
 
-### B2. Chọn phạm vi
-- Bấm nút -> popover 3 lựa chọn: "Trung tâm" (mặc định, nổi bật),
-  "Dạy riêng", "Tất cả".
-- Chọn xong là xuất ngay, không cần thêm nút xác nhận.
-- Nhớ lựa chọn gần nhất (state phía client là đủ).
+### C. Header modal "Lịch dạy trong ngày"
+1. Thay ô "8 / 10" bằng dòng chữ rõ nghĩa: "Thứ Năm, 8 tháng 10".
+2. Thêm 3 chỉ số: Tổng, Đã thu, Còn lại (buổi hủy không tính vào Tổng).
+3. Nút "+" đổi thành nút có nhãn "+ Thêm buổi".
+4. Sửa padding đáy modal cho cân đối (hiện đang thừa khoảng trắng).
 
-### B3. Luồng xuất
-1. Lấy tháng đang xem trên lịch (VD: 09/2026) + phạm vi đã chọn.
-2. Tổng hợp dữ liệu bằng chính hàm của module Tài Chính.
-3. Render component báo cáo ẩn ngoài màn hình, chụp PNG (pixelRatio 2).
-4. Tự tải về, tên file: `bao-cao-hoc-phi-trung-tam-thang-09-2026.png`
-   (phần giữa đổi theo phạm vi: `trung-tam` | `day-rieng` | `tat-ca`).
-5. Toast thành công: "Xuất báo cáo thành công".
-   Lỗi: toast "Xuất báo cáo thất bại, vui lòng thử lại".
+### D. Modal "Chi tiết buổi học"
+1. Giao diện "Đã dạy" và "Dự kiến" giữ đúng cấu trúc hiện tại, chỉ áp dụng các quy tắc style ở mục A.
+2. Phiếu đánh giá: nhãn trường nhỏ, chữ thường; ô nhập có viền nhạt, placeholder "Chưa có thông tin" màu xám nhạt in nghiêng, cỡ chữ không nhỏ hơn 14px.
+3. Nút "Viết đánh giá" chuyển thành "Lưu đánh giá" khi đang sửa.
+4. Footer: nút xóa (icon, màu đỏ), "Nhân bản" (secondary), "Sửa" (primary đen). Chỉ một nút primary trong mỗi màn hình.
+5. Form dự kiến: nút "Lưu" khi chưa hợp lệ vẫn bật và hiện lỗi cụ thể ("Giờ kết thúc phải sau giờ bắt đầu"), không làm mờ nút.
 
-### B4. Quy tắc tính toán
-- Nguồn dữ liệu dùng chung module Tài Chính.
-- Chỉ lấy buổi thuộc tháng đang xem và thuộc học sinh trong phạm vi đã chọn.
-- "Đã dạy": trạng thái "Đã dạy". Buổi chưa diễn ra không tính.
-- "Đã nghỉ": trạng thái "Học sinh hủy". Buổi nghỉ miễn tiền hoàn toàn.
-- Học phí học sinh = tổng giờ đã dạy x đơn giá/giờ của học sinh đó.
-- Tổng học phí = tổng học phí các học sinh trong phạm vi.
+### E. Lịch tháng (làm sau cùng nếu còn thời gian)
+1. Pill sự kiện hiển thị giờ bắt đầu thay cho icon đồng hồ không có giờ.
+2. Thêm chú giải màu nhỏ phía trên lịch.
+3. Chủ nhật không dùng cùng màu đỏ với trạng thái hủy (hủy dùng màu vàng cam).
 
-### B5. Nội dung ảnh - Chi tiết từng học sinh (cập nhật)
-- Báo cáo LUÔN hiển thị đơn giá/giờ trong từng card học sinh
-  (không có công tắc ẩn).
-- Mỗi card gồm: tên; số buổi đã dạy / số buổi nghỉ; tổng giờ dạy;
-  đơn giá/giờ; thành tiền; chip ngày học (ngày nghỉ gạch ngang, màu xám).
+## Trạng thái cần kiểm tra
+Đã dạy, Dự kiến, Học sinh hủy, mỗi trạng thái ở cả hai trạng thái thanh toán. Cả theme sáng và tối. Cả desktop và mobile (modal chuyển thành bottom sheet hoặc xếp cột dọc khi hẹp).
 
-### B6. Giao diện
-- Đồng bộ màu, font, bo góc với UI hiện tại; dễ đọc trên điện thoại.
-- Tiền định dạng VNĐ: 5.484.000 đ.
-- Chiều cao ảnh tự giãn theo số lượng học sinh.
+## Accessibility
+- Không chỉ dùng màu để thể hiện trạng thái, luôn kèm icon hoặc chữ.
+- Toggle dùng `aria-pressed`. Nút chỉ có icon phải có `aria-label`.
+- Tương phản chữ thường tối thiểu 4.5:1.
+- Hỗ trợ focus bằng bàn phím, có vòng focus rõ.
 
-## Phần C. Tiêu chí nghiệm thu
-- [ ] Học sinh cũ đều có nhãn "Trung tâm" sau migration.
-- [ ] Đổi nhãn 1 học sinh sang "Dạy riêng": biến mất khỏi báo cáo Trung tâm,
-      xuất hiện ở báo cáo Dạy riêng, cả hai cộng lại = báo cáo Tất cả.
-- [ ] Tổng tiền trong báo cáo khớp với trang Tài Chính khi lọc cùng nguồn.
-- [ ] Buổi "Học sinh hủy" không cộng vào tiền, hiển thị gạch ngang.
-- [ ] Toast thành công/thất bại hiển thị đúng; file PNG tải về đúng tên.
-- [ ] Tháng không có buổi nào: nút bị disable.
-- [ ] Giao diện sáng/tối không làm ảnh xuất bị lỗi màu (ảnh luôn nền trắng).
-- [ ] Form Thêm mới và Sửa đều có trường "Nguồn học sinh" ở bước 2,
-      mặc định "Trung tâm"; đổi giá trị rồi lưu thì card học sinh
-      cập nhật badge ngay.
+## Cách làm việc và bàn giao
+1. Đọc code, báo stack và danh sách file dự định sửa.
+2. Sửa từng nhóm A → B → C → D → E, mỗi nhóm một commit riêng, message ngắn gọn.
+3. Không thêm thư viện mới nếu không cần.
+4. Cuối cùng, báo cáo: file đã sửa, token mới đã thêm (nếu có), những điểm chưa làm được và lý do, ảnh chụp trước/sau của theme sáng ở 3 trạng thái.
 
-## Ngoài phạm vi (làm sau)
-- Xuất PDF; báo cáo riêng từng học sinh gửi phụ huynh.
-- Quản lý nhiều trung tâm (hiện chỉ có 1 nhóm "Trung tâm").
-- Chọn khoảng thời gian tùy ý.
+## Checklist nghiệm thu
+- [ ] Theme sáng không còn bóng đổ ở card con, chỉ modal có bóng
+- [ ] Các ô thông tin dùng chung một nền trung tính, màu chỉ xuất hiện ở trạng thái
+- [ ] Header phẳng, không gradient, không glow
+- [ ] Nhãn nhỏ viết thường, tên học sinh không in hoa toàn bộ
+- [ ] Giờ học ở cột trái, mọi card thẳng hàng
+- [ ] Số tiền không gạch chân, tabular-nums
+- [ ] Hai nút bật/tắt cùng kiểu, nhãn đúng trạng thái, bật nổi hơn tắt
+- [ ] Buổi hủy: màu vàng cam, 0 đồng, "Không tính phí", không có nút thanh toán, không cộng vào Tổng
+- [ ] Nút xóa nằm trong menu "⋯", có Hoàn tác
+- [ ] Header ghi "Thứ Năm, 8 tháng 10", có Tổng / Đã thu / Còn lại
+- [ ] Modal chi tiết giữ nguyên cấu trúc cho cả hai giao diện
+- [ ] Theme tối không bị thay đổi
+- [ ] Hoạt động tốt trên mobile

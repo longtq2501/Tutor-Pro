@@ -359,6 +359,47 @@ public class SessionRecordService {
     }
 
     /**
+     * Toggles the completion status of a session record.
+     * Automatically updates the status to COMPLETED or SCHEDULED and manages the completed flag.
+     * 
+     * @param id The session record ID.
+     * @param version The current version for optimistic locking.
+     * @return The updated session record.
+     * @throws RuntimeException if the record is not found, version conflict occurs, or session is paid/cancelled.
+     */
+    @CacheEvict(value = {"dashboardStats", "monthlyStats"}, allEntries = true)
+    public SessionRecordResponse toggleCompleted(Long id, Integer version) {
+        Long tutorId = getCurrentTutorId();
+        SessionRecord record;
+
+        if (tutorId != null) {
+            record = sessionRecordRepository.findByIdAndTutorId(id, tutorId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi buổi học hoặc bạn không có quyền truy cập"));
+        } else {
+            record = sessionRecordRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi buổi học"));
+        }
+        checkVersion(record, version);
+
+        if (Boolean.TRUE.equals(record.getPaid()) || record.getStatus() == LessonStatus.PAID) {
+            throw new RuntimeException("Không thể thay đổi trạng thái của buổi học đã thanh toán");
+        }
+
+        if (record.getStatus() == LessonStatus.CANCELLED_BY_STUDENT || record.getStatus() == LessonStatus.CANCELLED_BY_TUTOR) {
+            throw new RuntimeException("Không thể thay đổi trạng thái của buổi học đã bị hủy");
+        }
+
+        boolean isCompleted = Boolean.TRUE.equals(record.getCompleted()) || record.getStatus() == LessonStatus.COMPLETED;
+        if (!isCompleted) {
+            applyStatusChange(record, LessonStatus.COMPLETED);
+        } else {
+            applyStatusChange(record, LessonStatus.SCHEDULED);
+        }
+
+        return mapToFullResponse(sessionRecordRepository.saveAndFlush(record));
+    }
+
+    /**
      * Creates a duplicate of an existing session record.
      * Useful for quickly creating similar sessions without re-entering all data.
      * The new session will have a new ID and creation timestamp.
@@ -507,6 +548,12 @@ public class SessionRecordService {
             );
         } else if (next == LessonStatus.COMPLETED || next == LessonStatus.PENDING_PAYMENT) {
             record.setCompleted(true);
+        } else if (next == LessonStatus.SCHEDULED || next == LessonStatus.CONFIRMED) {
+            record.setCompleted(false);
+        } else if (next == LessonStatus.CANCELLED_BY_STUDENT || next == LessonStatus.CANCELLED_BY_TUTOR) {
+            record.setPaid(false);
+            record.setPaidAt(null);
+            record.setCompleted(false);
         }
     }
 

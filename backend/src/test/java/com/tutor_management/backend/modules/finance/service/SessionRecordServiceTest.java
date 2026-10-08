@@ -22,6 +22,17 @@ import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
+import com.tutor_management.backend.modules.admin.service.AdminStatsService;
+import com.tutor_management.backend.modules.finance.LessonStatus;
+import com.tutor_management.backend.modules.finance.dto.request.SessionRecordUpdateRequest;
+import com.tutor_management.backend.modules.finance.dto.response.SessionRecordResponse;
+import com.tutor_management.backend.modules.finance.entity.SessionRecord;
+import com.tutor_management.backend.modules.onlinesession.repository.OnlineSessionRepository;
+import com.tutor_management.backend.modules.student.entity.Student;
+import static org.junit.jupiter.api.Assertions.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @ExtendWith(MockitoExtension.class)
 class SessionRecordServiceTest {
 
@@ -31,6 +42,10 @@ class SessionRecordServiceTest {
     private UserRepository userRepository;
     @Mock
     private TutorRepository tutorRepository;
+    @Mock
+    private OnlineSessionRepository onlineSessionRepository;
+    @Mock
+    private AdminStatsService adminStatsService;
     @Mock
     private SecurityContext securityContext;
     @Mock
@@ -139,5 +154,135 @@ class SessionRecordServiceTest {
         // Assert
         verify(sessionRecordRepository).findByPaidFalseAndTutorIdOrderBySessionDateDesc(eq(tutorId), any(Pageable.class));
         verify(sessionRecordRepository, never()).findByPaidFalseAndTutorIdAndStatusInOrderBySessionDateDesc(anyLong(), any(Pageable.class));
+    }
+
+    @Test
+    void toggleCompleted_WhenScheduled_MarksCompleted() {
+        // Arrange
+        Long sessionId = 10L;
+        Student student = Student.builder().id(1L).name("Test Student").nguon("day_rieng").build();
+        SessionRecord record = SessionRecord.builder()
+                .id(sessionId)
+                .student(student)
+                .month("2024-01")
+                .sessions(1)
+                .hours(2.0)
+                .pricePerHour(100000L)
+                .totalAmount(200000L)
+                .sessionDate(LocalDate.of(2024, 1, 10))
+                .createdAt(LocalDateTime.now())
+                .status(LessonStatus.SCHEDULED)
+                .completed(false)
+                .paid(false)
+                .version(0)
+                .build();
+
+        when(securityContext.getAuthentication()).thenReturn(null);
+        when(sessionRecordRepository.findById(sessionId)).thenReturn(Optional.of(record));
+        when(sessionRecordRepository.saveAndFlush(any(SessionRecord.class))).thenAnswer(i -> i.getArgument(0));
+
+        // Act
+        SessionRecordResponse response = sessionRecordService.toggleCompleted(sessionId, 0);
+
+        // Assert
+        assertTrue(response.getCompleted());
+        assertEquals("COMPLETED", response.getStatus());
+        verify(sessionRecordRepository).saveAndFlush(record);
+    }
+
+    @Test
+    void toggleCompleted_WhenCompleted_MarksScheduled() {
+        // Arrange
+        Long sessionId = 11L;
+        Student student = Student.builder().id(1L).name("Test Student").nguon("day_rieng").build();
+        SessionRecord record = SessionRecord.builder()
+                .id(sessionId)
+                .student(student)
+                .month("2024-01")
+                .sessions(1)
+                .hours(2.0)
+                .pricePerHour(100000L)
+                .totalAmount(200000L)
+                .sessionDate(LocalDate.of(2024, 1, 10))
+                .createdAt(LocalDateTime.now())
+                .status(LessonStatus.COMPLETED)
+                .completed(true)
+                .paid(false)
+                .version(1)
+                .build();
+
+        when(securityContext.getAuthentication()).thenReturn(null);
+        when(sessionRecordRepository.findById(sessionId)).thenReturn(Optional.of(record));
+        when(sessionRecordRepository.saveAndFlush(any(SessionRecord.class))).thenAnswer(i -> i.getArgument(0));
+
+        // Act
+        SessionRecordResponse response = sessionRecordService.toggleCompleted(sessionId, 1);
+
+        // Assert
+        assertFalse(response.getCompleted());
+        assertEquals("SCHEDULED", response.getStatus());
+        verify(sessionRecordRepository).saveAndFlush(record);
+    }
+
+    @Test
+    void toggleCompleted_WhenPaid_ThrowsException() {
+        // Arrange
+        Long sessionId = 12L;
+        SessionRecord record = SessionRecord.builder()
+                .id(sessionId)
+                .status(LessonStatus.PAID)
+                .paid(true)
+                .completed(true)
+                .version(0)
+                .build();
+
+        when(securityContext.getAuthentication()).thenReturn(null);
+        when(sessionRecordRepository.findById(sessionId)).thenReturn(Optional.of(record));
+
+        // Act & Assert
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> sessionRecordService.toggleCompleted(sessionId, 0));
+        assertTrue(ex.getMessage().contains("đã thanh toán"));
+        verify(sessionRecordRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void updateRecord_WhenCancelled_ResetsPaidAndCompleted() {
+        // Arrange
+        Long sessionId = 13L;
+        Student student = Student.builder().id(1L).name("Test Student").nguon("day_rieng").build();
+        SessionRecord record = SessionRecord.builder()
+                .id(sessionId)
+                .student(student)
+                .month("2024-01")
+                .sessions(1)
+                .hours(2.0)
+                .pricePerHour(100000L)
+                .totalAmount(200000L)
+                .sessionDate(LocalDate.of(2024, 1, 10))
+                .createdAt(LocalDateTime.now())
+                .status(LessonStatus.PAID)
+                .completed(true)
+                .paid(true)
+                .paidAt(LocalDateTime.now())
+                .version(2)
+                .build();
+
+        SessionRecordUpdateRequest updateReq = new SessionRecordUpdateRequest();
+        updateReq.setStatus("CANCELLED_BY_STUDENT");
+        updateReq.setVersion(2);
+
+        when(securityContext.getAuthentication()).thenReturn(null);
+        when(sessionRecordRepository.findById(sessionId)).thenReturn(Optional.of(record));
+        when(sessionRecordRepository.saveAndFlush(any(SessionRecord.class))).thenAnswer(i -> i.getArgument(0));
+
+        // Act
+        SessionRecordResponse response = sessionRecordService.updateRecord(sessionId, updateReq);
+
+        // Assert
+        assertEquals("CANCELLED_BY_STUDENT", response.getStatus());
+        assertFalse(response.getPaid());
+        assertNull(response.getPaidAt());
+        assertFalse(response.getCompleted());
+        verify(sessionRecordRepository).saveAndFlush(record);
     }
 }

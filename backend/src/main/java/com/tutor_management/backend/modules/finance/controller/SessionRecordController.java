@@ -99,6 +99,19 @@ public class SessionRecordController {
     }
 
     /**
+     * Toggles the completion status of a session record, enforcing optimistic locking with versioning.
+     */
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
+    @PutMapping("/{id}/toggle-completed")
+    public ResponseEntity<ApiResponse<SessionRecordResponse>> toggleCompleted(
+            @PathVariable Long id,
+            @RequestParam(required = false) Integer version) {
+        log.info("Toggling completion status for session ID: {}", id);
+        SessionRecordResponse response = sessionRecordService.toggleCompleted(id, version);
+        return ResponseEntity.ok(ApiResponse.success("Đã cập nhật trạng thái hoàn thành", response));
+    }
+
+    /**
      * Deletes a session record by its ID.
      */
     @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")

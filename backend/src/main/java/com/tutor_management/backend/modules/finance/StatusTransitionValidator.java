@@ -34,7 +34,8 @@ public class StatusTransitionValidator {
                     LessonStatus.PENDING_PAYMENT,
                     LessonStatus.CANCELLED_BY_TUTOR,
                     LessonStatus.CANCELLED_BY_STUDENT,
-                    LessonStatus.CONFIRMED),
+                    LessonStatus.CONFIRMED,
+                    LessonStatus.SCHEDULED),
 
             LessonStatus.PENDING_PAYMENT, List.of(
                     LessonStatus.PAID,

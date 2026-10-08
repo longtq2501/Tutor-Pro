@@ -83,7 +83,11 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
                             : "max-w-lg h-auto sm:max-h-[90vh]"
                 )}
             >
-                <ModalHeader session={localSession} onClose={onClose} />
+                <ModalHeader
+                    session={localSession}
+                    currentStatus={mode === 'edit' ? formData.status : undefined}
+                    onClose={onClose}
+                />
 
                 {/* Main Content */}
                 <div className={cn(
@@ -102,7 +106,10 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
                             "flex-1 p-4 sm:p-6",
                             mode === 'edit' ? "flex flex-col h-full overflow-y-auto gap-4 sm:gap-6" : "overflow-y-auto space-y-6"
                         )}>
-                            <StudentCard session={localSession} />
+                            <StudentCard
+                                session={localSession}
+                                currentStatus={mode === 'edit' ? formData.status : undefined}
+                            />
 
                             {mode === 'view' ? (
                                 <ViewModeContent session={localSession} />

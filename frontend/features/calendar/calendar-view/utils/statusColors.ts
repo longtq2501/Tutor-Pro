@@ -53,10 +53,10 @@ export const STATUS_COLORS: Record<LessonStatus, StatusColors> = {
         label: 'Đã thanh toán',
     },
     CANCELLED_BY_STUDENT: {
-        bg: 'bg-red-50 dark:bg-red-800/50',
-        border: 'border-red-200 dark:border-red-600',
-        text: 'text-red-700 dark:text-red-100',
-        dot: 'bg-red-500',
+        bg: 'bg-amber-50 dark:bg-amber-800/40',
+        border: 'border-amber-200 dark:border-amber-600',
+        text: 'text-amber-700 dark:text-amber-200',
+        dot: 'bg-amber-500',
         label: 'Học sinh hủy',
     },
     CANCELLED_BY_TUTOR: {

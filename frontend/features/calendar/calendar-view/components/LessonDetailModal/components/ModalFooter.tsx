@@ -98,7 +98,7 @@ export function ModalFooter({
                         </Button>
                         <Button
                             onClick={() => setMode('edit')}
-                            className="h-[30px] sm:h-10 flex-1 rounded-lg sm:rounded-xl bg-primary shadow-lg shadow-primary/20 font-black text-[9px] sm:text-[11px] px-2"
+                            className="h-[30px] sm:h-10 flex-1 rounded-lg sm:rounded-xl bg-primary font-black text-[9px] sm:text-[11px] px-2"
                         >
                             <Pencil className="w-3 w-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5 shrink-0" />
                             <span className="truncate">Sửa</span>
@@ -117,15 +117,15 @@ export function ModalFooter({
                         <Button
                             form="premium-edit-form"
                             type="submit"
-                            disabled={loading || !isDirty}
-                            className="h-[30px] sm:h-10 flex-[2] rounded-lg sm:rounded-xl bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 font-black text-[9px] sm:text-[11px]"
+                            disabled={loading}
+                            className="h-[30px] sm:h-10 flex-[2] rounded-lg sm:rounded-xl bg-primary hover:bg-primary/90 font-black text-[9px] sm:text-[11px]"
                         >
                             {loading ? (
                                 <Loader2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5" />
                             ) : (
                                 <Save className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5" />
                             )}
-                            LƯU {globalSelectedCount > 0 && `(${globalSelectedCount})`}
+                            Lưu {globalSelectedCount > 0 && `(${globalSelectedCount})`}
                         </Button>
                     </>
                 )}

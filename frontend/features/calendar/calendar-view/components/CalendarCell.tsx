@@ -66,7 +66,7 @@ export const CalendarCell = memo(({
                             "ring-2 ring-blue-100 dark:ring-blue-900"
                         ],
                         !isToday && !isCurrentMonth && "text-muted-foreground/30",
-                        !isToday && isCurrentMonth && day.date.getDay() === 0 && "text-red-500",
+                        !isToday && isCurrentMonth && day.date.getDay() === 0 && "text-orange-600 dark:text-orange-400",
                         !isToday && isCurrentMonth && day.date.getDay() !== 0 && "text-foreground group-hover:bg-primary/10"
                     )}
                 >

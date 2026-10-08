@@ -75,15 +75,16 @@ function LessonContentSection({ form }: { form: UseFormReturn<FormValues> }) {
             control={form.control}
             name="lessonContent"
             render={({ field }) => (
-                <FormItem className="bg-muted/20 p-6 rounded-[2rem] border border-border/40">
-                    <FormLabel className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-4 block">
+                <FormItem className="bg-muted/20 p-4 sm:p-6 rounded-[2rem] border border-border/40">
+                    {/* D2: sentence case, 12px label */}
+                    <FormLabel className="text-[12px] font-semibold text-muted-foreground mb-3 block">
                         1. Nội dung bài học
                     </FormLabel>
                     <FormControl>
                         <Textarea
                             {...field}
-                            placeholder="Hôm nay con học những gì? (e.g. Vocabulary, Grammar...)"
-                            className="text-sm min-h-[100px] bg-background/50 rounded-2xl border-border/40 focus:bg-background transition-all"
+                            placeholder="Chưa có thông tin"
+                            className="text-[14px] min-h-[100px] bg-background/50 rounded-2xl border-border/40 focus:bg-background transition-all placeholder:text-muted-foreground/50 placeholder:italic"
                         />
                     </FormControl>
                     <FormMessage />

@@ -147,6 +147,7 @@ export default function CalendarView() {
         handleDeleteSession={view.handleDeleteSession}
         handleTogglePayment={view.handleTogglePayment}
         handleToggleComplete={view.handleToggleComplete}
+        handleCancelByStudent={view.handleCancelByStudent}
         handleUpdateSession={view.handleUpdateSession}
         handleConfirmDeleteAll={view.handleConfirmDeleteAll}
         handleAddSessionSubmit={view.handleAddSessionSubmit}

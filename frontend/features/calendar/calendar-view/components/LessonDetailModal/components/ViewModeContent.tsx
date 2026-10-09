@@ -9,7 +9,8 @@ interface ViewModeContentProps {
 }
 
 export function ViewModeContent({ session }: ViewModeContentProps) {
-    const isCancelledByStudent = session.status === 'CANCELLED_BY_STUDENT';
+    // Business rule: ANY cancelled session (student or tutor) = 0đ, no fee
+    const isCancelled = session.status === 'CANCELLED_BY_STUDENT' || session.status === 'CANCELLED_BY_TUTOR';
 
     return (
         <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -31,16 +32,16 @@ export function ViewModeContent({ session }: ViewModeContentProps) {
             <div className={cn(
                 "p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border flex items-center justify-between",
                 // A2: neutral bg with status-only color exception
-                isCancelledByStudent
+                isCancelled
                     ? "bg-amber-50/40 dark:bg-amber-900/10 border-amber-200/50 dark:border-amber-800/40"
                     : session.paid
-                        ? "bg-muted/20 dark:bg-muted/10 border-emerald-200/50 dark:border-emerald-800"
-                        : "bg-muted/20 dark:bg-muted/10 border-border/40"
+                        ? "bg-white dark:bg-muted/10 border-emerald-200/50 dark:border-emerald-800"
+                        : "bg-white dark:bg-card border-[#E5E7EB] dark:border-border/40"
             )}>
                 <div>
                     {/* A4: label sentence case, 12px, neutral gray */}
                     <p className="text-[11px] sm:text-[12px] font-medium text-muted-foreground mb-0.5">Thanh toán</p>
-                    {isCancelledByStudent ? (
+                    {isCancelled ? (
                         <>
                             {/* Business rule: cancelled session = 0đ, no formula */}
                             <p className="text-[15px] sm:text-xl font-bold tracking-tight tabular-nums text-amber-600 dark:text-amber-400">
@@ -62,7 +63,7 @@ export function ViewModeContent({ session }: ViewModeContentProps) {
                 </div>
 
                 {/* A3: round icon – no glow/shadow, only for non-cancelled */}
-                {!isCancelledByStudent && (
+                {!isCancelled && (
                     <div className={cn(
                         "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center",
                         // Removed shadow-lg shadow-*/30

@@ -304,6 +304,46 @@ export const useCalendarView = (): UseCalendarViewReturn => {
         });
     };
 
+    const handleCancelByStudent = async (sessionId: number, version?: number) => {
+        if (loadingSessions.has(sessionId)) return;
+        setLoadingSessions(prev => new Set(prev).add(sessionId));
+
+        const promise = async () => {
+            let effectiveVersion = version;
+            let currentStatus = 'SCHEDULED';
+            const currentSession = sessions.find(s => s.id === sessionId);
+            if (currentSession) {
+                effectiveVersion = currentSession.version;
+                currentStatus = currentSession.status || 'SCHEDULED';
+            }
+            if (effectiveVersion === undefined) throw new Error("Session not found");
+            
+            const newStatus = currentStatus === 'CANCELLED_BY_STUDENT' ? 'SCHEDULED' : 'CANCELLED_BY_STUDENT';
+            
+            const updated = await sessionsApi.updateStatus(sessionId, newStatus, effectiveVersion);
+            handleUpdateSession(updated);
+            setLoadingSessions(prev => {
+                const next = new Set(prev);
+                next.delete(sessionId);
+                return next;
+            });
+            return newStatus === 'CANCELLED_BY_STUDENT' ? 'Đã cập nhật trạng thái thành Học sinh hủy' : 'Đã khôi phục buổi học';
+        };
+
+        toast.promise(promise(), {
+            loading: 'Đang cập nhật trạng thái...',
+            success: (msg) => msg,
+            error: (err) => {
+                setLoadingSessions(prev => {
+                    const next = new Set(prev);
+                    next.delete(sessionId);
+                    return next;
+                });
+                return err instanceof Error ? err.message : 'Không thể cập nhật trạng thái!';
+            }
+        });
+    };
+
     const handleAddSessionSubmit = async (studentId: number, count: number, hours: number, date: string, month: string, subject?: string, start?: string, end?: string) => {
         const promise = async () => {
             await sessionsApi.create({
@@ -419,7 +459,7 @@ export const useCalendarView = (): UseCalendarViewReturn => {
         currentDayInfo, students, sessions: sortedSessions, setCurrentView, setSelectedDay, setSelectedSession, setContextMenu,
         setStatusFilter, sourceFilter, setSourceFilter, setSearchQuery, setDeleteConfirmationOpen, navigateMonth, goToToday, handleAutoGenerate,
         handleUpdateSession, handleDeleteSession, handleSessionClick, handleSessionEdit,
-        handleTogglePayment, handleToggleComplete, handleAddSessionSubmit, openAddSessionModal,
+        handleTogglePayment, handleToggleComplete, handleCancelByStudent, handleAddSessionSubmit, openAddSessionModal,
         closeAddSessionModal, handleConfirmDeleteAll, exportToExcel, handleContextMenu, handleDragEnd
     };
 };

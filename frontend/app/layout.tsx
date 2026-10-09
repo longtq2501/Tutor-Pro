@@ -8,7 +8,7 @@ import QueryProvider from '@/providers/QueryProvider';
 import { Toaster } from 'sonner';
 
 const inter = Inter({
-    subsets: ['latin'],
+    subsets: ['latin', 'vietnamese'],
     display: 'swap',
     variable: '--font-inter',
 });

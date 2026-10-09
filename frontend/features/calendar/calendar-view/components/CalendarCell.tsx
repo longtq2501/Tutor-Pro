@@ -2,7 +2,7 @@ import type { SessionRecord } from '@/lib/types/finance';
 import { cn } from '@/lib/utils';
 import { useDroppable } from '@dnd-kit/core';
 import { AnimatePresence, motion } from 'framer-motion';
-import { CheckCircle2, Clock, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { memo, useState } from 'react';
 import type { CalendarDay } from '../types';
 import { getStatusColors } from '../utils/statusColors';
@@ -33,8 +33,13 @@ export const CalendarCell = memo(({
     const { setNodeRef, isOver } = useDroppable({
         id: day.dateStr,
     });
-    const visibleSessions = sessions.slice(0, 3);
-    const hiddenCount = sessions.length - 3;
+
+    // P5: Show max 3 pills on desktop, "+N buổi" for overflow
+    const MAX_VISIBLE = 3;
+    const visibleSessions = sessions.slice(0, MAX_VISIBLE);
+    const hiddenCount = sessions.length - MAX_VISIBLE;
+
+    const isSunday = day.date.getDay() === 0;
 
     return (
         <motion.div
@@ -66,8 +71,9 @@ export const CalendarCell = memo(({
                             "ring-2 ring-blue-100 dark:ring-blue-900"
                         ],
                         !isToday && !isCurrentMonth && "text-muted-foreground/30",
-                        !isToday && isCurrentMonth && day.date.getDay() === 0 && "text-orange-600 dark:text-orange-400",
-                        !isToday && isCurrentMonth && day.date.getDay() !== 0 && "text-foreground group-hover:bg-primary/10"
+                        // P5: Sunday — rose-400 (very light red), NOT orange (clashes with status colors)
+                        !isToday && isCurrentMonth && isSunday && "text-rose-400 dark:text-rose-400/80",
+                        !isToday && isCurrentMonth && !isSunday && "text-foreground group-hover:bg-primary/10"
                     )}
                 >
                     {day.date.getDate()}
@@ -98,9 +104,9 @@ export const CalendarCell = memo(({
             </div>
 
             {/* Session Indicators */}
-            <div className="space-y-1 sm:space-y-1.5 mt-auto">
-                {/* Desktop/Tablet: Full Badges */}
-                <div className="hidden sm:block space-y-1">
+            <div className="space-y-0.5 sm:space-y-1 mt-auto">
+                {/* Desktop/Tablet: Full Pills */}
+                <div className="hidden sm:block space-y-0.5 sm:space-y-1">
                     <AnimatePresence>
                         {visibleSessions.map((session, index) => (
                             <DraggableSession
@@ -114,7 +120,7 @@ export const CalendarCell = memo(({
                     </AnimatePresence>
                 </div>
 
-                {/* Mobile: Compact Dots */}
+                {/* Mobile: Compact Dots — click to open DayDetailModal */}
                 <div className="flex flex-wrap gap-1 sm:hidden px-0.5">
                     {sessions.map((session) => {
                         const colors = getStatusColors(session.status);
@@ -130,7 +136,7 @@ export const CalendarCell = memo(({
                     })}
                 </div>
 
-                {/* "More" indicator (Desktop only) */}
+                {/* P5: "+N buổi" overflow — desktop only */}
                 {hiddenCount > 0 && (
                     <motion.button
                         initial={{ opacity: 0 }}
@@ -140,13 +146,13 @@ export const CalendarCell = memo(({
                             onDayClick(day);
                         }}
                         className={cn(
-                            "hidden sm:block w-full px-2 py-1",
-                            "text-[10px] text-muted-foreground hover:text-primary",
-                            "text-left font-black uppercase tracking-widest transition-colors",
+                            "hidden sm:block w-full px-1.5 py-0.5",
+                            "text-[10px] sm:text-[11px] text-muted-foreground hover:text-primary",
+                            "text-left font-medium transition-colors",
                             "hover:bg-primary/5 rounded-md"
                         )}
                     >
-                        + {hiddenCount} nữa...
+                        +{hiddenCount} buổi
                     </motion.button>
                 )}
             </div>
@@ -158,7 +164,7 @@ export const CalendarCell = memo(({
                     animate={{ opacity: 1 }}
                     className="absolute inset-0 flex items-center justify-center pointer-events-none"
                 >
-                    <div className="text-muted-foreground/30 text-[10px] font-black uppercase tracking-tighter hidden sm:block">
+                    <div className="text-muted-foreground/30 text-[10px] font-medium hidden sm:block">
                         Nhấn để thêm
                     </div>
                 </motion.div>

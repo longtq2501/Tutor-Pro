@@ -1,170 +1,95 @@
 "use client";
 
-import {
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
 import { UseFormReturn } from "react-hook-form";
 import { FormValues } from "../../hooks/useSmartFeedbackForm";
-import { CommentGenerator } from "../CommentGenerator";
+import { UnifiedFeedbackField } from "./UnifiedFeedbackField";
 
-/**
- * Props for the FeedbackFormFields component
- */
 interface FeedbackFormFieldsProps {
-    /** The form instance from react-hook-form */
     form: UseFormReturn<FormValues>;
-    /** Name of the student */
-    studentName: string;
-    /** Available rating levels */
-    ratings: string[];
-    /** The subject being taught */
+    studentName?: string;
+    ratings?: string[];
     subject?: string;
-    /** Targeted language for comments */
     language?: string;
 }
 
 /**
- * Renders the collection of feedback fields for a session.
- * Includes lesson content, attitude, absorption, gaps, and solutions.
- * 
- * DESIGN: Uses a 1-column stack layout to provide maximum horizontal space
- * for AI-generated comments and manual input.
+ * Standardized feedback form fields grouped into 3 clean sections:
+ * 1. Buổi học (Nội dung bài học)
+ * 2. Đánh giá (Thái độ học tập & Khả năng tiếp thu)
+ * 3. Cần cải thiện (Kiến thức chưa nắm vững & Lý do / giải pháp)
  */
 export function FeedbackFormFields({
     form,
-    studentName,
-    ratings,
-    subject,
-    language
+    ratings = ["Xuất Sắc", "Giỏi", "Khá", "Trung Bình", "Tệ"],
 }: FeedbackFormFieldsProps) {
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300 max-w-4xl mx-auto">
-            <LessonContentSection form={form} />
-
-            <div className="space-y-6">
-                <PerformanceSection
+        <div className="space-y-6 max-w-4xl mx-auto">
+            {/* Nhóm 1: Buổi học */}
+            <section className="space-y-3">
+                <h4 className="text-[13px] font-semibold text-muted-foreground pb-1.5 border-b border-border/40">
+                    Buổi học
+                </h4>
+                <UnifiedFeedbackField
                     form={form}
-                    studentName={studentName}
-                    ratings={ratings}
-                    subject={subject}
-                    language={language}
+                    label="Nội dung bài học"
+                    commentField="lessonContent"
+                    placeholder="VD: Ôn tập ngữ pháp thì Hiện tại hoàn thành, luyện phát âm..."
+                    category="GENERAL"
                 />
+            </section>
 
-                <GapSolutionsSection
-                    form={form}
-                    studentName={studentName}
-                    subject={subject}
-                    language={language}
-                />
-            </div>
-        </div>
-    );
-}
+            {/* Nhóm 2: Đánh giá */}
+            <section className="space-y-3">
+                <h4 className="text-[13px] font-semibold text-muted-foreground pb-1.5 border-b border-border/40">
+                    Đánh giá
+                </h4>
+                {/* Side-by-side on desktop, vertical on mobile */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <UnifiedFeedbackField
+                        form={form}
+                        label="Thái độ học tập"
+                        commentField="attitudeComment"
+                        ratingField="attitudeRating"
+                        ratings={ratings}
+                        placeholder="VD: Tập trung, tương tác sôi nổi, có tiến bộ rõ rệt..."
+                        category="ATTITUDE"
+                    />
 
-/**
- * Section for inputting the main lesson content.
- */
-function LessonContentSection({ form }: { form: UseFormReturn<FormValues> }) {
-    return (
-        <FormField
-            control={form.control}
-            name="lessonContent"
-            render={({ field }) => (
-                <FormItem className="bg-muted/20 p-4 sm:p-6 rounded-[2rem] border border-border/40">
-                    {/* D2: sentence case, 12px label */}
-                    <FormLabel className="text-[12px] font-semibold text-muted-foreground mb-3 block">
-                        1. Nội dung bài học
-                    </FormLabel>
-                    <FormControl>
-                        <Textarea
-                            {...field}
-                            placeholder="Chưa có thông tin"
-                            className="text-[14px] min-h-[100px] bg-background/50 rounded-2xl border-border/40 focus:bg-background transition-all placeholder:text-muted-foreground/50 placeholder:italic"
-                        />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-            )}
-        />
-    );
-}
+                    <UnifiedFeedbackField
+                        form={form}
+                        label="Khả năng tiếp thu"
+                        commentField="absorptionComment"
+                        ratingField="absorptionRating"
+                        ratings={ratings}
+                        placeholder="VD: Nắm chắc công thức cơ bản, bài nâng cao cần gợi ý..."
+                        category="ABSORPTION"
+                    />
+                </div>
+            </section>
 
-/**
- * Section for Attitude and Absorption feedback.
- */
-function PerformanceSection({
-    form,
-    studentName,
-    ratings,
-    subject,
-    language
-}: FeedbackFormFieldsProps) {
-    return (
-        <div className="flex flex-col gap-6">
-            <CommentGenerator
-                form={form}
-                label="2. Thái độ học tập"
-                ratingField="attitudeRating"
-                commentField="attitudeComment"
-                category="ATTITUDE"
-                ratings={ratings}
-                studentName={studentName}
-                subject={subject}
-                language={language}
-            />
-            <CommentGenerator
-                form={form}
-                label="3. Khả năng tiếp thu"
-                ratingField="absorptionRating"
-                commentField="absorptionComment"
-                category="ABSORPTION"
-                ratings={ratings}
-                studentName={studentName}
-                subject={subject}
-                language={language}
-            />
-        </div>
-    );
-}
+            {/* Nhóm 3: Cần cải thiện */}
+            <section className="space-y-3">
+                <h4 className="text-[13px] font-semibold text-muted-foreground pb-1.5 border-b border-border/40">
+                    Cần cải thiện
+                </h4>
+                <div className="space-y-5">
+                    <UnifiedFeedbackField
+                        form={form}
+                        label="Kiến thức chưa nắm vững"
+                        commentField="knowledgeGaps"
+                        placeholder="VD: Chưa phân biệt được câu điều kiện loại 2 và 3..."
+                        category="GAPS"
+                    />
 
-/**
- * Section for Knowledge Gaps and Solutions.
- */
-function GapSolutionsSection({
-    form,
-    studentName,
-    subject,
-    language
-}: Omit<FeedbackFormFieldsProps, "ratings">) {
-    return (
-        <div className="flex flex-col gap-6">
-            <CommentGenerator
-                form={form}
-                label="4. Kiến thức chưa nắm vững"
-                ratingField="knowledgeGapsRating"
-                commentField="knowledgeGaps"
-                category="GAPS"
-                studentName={studentName}
-                hideRating={true}
-                subject={subject}
-                language={language}
-            />
-            <CommentGenerator
-                form={form}
-                label="5. Lý do / Giải pháp"
-                ratingField="solutionsRating"
-                commentField="solutions"
-                category="SOLUTIONS"
-                studentName={studentName}
-                hideRating={true}
-                subject={subject}
-                language={language}
-            />
+                    <UnifiedFeedbackField
+                        form={form}
+                        label="Lý do / giải pháp"
+                        commentField="solutions"
+                        placeholder="VD: Cần giao thêm 3 bài tập về nhà, nhắc nhở làm bài trước thứ 5..."
+                        category="SOLUTIONS"
+                    />
+                </div>
+            </section>
         </div>
     );
 }

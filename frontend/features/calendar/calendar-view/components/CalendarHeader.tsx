@@ -40,6 +40,10 @@ export const CalendarActions = ({
   onFilterChange, currentFilter = 'ALL', searchQuery = '',
   onSearchChange, onDeleteMonth, isFetching = false, currentSource = 'ALL', onSourceChange, onReport, reportLoading
 }: Props) => {
+  // P5: dynamic delete label includes current month/year
+  const month = currentDate.getMonth() + 1;
+  const year = currentDate.getFullYear();
+  const deleteLabel = `Xóa các buổi trong tháng ${month}/${year}`;
   return (
     // Outer wrapper: stack vertically on small screens, row on xl+
     <div className="flex flex-col xl:flex-row xl:items-center gap-2 xl:gap-3 w-full">
@@ -87,7 +91,7 @@ export const CalendarActions = ({
 
         {/* Stats — show from xl, placed inline before filter/actions on xl+ */}
         <div className="hidden xl:flex items-center gap-1 2xl:gap-2 shrink-0">
-          <StatsOverview stats={stats} />
+          <StatsOverview stats={stats} onRevenueClick={onGenerateInvoice} />
         </div>
 
         {/* Filter + Actions */}
@@ -109,13 +113,14 @@ export const CalendarActions = ({
             sessionsCount={sessions.length}
             onReport={onReport}
             reportLoading={reportLoading}
+            deleteLabel={deleteLabel}
           />
         </div>
       </div>
 
       {/* Stats row visible only on md and below xl (between nav row and calendar) */}
       <div className="flex xl:hidden items-center gap-2 flex-wrap">
-        <StatsOverview stats={stats} />
+        <StatsOverview stats={stats} onRevenueClick={onGenerateInvoice} />
       </div>
 
     </div>

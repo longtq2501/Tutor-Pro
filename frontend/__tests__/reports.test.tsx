@@ -49,7 +49,7 @@ describe('TutorCommentBox', () => {
   });
 
   it('shows saving indicator when typing', async () => {
-    let resolveSave: (() => void) | null = null;
+    let resolveSave: any = null;
     const onSave = vi.fn().mockImplementation(
       () =>
         new Promise<void>((resolve) => {

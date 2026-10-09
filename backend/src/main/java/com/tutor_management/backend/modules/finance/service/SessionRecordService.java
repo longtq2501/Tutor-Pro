@@ -18,6 +18,7 @@ import com.tutor_management.backend.modules.finance.repository.SessionRecordRepo
 import com.tutor_management.backend.modules.finance.StatusTransitionValidator;
 import com.tutor_management.backend.modules.lesson.repository.LessonRepository;
 import com.tutor_management.backend.modules.lesson.entity.Lesson;
+import com.tutor_management.backend.modules.feedback.repository.SessionFeedbackRepository;
 import com.tutor_management.backend.modules.onlinesession.repository.OnlineSessionRepository;
 import com.tutor_management.backend.modules.tutor.entity.Tutor;
 import com.tutor_management.backend.modules.tutor.repository.TutorRepository;
@@ -63,6 +64,7 @@ public class SessionRecordService {
     private final com.tutor_management.backend.modules.auth.UserRepository userRepository;
     private final TutorRepository tutorRepository;
     private final OnlineSessionRepository onlineSessionRepository;
+    private final SessionFeedbackRepository sessionFeedbackRepository;
     private final com.tutor_management.backend.modules.admin.service.AdminStatsService adminStatsService;
 
     private final DateTimeFormatter isoFormatter = DateTimeFormatter.ISO_DATE_TIME;
@@ -273,6 +275,7 @@ public class SessionRecordService {
              record = sessionRecordRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi buổi học"));
         }
+        unlinkAndDeleteDependents(record.getId());
         sessionRecordRepository.delete(record);
     }
 
@@ -287,11 +290,20 @@ public class SessionRecordService {
         Long tutorId = getCurrentTutorId();
         if (tutorId != null) {
             log.warn("⚠️ Deleting sessions for month: {} for tutor: {}", month, tutorId);
+            sessionFeedbackRepository.deleteBySessionRecordMonthAndTutorId(month, tutorId);
+            onlineSessionRepository.unlinkBySessionRecordMonthAndTutorId(month, tutorId);
             sessionRecordRepository.deleteByMonthAndTutorId(month, tutorId);
         } else {
             log.warn("⚠️ Deleting all sessions for month: {} (ADMIN)", month);
+            sessionFeedbackRepository.deleteBySessionRecordMonth(month);
+            onlineSessionRepository.unlinkBySessionRecordMonth(month);
             sessionRecordRepository.deleteByMonth(month);
         }
+    }
+
+    private void unlinkAndDeleteDependents(Long sessionRecordId) {
+        sessionFeedbackRepository.deleteBySessionRecordId(sessionRecordId);
+        onlineSessionRepository.unlinkBySessionRecordId(sessionRecordId);
     }
 
     /**

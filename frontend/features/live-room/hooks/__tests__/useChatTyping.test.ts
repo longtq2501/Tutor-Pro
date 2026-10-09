@@ -21,7 +21,7 @@ describe('useChatTyping', () => {
             isConnected: true,
             sendMessage: mockSendMessage as any,
             subscribe: mockSubscribe as any,
-        });
+        } as any);
 
         vi.useFakeTimers();
     });

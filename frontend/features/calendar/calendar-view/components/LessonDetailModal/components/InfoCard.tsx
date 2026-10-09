@@ -10,8 +10,8 @@ export const InfoCard = ({ icon, label, value, variant: _variant }: {
     return (
         <div className={cn(
             "p-2.5 sm:p-4 rounded-xl sm:rounded-2xl",
-            "border border-border/40",
-            "bg-muted/20 dark:bg-muted/10",
+            "border border-[#E5E7EB] dark:border-border/40",
+            "bg-white dark:bg-card",
             "transition-colors"
         )}>
             <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">

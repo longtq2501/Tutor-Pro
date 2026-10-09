@@ -57,6 +57,7 @@ export interface UseCalendarViewReturn {
     handleSessionEdit: (session: SessionRecord) => void;
     handleTogglePayment: (sessionId: number, version?: number) => Promise<void>;
     handleToggleComplete: (sessionId: number, version?: number) => Promise<void>;
+    handleCancelByStudent: (sessionId: number, version?: number) => Promise<void>;
     handleAddSessionSubmit: (studentId: number, count: number, hours: number, date: string, month: string, subject?: string, start?: string, end?: string) => Promise<void>;
     openAddSessionModal: (dateStr: string) => void;
     closeAddSessionModal: () => void;

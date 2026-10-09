@@ -66,7 +66,7 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
                 onClick={onClose}
-                className="absolute inset-0 bg-background/80 backdrop-blur-md"
+                className="absolute inset-0 bg-black/40 dark:bg-background/80 dark:backdrop-blur-md"
             />
 
             <motion.div
@@ -75,12 +75,17 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
                 exit={{ y: "20%", opacity: 0 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
                 className={cn(
-                    "relative bg-card rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl w-full border border-border/60 flex flex-col overflow-hidden",
+                    // Mobile: bottom sheet (slides from bottom, no bottom radius)
+                    // Desktop: centered dialog with border-radius on all sides
+                    "relative bg-[#F4F4F6] dark:bg-card shadow-2xl w-full border border-border/60 flex flex-col overflow-hidden",
+                    // Mobile: full-width bottom sheet pinned to bottom
+                    "rounded-t-[2rem] sm:rounded-[2rem]",
+                    // Heights: dvh to respect mobile browser chrome
                     isTaughtOrPaid
-                        ? "max-w-6xl h-[95vh] sm:h-[90vh]"
+                        ? "max-w-6xl max-h-[90dvh] sm:h-[90dvh]"
                         : mode === 'edit'
-                            ? "max-w-4xl h-[95vh] sm:h-[90vh]"
-                            : "max-w-lg h-auto sm:max-h-[90vh]"
+                            ? "max-w-4xl max-h-[90dvh] sm:h-[90dvh]"
+                            : "max-w-lg max-h-[90dvh] sm:max-h-[90dvh]"
                 )}
             >
                 <ModalHeader
@@ -95,11 +100,12 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
                     isTaughtOrPaid ? "" : ""
                 )}>
 
-                    {/* LEFT COLUMN */}
+                    {/* LEFT COLUMN: full-width on mobile, fixed 280px on lg+ */}
                     <div className={cn(
-                        "flex flex-col bg-background min-h-0",
+                        "flex flex-col bg-transparent min-h-0",
                         isTaughtOrPaid
-                            ? "lg:h-full lg:w-1/3 border-b lg:border-b-0 lg:border-r border-border/60"
+                            // Two-column mode: left is 280px fixed on desktop, full-width on mobile
+                            ? "w-full lg:h-full lg:w-[280px] lg:min-w-[280px] lg:max-w-[280px] shrink-0 border-b lg:border-b-0 lg:border-r border-border/60"
                             : "w-full h-full"
                     )}>
                         <div className={cn(

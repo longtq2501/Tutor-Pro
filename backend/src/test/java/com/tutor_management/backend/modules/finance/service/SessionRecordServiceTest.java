@@ -3,6 +3,7 @@ package com.tutor_management.backend.modules.finance.service;
 import com.tutor_management.backend.modules.auth.RoleEntity;
 import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.auth.UserRepository;
+import com.tutor_management.backend.modules.feedback.repository.SessionFeedbackRepository;
 import com.tutor_management.backend.modules.finance.repository.SessionRecordRepository;
 import com.tutor_management.backend.modules.tutor.entity.Tutor;
 import com.tutor_management.backend.modules.tutor.repository.TutorRepository;
@@ -45,6 +46,8 @@ class SessionRecordServiceTest {
     @Mock
     private OnlineSessionRepository onlineSessionRepository;
     @Mock
+    private SessionFeedbackRepository sessionFeedbackRepository;
+    @Mock
     private AdminStatsService adminStatsService;
     @Mock
     private SecurityContext securityContext;
@@ -76,8 +79,11 @@ class SessionRecordServiceTest {
         sessionRecordService.deleteSessionsByMonth(month);
 
         // Assert
+        verify(sessionFeedbackRepository, times(1)).deleteBySessionRecordMonth(month);
+        verify(onlineSessionRepository, times(1)).unlinkBySessionRecordMonth(month);
         verify(sessionRecordRepository, times(1)).deleteByMonth(month);
         verify(sessionRecordRepository, never()).deleteByMonthAndTutorId(anyString(), anyLong());
+        verify(sessionFeedbackRepository, never()).deleteBySessionRecordMonthAndTutorId(anyString(), anyLong());
     }
 
     @Test
@@ -100,8 +106,11 @@ class SessionRecordServiceTest {
         sessionRecordService.deleteSessionsByMonth(month);
 
         // Assert
+        verify(sessionFeedbackRepository, times(1)).deleteBySessionRecordMonthAndTutorId(month, tutorId);
+        verify(onlineSessionRepository, times(1)).unlinkBySessionRecordMonthAndTutorId(month, tutorId);
         verify(sessionRecordRepository, times(1)).deleteByMonthAndTutorId(month, tutorId);
         verify(sessionRecordRepository, never()).deleteByMonth(anyString());
+        verify(sessionFeedbackRepository, never()).deleteBySessionRecordMonth(anyString());
     }
 
     @Test

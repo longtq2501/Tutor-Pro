@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -62,4 +63,18 @@ public interface SessionFeedbackRepository extends JpaRepository<SessionFeedback
              @Param("tutorId") Long tutorId,
              @Param("studentId") Long studentId,
              @Param("month") String month);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("DELETE FROM SessionFeedback sf WHERE sf.sessionRecord.id = :sessionRecordId")
+    int deleteBySessionRecordId(@Param("sessionRecordId") Long sessionRecordId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("DELETE FROM SessionFeedback sf WHERE sf.sessionRecord.id IN "
+            + "(SELECT sr.id FROM SessionRecord sr WHERE sr.month = :month)")
+    int deleteBySessionRecordMonth(@Param("month") String month);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("DELETE FROM SessionFeedback sf WHERE sf.sessionRecord.id IN "
+            + "(SELECT sr.id FROM SessionRecord sr WHERE sr.month = :month AND sr.tutorId = :tutorId)")
+    int deleteBySessionRecordMonthAndTutorId(@Param("month") String month, @Param("tutorId") Long tutorId);
 }

@@ -336,7 +336,7 @@ function AppContent() {
             { id: 'students', label: 'Học Sinh & PH', icon: GraduationCap },
             { id: 'finance', label: 'Tài Chính', icon: TrendingUp },
             { id: 'reports', label: 'Báo Cáo', icon: FileText },
-            { id: 'calendar', label: 'Lịch Dạy', icon: CalendarDays },
+            { id: 'calendar', label: 'Lịch dạy', icon: CalendarDays },
             { id: 'exercises', label: 'Khảo thí', icon: ClipboardList },
             { id: 'documents', label: 'Tài Liệu', icon: FileText },
             { id: 'lessons', label: 'Bài Giảng', icon: BookOpen },

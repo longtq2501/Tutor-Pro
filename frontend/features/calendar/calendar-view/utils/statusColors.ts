@@ -10,11 +10,14 @@ export interface StatusColors {
     text: string;
     dot: string;
     label: string;
+    /** Whether student name should have line-through (cancelled sessions) */
+    strikethrough?: boolean;
 }
 
 /**
  * Color mapping for each lesson status
- * Matches the color scheme from implementation plan
+ * P4: COMPLETED → green (not orange); cancelled sessions get strikethrough
+ * P5: "Đã dạy" must NOT share color with "Học sinh hủy"
  */
 export const STATUS_COLORS: Record<LessonStatus, StatusColors> = {
     SCHEDULED: {
@@ -32,10 +35,11 @@ export const STATUS_COLORS: Record<LessonStatus, StatusColors> = {
         label: 'Đã xác nhận',
     },
     COMPLETED: {
-        bg: 'bg-orange-50 dark:bg-orange-800/50',
-        border: 'border-orange-200 dark:border-orange-600',
-        text: 'text-orange-700 dark:text-orange-100',
-        dot: 'bg-orange-500',
+        // P4/P5: green for "Đã dạy" — was orange, must NOT clash with amber (Học sinh hủy)
+        bg: 'bg-emerald-50 dark:bg-emerald-900/40',
+        border: 'border-emerald-200 dark:border-emerald-700',
+        text: 'text-emerald-700 dark:text-emerald-200',
+        dot: 'bg-emerald-500',
         label: 'Đã dạy',
     },
     PENDING_PAYMENT: {
@@ -43,28 +47,32 @@ export const STATUS_COLORS: Record<LessonStatus, StatusColors> = {
         border: 'border-yellow-200 dark:border-yellow-600',
         text: 'text-yellow-700 dark:text-yellow-100',
         dot: 'bg-yellow-500',
-        label: 'Chờ xác nhận',
+        label: 'Chờ thanh toán',
     },
     PAID: {
-        bg: 'bg-emerald-50 dark:bg-emerald-800/50',
-        border: 'border-emerald-200 dark:border-emerald-600',
-        text: 'text-emerald-700 dark:text-emerald-100',
-        dot: 'bg-emerald-500',
+        bg: 'bg-sky-50 dark:bg-sky-900/40',
+        border: 'border-sky-200 dark:border-sky-700',
+        text: 'text-sky-700 dark:text-sky-200',
+        dot: 'bg-sky-500',
         label: 'Đã thanh toán',
     },
     CANCELLED_BY_STUDENT: {
-        bg: 'bg-amber-50 dark:bg-amber-800/40',
-        border: 'border-amber-200 dark:border-amber-600',
+        // amber/orange for student cancel — distinct from green (COMPLETED)
+        bg: 'bg-amber-50 dark:bg-amber-900/30',
+        border: 'border-amber-200 dark:border-amber-700',
         text: 'text-amber-700 dark:text-amber-200',
-        dot: 'bg-amber-500',
+        dot: 'bg-amber-400',
         label: 'Học sinh hủy',
+        strikethrough: true,
     },
     CANCELLED_BY_TUTOR: {
-        bg: 'bg-gray-50 dark:bg-gray-700/50',
-        border: 'border-gray-200 dark:border-gray-600',
-        text: 'text-gray-700 dark:text-gray-100',
+        // dark gray for tutor cancel
+        bg: 'bg-gray-100 dark:bg-gray-700/60',
+        border: 'border-gray-300 dark:border-gray-600',
+        text: 'text-gray-600 dark:text-gray-300',
         dot: 'bg-gray-500',
         label: 'Tutor hủy',
+        strikethrough: true,
     },
 };
 
@@ -80,9 +88,16 @@ export function getStatusColors(status?: LessonStatus): StatusColors {
 }
 
 /**
+ * Returns true if the session is a cancelled status
+ */
+export function isCancelledStatus(status?: LessonStatus): boolean {
+    return status === 'CANCELLED_BY_STUDENT' || status === 'CANCELLED_BY_TUTOR';
+}
+
+/**
  * Get legacy colors based on old paid/completed flags
  * Used for backward compatibility during migration
- * 
+ *
  * @deprecated Use getStatusColors with LessonStatus instead
  */
 export function getLegacyColors(completed: boolean, paid: boolean): StatusColors {

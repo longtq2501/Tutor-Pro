@@ -63,3 +63,23 @@ export interface GenerateCommentRequest {
 export interface GenerateCommentResponse {
     generatedComment: string;
 }
+
+/**
+ * Reusable feedback template / snippet for tutors.
+ */
+export interface FeedbackTemplate {
+    id: number;
+    title: string;
+    content: string;
+    category: 'ATTITUDE' | 'ABSORPTION' | 'GAPS' | 'SOLUTIONS' | 'GENERAL' | string;
+    isSystem: boolean;
+    isOwner: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+export interface FeedbackTemplateRequest {
+    title: string;
+    content: string;
+    category: string;
+}

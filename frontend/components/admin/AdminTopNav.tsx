@@ -28,7 +28,7 @@ const routeMap: Record<string, string> = {
     '/overview': 'Overview',
     '/tutors': 'Gia Sư',
     '/students': 'Học Sinh',
-    '/sessions': 'Lịch Dạy',
+    '/sessions': 'Lịch dạy',
     '/documents': 'Tài Liệu',
     '/system': 'Hệ Thống',
     '/permissions': 'Phân Quyền',

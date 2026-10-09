@@ -98,10 +98,10 @@ export function ModalFooter({
                         </Button>
                         <Button
                             onClick={() => setMode('edit')}
-                            className="h-[30px] sm:h-10 flex-1 rounded-lg sm:rounded-xl bg-primary font-black text-[9px] sm:text-[11px] px-2"
+                            className="h-[30px] sm:h-10 flex-1 rounded-lg sm:rounded-xl bg-primary hover:bg-primary/90 font-black text-[9px] sm:text-[11px] px-2"
                         >
                             <Pencil className="w-3 w-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5 shrink-0" />
-                            <span className="truncate">Sửa</span>
+                            <span className="truncate">Sửa buổi học</span>
                         </Button>
                     </>
                 ) : (

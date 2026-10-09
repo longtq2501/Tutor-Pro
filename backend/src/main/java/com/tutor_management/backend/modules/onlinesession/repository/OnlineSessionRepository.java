@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -98,4 +99,18 @@ public interface OnlineSessionRepository extends JpaRepository<OnlineSession, Lo
      * @return Optional containing the OnlineSession if found.
      */
     Optional<OnlineSession> findBySessionRecordId(Long sessionRecordId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE OnlineSession os SET os.sessionRecord = null WHERE os.sessionRecord.id = :sessionRecordId")
+    int unlinkBySessionRecordId(@Param("sessionRecordId") Long sessionRecordId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE OnlineSession os SET os.sessionRecord = null WHERE os.sessionRecord.id IN "
+            + "(SELECT sr.id FROM SessionRecord sr WHERE sr.month = :month)")
+    int unlinkBySessionRecordMonth(@Param("month") String month);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE OnlineSession os SET os.sessionRecord = null WHERE os.sessionRecord.id IN "
+            + "(SELECT sr.id FROM SessionRecord sr WHERE sr.month = :month AND sr.tutorId = :tutorId)")
+    int unlinkBySessionRecordMonthAndTutorId(@Param("month") String month, @Param("tutorId") Long tutorId);
 }

@@ -51,7 +51,7 @@ const navSections: NavSection[] = [
             { label: 'Gia Sư', href: '/tutors', icon: Users },
             { label: 'Học Sinh', href: '/students', icon: GraduationCap },
             { label: 'Người Dùng', href: '/users', icon: UserCog },
-            { label: 'Lịch Dạy', href: '/sessions', icon: Calendar },
+            { label: 'Lịch dạy', href: '/sessions', icon: Calendar },
             { label: 'Tài Liệu', href: '/documents', icon: FolderClosed },
             { label: 'Phản Hồi', href: '/feedback', icon: MessageSquare },
         ]

@@ -38,6 +38,7 @@ interface CalendarModalsProps {
     handleDeleteSession: (id: number) => void;
     handleTogglePayment: (id: number, version?: number) => void;
     handleToggleComplete: (id: number, version?: number) => void;
+    handleCancelByStudent: (id: number, version?: number) => void;
     handleUpdateSession: (updated: SessionRecord) => void;
     handleConfirmDeleteAll: () => void;
     handleAddSessionSubmit: (studentId: number, count: number, hours: number, date: string, month: string, subject?: string, start?: string, end?: string) => Promise<void>;
@@ -64,6 +65,7 @@ export function CalendarModals({
     handleDeleteSession,
     handleTogglePayment,
     handleToggleComplete,
+    handleCancelByStudent,
     handleUpdateSession,
     handleConfirmDeleteAll,
     handleAddSessionSubmit,
@@ -100,6 +102,7 @@ export function CalendarModals({
                         onDelete={handleDeleteSession}
                         onTogglePayment={handleTogglePayment}
                         onToggleComplete={handleToggleComplete}
+                        onCancelByStudent={handleCancelByStudent}
                         onSessionClick={setSelectedSession}
                         loadingSessions={loadingSessions}
                     />

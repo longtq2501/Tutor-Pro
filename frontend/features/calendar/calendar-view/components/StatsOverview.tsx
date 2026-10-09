@@ -5,11 +5,17 @@ import { cn } from '@/lib/utils';
 import { Calendar as CalendarIcon, CheckCircle2, Banknote } from 'lucide-react';
 import type { CalendarStats } from '../types';
 
-const StatsChip = memo(({ icon, label, value, variant }: {
+/**
+ * Individual stat chip.
+ * P5: Labels are sentence-case, 12px — no uppercase/tracking-widest.
+ * The "Doanh thu" chip is interactive (role=button) so users can click to open revenue detail.
+ */
+const StatsChip = memo(({ icon, label, value, variant, onClick }: {
     icon?: React.ReactNode,
     label: string,
     value: string | number,
-    variant: 'blue' | 'emerald' | 'orange' | 'purple'
+    variant: 'blue' | 'emerald' | 'orange' | 'purple',
+    onClick?: () => void,
 }) => {
     const styles = {
         blue: "bg-blue-50/50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-300 border-blue-100 dark:border-blue-500/20",
@@ -18,21 +24,45 @@ const StatsChip = memo(({ icon, label, value, variant }: {
         purple: "bg-purple-50/50 dark:bg-purple-500/15 text-purple-600 dark:text-purple-300 border-purple-100 dark:border-purple-500/20"
     };
 
+    const isClickable = !!onClick;
+
+    const Tag = isClickable ? 'button' : 'div';
+
     return (
-        <div className={cn("flex px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 rounded-2xl border transition-all hover:shadow-md justify-center text-center min-w-0 sm:min-w-[90px] lg:min-w-[100px] 2xl:min-w-[120px]", styles[variant])}>
+        <Tag
+            type={isClickable ? 'button' : undefined}
+            onClick={onClick}
+            role={isClickable ? 'button' : undefined}
+            aria-label={isClickable ? `Xem chi tiết ${label}` : undefined}
+            className={cn(
+                "flex px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 rounded-2xl border transition-all justify-center text-center min-w-0 sm:min-w-[90px] lg:min-w-[100px] 2xl:min-w-[120px]",
+                styles[variant],
+                isClickable && "cursor-pointer hover:shadow-md hover:scale-[1.02] active:scale-[0.98] group"
+            )}
+        >
             <div className="min-w-0 overflow-hidden">
-                <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-tight 2xl:tracking-widest opacity-70 leading-none mb-1 truncate">
+                {/* P5: sentence case, 12px, font-medium — not uppercase/tracking-widest */}
+                <div className="text-[11px] sm:text-[12px] font-medium opacity-70 leading-none mb-1 truncate">
                     {label}
+                    {isClickable && (
+                        <span className="ml-1 opacity-0 group-hover:opacity-60 transition-opacity text-[10px]">↗</span>
+                    )}
                 </div>
-                <div className="text-[11px] sm:text-[13px] lg:text-[15px] font-black tracking-tight truncate">{value}</div>
+                <div className="text-[11px] sm:text-[13px] lg:text-[15px] font-bold tracking-tight truncate tabular-nums">{value}</div>
             </div>
-        </div>
+        </Tag>
     );
 });
 
 StatsChip.displayName = 'StatsChip';
 
-export function StatsOverview({ stats }: { stats: CalendarStats }) {
+interface StatsOverviewProps {
+    stats: CalendarStats;
+    /** P5: clicking Doanh thu chip opens revenue detail */
+    onRevenueClick?: () => void;
+}
+
+export function StatsOverview({ stats, onRevenueClick }: StatsOverviewProps) {
     return (
         <div className="flex items-center gap-2 sm:gap-3 flex-nowrap lg:flex-wrap shrink-0">
             <StatsChip
@@ -49,6 +79,7 @@ export function StatsOverview({ stats }: { stats: CalendarStats }) {
                 label="Doanh thu"
                 value={new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(stats.revenue)}
                 variant="orange"
+                onClick={onRevenueClick}
             />
         </div>
     );

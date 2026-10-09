@@ -20,7 +20,7 @@ export function StudentCard({ session, currentStatus }: StudentCardProps) {
                 "flex items-center gap-2 sm:gap-3 p-2.5 sm:p-4",
                 "rounded-xl sm:rounded-2xl relative overflow-hidden",
                 // neutral bg + border only, no shadow on card itself
-                "bg-muted/20 dark:bg-muted/10 border border-border/40"
+                "bg-white dark:bg-card border border-[#E5E7EB] dark:border-border/40"
             )}>
                 {/* Avatar */}
                 <div className="relative z-10 shrink-0">
@@ -43,7 +43,7 @@ export function StudentCard({ session, currentStatus }: StudentCardProps) {
                 {/* Badge: reduced saturation - light bg, bold same-tone text */}
                 <Badge className={cn(
                     "relative z-10 rounded-lg px-2.5 py-1 text-[9px] sm:text-[10px] font-semibold border-0",
-                    "capitalize tracking-normal",
+                    "tracking-normal",
                     statusColors.bg, statusColors.text
                 )}>
                     {LESSON_STATUS_LABELS[status as keyof typeof LESSON_STATUS_LABELS] || status}

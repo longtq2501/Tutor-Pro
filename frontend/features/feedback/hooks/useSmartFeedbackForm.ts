@@ -41,7 +41,7 @@ export function useSmartFeedbackForm({
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            lessonContent: "4 kĩ năng tiếng anh và Ngữ Pháp và Ôn Tập",
+            lessonContent: "",
             attitudeRating: "",
             attitudeComment: "",
             absorptionRating: "",
@@ -74,7 +74,7 @@ export function useSmartFeedbackForm({
             setExistingFeedbackId(null);
             setHasData(false);
             form.reset({
-                lessonContent: "4 kĩ năng tiếng anh và Ngữ Pháp và Ôn Tập",
+                lessonContent: "",
                 attitudeRating: "",
                 attitudeComment: "",
                 absorptionRating: "",

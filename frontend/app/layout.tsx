@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Be_Vietnam_Pro, Inter } from 'next/font/google';
+import { Be_Vietnam_Pro, Baloo_2, Inter, Nunito } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/shared/theme-provider';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -18,6 +18,20 @@ const beVietnamPro = Be_Vietnam_Pro({
     display: 'swap',
     weight: ['600'],
     variable: '--font-be-vietnam-pro',
+});
+
+const baloo2 = Baloo_2({
+    subsets: ['vietnamese', 'latin'],
+    display: 'swap',
+    weight: ['600', '800'],
+    variable: '--font-baloo-2',
+});
+
+const nunito = Nunito({
+    subsets: ['vietnamese', 'latin'],
+    display: 'swap',
+    weight: ['500', '700', '800'],
+    variable: '--font-nunito',
 });
 
 export const metadata: Metadata = {
@@ -81,7 +95,7 @@ export default function RootLayout({
 }) {
     return (
         <html lang="vi" suppressHydrationWarning>
-            <body className={`${inter.variable} ${beVietnamPro.variable} font-sans antialiased`}>
+            <body className={`${inter.variable} ${beVietnamPro.variable} ${baloo2.variable} ${nunito.variable} font-sans antialiased`}>
                 <QueryProvider>
                     <AuthProvider>
                         <ThemeProvider

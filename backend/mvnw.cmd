@@ -50,10 +50,24 @@ if ($env:MVNW_VERBOSE -eq "true") {
   $VerbosePreference = "Continue"
 }
 
-# Set JAVA_HOME if not already set
-if (-not $env:JAVA_HOME) {
-    $env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-21.0.10.7-hotspot"
-    Write-Verbose "Set JAVA_HOME to: $env:JAVA_HOME"
+# Set JAVA_HOME if not already set AND valid
+if (-not $env:JAVA_HOME -or -not (Test-Path (Join-Path $env:JAVA_HOME "bin\java.exe"))) {
+    $fallbacks = @(
+        "C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot",
+        "C:\Program Files\Eclipse Adoptium\jdk-21.0.10.7-hotspot",
+        "C:\Users\$env:USERNAME\.jdks\ms-21.0.11",
+        "C:\Users\$env:USERNAME\.jdks\ms-21.0.9",
+        "C:\Users\$env:USERNAME\.jdks\ms-21.0.7",
+        "C:\Users\$env:USERNAME\.jdks\ms-17.0.19",
+        "C:\Users\$env:USERNAME\.jdks\ms-17.0.18"
+    )
+    foreach ($fb in $fallbacks) {
+        if (Test-Path (Join-Path $fb "bin\java.exe")) {
+            $env:JAVA_HOME = $fb
+            Write-Verbose "Set JAVA_HOME to: $env:JAVA_HOME"
+            break
+        }
+    }
 }
 
 # calculate distributionUrl, requires .mvn/wrapper/maven-wrapper.properties

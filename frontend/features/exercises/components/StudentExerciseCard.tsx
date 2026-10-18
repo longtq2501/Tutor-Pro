@@ -61,7 +61,7 @@ export const StudentExerciseCard: React.FC<StudentExerciseCardProps> = ({
                             }
                         </div>
                         <Badge variant="outline" className={cn(
-                            "text-[10px] font-black tracking-tight uppercase px-2 py-0.5 border-2 rounded-lg",
+                            "text-xs font-bold tracking-tight uppercase px-2.5 py-0.5 border-2 rounded-lg",
                             isOverdue ? "border-red-500/50 text-red-600 bg-red-50/50" :
                                 isGraded ? "border-green-500/50 text-green-600 bg-green-50/50" :
                                     isSubmitted ? "border-blue-500/50 text-blue-600 bg-blue-50/50" :
@@ -83,16 +83,16 @@ export const StudentExerciseCard: React.FC<StudentExerciseCardProps> = ({
                     {/* Metadata Grid */}
                     <div className="grid grid-cols-2 gap-2 pt-2 border-t border-muted/50">
                         <div className="flex flex-col gap-1">
-                            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider flex items-center gap-1">
-                                <Clock className="h-3 w-3" /> Duration
+                            <span className="text-xs text-muted-foreground font-semibold flex items-center gap-1">
+                                <Clock className="h-3.5 w-3.5" /> Thời lượng
                             </span>
                             <span className="text-sm font-black text-foreground/80">
-                                {exercise.timeLimit ? `${exercise.timeLimit}'` : '∞'}
+                                {exercise.timeLimit ? `${exercise.timeLimit} phút` : '∞'}
                             </span>
                         </div>
                         <div className="flex flex-col gap-1 border-l pl-3 border-muted/50 text-right">
-                            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider flex items-center gap-1 justify-end">
-                                <Trophy className="h-3 w-3" /> Points
+                            <span className="text-xs text-muted-foreground font-semibold flex items-center gap-1 justify-end">
+                                <Trophy className="h-3.5 w-3.5" /> Điểm số
                             </span>
                             <div className="flex items-center justify-end gap-1.5">
                                 {isGraded ? (
@@ -113,10 +113,10 @@ export const StudentExerciseCard: React.FC<StudentExerciseCardProps> = ({
                     {/* Footer: Date and CTA */}
                     <div className="flex items-center justify-between mt-auto pt-2">
                         <div className="flex flex-col gap-0.5">
-                            <span className="text-[9px] text-muted-foreground font-bold uppercase opacity-60">Hạn nộp</span>
+                            <span className="text-xs text-muted-foreground font-medium">Hạn nộp</span>
                             <div className="flex items-center gap-1.5 text-xs font-bold text-foreground/70">
                                 <Calendar className="h-3.5 w-3.5" />
-                                {exercise.deadline ? format(new Date(exercise.deadline), 'dd/MM/yyyy') : 'N/A'}
+                                {exercise.deadline ? format(new Date(exercise.deadline), 'dd/MM/yyyy') : '—'}
                             </div>
                         </div>
 

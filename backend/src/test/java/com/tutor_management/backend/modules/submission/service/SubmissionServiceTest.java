@@ -271,8 +271,150 @@ class SubmissionServiceTest {
         assertEquals(15.0, response.getTotalScore());
     }
 
-        @Test
-        void autoSubmitExpiredSubmissions_onlyMcq_shouldAutoSubmitAndPersistResult() {
+    /**
+     * FB-23 regression: A student completes a pure-MCQ quiz and scores 90/100.
+     * When the teacher subsequently opens the submission and saves only a general
+     * comment (no essay grades), the MCQ score MUST NOT be reset to 0.
+     *
+     * This covers the normal case where per-answer points are correctly persisted.
+     */
+    @Test
+    void gradeSubmission_whenTeacherAddsCommentToMcqQuiz_shouldPreserveMcqScore() {
+        // Build a submission that AutoGradingService already scored at 90.0
+        Submission submission = Submission.builder()
+            .id("sub-mcq-90")
+            .exerciseId(exerciseId)
+            .studentId(studentId)
+            .status(SubmissionStatus.GRADED)
+            .mcqScore(90.0)
+            .essayScore(0.0)
+            .totalScore(90.0)
+            .answers(new ArrayList<>())
+            .build();
+
+        // 9 correct answers (10 pts each) + 1 wrong answer (0 pts)
+        for (int i = 1; i <= 9; i++) {
+            submission.addAnswer(
+                StudentAnswer.builder()
+                    .questionId("qMcq" + i)
+                    .selectedOption("A")
+                    .isCorrect(true)
+                    .points(10.0)
+                    .build()
+            );
+        }
+        submission.addAnswer(
+            StudentAnswer.builder()
+                .questionId("qMcq10")
+                .selectedOption("B")
+                .isCorrect(false)
+                .points(0.0)
+                .build()
+        );
+
+        when(submissionRepository.findByIdWithAnswers(eq("sub-mcq-90")))
+            .thenReturn(Optional.of(submission));
+
+        // All 10 questions are MCQ
+        List<Question> mcqQuestions = new ArrayList<>();
+        for (int i = 1; i <= 10; i++) {
+            mcqQuestions.add(Question.builder()
+                .id("qMcq" + i)
+                .type(QuestionType.MCQ)
+                .points(10.0)
+                .build());
+        }
+        when(questionRepository.findByExerciseIdOrderByOrderIndex(eq(exerciseId)))
+            .thenReturn(mcqQuestions);
+
+        com.tutor_management.backend.modules.exercise.domain.Exercise ex =
+            new com.tutor_management.backend.modules.exercise.domain.Exercise();
+        ex.setId(exerciseId);
+        ex.setTitle("MCQ Only Quiz");
+        ex.setTotalPoints(100);
+        when(exerciseRepository.findById(eq(exerciseId))).thenReturn(Optional.of(ex));
+
+        // Teacher only adds a comment — no essay grades
+        GradeSubmissionRequest request = GradeSubmissionRequest.builder()
+            .essayGrades(List.of())
+            .teacherComment("Tốt lắm!")
+            .build();
+
+        var response = submissionService.gradeSubmission("sub-mcq-90", request);
+
+        assertEquals(90.0, response.getMcqScore(),
+            "MCQ score must not be overwritten by teacher comment save");
+        assertEquals(0.0, response.getEssayScore());
+        assertEquals(90.0, response.getTotalScore(),
+            "Total score must equal preserved MCQ score");
+        assertEquals(SubmissionStatus.GRADED, response.getStatus());
+    }
+
+    /**
+     * FB-23 regression (edge case): per-answer points are all 0.0 in memory
+     * (e.g. AutoGradingService set mcqScore on the Submission entity but the
+     * individual StudentAnswer.points were not flushed / were replaced).
+     * The submission-level mcqScore of 90 must still be preserved.
+     */
+    @Test
+    void gradeSubmission_whenMcqAnswerPointsAreZeroButSubmissionScoreIs90_shouldPreserveScore() {
+        Submission submission = Submission.builder()
+            .id("sub-mcq-edge")
+            .exerciseId(exerciseId)
+            .studentId(studentId)
+            .status(SubmissionStatus.GRADED)
+            .mcqScore(90.0)
+            .essayScore(0.0)
+            .totalScore(90.0)
+            .answers(new ArrayList<>())
+            .build();
+
+        // All per-answer points are 0.0 — simulates flush/persistence edge case
+        for (int i = 1; i <= 10; i++) {
+            submission.addAnswer(
+                StudentAnswer.builder()
+                    .questionId("qMcq" + i)
+                    .selectedOption("A")
+                    .points(0.0)
+                    .build()
+            );
+        }
+
+        when(submissionRepository.findByIdWithAnswers(eq("sub-mcq-edge")))
+            .thenReturn(Optional.of(submission));
+
+        List<Question> mcqQuestions = new ArrayList<>();
+        for (int i = 1; i <= 10; i++) {
+            mcqQuestions.add(Question.builder()
+                .id("qMcq" + i)
+                .type(QuestionType.MCQ)
+                .points(10.0)
+                .build());
+        }
+        when(questionRepository.findByExerciseIdOrderByOrderIndex(eq(exerciseId)))
+            .thenReturn(mcqQuestions);
+
+        com.tutor_management.backend.modules.exercise.domain.Exercise ex =
+            new com.tutor_management.backend.modules.exercise.domain.Exercise();
+        ex.setId(exerciseId);
+        ex.setTitle("MCQ Only Quiz Edge");
+        ex.setTotalPoints(100);
+        when(exerciseRepository.findById(eq(exerciseId))).thenReturn(Optional.of(ex));
+
+        GradeSubmissionRequest request = GradeSubmissionRequest.builder()
+            .essayGrades(List.of())
+            .teacherComment("Nhận xét chung")
+            .build();
+
+        var response = submissionService.gradeSubmission("sub-mcq-edge", request);
+
+        assertEquals(90.0, response.getMcqScore(),
+            "MCQ score must be preserved even when per-answer points are all 0.0 in memory");
+        assertEquals(90.0, response.getTotalScore());
+    }
+
+    @Test
+    void autoSubmitExpiredSubmissions_onlyMcq_shouldAutoSubmitAndPersistResult() {
         Submission expiredDraft = Submission.builder()
             .id("sub-expired-mcq")
             .exerciseId(exerciseId)

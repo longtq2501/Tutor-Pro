@@ -84,15 +84,18 @@ export const ExerciseRowCard: React.FC<ExerciseRowCardProps> = ({
                         <div className="p-4 flex-1 flex flex-col md:flex-row md:items-center justify-between gap-4">
                             {/* Title and Metadata */}
                             <div className="flex-1 space-y-2">
-                                <h4 className="font-semibold text-base leading-tight group-hover:text-primary transition-colors">
+                                <h4
+                                    className="font-semibold text-base leading-snug group-hover:text-primary transition-colors line-clamp-2 break-words"
+                                    title={exercise.title}
+                                >
                                     {exercise.title}
                                 </h4>
-                                <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground font-medium">
-                                    <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded">
+                                <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground font-medium">
+                                    <span className="flex items-center gap-1.5 bg-muted/60 px-2.5 py-1 rounded-md">
                                         <Calendar className="h-3.5 w-3.5" />
-                                        Hạn: {exercise.deadline ? format(new Date(exercise.deadline), 'dd/MM/yyyy') : 'N/A'}
+                                        Hạn: {exercise.deadline ? format(new Date(exercise.deadline), 'dd/MM/yyyy') : '—'}
                                     </span>
-                                    <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded">
+                                    <span className="flex items-center gap-1.5 bg-muted/60 px-2.5 py-1 rounded-md">
                                         <Clock className="h-3.5 w-3.5" />
                                         {exercise.timeLimit} phút
                                     </span>
@@ -119,16 +122,16 @@ export const ExerciseRowCard: React.FC<ExerciseRowCardProps> = ({
                                             {hasEarnedTrophy && <Trophy className="h-4 w-4 text-yellow-500" />}
                                         </div>
                                         {autoCollected && (
-                                            <span className="text-[11px] font-semibold text-red-600 dark:text-red-400">
+                                            <span className="text-xs font-semibold text-red-600 dark:text-red-400">
                                                 {statusPresentation.label}
                                             </span>
                                         )}
                                     </div>
                                 ) : (
                                     <div className="text-right">
-                                        <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1">Trạng thái</p>
+                                        <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">Trạng thái</p>
                                         <Badge variant="outline" className={cn(
-                                            "text-[11px] font-bold h-6 px-2 shrink-0 border-2",
+                                            "text-xs font-bold h-6 px-2.5 shrink-0 border-2",
                                             statusClassName
                                         )}>
                                             {statusLabel}
@@ -170,7 +173,7 @@ export const ExerciseRowCard: React.FC<ExerciseRowCardProps> = ({
                                 )}
 
                                 {disabled && (
-                                    <span className="text-[10px] text-muted-foreground italic sm:min-w-[80px] text-right">
+                                    <span className="text-xs text-muted-foreground italic sm:min-w-[80px] text-right">
                                         Chưa làm
                                     </span>
                                 )}

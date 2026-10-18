@@ -14,6 +14,7 @@ import { TutorProLogo } from '@/components/shared/TutorProLogo';
 import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
 import { ChevronLeft } from 'lucide-react';
 import React, { memo, useEffect, useMemo, useState } from 'react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 // Types (Giữ nguyên)
 export type View = 'dashboard' | 'students' | 'monthly' | 'documents' | 'parents' | 'unpaid' | 'calendar' | 'homework' | 'lessons' | 'exercises' | 'finance' | 'reports' | 'tutors' | 'live-room' | 'settings';
@@ -130,7 +131,7 @@ export const Sidebar = memo(({ currentView, setCurrentView, navItems, isLocked =
         const isActive = currentView === item.id;
         const Icon = item.icon;
 
-        return (
+        const buttonNode = (
             <motion.button
                 key={item.id}
                 layout
@@ -176,6 +177,21 @@ export const Sidebar = memo(({ currentView, setCurrentView, navItems, isLocked =
                 </AnimatePresence>
             </motion.button>
         );
+
+        if (effectiveCollapsed) {
+            return (
+                <Tooltip key={item.id} delayDuration={150}>
+                    <TooltipTrigger asChild>
+                        {buttonNode}
+                    </TooltipTrigger>
+                    <TooltipContent side="right" sideOffset={14} className="font-semibold text-xs py-1.5 px-3 z-[100] shadow-lg">
+                        {item.label}
+                    </TooltipContent>
+                </Tooltip>
+            );
+        }
+
+        return buttonNode;
     };
 
     return (
@@ -236,34 +252,36 @@ export const Sidebar = memo(({ currentView, setCurrentView, navItems, isLocked =
                     </div>
 
                     {/* Navigation Items */}
-                    <nav
-                        data-tour="sidebar"
-                        data-disabled={isLocked ? 'true' : 'false'}
-                        className={cn(
-                            'flex-1 px-3 overflow-y-auto no-scrollbar',
-                            responsiveConfig.navVerticalPaddingClass,
-                            isLocked && 'pointer-events-none'
-                        )}
-                    >
-                        {effectiveCollapsed ? (
-                            <div className="space-y-1">
-                                {navItems.map((item) => renderNavButton(item))}
-                            </div>
-                        ) : (
-                            <div className={cn(responsiveConfig.sectionGapClass, 'pb-2')}>
-                                {groupedNavItems.map((group, index) => (
-                                    <div key={group.section} className={cn(index > 0 && responsiveConfig.sectionTopPaddingClass, index > 0 && 'border-t border-border/70')}>
-                                        <p className={cn('px-3 text-[11px] font-bold tracking-wider text-muted-foreground/70 uppercase', responsiveConfig.sectionTitlePaddingClass)}>
-                                            {group.title}
-                                        </p>
-                                        <div className="space-y-1">
-                                            {group.items.map((item) => renderNavButton(item))}
+                    <TooltipProvider delayDuration={150}>
+                        <nav
+                            data-tour="sidebar"
+                            data-disabled={isLocked ? 'true' : 'false'}
+                            className={cn(
+                                'flex-1 px-3 overflow-y-auto no-scrollbar',
+                                responsiveConfig.navVerticalPaddingClass,
+                                isLocked && 'pointer-events-none'
+                            )}
+                        >
+                            {effectiveCollapsed ? (
+                                <div className="space-y-1">
+                                    {navItems.map((item) => renderNavButton(item))}
+                                </div>
+                            ) : (
+                                <div className={cn(responsiveConfig.sectionGapClass, 'pb-2')}>
+                                    {groupedNavItems.map((group, index) => (
+                                        <div key={group.section} className={cn(index > 0 && responsiveConfig.sectionTopPaddingClass, index > 0 && 'border-t border-border/70')}>
+                                            <p className={cn('px-3 text-[11px] font-bold tracking-wider text-muted-foreground/70 uppercase', responsiveConfig.sectionTitlePaddingClass)}>
+                                                {group.title}
+                                            </p>
+                                            <div className="space-y-1">
+                                                {group.items.map((item) => renderNavButton(item))}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </nav>
+                                    ))}
+                                </div>
+                            )}
+                        </nav>
+                    </TooltipProvider>
 
                     {/* Footer / Profile slot (hiện tại bỏ trống để tránh UI dư thừa) */}
                     <div className={cn('mt-auto border-t border-border', responsiveConfig.footerClass)} />

@@ -11,10 +11,10 @@ import {
     ArrowLeft,
     Clock,
     FileText,
-    BookOpen,
-    Trophy,
+    ClipboardCheck,
     FileWarning
 } from 'lucide-react';
+import { getScorePresentation } from '@/features/submission/constants/submissionStatus';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { PageResponse } from '@/lib/types';
@@ -166,7 +166,8 @@ export const StudentDetailView: React.FC<StudentDetailViewProps> = ({
                 </div>
 
                 <div className="lg:pl-8">
-                    <PerformanceSection title="Đã nộp & chấm điểm" icon={<Trophy className="h-5 w-5 text-green-500" />} count={graded.length} isLoading={isLoading}>
+                    {/* FB-05: ClipboardCheck icon — graded work doesn't imply a prize/trophy */}
+                    <PerformanceSection title="Đã nộp &amp; chấm điểm" icon={<ClipboardCheck className="h-5 w-5 text-green-500" />} count={graded.length} isLoading={isLoading}>
                         {graded.map(ex => <ExerciseRowCard key={ex.id} exercise={ex} showScore onClick={() => onViewExercise(ex, 'GRADE')} />)}
                     </PerformanceSection>
                 </div>
@@ -222,31 +223,31 @@ const StudentProfileHeader = ({
         : 0;
 
     return (
-        <Card className="overflow-hidden border-none shadow-xl bg-gradient-to-br from-card via-card to-muted/20 relative group">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
-                <BookOpen className="h-32 w-32 -rotate-12" />
-            </div>
-            <CardContent className="p-8 md:p-10">
-                <div className="flex flex-col lg:flex-row items-center gap-10">
-                    <div className="flex items-center gap-8 flex-1 w-full">
-                        <div className="h-24 w-24 rounded-[2rem] bg-primary/10 flex items-center justify-center text-primary text-4xl font-black shadow-2xl border-4 border-background ring-2 ring-primary/20">
+        <Card className="overflow-hidden border border-border/60 shadow-sm bg-gradient-to-r from-card via-card to-muted/10 relative">
+            <CardContent className="p-5 md:p-6">
+                <div className="flex flex-col lg:flex-row items-center gap-6 justify-between">
+                    <div className="flex items-center gap-5 flex-1 w-full">
+                        <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary text-2xl font-black shrink-0 border border-primary/20 shadow-sm">
                             {studentSummary.studentName.charAt(0)}
                         </div>
-                        <div className="space-y-3">
-                            <h1 className="text-4xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60">
+                        <div className="space-y-1.5 min-w-0">
+                            <h1 className="text-2xl font-bold tracking-tight text-foreground truncate">
                                 {studentSummary.studentName}
                             </h1>
-                            <div className="flex flex-wrap items-center gap-4 text-muted-foreground font-semibold">
-                                <Badge variant="secondary" className="px-3 py-1 bg-primary/5 text-primary border-primary/20 text-xs rounded-lg">
-                                    Lớp: {studentSummary.grade || '—'}
-                                </Badge>
-                                <span className="text-sm flex items-center gap-2 bg-muted/50 px-3 py-1 rounded-lg">
-                                    <FileText className="h-4 w-4 text-primary/60" /> {totalAssigned} Tài liệu & Bài tập
+                            <div className="flex flex-wrap items-center gap-3 text-muted-foreground font-medium text-xs">
+                                {/* FB-11/FB-15: only render the class badge when there is actual data */}
+                                {studentSummary.grade && (
+                                    <Badge variant="secondary" className="px-2.5 py-0.5 bg-primary/5 text-primary border-primary/20 text-xs rounded-md font-semibold">
+                                        {studentSummary.grade}
+                                    </Badge>
+                                )}
+                                <span className="flex items-center gap-1.5 bg-muted/60 px-2.5 py-1 rounded-md text-xs font-medium">
+                                    <FileText className="h-3.5 w-3.5 text-primary/70" /> {totalAssigned} Bài tập &amp; Tài liệu
                                 </span>
                             </div>
                         </div>
                     </div>
-                    <div className="flex items-center gap-12 w-full lg:w-auto overflow-x-auto pb-4 lg:pb-0 scrollbar-hide">
+                    <div className="flex items-center gap-6 md:gap-8 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 scrollbar-hide shrink-0">
                         <StatItem iconColor="bg-orange-500" value={pendingCount} label="Chờ làm" />
                         <StatItem iconColor="bg-sky-500" value={inProgressCount} label="Đang làm" />
                         {autoCollectedCount > 0 && (
@@ -262,32 +263,40 @@ const StudentProfileHeader = ({
 };
 
 const StatItem = ({ iconColor, value, label }: { iconColor: string; value: number; label: string }) => (
-    <div className="text-center space-y-2 min-w-[70px]">
-        <div className="flex items-center gap-2 justify-center">
-            <div className={cn("h-2.5 w-2.5 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)]", iconColor)} />
-            <span className="text-3xl font-black tabular-nums">{value}</span>
+    <div className="text-center space-y-1 min-w-[60px]">
+        <div className="flex items-center gap-1.5 justify-center">
+            <div className={cn("h-2 w-2 rounded-full", iconColor)} />
+            <span className={cn("text-2xl font-extrabold tabular-nums", value === 0 ? "text-muted-foreground/60" : "text-foreground")}>{value}</span>
         </div>
-        <p className="text-[10px] uppercase tracking-[0.15em] font-black text-muted-foreground/60">{label}</p>
+        <p className="text-xs font-semibold text-muted-foreground">{label}</p>
     </div>
 );
 
-const ProgressRing = ({ percentage }: { percentage: number }) => (
-    <div className="relative h-20 w-20 flex items-center justify-center shrink-0">
-        <svg className="h-full w-full -rotate-90 transform">
-            <circle cx="40" cy="40" r="34" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-muted/10" />
-            <motion.circle
-                cx="40" cy="40" r="34" stroke="currentColor" strokeWidth="6" fill="transparent"
-                strokeDasharray={2 * Math.PI * 34}
-                initial={{ strokeDashoffset: 2 * Math.PI * 34 }}
-                animate={{ strokeDashoffset: 2 * Math.PI * 34 * (1 - percentage / 100) }}
-                transition={{ duration: 1.5, ease: "circOut" }}
-                className="text-primary drop-shadow-[0_0_8px_rgba(var(--primary),0.4)]"
-                strokeLinecap="round"
-            />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-            <span className="text-sm font-black leading-none">{percentage}%</span>
-            <span className="text-[7px] text-muted-foreground font-black uppercase tracking-tighter mt-1">Đã làm</span>
+const ProgressRing = ({ percentage }: { percentage: number }) => {
+    // FB-10: semantic ring colour driven by completion rate
+    const pres = getScorePresentation(percentage);
+    const strokeColor = percentage >= 80 ? 'text-emerald-500'
+        : percentage >= 50 ? 'text-amber-500'
+        : 'text-red-500';
+    const circumference = 2 * Math.PI * 30;
+    return (
+        <div className="relative h-16 w-16 flex items-center justify-center shrink-0">
+            <svg className="h-full w-full -rotate-90 transform">
+                <circle cx="32" cy="32" r="30" stroke="currentColor" strokeWidth="5" fill="transparent" className="text-muted/30" />
+                <motion.circle
+                    cx="32" cy="32" r="30" stroke="currentColor" strokeWidth="5" fill="transparent"
+                    strokeDasharray={circumference}
+                    initial={{ strokeDashoffset: circumference }}
+                    animate={{ strokeDashoffset: circumference * (1 - percentage / 100) }}
+                    transition={{ duration: 1.2, ease: "circOut" }}
+                    className={cn(strokeColor, 'drop-shadow-sm')}
+                    strokeLinecap="round"
+                />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <span className={cn('text-xs font-extrabold leading-none', pres.scoreClassName)}>{percentage}%</span>
+                <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-tighter mt-0.5">Đã làm</span>
+            </div>
         </div>
-    </div>
-);
+    );
+};

@@ -483,7 +483,10 @@ public class SubmissionServiceImpl implements SubmissionService {
             if (type == QuestionType.MCQ) {
                 // MCQ points are set by AutoGradingService — read-only here, never overwrite
                 double pts = Optional.ofNullable(a.getPoints()).orElse(0.0);
-                if (a.getPoints() != null) {
+                // Count only answers that actually carry earned points (> 0).
+                // @Builder.Default initializes `points` to 0.0, so both wrong answers and
+                // answers that were never scored are indistinguishable via `!= null` alone.
+                if (a.getPoints() != null && a.getPoints() > 0.0) {
                     mcqAnswersWithPointData++;
                 }
                 mcq += pts;
@@ -507,9 +510,24 @@ public class SubmissionServiceImpl implements SubmissionService {
             mcq = previousMcq;
         }
 
+        // Fallback: no answer carries earned MCQ points (all 0.0 / unscored) while the
+        // submission already has a positive MCQ score — happens when AutoGradingService
+        // set `mcqScore` on the Submission but the per-answer `points` values were not
+        // persisted (e.g. DB flush order issue or answers replaced without re-grading).
         if (mappedMcqAnswers > 0 && mcqAnswersWithPointData == 0 && previousMcq > 0) {
-            log.warn("MCQ answers in submission {} have no point data. Preserving previous MCQ score {}",
+            log.warn("MCQ answers in submission {} carry no scored points. Preserving previous MCQ score {}",
                 s.getId(), previousMcq);
+            mcq = previousMcq;
+        }
+
+        // Safety guard: teacher manual grading has NO authority over MCQ scores.
+        // AutoGradingService is the sole owner of mcqScore. If recalculation somehow
+        // produces a lower value than what was already persisted (e.g. due to 0.0 defaults,
+        // lazy-load mismatches, or partial flush), preserve the stored score.
+        if (mcq < previousMcq) {
+            log.warn("Recalculated MCQ score ({}) is lower than stored MCQ score ({}) for submission {}. "
+                    + "Preserving stored value to prevent data loss.",
+                    mcq, previousMcq, s.getId());
             mcq = previousMcq;
         }
 

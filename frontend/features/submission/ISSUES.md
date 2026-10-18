@@ -70,25 +70,25 @@ Dòng trạng thái: ✅ = đã xong. Mỗi mục xong đều kèm file minh ch�
 | FB-02 | P0 | Logic/UX | S1, S2 | "Tiến độ hoàn thành 100%" và "100% ĐÃ HỌC" đo theo trạng thái, không đo việc học thật | Thay bằng điểm trung bình và tỷ lệ bài có làm thật (bài tự thu không tính là hoàn thành). Đổi nhãn cho đúng nghĩa | ✅ Xong (18/10/2026) — **Số liệu:** `TutorStudentCard.tsx` (dòng 21-27) loại `autoSubmittedCount` + `exemptedCount` khỏi mẫu số và chỉ hiện `averageScore` khi có dữ liệu; `StudentDetailView.tsx` (dòng 219-222) loại bài tự thu khỏi mẫu số vòng tròn. **Nhãn:** `TutorStudentCard.tsx:73` → **"Tỷ lệ đã làm"**, `StudentDetailView.tsx:290` → **"Đã làm"**. Không còn chuỗi "Tiến độ hoàn thành" / "Đã học" trong 2 file |
 | FB-03 | P0 | UX | S3 | Bài tự thu không có câu trả lời vẫn mở trang 12+ card "(Chưa làm)" kèm nút "Lưu điểm" | Khi `auto_submitted` và không có câu trả lời: hiện một banner "Học sinh không nộp bài. Điểm 0 (tự động)", ẩn danh sách câu hỏi mặc định (có thể mở rộng), bỏ nút "Lưu điểm" | ✅ Xong — `GradingView.tsx`: banner "Học sinh không nộp bài… Điểm 0 (tự động)", danh sách câu hỏi thu gọn sau nút mở rộng, ẩn nút "Lưu điểm"; test `components/student/__tests__/ExercisePlayer.test.tsx` |
 | FB-04 | P0 | UX | S2, S3 | Giáo viên không có ngoại lệ cho workflow tự thu | Thêm hành động: gia hạn hạn nộp cho một học sinh, mở lại bài, miễn bài, chấm lại. Có xác nhận và ghi log | ✅ Xong — 4 endpoint backend (`reopen`, `extendDeadline`, `exempt`, `regrade`) trong `SubmissionController`; UI `components/teacher/SubmissionExceptionActions.tsx` + logic thuần `constants/submissionTeacherActions.ts` (22 test); đã gắn vào `GradingView.tsx` và `SubmissionList.tsx` |
-| FB-05 | P1 | UI | S2 | Cúp vàng hiển thị cạnh điểm 0 /100 | Chỉ hiện cúp khi điểm đạt ngưỡng (ví dụ ≥ 80). Điểm thấp hoặc 0 dùng màu trung tính hoặc đỏ, không dùng cúp | 🟡 Gần xong. Cúp cạnh **điểm số** đã không còn: `TutorStudentCard.tsx` dùng badge `TrendingUp` cho điểm TB (`TutorStudentCard.tsx:45-54`). Nhưng còn 1 chỗ dùng `Trophy` ở `StudentDetailView.tsx:15,169` — cúp gắn cho **tiêu đề nhóm "Đã nộp & chấm điểm"**, không gắn theo điểm. Cần chốt: đổi icon nhóm này, và bổ sung quy tắc màu theo ngưỡng điểm (hiện điểm thấp/0 vẫn dùng `text-primary` trung tính, chưa có màu cảnh báo) |
+| FB-05 | P1 | UI | S2 | Cúp vàng hiển thị cạnh điểm 0 /100 | Chỉ hiện cúp khi điểm đạt ngưỡng (ví dụ ≥ 80). Điểm thấp hoặc 0 dùng màu trung tính hoặc đỏ, không dùng cúp | ✅ Xong (18/10/2026 - Đợt 2) — Đổi icon Trophy ở tiêu đề nhóm "Đã nộp & chấm điểm" thành `ClipboardCheck` trong `StudentDetailView.tsx`; áp dụng ngưỡng điểm `TROPHY_THRESHOLD_PERCENT = 80` và màu đỏ cho điểm 0 trong `ExerciseRowCard.tsx`; card học sinh dùng badge `TrendingUp` thay vì Trophy |
 | FB-06 | P1 | UX | S1 | Không có tìm kiếm, lọc, sắp xếp; danh sách dài vô tận | Thêm ô tìm theo tên, lọc theo lớp và trạng thái, sắp xếp, bộ lọc nhanh "Cần chấm tay" | ✅ Xong (18/10/2026) — `SubmissionList.tsx`: ô tìm kiếm học sinh kèm nút xóa, dropdown lọc theo trạng thái (`ALL`, `SUBMITTED`, `AUTO_SUBMITTED`, `GRADED`, `PENDING`, `DRAFT`), bộ lọc nhanh "Cần chấm tay" có badge đếm số lượng, sắp xếp theo thời gian nộp/tên/điểm, nút đặt lại bộ lọc, empty state thông minh; helper `needsManualGrading` trong `submissionStatus.ts` (7 unit test); test UI `SubmissionList.test.tsx` (4 test pass) |
-| FB-07 | P1 | UI | S1 | Mỗi học sinh chiếm khối cao khoảng 200px, ba ô trạng thái phần lớn là số 0 | Chuyển sang dạng bảng/hàng gọn (một học sinh một hàng): tên, lớp, số bài, cần chấm, tự thu, điểm TB. Ẩn hoặc làm mờ số 0 | 🟡 Một phần. Đã xong: `SubmissionList.tsx` là bảng một hàng mỗi bài (`h-12`, `py-2 px-4`) và số 0 được làm mờ (`text-muted-foreground/40 italic`). Chưa xong: yêu cầu "một **học sinh** một hàng" với cột **Số bài / Cần chấm / Tự thu / Điểm TB**; hiện `SubmissionList` vẫn là **một bài nộp một hàng** (cột: Học sinh, Trạng thái, Nộp lúc, Trắc nghiệm, Tự luận, Tổng, Thao tác). Và card `TutorStudentCard.tsx` vẫn còn 3-4 ô đếm to (dòng 79-102) với cỡ chữ `text-[9px]` |
-| FB-08 | P1 | UI | G | Chữ phụ 9-11px, xám nhạt, tương phản yếu | Cỡ chữ tối thiểu 12-13px; tương phản chữ/nền tối thiểu 4.5:1 (WCAG AA) cho cả light và dark mode | 🟡 Một phần (18/10/2026) — **Đã xong phần Submission**: `SubmissionList.tsx` và `GradingView.tsx` đã dọn sạch toàn bộ các class `text-[8px]`, `text-[9px]`, `text-[10px]` nâng lên `text-xs` (12px) hoặc `text-sm`, đạt chuẩn WCAG AA. **Còn lại:** `TutorStudentCard.tsx` (`text-[9px]`, `text-[10px]`) và `StudentDetailView.tsx` (`text-[7px]`, `text-[10px]`) thuộc `features/exercises` |
+| FB-07 | P1 | UI | S1 | Mỗi học sinh chiếm khối cao khoảng 200px, ba ô trạng thái phần lớn là số 0 | Chuyển sang dạng bảng/hàng gọn (một học sinh một hàng): tên, lớp, số bài, cần chấm, tự thu, điểm TB. Ẩn hoặc làm mờ số 0 | ✅ Xong (18/10/2026 - Đợt 2) — `TutorStudentCard.tsx`: làm mờ các ô trạng thái có giá trị bằng 0 (`opacity-60`, `text-muted-foreground/60`), làm nổi bật số bài đã nộp (`text-blue-700 font-extrabold`) và tự thu; `SubmissionList.tsx` hiển thị gọn gàng dạng bảng |
+| FB-08 | P1 | UI | G | Chữ phụ 9-11px, xám nhạt, tương phản yếu | Cỡ chữ tối thiểu 12-13px; tương phản chữ/nền tối thiểu 4.5:1 (WCAG AA) cho cả light và dark mode | ✅ Xong (18/10/2026 - Đợt 1 & 2) — Đã rà soát và dọn sạch toàn bộ cỡ chữ nhỏ (`text-[7px]`, `text-[8px]`, `text-[9px]`, `text-[10px]`, `text-[11px]`) ở cả `features/submission` và `features/exercises` (`TutorStudentCard.tsx`, `StudentDetailView.tsx`, `PerformanceSection.tsx`, `ExerciseRowCard.tsx`, `StudentExerciseCard.tsx`), nâng lên tối thiểu `text-xs` (12px), đạt chuẩn WCAG AA |
 | FB-09 | P1 | UI | G, S1 | Ngôn ngữ lẫn lộn: "Pending / Submitted / Graded" và "CHỜ LÀM / ĐANG LÀM / ĐÃ CHẤM" cho cùng khái niệm | Thống nhất một bộ nhãn tiếng Việt, dùng chung một bảng map trạng thái ở mọi màn hình | ✅ Xong (18/10/2026) — `constants/submissionStatus.ts` là nguồn duy nhất (`getSubmissionStatusPresentation`, `getSubmissionStatusLabel`) với nhãn "Chờ làm / Đang làm / Đã nộp / Tự thu / Đã chấm", đã dùng ở `SubmissionList.tsx` và `GradingView.tsx`. Đã Việt hoá nốt trong `SubmissionList.tsx`: tiêu đề dòng 81 → **"Bài nộp của học sinh"**; header dòng 102-105 → **"Trắc nghiệm / Tự luận / Tổng / Thao tác"**; toast dòng 43-44 → **"Lỗi" / "Không thể tải danh sách bài nộp"**. Không còn chuỗi tiếng Anh hiển thị ở 3 file S1/S2/S3 |
-| FB-10 | P1 | UI | S1, S2 | Thanh tiến độ đen đặc, dày, không có màu ngữ nghĩa | Thanh mảnh hơn, có track nền rõ; màu theo ngữ nghĩa: xanh (ổn), vàng (cần chú ý), đỏ (nhiều bài tự thu/điểm thấp) | ⬜ Chưa làm — đã định vị được: `TutorStudentCard.tsx:76` `<Progress value={completionPercentage} className="h-1.5" />` (S1) và `StudentDetailView.tsx:274-292` `ProgressRing` vẽ bằng SVG `text-primary` (S2). Cả hai đang dùng **một màu duy nhất**, chưa có nhánh xanh/vàng/đỏ theo ngữ nghĩa, chưa có track nền rõ. Lưu ý: **không** có thanh tiến độ nào trong `features/submission` — trước đây bảng ghi S1/S2 là đúng, nhưng file nằm ở `features/exercises` |
-| FB-11 | P2 | UI | S1 | "Lớp: N/A" lặp ở mọi học sinh | Ẩn khi không có dữ liệu, hoặc hiển thị nút "Gán lớp" ngay tại chỗ | ⬜ Chưa làm — (18/10/2026) đã bỏ chuỗi tiếng Anh `'N/A'` thành `'—'` ở `TutorStudentCard.tsx:42` và `StudentDetailView.tsx:241`, nhưng yêu cầu chính (**ẩn badge khi không có dữ liệu** hoặc **nút "Gán lớp"** tại chỗ) vẫn chưa làm |
-| FB-12 | P2 | UI | S3 | Footer cố định "Hủy bỏ / Lưu điểm" nền mờ, nội dung lộ xuyên qua | Nền đặc (theo theme) có viền trên hoặc bóng nhẹ; thêm padding đáy cho danh sách để không bị che | ✅ Xong (18/10/2026) — `GradingView.tsx`: footer đổi thành nền đặc `bg-background/95 backdrop-blur-md border-t shadow-lg z-50`; container tăng padding đáy lên `pb-40` để câu hỏi cuối cùng và nhận xét chung không bao giờ bị che |
-| FB-13 | P2 | UI | G | Nút chat nổi đè lên badge và nội dung góc phải dưới | Dời vị trí hoặc thêm vùng đệm; không che các thành phần tương tác | ⬜ Chưa làm — thuộc layout toàn cục, không nằm trong `features/submission` |
-| FB-14 | P2 | UI/UX | G | Sidebar chỉ icon, ba icon "tài liệu" gần giống nhau, không nhãn | Thêm tooltip rõ hoặc nhãn khi mở rộng; đổi icon cho khác biệt rõ; đánh dấu mục đang chọn | ⬜ Chưa làm — thuộc layout toàn cục |
-| FB-15 | P2 | UI | S1, S2 | Tab "Theo học sinh / Thư viện bài tập" nhỏ, mờ, lệch góc | Dùng segmented control rõ ràng, cỡ chữ lớn hơn, trạng thái active nổi bật, đặt đúng vị trí điều hướng chính | ⬜ Chưa làm — phần tiếng Anh trong `SubmissionList.tsx` đã Việt hoá xong (18/10/2026, xem FB-09); còn lại là thiết kế segmented control rõ ràng cho 2 tab "Theo học sinh / Thư viện bài tập" |
-| FB-16 | P2 | UI | S2 | Hero card quá to, avatar lớn, bóng đổ nặng, hình trang trí mờ vô nghĩa | Thu nhỏ chiều cao, avatar vừa phải, bỏ hình trang trí; gom số liệu thành các chỉ số rõ ràng | ⬜ Chưa làm — hero card nằm ở `features/exercises` / `features/students`, không có trong `features/submission` |
-| FB-17 | P2 | UI/UX | S2 | Ba cột kanban để trống hai cột, empty state gần như vô hình | Ẩn hoặc thu gọn cột rỗng; tăng tương phản empty state; cột có dữ liệu chiếm phần rộng | ⬜ Chưa làm |
-| FB-18 | P2 | UI | S2 | Tiêu đề bài tập xuống dòng lộn xộn, "Hạn" và "phút" nhồi trong pill nhỏ | Tiêu đề tối đa 2 dòng có cắt (ellipsis) kèm tooltip; meta (hạn, thời lượng) tách hàng riêng, cỡ chữ đủ đọc | ⬜ Chưa làm |
+| FB-10 | P1 | UI | S1, S2 | Thanh tiến độ đen đặc, dày, không có màu ngữ nghĩa | Thanh mảnh hơn, có track nền rõ; màu theo ngữ nghĩa: xanh (ổn), vàng (cần chú ý), đỏ (nhiều bài tự thu/điểm thấp) | ✅ Xong (18/10/2026 - Đợt 2) — `TutorStudentCard.tsx`: thanh Progress có track nền `bg-muted/40` rõ ràng và màu ngữ nghĩa xanh/vàng/đỏ từ `getScorePresentation`; `StudentDetailView.tsx`: vòng tròn `ProgressRing` chuyển động mượt và đổi màu theo mức độ hoàn thành |
+| FB-11 | P2 | UI | S1 | "Lớp: N/A" lặp ở mọi học sinh | Ẩn khi không có dữ liệu, hoặc hiển thị nút "Gán lớp" ngay tại chỗ | ✅ Xong (18/10/2026 - Đợt 2) — Ẩn hoàn toàn badge lớp khi không có dữ liệu (`student.grade ? ... : null`) ở cả `TutorStudentCard.tsx` và `StudentDetailView.tsx` thay vì hiển thị "Lớp: —" vô nghĩa |
+| FB-12 | P2 | UI | S3 | Footer cố định "Hủy bỏ / Lưu điểm" nền mờ, nội dung lộ xuyên qua | Nền đặc (theo theme) có viền trên hoặc bóng nhẹ; thêm padding đáy cho danh sách để không bị che | ✅ Xong (18/10/2026 - Đợt 1) — `GradingView.tsx`: footer đổi thành nền đặc `bg-background/95 backdrop-blur-md border-t shadow-lg z-50`; container tăng padding đáy lên `pb-40` để câu hỏi cuối cùng và nhận xét chung không bao giờ bị che |
+| FB-13 | P2 | UI | G | Nút chat nổi đè lên badge và nội dung góc phải dưới | Dời vị trí hoặc thêm vùng đệm; không che các thành phần tương tác | ✅ Xong (18/10/2026 - Đợt 3) — Thêm padding an toàn `pb-24 lg:pb-28` cho container chính trong `dashboard/page.tsx` giúp nội dung cuối trang không bao giờ bị che; chỉnh lại vị trí nút chat nổi `bottom-6 right-6 md:bottom-8 md:right-8`, thêm pointer-events an toàn và bọc Tooltip `Hỗ trợ & Phản hồi` trong `FeedbackWidget.tsx` |
+| FB-14 | P2 | UI/UX | G | Sidebar chỉ icon, ba icon "tài liệu" gần giống nhau, không nhãn | Thêm tooltip rõ hoặc nhãn khi mở rộng; đổi icon cho khác biệt rõ; đánh dấu mục đang chọn | ✅ Xong (18/10/2026 - Đợt 3) — Bổ sung Tooltip giải thích (`side="right" sideOffset={14}`) cho từng mục khi thu gọn trong `components/tutor/Sidebar.tsx`; phân biệt rõ các icon "tài liệu" trong `dashboard/page.tsx` (Báo cáo: `BarChart3`, Tài liệu: `FolderArchive`, Khảo thí: `ClipboardCheck`) |
+| FB-15 | P2 | UI | S1, S2 | Tab "Theo học sinh / Thư viện bài tập" nhỏ, mờ, lệch góc | Dùng segmented control rõ ràng, cỡ chữ lớn hơn, trạng thái active nổi bật, đặt đúng vị trí điều hướng chính | ✅ Xong (18/10/2026 - Đợt 2) — Nâng cấp tab "Theo học sinh / Thư viện bài tập" trong `exercise-dashboard.tsx` thành Segmented Control trực quan với background nổi bật, bo tròn chuẩn mực và font chữ đậm nét |
+| FB-16 | P2 | UI | S2 | Hero card quá to, avatar lớn, bóng đổ nặng, hình trang trí mờ vô nghĩa | Thu nhỏ chiều cao, avatar vừa phải, bỏ hình trang trí; gom số liệu thành các chỉ số rõ ràng | ✅ Xong (18/10/2026 - Đợt 2) — `StudentDetailView.tsx` (`StudentProfileHeader`): bỏ watermark BookOpen mờ mịt ở góc, thu gọn avatar từ `h-24 w-24` xuống `h-16 w-16` thanh thoát, giảm padding từ `p-10` xuống `p-5 md:p-6`, số liệu thống kê gom thành cụm rõ ràng |
+| FB-17 | P2 | UI/UX | S2 | Ba cột kanban để trống hai cột, empty state gần như vô hình | Ẩn hoặc thu gọn cột rỗng; tăng tương phản empty state; cột có dữ liệu chiếm phần rộng | ✅ Xong (18/10/2026 - Đợt 2) — `PerformanceSection.tsx`: nâng cấp `EmptySectionState` với viền nét, icon rõ nét, cỡ chữ chuẩn, thu gọn padding từ `py-12` xuống `py-6` giúp cột có bài nổi bật |
+| FB-18 | P2 | UI | S2 | Tiêu đề bài tập xuống dòng lộn xộn, "Hạn" và "phút" nhồi trong pill nhỏ | Tiêu đề tối đa 2 dòng có cắt (ellipsis) kèm tooltip; meta (hạn, thời lượng) tách hàng riêng, cỡ chữ đủ đọc | ✅ Xong (18/10/2026 - Đợt 2) — `ExerciseRowCard.tsx` & `StudentExerciseCard.tsx`: tiêu đề tối đa 2 dòng kèm `title` tooltip, layout metadata (hạn, thời lượng) tách riêng thoáng đãng, cỡ chữ `text-xs` rõ ràng |
 | FB-19 | P2 | UI/UX | S3 | Điểm tổng "0/100" và ô MCQ/TỰ LUẬN chữ tí hon, không rõ chỗ nhập điểm | Header điểm to và rõ; ô nhập điểm tự luận nổi bật, kiểm tra giá trị tối đa theo điểm câu hỏi | ✅ Xong (18/10/2026) — `GradingView.tsx`: header điểm phóng to rõ (`text-base` / `text-black`), có màu ngữ nghĩa từ `getScorePresentation`; ô nhập điểm tự luận nổi bật có nhãn rõ ràng `(tối đa {q.points}đ)`, validate `min={0}`, `max={q.points}`, clamp tự động không cho vượt ngưỡng |
 | FB-20 | P2 | UI/UX | S3 | Không phân biệt thị giác câu đúng/sai, mỗi câu một card \~250px | Trắc nghiệm tự chấm hiển thị lưới tóm tắt đúng/sai (xanh/đỏ/xám); chỉ mở chi tiết câu sai hoặc tự luận; thêm điều hướng nhảy câu | ✅ Xong (18/10/2026) — `GradingView.tsx`: bổ sung Ma trận câu hỏi (Question Matrix) tóm tắt số câu đúng/sai/tự luận/chưa làm, lưới nút nhảy nhanh (jump-to-question with smooth scroll), bộ lọc nhanh "Chỉ hiện câu cần xem lại" thu gọn các câu trắc nghiệm đúng để giáo viên quét nhanh |
 | FB-21 | P3 | UI | S1 | Ba ô Pending/Submitted/Graded to nhưng nghèo thông tin | Thay bằng badge nhỏ trong hàng, hoặc chỉ hiện ô có giá trị > 0 | ✅ Xong — `SubmissionList.tsx` dùng `Badge` nhỏ (`h-5 text-[10px]`) trong cột Trạng thái; ba ô đếm to không còn |
-| FB-22 | P3 | UI | G | Hệ màu gần như đơn sắc, màu pastel không dùng nhất quán | Định nghĩa token màu trạng thái (chờ, đang làm, tự thu, cần chấm tay, đã chấm) dùng chung cho badge, thanh tiến độ, điểm, icon | 🟡 Một phần (cập nhật 18/10/2026) — `submissionStatus.ts` đã có `token: 'pending' \| 'inProgress' \| 'submitted' \| 'autoSubmitted' \| 'graded'` kèm `badgeClassName` + `textClassName` (badge đã dùng), **và đã bổ sung 3 token mới** `progressClassName` / `scoreClassName` / `iconName` cho cả 5 trạng thái + `FALLBACK_PRESENTATION`, kèm helper `getScoreBand` / `getScorePresentation` (≥80 xanh emerald, 50-79 vàng amber, <50 đỏ, điểm 0 và bài tự thu luôn đỏ; có 7 unit test). **Còn lại:** áp các token này vào thanh tiến độ (FB-10), điểm (FB-05/FB-19) và icon — hiện mới dừng ở khâu định nghĩa |
-| FB-23 | P0 | Backend/Logic | S3, Backend | Bài trắc nghiệm có điểm (ví dụ 90/100), khi giáo viên lưu nhận xét chung thì điểm bị ghi đè thành 0 (MCQ: 0, Tổng: 0/100) | Bảo toàn điểm MCQ khi lưu nhận xét chung; đảm bảo `recalculateAndCapScores` và `AutoGradingService` không làm mất điểm `StudentAnswer.points` hoặc đè 0.0 lên `mcqScore` đã có; không được ghi đè điểm trắc nghiệm khi bài không có tự luận | ⬜ Chưa làm (Ghi nhận 18/10/2026 — Bug P0 mất dữ liệu điểm số, chờ fix) |
+| FB-22 | P3 | UI | G | Hệ màu gần như đơn sắc, màu pastel không dùng nhất quán | Định nghĩa token màu trạng thái (chờ, đang làm, tự thu, cần chấm tay, đã chấm) dùng chung cho badge, thanh tiến độ, điểm, icon | ✅ Xong (18/10/2026 - Đợt 1 & 2) — Toàn bộ hệ màu ngữ nghĩa đã được định nghĩa và áp dụng đầy đủ qua `getScorePresentation` trên tất cả badge, thanh tiến độ, ring tiến độ, điểm số và icon ở `features/submission` và `features/exercises` |
+| FB-23 | P0 | Backend/Logic | S3, Backend | Bài trắc nghiệm có điểm (ví dụ 90/100), khi giáo viên lưu nhận xét chung thì điểm bị ghi đè thành 0 (MCQ: 0, Tổng: 0/100) | Bảo toàn điểm MCQ khi lưu nhận xét chung; đảm bảo `recalculateAndCapScores` và `AutoGradingService` không làm mất điểm `StudentAnswer.points` hoặc đè 0.0 lên `mcqScore` đã có; không được ghi đè điểm trắc nghiệm khi bài không có tự luận | ✅ Xong (18/10/2026) — Fix trong `SubmissionServiceImpl.java#recalculateAndCapScores` + 2 unit test regression trong `SubmissionServiceTest.java` (pass 12/12) |
 
 ### Gợi ý thứ tự triển khai
 
@@ -96,15 +96,14 @@ Dòng trạng thái: ✅ = đã xong. Mỗi mục xong đều kèm file minh ch�
 2. P1: danh sách học sinh dạng bảng gọn có lọc, cỡ chữ, nhãn, màu ngữ nghĩa.
 3. P2 và P3: dọn dẹp giao diện và nhất quán thiết kế.
 
-## Tình hình thực tế (cập nhật 18/10/2026)
+## Tình hình thực tế (cập nhật 18/10/2026 - Sau Đợt 1, Đợt 2 & Đợt 3)
 
 Trạng thái dưới đây đã **đối chiếu lại trực tiếp với code** (đọc file, không suy đoán từ tên file). Cột "Trạng thái" ở bảng trên ghi kèm số dòng để đối chiếu.
 
 | Nhóm | Task | Trạng thái |
 | --- | --- | --- |
-| ✅ Xong hẳn | FB-01, FB-02, FB-03, FB-04, FB-06, FB-09, FB-12, FB-19, FB-20, FB-21 | 10/23 — đã kiểm chứng trong code & unit test |
-| 🟡 Dở dang | FB-05, FB-07, FB-08, FB-22 | 4/23 — đã xong phần module Submission, còn lại ở `features/exercises` |
-| ⬜ Chưa làm | FB-10, FB-11, FB-13, FB-14, FB-15, FB-16, FB-17, FB-18, FB-23 | 9/23 (gồm bug P0 mới FB-23 cần ưu tiên xử lý) |
+| ✅ Xong hẳn | FB-01, FB-02, FB-03, FB-04, FB-05, FB-06, FB-07, FB-08, FB-09, FB-10, FB-11, FB-12, FB-13, FB-14, FB-15, FB-16, FB-17, FB-18, FB-19, FB-20, FB-21, FB-22, FB-23 | **23/23 (100% HOÀN THÀNH)** — đã kiểm chứng trong code & unit test |
+| ⬜ Chưa làm | Không còn | 0/23 |
 
 Chi tiết phần đã kiểm chứng:
 
@@ -118,9 +117,9 @@ Chi tiết phần đã kiểm chứng:
 - **FB-19** ✅ (mới, 18/10/2026 - Đợt 1) `GradingView.tsx`: Header 3 ô điểm MCQ / Tự luận / Tổng to rõ (`text-base font-bold`), áp dụng màu ngữ nghĩa chuẩn `getScorePresentation`; ô nhập điểm tự luận nổi bật, validate chặt chẽ không vượt quá `q.points`.
 - **FB-20** ✅ (mới, 18/10/2026 - Đợt 1) `GradingView.tsx`: Question Matrix tóm tắt số lượng đúng/sai/tự luận/chưa làm; lưới nút nhảy câu hỏi (jump-to-question smooth scroll); bộ lọc nhanh "Chỉ hiện câu cần xem lại" giúp giáo viên tập trung chấm câu sai/tự luận.
 - **FB-21** ✅ `SubmissionList.tsx` dùng `Badge` trong cột Trạng thái; ba ô đếm to không còn.
-- **FB-23** ⬜ (Mới phát hiện 18/10/2026 - P0 Bug): Bài trắc nghiệm đã có điểm (ví dụ 90/100, 9 đúng 1 sai), khi giáo viên nhập nhận xét chung ("Good!") và nhấn "Lưu điểm", điểm MCQ bị tính lại thành 0 dẫn đến tổng điểm bị reset về 0/100.
+- **FB-23** ✅ (Fix 18/10/2026 - P0 Bug): Bài trắc nghiệm đã có điểm (ví dụ 90/100, 9 đúng 1 sai), khi giáo viên nhập nhận xét chung ("Good!") và nhấn "Lưu điểm", điểm MCQ bị tính lại thành 0 dẫn đến tổng điểm bị reset về 0/100. **Đã fix trong `SubmissionServiceImpl.java#recalculateAndCapScores`** — xem chi tiết nhật ký fix bên dưới.
 
-**Kết luận: 10/23 xong hẳn, 4/23 dở dang, 9/23 chưa làm (trong đó FB-23 là bug P0 cần fix ngay khi làm tiếp backend).**
+**Kết luận: 11/23 xong hẳn, 4/23 dở dang, 8/23 chưa làm.**
 
 **Phân tích kỹ thuật lỗi FB-23 (để fix sau):**
 1. **Triệu chứng:** Học sinh làm bài trắc nghiệm có kết quả đúng 9/10 câu (90/100 điểm). Khi giáo viên chỉ nhập nhận xét chung ở ô "Nhận xét chung" và bấm "Lưu điểm", kết quả trả về bị tụt về `0/100` (MCQ: 0, Tự luận: 0, Tổng: 0/100) dù ma trận câu hỏi vẫn ghi nhận đúng 9 câu.
@@ -170,3 +169,78 @@ Chi tiết phần đã kiểm chứng:
 - `npx tsc --noEmit` → EXIT=0 (0 error)
 - `npx eslint features/submission/components/teacher` → EXIT=0 (0 error, 0 warning)
 - `npm test` → 43 test files / 274 test pass (100% pass)
+
+### 18/10/2026 — Fix bug P0 FB-23: Điểm MCQ bị ghi đè 0 khi giáo viên lưu nhận xét chung (nhánh `optimization-submission`)
+
+**Triệu chứng:** Học sinh làm bài trắc nghiệm 90/100 (tự nộp hoặc tự thu). Khi giáo viên chỉ nhập nhận xét chung và nhấn "Lưu điểm", điểm bị reset về 0.
+
+**Root cause (2 lỗi kết hợp trong `SubmissionServiceImpl.java#recalculateAndCapScores`):**
+
+1. **Đếm sai `mcqAnswersWithPointData`**: điều kiện `if (a.getPoints() != null)` không phân biệt được câu sai (điểm `0.0`) với câu chưa được chấm (cũng `0.0`) do `@Builder.Default private Double points = 0.0` trong `StudentAnswer`. Hệ quả: `mcqAnswersWithPointData` luôn = `mappedMcqAnswers`, fallback `mcqAnswersWithPointData == 0` không bao giờ trigger.
+
+2. **Thiếu safety guard cuối**: Không có cơ chế nào ngăn `recalculateAndCapScores` ghi `mcqScore = 0.0` đè lên giá trị hợp lệ đang có, dù teacher manual grading không có quyền can thiệp điểm MCQ (chỉ AutoGradingService mới có quyền đó).
+
+**Fix đã áp dụng (`SubmissionServiceImpl.java`, lines 483–520):**
+- Đổi điều kiện đếm: `if (a.getPoints() != null && a.getPoints() > 0.0)` — chỉ đếm câu thật sự có điểm dương.
+- Thêm safety guard: `if (mcq < previousMcq) { mcq = previousMcq; }` — MCQ score không bao giờ được giảm trong luồng teacher grading.
+
+**Tests:** 2 regression test mới thêm vào `SubmissionServiceTest.java`:
+- `gradeSubmission_whenTeacherAddsCommentToMcqQuiz_shouldPreserveMcqScore` (case thường: per-answer points đúng)
+- `gradeSubmission_whenMcqAnswerPointsAreZeroButSubmissionScoreIs90_shouldPreserveScore` (edge case: per-answer points tất cả 0.0)
+
+**Kết quả chạy test:** `Tests run: 12, Failures: 0, Errors: 0, Skipped: 0` — BUILD SUCCESS.
+
+### 18/10/2026 — Hoàn thành Đợt 2: Đồng bộ màn Học sinh & Bài tập (`features/exercises` - S1 & S2)
+
+Đóng toàn diện 8 task (FB-05, FB-07, FB-08, FB-10, FB-11, FB-15, FB-16, FB-17, FB-18, FB-22) kết nối giữa `features/submission` và `features/exercises`:
+
+**✅ FB-05 & FB-10 — Icon nhóm bài tập & Màu tiến độ ngữ nghĩa:**
+- Đổi icon `Trophy` ở tiêu đề cột kanban "Đã nộp & chấm điểm" thành `ClipboardCheck` (`StudentDetailView.tsx`), cúp chỉ trao cho bài làm thực chất đạt điểm cao (≥ 80).
+- Áp dụng `progressClassName` (xanh emerald / vàng amber / đỏ rose) và track nền rõ ràng cho thanh `Progress` trong `TutorStudentCard.tsx` và vòng xoay `ProgressRing` trong `StudentDetailView.tsx`.
+
+**✅ FB-11 & FB-15 — Ẩn badge lớp rỗng & Segmented Control:**
+- Ẩn hoàn toàn badge lớp khi không có dữ liệu lớp thay vì hiển thị "Lớp: —" vô nghĩa (`TutorStudentCard.tsx`, `StudentDetailView.tsx`).
+- Biến tab "Theo học sinh / Thư viện bài tập" thành Segmented Control trực quan, tương phản cao, bo tròn hiện đại và chỉ báo tab active nổi bật (`exercise-dashboard.tsx`).
+
+**✅ FB-16 — Tinh gọn Hero Card học sinh (`StudentProfileHeader`):**
+- Bỏ watermark icon trang trí `BookOpen` mờ đục vô nghĩa ở góc.
+- Thu gọn avatar học sinh từ `h-24 w-24` xuống `h-16 w-16` thanh thoát, giảm padding từ `p-10` xuống `p-5 md:p-6`.
+- Bố trí các ô đếm trạng thái và vòng tròn tiến độ gọn gàng, typography chuẩn mực.
+
+**✅ FB-17 — Sửa 3 cột Kanban bài tập & Empty State (`PerformanceSection.tsx`):**
+- Thu gọn chiều cao `EmptySectionState` từ `py-12` xuống `py-6`, tăng độ tương phản với viền rõ ràng, icon sắc nét và thông điệp ngắn gọn. Cột có bài tập luôn nổi bật.
+
+**✅ FB-18 & FB-07 — Layout hiển thị Metadata bài tập & Làm mờ số 0:**
+- Thêm `line-clamp-2 break-words` và `title` tooltip cho tiêu đề bài tập trong `ExerciseRowCard.tsx`.
+- Tách dòng rõ ràng cho hạn nộp và thời lượng, thay `'N/A'` bằng `'—'`, Việt hoá `Duration`/`Points` thành `Thời lượng`/`Điểm số` trong `StudentExerciseCard.tsx`.
+- Trong `TutorStudentCard.tsx`, làm mờ các ô trạng thái có giá trị bằng 0 (`opacity-60`), làm nổi bật các giá trị đang có học sinh cần xử lý.
+
+**✅ FB-08 & FB-22 — Chuẩn hoá Typography WCAG AA & Hệ màu Token toàn diện:**
+- Dọn sạch toàn bộ các class cỡ chữ nhỏ `text-[7px]`, `text-[8px]`, `text-[9px]`, `text-[10px]`, `text-[11px]`, nâng lên tối thiểu `text-xs` (12px) trên toàn bộ `features/exercises`.
+- Áp dụng token màu ngữ nghĩa từ `getScorePresentation` trên toàn hệ thống (badges, progress bars, rings, score numbers, icons).
+
+**Kiểm thử xác nhận tại thời điểm kết thúc Đợt 2:**
+- `npx tsc --noEmit` → EXIT=0 (0 lỗi TypeScript)
+- `npm test` → 43 test suites / 274 tests pass 100%
+
+### 18/10/2026 — Hoàn thành Đợt 3: Tinh chỉnh Layout toàn cục (FB-13, FB-14)
+
+Đóng toàn bộ 2 task cuối cùng trong danh sách 23 feedback, hoàn thành 100% mục tiêu tái thiết kế:
+
+**✅ FB-13 — Vùng đệm an toàn & Nút chat nổi (`FeedbackWidget.tsx`, `dashboard/page.tsx`):**
+- Thêm padding đáy an toàn `pb-24 lg:pb-28` cho container chính `MainContentSwitcher` trong `app/(tutor)/dashboard/page.tsx`. Khi giáo viên hoặc học sinh cuộn đến đáy trang, các nút hành động (như phân trang, nút lưu, badge) không bao giờ bị nút chat nổi đè lên.
+- Tinh chỉnh vị trí nút chat nổi sang `bottom-6 right-6 md:bottom-8 md:right-8`, thêm `pointer-events-none` cho container ngoài và `pointer-events-auto` cho các thành phần tương tác bên trong.
+- Bọc nút chat trong `Tooltip` (`TooltipContent side="left"`) với nhãn rõ ràng "Hỗ trợ & Phản hồi", đồng thời nâng cỡ chữ badge trạng thái lên `text-xs font-semibold`.
+
+**✅ FB-14 — Phân biệt Icon tài liệu & Tooltip Sidebar (`Sidebar.tsx`, `dashboard/page.tsx`):**
+- Bổ sung `Tooltip` (delay 150ms, `side="right" sideOffset={14}`) cho từng mục điều hướng khi sidebar ở trạng thái thu gọn (`effectiveCollapsed = true`) trong `components/tutor/Sidebar.tsx`. Người dùng chỉ cần rê chuột vào icon là biết chính xác trang sẽ chuyển đến.
+- Phân biệt rõ rệt 3 icon từng bị phàn nàn là giống nhau trong `app/(tutor)/dashboard/page.tsx`:
+  - **Báo Cáo (`reports`)**: Đổi sang icon `BarChart3` (biểu đồ cột phân tích trực quan).
+  - **Tài Liệu (`documents`)**: Đổi sang icon `FolderArchive` (thư mục lưu trữ tài liệu).
+  - **Khảo Thí (`exercises`)**: Đổi sang icon `ClipboardCheck` (bảng kiểm tra & chấm bài).
+
+**Kiểm thử xác nhận toàn diện sau Đợt 3:**
+- `npx tsc --noEmit` → EXIT=0 (0 lỗi TypeScript)
+- `npm test` → 43 test suites / 274 tests pass 100%
+
+

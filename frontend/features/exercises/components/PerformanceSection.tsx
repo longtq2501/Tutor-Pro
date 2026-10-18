@@ -54,13 +54,13 @@ export const PerformanceSection: React.FC<PerformanceSectionProps> = ({
 };
 
 const EmptySectionState = ({ title, icon }: { title: string; icon: React.ReactNode }) => (
-    <div className="py-12 border-2 border-dashed border-muted/50 rounded-2xl flex flex-col items-center justify-center text-muted-foreground/30 space-y-3 bg-muted/5 shadow-inner">
-        <div className="h-14 w-14 rounded-2xl bg-muted/20 flex items-center justify-center grayscale opacity-40 border border-muted/50 scale-90">
+    <div className="py-6 px-4 border border-dashed border-border/80 rounded-xl flex flex-col items-center justify-center text-muted-foreground space-y-2 bg-muted/20">
+        <div className="h-10 w-10 rounded-xl bg-background/80 flex items-center justify-center text-muted-foreground/80 border border-border/60 shadow-sm">
             {icon}
         </div>
         <div className="text-center">
-            <p className="text-sm font-semibold tracking-wide uppercase">Dữ liệu trống</p>
-            <p className="text-xs italic mt-1 font-medium">Không có bài tập nào {title.toLowerCase()}</p>
+            <p className="text-xs font-semibold text-foreground/80">Không có bài tập</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Mục {title.toLowerCase()} hiện chưa có bài</p>
         </div>
     </div>
 );

@@ -130,6 +130,33 @@ export const countsTowardProgress = (submission?: {
 } | null): boolean =>
     !!submission && !submission.exempted && !isAutoCollected(submission);
 
+/**
+ * FB-06 — determines if a submission requires manual review/grading by a tutor.
+ * True for:
+ * - SUBMITTED attempts (student submitted, awaiting teacher grading)
+ * - AUTO_SUBMITTED attempts with answers that have not been GRADED yet
+ * False for:
+ * - GRADED (already finalized)
+ * - PENDING or DRAFT (not yet turned in)
+ * - Blank auto-collected attempts (zero score, no answers to grade)
+ * - Exempted attempts
+ */
+export const needsManualGrading = (
+    submission?: {
+        status?: string | null;
+        autoSubmitted?: boolean | null;
+        hasAnswers?: boolean | null;
+        exempted?: boolean | null;
+    } | null,
+): boolean => {
+    if (!submission) return false;
+    if (submission.exempted) return false;
+    if (submission.status === SubmissionStatusEnum.GRADED) return false;
+    if (submission.status === SubmissionStatusEnum.PENDING || submission.status === SubmissionStatusEnum.DRAFT) return false;
+    if (isBlankAutoCollected(submission)) return false;
+    return submission.status === SubmissionStatusEnum.SUBMITTED || isAutoCollected(submission);
+};
+
 /** FB-22: semantic colour buckets for a score/progress value. */
 export type ScoreBand = 'high' | 'medium' | 'low';
 

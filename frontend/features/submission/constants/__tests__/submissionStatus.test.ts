@@ -8,6 +8,7 @@ import {
     getSubmissionStatusPresentation,
     isAutoCollected,
     isBlankAutoCollected,
+    needsManualGrading,
 } from '../submissionStatus';
 import { SubmissionStatusEnum } from '../../types/submission.types';
 
@@ -116,6 +117,53 @@ describe('submissionStatus constants', () => {
 
         it('returns false when no submission is supplied', () => {
             expect(countsTowardProgress(null)).toBe(false);
+        });
+    });
+
+    describe('needsManualGrading (FB-06)', () => {
+        it('returns true for a genuine student submission in SUBMITTED state', () => {
+            expect(needsManualGrading({ status: SubmissionStatusEnum.SUBMITTED })).toBe(true);
+        });
+
+        it('returns true for an auto-collected attempt with answers that is not yet GRADED', () => {
+            expect(needsManualGrading({
+                status: SubmissionStatusEnum.AUTO_SUBMITTED,
+                autoSubmitted: true,
+                hasAnswers: true,
+            })).toBe(true);
+        });
+
+        it('returns false for blank auto-collected attempts', () => {
+            expect(needsManualGrading({
+                status: SubmissionStatusEnum.AUTO_SUBMITTED,
+                autoSubmitted: true,
+                hasAnswers: false,
+            })).toBe(false);
+        });
+
+        it('returns false for already GRADED attempts', () => {
+            expect(needsManualGrading({ status: SubmissionStatusEnum.GRADED })).toBe(false);
+            expect(needsManualGrading({
+                status: SubmissionStatusEnum.GRADED,
+                autoSubmitted: true,
+            })).toBe(false);
+        });
+
+        it('returns false for PENDING and DRAFT attempts', () => {
+            expect(needsManualGrading({ status: SubmissionStatusEnum.PENDING })).toBe(false);
+            expect(needsManualGrading({ status: SubmissionStatusEnum.DRAFT })).toBe(false);
+        });
+
+        it('returns false for exempted attempts', () => {
+            expect(needsManualGrading({
+                status: SubmissionStatusEnum.SUBMITTED,
+                exempted: true,
+            })).toBe(false);
+        });
+
+        it('returns false for null or undefined', () => {
+            expect(needsManualGrading(null)).toBe(false);
+            expect(needsManualGrading(undefined)).toBe(false);
         });
     });
 

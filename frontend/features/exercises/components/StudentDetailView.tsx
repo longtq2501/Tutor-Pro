@@ -266,7 +266,7 @@ const StatItem = ({ iconColor, value, label }: { iconColor: string; value: numbe
     <div className="text-center space-y-1 min-w-[60px]">
         <div className="flex items-center gap-1.5 justify-center">
             <div className={cn("h-2 w-2 rounded-full", iconColor)} />
-            <span className={cn("text-2xl font-extrabold tabular-nums", value === 0 ? "text-muted-foreground/60" : "text-foreground")}>{value}</span>
+            <span className={cn("text-2xl font-extrabold tabular-nums", value === 0 ? "text-muted-foreground" : "text-foreground")}>{value}</span>
         </div>
         <p className="text-xs font-semibold text-muted-foreground">{label}</p>
     </div>
@@ -282,7 +282,7 @@ const ProgressRing = ({ percentage }: { percentage: number }) => {
     return (
         <div className="relative h-16 w-16 flex items-center justify-center shrink-0">
             <svg className="h-full w-full -rotate-90 transform">
-                <circle cx="32" cy="32" r="30" stroke="currentColor" strokeWidth="5" fill="transparent" className="text-muted/30" />
+                <circle cx="32" cy="32" r="30" stroke="currentColor" strokeWidth="5" fill="transparent" className="text-slate-200 dark:text-muted/60" />
                 <motion.circle
                     cx="32" cy="32" r="30" stroke="currentColor" strokeWidth="5" fill="transparent"
                     strokeDasharray={circumference}
@@ -295,7 +295,7 @@ const ProgressRing = ({ percentage }: { percentage: number }) => {
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                 <span className={cn('text-xs font-extrabold leading-none', pres.scoreClassName)}>{percentage}%</span>
-                <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-tighter mt-0.5">Đã làm</span>
+                <span className="text-xs text-muted-foreground font-semibold uppercase tracking-tighter mt-0.5">Đã làm</span>
             </div>
         </div>
     );

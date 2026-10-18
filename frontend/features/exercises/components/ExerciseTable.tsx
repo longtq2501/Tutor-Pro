@@ -93,7 +93,7 @@ export const ExerciseTable: React.FC<ExerciseTableProps> = ({
                             <TableCell className="py-1 px-4 text-center">
                                 <span className="text-[12px] md:text-[13px] font-black text-foreground/80">{ex.totalPoints}</span>
                             </TableCell>
-                            <TableCell className="py-1 px-4 text-[11px] font-semibold text-muted-foreground/60 tabular-nums">
+                            <TableCell className="py-1 px-4 text-xs font-medium text-muted-foreground tabular-nums">
                                 {ex.createdAt ? format(new Date(ex.createdAt), 'dd/MM/yyyy') : '-'}
                             </TableCell>
                             <TableCell className="py-1 px-6 text-right">

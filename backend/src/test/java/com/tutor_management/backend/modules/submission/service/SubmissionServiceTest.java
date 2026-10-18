@@ -271,8 +271,150 @@ class SubmissionServiceTest {
         assertEquals(15.0, response.getTotalScore());
     }
 
-        @Test
-        void autoSubmitExpiredSubmissions_onlyMcq_shouldAutoSubmitAndPersistResult() {
+    /**
+     * FB-23 regression: A student completes a pure-MCQ quiz and scores 90/100.
+     * When the teacher subsequently opens the submission and saves only a general
+     * comment (no essay grades), the MCQ score MUST NOT be reset to 0.
+     *
+     * This covers the normal case where per-answer points are correctly persisted.
+     */
+    @Test
+    void gradeSubmission_whenTeacherAddsCommentToMcqQuiz_shouldPreserveMcqScore() {
+        // Build a submission that AutoGradingService already scored at 90.0
+        Submission submission = Submission.builder()
+            .id("sub-mcq-90")
+            .exerciseId(exerciseId)
+            .studentId(studentId)
+            .status(SubmissionStatus.GRADED)
+            .mcqScore(90.0)
+            .essayScore(0.0)
+            .totalScore(90.0)
+            .answers(new ArrayList<>())
+            .build();
+
+        // 9 correct answers (10 pts each) + 1 wrong answer (0 pts)
+        for (int i = 1; i <= 9; i++) {
+            submission.addAnswer(
+                StudentAnswer.builder()
+                    .questionId("qMcq" + i)
+                    .selectedOption("A")
+                    .isCorrect(true)
+                    .points(10.0)
+                    .build()
+            );
+        }
+        submission.addAnswer(
+            StudentAnswer.builder()
+                .questionId("qMcq10")
+                .selectedOption("B")
+                .isCorrect(false)
+                .points(0.0)
+                .build()
+        );
+
+        when(submissionRepository.findByIdWithAnswers(eq("sub-mcq-90")))
+            .thenReturn(Optional.of(submission));
+
+        // All 10 questions are MCQ
+        List<Question> mcqQuestions = new ArrayList<>();
+        for (int i = 1; i <= 10; i++) {
+            mcqQuestions.add(Question.builder()
+                .id("qMcq" + i)
+                .type(QuestionType.MCQ)
+                .points(10.0)
+                .build());
+        }
+        when(questionRepository.findByExerciseIdOrderByOrderIndex(eq(exerciseId)))
+            .thenReturn(mcqQuestions);
+
+        com.tutor_management.backend.modules.exercise.domain.Exercise ex =
+            new com.tutor_management.backend.modules.exercise.domain.Exercise();
+        ex.setId(exerciseId);
+        ex.setTitle("MCQ Only Quiz");
+        ex.setTotalPoints(100);
+        when(exerciseRepository.findById(eq(exerciseId))).thenReturn(Optional.of(ex));
+
+        // Teacher only adds a comment — no essay grades
+        GradeSubmissionRequest request = GradeSubmissionRequest.builder()
+            .essayGrades(List.of())
+            .teacherComment("Tốt lắm!")
+            .build();
+
+        var response = submissionService.gradeSubmission("sub-mcq-90", request);
+
+        assertEquals(90.0, response.getMcqScore(),
+            "MCQ score must not be overwritten by teacher comment save");
+        assertEquals(0.0, response.getEssayScore());
+        assertEquals(90.0, response.getTotalScore(),
+            "Total score must equal preserved MCQ score");
+        assertEquals(SubmissionStatus.GRADED, response.getStatus());
+    }
+
+    /**
+     * FB-23 regression (edge case): per-answer points are all 0.0 in memory
+     * (e.g. AutoGradingService set mcqScore on the Submission entity but the
+     * individual StudentAnswer.points were not flushed / were replaced).
+     * The submission-level mcqScore of 90 must still be preserved.
+     */
+    @Test
+    void gradeSubmission_whenMcqAnswerPointsAreZeroButSubmissionScoreIs90_shouldPreserveScore() {
+        Submission submission = Submission.builder()
+            .id("sub-mcq-edge")
+            .exerciseId(exerciseId)
+            .studentId(studentId)
+            .status(SubmissionStatus.GRADED)
+            .mcqScore(90.0)
+            .essayScore(0.0)
+            .totalScore(90.0)
+            .answers(new ArrayList<>())
+            .build();
+
+        // All per-answer points are 0.0 — simulates flush/persistence edge case
+        for (int i = 1; i <= 10; i++) {
+            submission.addAnswer(
+                StudentAnswer.builder()
+                    .questionId("qMcq" + i)
+                    .selectedOption("A")
+                    .points(0.0)
+                    .build()
+            );
+        }
+
+        when(submissionRepository.findByIdWithAnswers(eq("sub-mcq-edge")))
+            .thenReturn(Optional.of(submission));
+
+        List<Question> mcqQuestions = new ArrayList<>();
+        for (int i = 1; i <= 10; i++) {
+            mcqQuestions.add(Question.builder()
+                .id("qMcq" + i)
+                .type(QuestionType.MCQ)
+                .points(10.0)
+                .build());
+        }
+        when(questionRepository.findByExerciseIdOrderByOrderIndex(eq(exerciseId)))
+            .thenReturn(mcqQuestions);
+
+        com.tutor_management.backend.modules.exercise.domain.Exercise ex =
+            new com.tutor_management.backend.modules.exercise.domain.Exercise();
+        ex.setId(exerciseId);
+        ex.setTitle("MCQ Only Quiz Edge");
+        ex.setTotalPoints(100);
+        when(exerciseRepository.findById(eq(exerciseId))).thenReturn(Optional.of(ex));
+
+        GradeSubmissionRequest request = GradeSubmissionRequest.builder()
+            .essayGrades(List.of())
+            .teacherComment("Nhận xét chung")
+            .build();
+
+        var response = submissionService.gradeSubmission("sub-mcq-edge", request);
+
+        assertEquals(90.0, response.getMcqScore(),
+            "MCQ score must be preserved even when per-answer points are all 0.0 in memory");
+        assertEquals(90.0, response.getTotalScore());
+    }
+
+    @Test
+    void autoSubmitExpiredSubmissions_onlyMcq_shouldAutoSubmitAndPersistResult() {
         Submission expiredDraft = Submission.builder()
             .id("sub-expired-mcq")
             .exerciseId(exerciseId)
@@ -364,12 +506,155 @@ class SubmissionServiceTest {
 
         submissionService.autoSubmitExpiredSubmissions();
 
-        assertEquals(SubmissionStatus.SUBMITTED, expiredPending.getStatus());
+        // FB-01: an essay attempt cannot be auto-graded, so it lands in the dedicated
+        // "Tự thu" state instead of masquerading as a genuine SUBMITTED work.
+        assertEquals(SubmissionStatus.AUTO_SUBMITTED, expiredPending.getStatus());
         assertNotNull(expiredPending.getSubmittedAt());
         assertNull(expiredPending.getGradedAt());
 
         verify(submissionRepository, atLeastOnce()).save(any(Submission.class));
         verify(assignmentRepository).save(any(com.tutor_management.backend.modules.exercise.domain.ExerciseAssignment.class));
         assertEquals(com.tutor_management.backend.modules.exercise.domain.AssignmentStatus.SUBMITTED, assignment.getStatus());
-        }
+    }
+
+        /**
+         * FB-01: an expired attempt that contains an essay question must be collected as
+         * AUTO_SUBMITTED and flagged so the UI can label it "Tự thu".
+         */
+        @Test
+        void autoSubmitExpiredSubmissions_withEssay_shouldSetAutoSubmittedFlag() {
+        Submission expiredPending = Submission.builder()
+            .id("sub-expired-auto-flag")
+            .exerciseId(exerciseId)
+            .studentId(studentId)
+            .status(SubmissionStatus.PENDING)
+            .answers(new ArrayList<>())
+            .build();
+
+        com.tutor_management.backend.modules.exercise.domain.Exercise ex = new com.tutor_management.backend.modules.exercise.domain.Exercise();
+        ex.setId(exerciseId);
+        ex.setTitle("Bai kiem tra Essay");
+        ex.setCreatedBy("10");
+        ex.setTotalPoints(10);
+
+        com.tutor_management.backend.modules.exercise.domain.ExerciseAssignment assignment =
+            com.tutor_management.backend.modules.exercise.domain.ExerciseAssignment.builder()
+                .exerciseId(exerciseId)
+                .studentId(studentId)
+                .assignedBy("10")
+                .status(com.tutor_management.backend.modules.exercise.domain.AssignmentStatus.PENDING)
+                .build();
+
+        when(submissionRepository.findExpiredByStatuses(any(LocalDateTime.class), anyList()))
+            .thenReturn(List.of(expiredPending));
+        when(questionRepository.findByExerciseIdOrderByOrderIndex(eq(exerciseId)))
+            .thenReturn(List.of(Question.builder().id("qEssay").type(QuestionType.ESSAY).points(10.0).build()));
+        when(exerciseRepository.findById(eq(exerciseId))).thenReturn(Optional.of(ex));
+        when(assignmentRepository.findByExerciseIdAndStudentId(eq(exerciseId), eq(studentId)))
+            .thenReturn(Optional.of(assignment));
+        when(submissionRepository.findByIdWithAnswers(eq("sub-expired-auto-flag")))
+            .thenReturn(Optional.of(expiredPending));
+
+        doAnswer(invocation -> {
+            Submission submission = invocation.getArgument(0);
+            submission.setMcqScore(0.0);
+            submission.setEssayScore(0.0);
+            submission.setTotalScore(0.0);
+            return 0.0;
+        }).when(autoGradingService).gradeSubmission(any(Submission.class));
+
+        submissionService.autoSubmitExpiredSubmissions();
+
+        // FB-01: the attempt must be parked in the dedicated "Tự thu" state, never GRADED,
+        // and the API must expose the blank-attempt signal so the UI can collapse the page.
+        assertEquals(SubmissionStatus.AUTO_SUBMITTED, expiredPending.getStatus());
+        assertNotNull(expiredPending.getSubmittedAt());
+        assertTrue(expiredPending.hasNoAnswers(), "Blank attempt must report hasNoAnswers()");
+        // No human grading is required for a fully auto-graded blank attempt.
+        assertNull(expiredPending.getGradedAt(), "Auto-collected essay attempt must not be marked graded");
+
+        var response = submissionService.getSubmission("sub-expired-auto-flag");
+        assertEquals(SubmissionStatus.AUTO_SUBMITTED, response.getStatus());
+        assertEquals(Boolean.FALSE, response.getHasAnswers());
+    }
+
+    /**
+     * FB-01 fallback: a fully auto-collected MCQ attempt is auto-graded to a hard zero,
+     * lands in GRADED (no human needed) but keeps the auto-collected marker so the UI
+     * can still label it "Tự thu" instead of a genuine student submission.
+     */
+    @Test
+    void autoSubmitExpiredSubmissions_onlyMcq_shouldKeepZeroScoreAndFlagAutoCollected() {
+        Submission expiredDraft = Submission.builder()
+            .id("sub-expired-zero")
+            .exerciseId(exerciseId)
+            .studentId(studentId)
+            .status(SubmissionStatus.DRAFT)
+            .answers(new ArrayList<>())
+            .build();
+
+        com.tutor_management.backend.modules.exercise.domain.Exercise ex = new com.tutor_management.backend.modules.exercise.domain.Exercise();
+        ex.setId(exerciseId);
+        ex.setTitle("Bai kiem tra MCQ");
+        ex.setCreatedBy("10");
+        ex.setTotalPoints(10);
+
+        when(submissionRepository.findExpiredByStatuses(any(LocalDateTime.class), anyList()))
+            .thenReturn(List.of(expiredDraft));
+        when(questionRepository.findByExerciseIdOrderByOrderIndex(eq(exerciseId)))
+            .thenReturn(List.of(Question.builder().id("q1").type(QuestionType.MCQ).points(10.0).build()));
+        when(exerciseRepository.findById(eq(exerciseId))).thenReturn(Optional.of(ex));
+
+        doAnswer(invocation -> {
+            Submission submission = invocation.getArgument(0);
+            submission.setMcqScore(0.0);
+            submission.setEssayScore(0.0);
+            submission.setTotalScore(0.0);
+            return 0.0;
+        }).when(autoGradingService).gradeSubmission(any(Submission.class));
+
+        submissionService.autoSubmitExpiredSubmissions();
+
+        assertEquals(SubmissionStatus.GRADED, expiredDraft.getStatus());
+        assertEquals(0.0, expiredDraft.getTotalScore());
+        // Status is GRADED (nothing left for a human) but the attempt stays marked as
+        // machine-collected so it never counts as genuine student work.
+        assertEquals(Boolean.TRUE, expiredDraft.getAutoSubmitted());
+    }
+
+    /**
+     * FB-04: reopening an auto-collected attempt must send it back to DRAFT, clear the
+     * auto-collected flag and wipe the automatic zero so the student can work again.
+     */
+    @Test
+    void reopenSubmission_shouldResetToDraftAndClearAutoSubmitted() {
+        Submission submission = Submission.builder()
+            .id("sub-reopen")
+            .exerciseId(exerciseId)
+            .studentId(studentId)
+            .status(SubmissionStatus.AUTO_SUBMITTED)
+            .autoSubmitted(true)
+            .mcqScore(0.0)
+            .essayScore(0.0)
+            .totalScore(0.0)
+            .submittedAt(LocalDateTime.now().minusDays(2))
+            .gradedAt(LocalDateTime.now().minusDays(2))
+            .answers(new ArrayList<>())
+            .build();
+
+        when(submissionRepository.findByIdWithAnswers(eq("sub-reopen"))).thenReturn(Optional.of(submission));
+
+        var response = submissionService.reopenSubmission("sub-reopen");
+
+        assertEquals(SubmissionStatus.DRAFT, response.getStatus());
+        assertEquals(Boolean.FALSE, response.getAutoSubmitted());
+        assertEquals(0.0, response.getMcqScore());
+        assertEquals(0.0, response.getEssayScore());
+        assertEquals(0.0, response.getTotalScore());
+        assertNull(submission.getSubmittedAt());
+        assertNull(submission.getGradedAt());
+        assertEquals(SubmissionStatus.DRAFT, submission.getStatus());
+        assertFalse(submission.getAutoSubmitted());
+        verify(submissionRepository, atLeastOnce()).save(any(Submission.class));
+    }
 }

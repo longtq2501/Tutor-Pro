@@ -91,6 +91,23 @@ public class Submission implements Persistable<String> {
      */
     @Column(name = "submitted_at")
     private LocalDateTime submittedAt;
+
+    /**
+     * True when the system collected this attempt automatically after the
+     * deadline elapsed (quá hạn tự thu), instead of the student submitting.
+     * Allows distinguishing a blank auto-collected attempt from a real one
+     * even when the status has already advanced to {@link SubmissionStatus#GRADED}.
+     */
+    @Column(name = "auto_submitted", nullable = false)
+    @Builder.Default
+    private Boolean autoSubmitted = false;
+
+    /**
+     * True when the tutor exempted (miễn) this attempt from grading.
+     */
+    @Column(name = "exempted", nullable = false)
+    @Builder.Default
+    private Boolean exempted = false;
     
     /**
      * When the grading process was finalized.
@@ -143,6 +160,24 @@ public class Submission implements Persistable<String> {
      */
     public void calculateTotalScore() {
         this.totalScore = roundTwoDecimals((mcqScore != null ? mcqScore : 0.0) + (essayScore != null ? essayScore : 0.0));
+    }
+
+    /**
+     * Determines whether this attempt holds no meaningful student work,
+     * i.e. every answer is blank (no selected option and no essay text).
+     * Used to render the "auto-collected, zero score" state without asking
+     * the tutor to open a full grading page.
+     */
+    @JsonIgnore
+    public boolean hasNoAnswers() {
+        if (answers == null || answers.isEmpty()) {
+            return true;
+        }
+        return answers.stream().allMatch(answer -> {
+            boolean blankOption = answer.getSelectedOption() == null || answer.getSelectedOption().isBlank();
+            boolean blankEssay = answer.getEssayText() == null || answer.getEssayText().isBlank();
+            return blankOption && blankEssay;
+        });
     }
 
     private double roundTwoDecimals(double value) {

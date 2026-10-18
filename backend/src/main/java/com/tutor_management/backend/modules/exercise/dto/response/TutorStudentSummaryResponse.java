@@ -14,13 +14,21 @@ public class TutorStudentSummaryResponse {
     private String studentId;
     private String studentName;
     private String grade; // Optional: student level
-    
+
     // Performance Metrics
     private Integer pendingCount;
     private Integer submittedCount;
     private Integer gradedCount;
+    private Integer autoSubmittedCount;
+    private Integer exemptedCount;
     private Integer totalAssigned;
-    
+
+    /**
+     * Average score across genuinely attempted submissions.
+     * Null when the student has no gradable attempt yet.
+     */
+    private Double averageScore;
+
     // Quick list of recent items
     private List<ExerciseStatusSummary> recentExercises;
 
@@ -31,5 +39,6 @@ public class TutorStudentSummaryResponse {
         private String title;
         private String status;
         private Integer score;
+        private Boolean autoSubmitted;
     }
 }

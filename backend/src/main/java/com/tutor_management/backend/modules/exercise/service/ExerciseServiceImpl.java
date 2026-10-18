@@ -302,6 +302,7 @@ public class ExerciseServiceImpl implements ExerciseService {
         boolean hasFinalizedSubmission = relatedSubmissions.stream()
                 .anyMatch(submission -> submission.getStatus() == SubmissionStatus.DRAFT
                         || submission.getStatus() == SubmissionStatus.SUBMITTED
+                        || submission.getStatus() == SubmissionStatus.AUTO_SUBMITTED
                         || submission.getStatus() == SubmissionStatus.GRADED);
         if (hasFinalizedSubmission) {
             throw new IllegalStateException("Chỉ có thể thu hồi bài ở trạng thái chờ làm");
@@ -405,30 +406,41 @@ public class ExerciseServiceImpl implements ExerciseService {
 
         List<TutorStudentSummaryResponse> content = studentsPage.getContent().stream().map(student -> {
             String sId = student.getId().toString();
-            Map<com.tutor_management.backend.modules.submission.entity.SubmissionStatus, Integer> counts =
-                    aggregateStudentStatusesByExercise(identityKeyMap.getOrDefault(sId, List.of(sId)), activeTutorId);
-            
-            int pending = counts.getOrDefault(com.tutor_management.backend.modules.submission.entity.SubmissionStatus.PENDING, 0);
-            int submitted = counts.getOrDefault(com.tutor_management.backend.modules.submission.entity.SubmissionStatus.SUBMITTED, 0) + 
-                            counts.getOrDefault(com.tutor_management.backend.modules.submission.entity.SubmissionStatus.DRAFT, 0);
-            int graded = counts.getOrDefault(com.tutor_management.backend.modules.submission.entity.SubmissionStatus.GRADED, 0);
-            int total = pending + submitted + graded;
-            
+            StudentStats stats = aggregateStudentStatusesByExercise(identityKeyMap.getOrDefault(sId, List.of(sId)), activeTutorId);
+
             return TutorStudentSummaryResponse.builder()
                     .studentId(sId)
                     .studentName(student.getName())
-                    .grade("N/A") 
-                    .pendingCount(pending)
-                    .submittedCount(submitted)
-                    .gradedCount(graded)
-                    .totalAssigned(total)
+                    .grade(student.getNguon())
+                    .pendingCount(stats.pending())
+                    .submittedCount(stats.submitted())
+                    .gradedCount(stats.graded())
+                    .autoSubmittedCount(stats.autoSubmitted())
+                    .exemptedCount(stats.exempted())
+                    .totalAssigned(stats.total())
+                    .averageScore(stats.averageScore())
                     .build();
         }).collect(Collectors.toList());
 
         return new PageImpl<>(content, pageable, studentsPage.getTotalElements());
     }
 
-    private Map<SubmissionStatus, Integer> aggregateStudentStatusesByExercise(List<String> identityKeys, Long tutorId) {
+    /**
+     * Immutable snapshot of one student's assignment/attempt breakdown.
+     * {@code autoSubmitted} counts auto-collected attempts separately so the
+     * dashboard never mixes them into "graded" (FB-02).
+     */
+    private record StudentStats(
+            int pending,
+            int submitted,
+            int graded,
+            int autoSubmitted,
+            int exempted,
+            int total,
+            Double averageScore
+    ) {}
+
+    private StudentStats aggregateStudentStatusesByExercise(List<String> identityKeys, Long tutorId) {
         List<String> normalizedKeys = (identityKeys == null ? List.<String>of() : identityKeys.stream()
                 .filter(Objects::nonNull)
                 .map(String::trim)
@@ -437,12 +449,12 @@ public class ExerciseServiceImpl implements ExerciseService {
                 .toList());
 
         if (normalizedKeys.isEmpty()) {
-            return Collections.emptyMap();
+            return new StudentStats(0, 0, 0, 0, 0, 0, null);
         }
 
         List<ExerciseAssignment> assignments = assignmentRepository.findAllByStudentIdsAndTutorId(normalizedKeys, tutorId);
         if (assignments.isEmpty()) {
-            return Collections.emptyMap();
+            return new StudentStats(0, 0, 0, 0, 0, 0, null);
         }
 
         Map<String, ExerciseAssignment> assignmentByExercise = new LinkedHashMap<>();
@@ -461,15 +473,56 @@ public class ExerciseServiceImpl implements ExerciseService {
                 this::pickPreferredSubmission
         ));
 
-        Map<SubmissionStatus, Integer> counts = new EnumMap<>(SubmissionStatus.class);
+        int pending = 0;
+        int submitted = 0;
+        int graded = 0;
+        int autoSubmitted = 0;
+        int exempted = 0;
+        List<Double> scoredAttempts = new ArrayList<>();
+
         for (String exerciseId : assignmentByExercise.keySet()) {
-            SubmissionStatus status = Optional.ofNullable(submissionByExercise.get(exerciseId))
-                    .map(Submission::getStatus)
-                    .orElse(SubmissionStatus.PENDING);
-            counts.merge(status, 1, Integer::sum);
+            Submission submission = submissionByExercise.get(exerciseId);
+            if (submission == null) {
+                pending++;
+                continue;
+            }
+
+            SubmissionStatus status = submission.getStatus();
+            boolean isAutoCollected = Boolean.TRUE.equals(submission.getAutoSubmitted());
+            boolean isExempted = Boolean.TRUE.equals(submission.getExempted());
+
+            if (isExempted) {
+                exempted++;
+                continue;
+            }
+
+            if (isAutoCollected) {
+                // Auto-collected attempts are surfaced on their own line so the
+                // tutor can immediately see missed deadlines (FB-02).
+                autoSubmitted++;
+            } else {
+                switch (status) {
+                    case AUTO_SUBMITTED -> autoSubmitted++;
+                    case GRADED -> graded++;
+                    case SUBMITTED, DRAFT -> submitted++;
+                    case PENDING -> pending++;
+                }
+            }
+
+            // Only genuinely graded attempts contribute to the average; blank
+            // auto-collected attempts must not drag the score down.
+            if (status == SubmissionStatus.GRADED && submission.getTotalScore() != null
+                    && !isAutoCollected && !isExempted) {
+                scoredAttempts.add(submission.getTotalScore());
+            }
         }
 
-        return counts;
+        Double averageScore = scoredAttempts.isEmpty()
+                ? null
+                : scoredAttempts.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+
+        int total = pending + submitted + graded + autoSubmitted + exempted;
+        return new StudentStats(pending, submitted, graded, autoSubmitted, exempted, total, averageScore);
     }
 
     // --- Private Business Helpers ---
@@ -598,6 +651,9 @@ public class ExerciseServiceImpl implements ExerciseService {
                 String internalStatus = sub.getStatus().name();
                 if (sub.getStatus() == SubmissionStatus.PENDING && resp.getDeadline() != null && resp.getDeadline().isBefore(LocalDateTime.now())) {
                     internalStatus = "OVERDUE";
+                } else if (sub.getStatus() == SubmissionStatus.AUTO_SUBMITTED
+                        || Boolean.TRUE.equals(sub.getAutoSubmitted())) {
+                    internalStatus = "AUTO_SUBMITTED";
                 }
                 
                 resp.setSubmissionStatus(internalStatus);
@@ -639,6 +695,7 @@ public class ExerciseServiceImpl implements ExerciseService {
         }
         return switch (s.getStatus()) {
             case GRADED -> 4;
+            case AUTO_SUBMITTED -> 3;
             case SUBMITTED -> 3;
             case DRAFT -> 2;
             case PENDING -> 1;

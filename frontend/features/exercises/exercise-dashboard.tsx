@@ -67,25 +67,27 @@ export default function ExerciseDashboard() {
                     subtitle: isTeacher ? "Quản lý ngân hàng câu hỏi, bài tập và theo dõi tiến độ học sinh." : "Danh sách bài tập và bài kiểm tra dành cho bạn.",
                     actions: isTeacher ? (
                         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'STUDENTS' | 'LIBRARY')}>
-                            <TabsList className="h-10 p-1 bg-muted/50 rounded-xl border border-border/40 w-auto flex gap-2">
+                            <TabsList className="h-10 p-1 bg-muted rounded-xl border border-border/50 w-auto flex gap-0">
                                 <TabsTrigger
                                     value="STUDENTS"
-                                    className="rounded-lg font-bold text-xs h-8 px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+                                    className="rounded-lg font-semibold text-xs h-8 px-4 gap-2
+                                        data-[state=active]:bg-primary data-[state=active]:text-primary-foreground
+                                        data-[state=inactive]:text-muted-foreground
+                                        data-[state=active]:shadow-md transition-all duration-200"
                                 >
-                                    <div className="flex items-center gap-2">
-                                        <Users className="h-3.5 w-3.5" />
-                                        <span>Theo học sinh</span>
-                                    </div>
+                                    <Users className="h-3.5 w-3.5" />
+                                    <span>Theo học sinh</span>
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="LIBRARY"
                                     data-tour="exercises-library-tab"
-                                    className="rounded-lg font-bold text-xs h-8 px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+                                    className="rounded-lg font-semibold text-xs h-8 px-4 gap-2
+                                        data-[state=active]:bg-primary data-[state=active]:text-primary-foreground
+                                        data-[state=inactive]:text-muted-foreground
+                                        data-[state=active]:shadow-md transition-all duration-200"
                                 >
-                                    <div className="flex items-center gap-2">
-                                        <Library className="h-3.5 w-3.5" />
-                                        <span>Thư viện bài tập</span>
-                                    </div>
+                                    <Library className="h-3.5 w-3.5" />
+                                    <span>Thư viện bài tập</span>
                                 </TabsTrigger>
                             </TabsList>
                         </Tabs>

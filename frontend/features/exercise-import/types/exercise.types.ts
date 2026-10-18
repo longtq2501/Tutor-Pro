@@ -132,6 +132,10 @@ export interface ExerciseListItemResponse {
     submissionId?: string;
     submissionStatus?: string;
     studentTotalScore?: number;
+    /** True when the system collected the attempt after the deadline (FB-01). */
+    autoSubmitted?: boolean;
+    /** True when the tutor exempted the attempt from grading (FB-04). */
+    exempted?: boolean;
 }
 
 export interface TutorStudentSummaryResponse {
@@ -141,7 +145,15 @@ export interface TutorStudentSummaryResponse {
     pendingCount: number;
     submittedCount: number;
     gradedCount: number;
+    /** Attempts collected by the system after the deadline — kept out of `gradedCount` (FB-01/FB-02). */
+    autoSubmittedCount?: number;
+    /** Attempts the tutor exempted from grading (FB-04). */
+    exemptedCount?: number;
     totalAssigned: number;
+    /** Completed attempts that were actually done by the student (FB-02). */
+    completedCount?: number;
+    /** Mean score over attempts that count towards progress; `null` when there is nothing to average (FB-02). */
+    averageScore?: number | null;
     recentExercises?: ExerciseStatusSummary[];
 }
 
@@ -150,5 +162,7 @@ export interface ExerciseStatusSummary {
     title: string;
     status: string;
     score?: number;
+    /** True when the system collected this attempt after the deadline (FB-01). */
+    autoSubmitted?: boolean;
 }
 

@@ -10,6 +10,10 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { ExerciseListItemResponse } from '@/features/exercise-import/types/exercise.types';
+import { getSubmissionStatusPresentation, isAutoCollected } from '@/features/submission/constants/submissionStatus';
+
+/** FB-05 — the trophy must represent real achievement, never a status. */
+const TROPHY_THRESHOLD_PERCENT = 80;
 
 interface ExerciseRowCardProps {
     exercise: ExerciseListItemResponse;
@@ -39,6 +43,28 @@ export const ExerciseRowCard: React.FC<ExerciseRowCardProps> = ({
 }) => {
     const isOverdue = exercise.deadline && new Date(exercise.deadline) < new Date() && !exercise.submissionStatus;
 
+    const autoCollected = isAutoCollected(exercise);
+    const statusPresentation = getSubmissionStatusPresentation(exercise.submissionStatus);
+
+    // FB-05: only award the trophy when the student actually reached the threshold.
+    const scorePercent = exercise.totalPoints > 0
+        ? ((exercise.studentTotalScore ?? 0) / exercise.totalPoints) * 100
+        : 0;
+    const hasEarnedTrophy = scorePercent >= TROPHY_THRESHOLD_PERCENT;
+
+    // FB-01/FB-09: the "Tự thu" concept must win over any stale status colour.
+    const statusLabel = isOverdue ? 'Quá hạn' : label || statusPresentation.label;
+
+    const statusClassName = isOverdue
+        ? 'border-red-500/50 text-red-700 bg-red-50/70 dark:text-red-300 dark:bg-red-950/40'
+        : statusPresentation.badgeClassName;
+
+    const accentClassName = autoCollected
+        ? 'bg-red-500'
+        : statusPresentation.token === 'graded' ? 'bg-emerald-500'
+            : statusPresentation.token === 'submitted' ? 'bg-blue-500'
+                : statusPresentation.token === 'inProgress' ? 'bg-sky-400' : 'bg-orange-400';
+
     return (
         <motion.div
             whileHover={disabled ? {} : { x: 4 }}
@@ -52,23 +78,24 @@ export const ExerciseRowCard: React.FC<ExerciseRowCardProps> = ({
                         {/* Left accent */}
                         <div className={cn(
                             "hidden sm:block w-1 self-stretch",
-                            exercise.submissionStatus === 'GRADED' ? "bg-green-500" :
-                                exercise.submissionStatus === 'SUBMITTED' ? "bg-blue-500" :
-                                    exercise.submissionStatus === 'DRAFT' ? "bg-sky-400" : "bg-orange-400"
+                            accentClassName
                         )} />
 
                         <div className="p-4 flex-1 flex flex-col md:flex-row md:items-center justify-between gap-4">
                             {/* Title and Metadata */}
                             <div className="flex-1 space-y-2">
-                                <h4 className="font-semibold text-base leading-tight group-hover:text-primary transition-colors">
+                                <h4
+                                    className="font-semibold text-base leading-snug group-hover:text-primary transition-colors line-clamp-2 break-words"
+                                    title={exercise.title}
+                                >
                                     {exercise.title}
                                 </h4>
-                                <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground font-medium">
-                                    <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded">
+                                <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground font-medium">
+                                    <span className="flex items-center gap-1.5 bg-muted/60 px-2.5 py-1 rounded-md">
                                         <Calendar className="h-3.5 w-3.5" />
-                                        Hạn: {exercise.deadline ? format(new Date(exercise.deadline), 'dd/MM/yyyy') : 'N/A'}
+                                        Hạn: {exercise.deadline ? format(new Date(exercise.deadline), 'dd/MM/yyyy') : '—'}
                                     </span>
-                                    <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded">
+                                    <span className="flex items-center gap-1.5 bg-muted/60 px-2.5 py-1 rounded-md">
                                         <Clock className="h-3.5 w-3.5" />
                                         {exercise.timeLimit} phút
                                     </span>
@@ -80,26 +107,34 @@ export const ExerciseRowCard: React.FC<ExerciseRowCardProps> = ({
                                 {showScore && exercise.studentTotalScore !== undefined ? (
                                     <div className="flex flex-col items-end gap-1">
                                         <div className="flex items-center gap-2">
-                                            <span className="text-lg font-bold text-green-600 leading-none">
+                                            {/* FB-05: low or zero scores get neutral/destructive colouring, no trophy. */}
+                                            <span className={cn(
+                                                "text-lg font-bold leading-none",
+                                                hasEarnedTrophy ? "text-emerald-600 dark:text-emerald-400"
+                                                    : scorePercent === 0 ? "text-red-600 dark:text-red-400"
+                                                        : "text-foreground"
+                                            )}>
                                                 {exercise.studentTotalScore}
                                             </span>
                                             <span className="text-xs text-muted-foreground font-semibold">
                                                 /{exercise.totalPoints}
                                             </span>
-                                            <Trophy className="h-4 w-4 text-yellow-500" />
+                                            {hasEarnedTrophy && <Trophy className="h-4 w-4 text-yellow-500" />}
                                         </div>
+                                        {autoCollected && (
+                                            <span className="text-xs font-semibold text-red-600 dark:text-red-400">
+                                                {statusPresentation.label}
+                                            </span>
+                                        )}
                                     </div>
                                 ) : (
                                     <div className="text-right">
-                                        <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1">Trạng thái</p>
+                                        <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">Trạng thái</p>
                                         <Badge variant="outline" className={cn(
-                                            "text-[10px] font-bold h-6 px-2 shrink-0 border-2",
-                                            isOverdue ? "border-red-500/50 text-red-600 bg-red-50/50" :
-                                                exercise.submissionStatus === 'GRADED' ? "border-green-500/50 text-green-600 bg-green-50/50" :
-                                                    exercise.submissionStatus === 'SUBMITTED' ? "border-blue-500/50 text-blue-600 bg-blue-50/50" :
-                                                        "border-orange-500/50 text-orange-600 bg-orange-50/50"
+                                            "text-xs font-bold h-6 px-2.5 shrink-0 border-2",
+                                            statusClassName
                                         )}>
-                                            {isOverdue ? 'Quá hạn' : label || (exercise.submissionStatus === 'GRADED' ? 'Đã chấm' : 'Chờ làm')}
+                                            {statusLabel}
                                         </Badge>
                                     </div>
                                 )}
@@ -138,7 +173,7 @@ export const ExerciseRowCard: React.FC<ExerciseRowCardProps> = ({
                                 )}
 
                                 {disabled && (
-                                    <span className="text-[10px] text-muted-foreground italic sm:min-w-[80px] text-right">
+                                    <span className="text-xs text-muted-foreground italic sm:min-w-[80px] text-right">
                                         Chưa làm
                                     </span>
                                 )}

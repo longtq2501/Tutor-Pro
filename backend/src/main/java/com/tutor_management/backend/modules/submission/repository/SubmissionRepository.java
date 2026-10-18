@@ -34,6 +34,11 @@ public interface SubmissionRepository extends JpaRepository<Submission, String> 
     Optional<Submission> findByExerciseIdAndStudentId(String exerciseId, String studentId);
 
     /**
+     * Retrieves auto-collected (past-deadline) attempts for a specific exercise.
+     */
+    List<Submission> findByExerciseIdAndAutoSubmittedTrue(String exerciseId);
+
+    /**
      * Eagerly fetches a submission with its associated detail records.
      */
     @Query("SELECT s FROM Submission s LEFT JOIN FETCH s.answers WHERE s.id = :id")

@@ -59,29 +59,29 @@ export const ExerciseMobileCard: React.FC<ExerciseMobileCardProps> = ({
                     </Badge>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 text-[10px] font-bold text-muted-foreground/70 uppercase tracking-widest bg-muted/30 p-2.5 rounded-xl border border-muted/50">
+                <div className="grid grid-cols-2 gap-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-muted/40 p-2.5 rounded-xl border border-border/60">
                     <div className="flex flex-col gap-1">
-                        <span className="text-[8px] opacity-60">Thời lượng</span>
-                        <div className="flex items-center gap-1.5 text-foreground/80">
-                            <Clock className="h-3 w-3 text-primary/60" />
+                        <span className="text-[11px] font-medium text-muted-foreground">Thời lượng</span>
+                        <div className="flex items-center gap-1.5 text-foreground/90 font-semibold">
+                            <Clock className="h-3.5 w-3.5 text-primary/70" />
                             <span>{ex.timeLimit ? `${ex.timeLimit} phút` : '∞'}</span>
                         </div>
                     </div>
-                    <div className="flex flex-col gap-1 border-l pl-3 border-muted/50">
-                        <span className="text-[8px] opacity-60">Thang điểm</span>
-                        <div className="flex items-center gap-1.5 text-foreground/80 font-black">
-                            <FileText className="h-3 w-3 text-primary/60" />
+                    <div className="flex flex-col gap-1 border-l pl-3 border-border/60">
+                        <span className="text-[11px] font-medium text-muted-foreground">Thang điểm</span>
+                        <div className="flex items-center gap-1.5 text-foreground/90 font-bold">
+                            <FileText className="h-3.5 w-3.5 text-primary/70" />
                             <span>{ex.totalPoints}đ</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between text-[10px] font-semibold text-muted-foreground/50 px-1">
+                <div className="flex items-center justify-between text-xs font-medium text-muted-foreground px-1">
                     <div className="flex items-center gap-1.5">
-                        <Calendar className="h-3 w-3" />
+                        <Calendar className="h-3.5 w-3.5" />
                         {ex.createdAt ? format(new Date(ex.createdAt), 'dd/MM/yyyy') : '-'}
                     </div>
-                    {!isStudent && <span className="opacity-0 group-hover:opacity-100 transition-opacity italic">Nhấn để thao tác</span>}
+                    {!isStudent && <span className="opacity-0 group-hover:opacity-100 transition-opacity italic text-xs">Nhấn để thao tác</span>}
                 </div>
 
                 <div className="flex flex-col gap-2 pt-1">

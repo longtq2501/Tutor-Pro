@@ -15,6 +15,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuth } from '@/contexts/AuthContext';
 import { supportApi } from '@/lib/services/support';
 import { SupportMessage } from '@/lib/types/support';
@@ -115,7 +116,7 @@ function FeedbackWidgetInner({ user }: { user: UserInfo }) {
     const statusInfo = conversation ? (STATUS_BADGE[conversation.status] ?? STATUS_BADGE.OPEN) : null;
 
     return (
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+        <div className="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-50 flex flex-col items-end gap-3 pointer-events-none">
             <AnimatePresence>
                 {open && (
                     <motion.div
@@ -123,7 +124,7 @@ function FeedbackWidgetInner({ user }: { user: UserInfo }) {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="w-[360px] max-h-[560px] flex flex-col rounded-2xl shadow-2xl border border-border bg-background overflow-hidden"
+                        className="w-[360px] max-h-[560px] flex flex-col rounded-2xl shadow-2xl border border-border bg-background overflow-hidden pointer-events-auto"
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between px-4 py-3 bg-primary text-primary-foreground">
@@ -131,7 +132,7 @@ function FeedbackWidgetInner({ user }: { user: UserInfo }) {
                                 <MessageCircle className="h-4 w-4" />
                                 <span className="font-semibold text-sm">Hỗ trợ &amp; Phản hồi</span>
                                 {statusInfo && (
-                                    <Badge variant={statusInfo.variant} className="text-[10px] h-4 px-1.5">
+                                    <Badge variant={statusInfo.variant} className="text-xs h-5 px-2 font-semibold">
                                         {statusInfo.label}
                                     </Badge>
                                 )}
@@ -237,37 +238,48 @@ function FeedbackWidgetInner({ user }: { user: UserInfo }) {
             </AnimatePresence>
 
             {/* Floating trigger button */}
-            <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setOpen((v) => !v)}
-                className="h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl flex items-center justify-center transition-shadow"
-                aria-label="Mở hỗ trợ"
-            >
-                <AnimatePresence mode="wait">
-                    {open ? (
-                        <motion.span
-                            key="close"
-                            initial={{ rotate: -90, opacity: 0 }}
-                            animate={{ rotate: 0, opacity: 1 }}
-                            exit={{ rotate: 90, opacity: 0 }}
-                            transition={{ duration: 0.15 }}
+            <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setOpen((v) => !v)}
+                            className="h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl flex items-center justify-center transition-shadow pointer-events-auto"
+                            aria-label="Mở hỗ trợ"
                         >
-                            <X className="h-5 w-5" />
-                        </motion.span>
-                    ) : (
-                        <motion.span
-                            key="open"
-                            initial={{ rotate: 90, opacity: 0 }}
-                            animate={{ rotate: 0, opacity: 1 }}
-                            exit={{ rotate: -90, opacity: 0 }}
-                            transition={{ duration: 0.15 }}
-                        >
-                            <MessageCircle className="h-5 w-5" />
-                        </motion.span>
+                            <AnimatePresence mode="wait">
+                                {open ? (
+                                    <motion.span
+                                        key="close"
+                                        initial={{ rotate: -90, opacity: 0 }}
+                                        animate={{ rotate: 0, opacity: 1 }}
+                                        exit={{ rotate: 90, opacity: 0 }}
+                                        transition={{ duration: 0.15 }}
+                                    >
+                                        <X className="h-5 w-5" />
+                                    </motion.span>
+                                ) : (
+                                    <motion.span
+                                        key="open"
+                                        initial={{ rotate: 90, opacity: 0 }}
+                                        animate={{ rotate: 0, opacity: 1 }}
+                                        exit={{ rotate: -90, opacity: 0 }}
+                                        transition={{ duration: 0.15 }}
+                                    >
+                                        <MessageCircle className="h-5 w-5" />
+                                    </motion.span>
+                                )}
+                            </AnimatePresence>
+                        </motion.button>
+                    </TooltipTrigger>
+                    {!open && (
+                        <TooltipContent side="left" sideOffset={12} className="font-semibold text-xs py-1.5 px-3 z-50 shadow-lg">
+                            Hỗ trợ &amp; Phản hồi
+                        </TooltipContent>
                     )}
-                </AnimatePresence>
-            </motion.button>
+                </Tooltip>
+            </TooltipProvider>
         </div>
     );
 }

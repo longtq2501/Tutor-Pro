@@ -2,6 +2,7 @@ import api from '@/lib/services/axios-instance';
 import { ApiResponse } from '@/lib/types';
 import {
     CreateSubmissionRequest,
+    ExtendDeadlineRequest,
     GradeSubmissionRequest,
     SubmissionListItemResponse,
     SubmissionResponse
@@ -60,6 +61,41 @@ export const submissionService = {
             `/submissions/${id}/grade`,
             data
         );
+        return response.data.data;
+    },
+
+    /**
+     * Reopen a system-collected or graded attempt so the student can work on it again (FB-04).
+     */
+    reopen: async (id: string): Promise<SubmissionResponse> => {
+        const response = await api.post<ApiResponse<SubmissionResponse>>(`/submissions/${id}/reopen`);
+        return response.data.data;
+    },
+
+    /**
+     * Grant a single student an extended deadline for the exercise behind this attempt (FB-04).
+     */
+    extendDeadline: async (id: string, data: ExtendDeadlineRequest): Promise<SubmissionResponse> => {
+        const response = await api.post<ApiResponse<SubmissionResponse>>(
+            `/submissions/${id}/extend`,
+            data
+        );
+        return response.data.data;
+    },
+
+    /**
+     * Exempt an attempt from grading so it stops counting as pending work (FB-04).
+     */
+    exempt: async (id: string): Promise<SubmissionResponse> => {
+        const response = await api.post<ApiResponse<SubmissionResponse>>(`/submissions/${id}/exempt`);
+        return response.data.data;
+    },
+
+    /**
+     * Reset a graded attempt so the tutor can grade it from scratch again (FB-04).
+     */
+    regrade: async (id: string): Promise<SubmissionResponse> => {
+        const response = await api.post<ApiResponse<SubmissionResponse>>(`/submissions/${id}/regrade`);
         return response.data.data;
     }
 };

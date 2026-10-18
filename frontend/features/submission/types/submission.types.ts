@@ -5,6 +5,7 @@ export enum SubmissionStatusEnum {
     PENDING = 'PENDING',
     DRAFT = 'DRAFT',
     SUBMITTED = 'SUBMITTED',
+    AUTO_SUBMITTED = 'AUTO_SUBMITTED',
     GRADED = 'GRADED'
 }
 
@@ -52,6 +53,12 @@ export interface SubmissionResponse {
     submittedAt?: string;
     gradedAt?: string;
     teacherComment?: string;
+    /** True when the system collected the attempt after the deadline instead of the student. */
+    autoSubmitted?: boolean;
+    /** True when every question was left blank. Used to collapse the grading page (FB-03). */
+    hasAnswers?: boolean;
+    /** True when the tutor exempted the attempt from grading (FB-04). */
+    exempted?: boolean;
     answers: StudentAnswerResponse[];
 }
 
@@ -65,4 +72,16 @@ export interface SubmissionListItemResponse {
     totalScore?: number;
     submittedAt?: string;
     gradedAt?: string;
+    /** True when the system collected the attempt after the deadline instead of the student. */
+    autoSubmitted?: boolean;
+    /** True when every question was left blank. */
+    hasAnswers?: boolean;
+    /** True when the tutor exempted the attempt from grading. */
+    exempted?: boolean;
+}
+
+/** Payload for granting one student a new deadline (FB-04). */
+export interface ExtendDeadlineRequest {
+    /** ISO-8601 local date-time string, e.g. `2026-10-31T23:59`. */
+    deadline: string;
 }

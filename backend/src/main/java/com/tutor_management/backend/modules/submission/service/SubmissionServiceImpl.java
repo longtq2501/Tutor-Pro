@@ -1,6 +1,7 @@
 package com.tutor_management.backend.modules.submission.service;
 
 import com.tutor_management.backend.exception.ResourceNotFoundException;
+import com.tutor_management.backend.modules.exercise.domain.ExerciseAssignment;
 import com.tutor_management.backend.modules.exercise.domain.Question;
 import com.tutor_management.backend.modules.exercise.domain.QuestionType;
 import com.tutor_management.backend.modules.submission.entity.StudentAnswer;
@@ -9,6 +10,7 @@ import com.tutor_management.backend.modules.submission.entity.SubmissionStatus;
 import com.tutor_management.backend.modules.submission.dto.request.AnswerRequest;
 import com.tutor_management.backend.modules.submission.dto.request.CreateSubmissionRequest;
 import com.tutor_management.backend.modules.submission.dto.request.EssayGradeRequest;
+import com.tutor_management.backend.modules.submission.dto.request.ExtendDeadlineRequest;
 import com.tutor_management.backend.modules.submission.dto.request.GradeSubmissionRequest;
 import com.tutor_management.backend.modules.submission.dto.response.SubmissionIdentityReconcileResponse;
 import com.tutor_management.backend.modules.submission.dto.response.StudentAnswerResponse;
@@ -66,18 +68,26 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         for (Submission submission : expiredSubmissions) {
             try {
-                if (submission.getStatus() == SubmissionStatus.SUBMITTED || submission.getStatus() == SubmissionStatus.GRADED) {
+                if (submission.getStatus() == SubmissionStatus.SUBMITTED
+                        || submission.getStatus() == SubmissionStatus.AUTO_SUBMITTED
+                        || submission.getStatus() == SubmissionStatus.GRADED) {
                     continue;
                 }
 
-                submission.setStatus(SubmissionStatus.SUBMITTED);
+                // Mark the attempt as system-collected so the UI can distinguish
+                // "quá hạn tự thu" from a genuine student submission.
+                submission.setAutoSubmitted(true);
                 submission.setSubmittedAt(now);
 
                 autoGradingService.gradeSubmission(submission);
 
                 List<Question> questions = questionRepository.findByExerciseIdOrderByOrderIndex(submission.getExerciseId());
                 boolean hasEssay = questions.stream().anyMatch(question -> question.getType() == QuestionType.ESSAY);
-                if (!hasEssay) {
+                if (hasEssay) {
+                    // Essay needs a human; park it in the dedicated auto-collected state.
+                    submission.setStatus(SubmissionStatus.AUTO_SUBMITTED);
+                } else {
+                    // Fully auto-graded (typically zero because nothing was answered).
                     submission.setStatus(SubmissionStatus.GRADED);
                     submission.setGradedAt(now);
                 }
@@ -112,6 +122,8 @@ public class SubmissionServiceImpl implements SubmissionService {
         Submission submission = syncDraftEntity(request, studentId);
         submission.setStatus(SubmissionStatus.SUBMITTED);
         submission.setSubmittedAt(LocalDateTime.now());
+        // A genuine student submission supersedes any earlier auto-collection.
+        submission.setAutoSubmitted(false);
         
         // coordinated auto-grading phase
         autoGradingService.gradeSubmission(submission);
@@ -201,6 +213,98 @@ public class SubmissionServiceImpl implements SubmissionService {
         return mapToSubmissionResponse(graded);
     }
 
+    // Reopens a system-collected attempt so the student can keep working on it.
+    @Override
+    public SubmissionResponse reopenSubmission(String submissionId) {
+        log.info("♻️ Reopening submission for additional attempt: {}", submissionId);
+
+        Submission submission = submissionRepository.findByIdWithAnswers(submissionId)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài nộp với ID: " + submissionId));
+
+        submission.setStatus(SubmissionStatus.DRAFT);
+        submission.setAutoSubmitted(false);
+        submission.setExempted(false);
+        submission.setSubmittedAt(null);
+        submission.setGradedAt(null);
+
+        Submission saved = submissionRepository.save(submission);
+        syncAssignmentStatus(saved);
+        log.info("Submission {} reopened and returned to DRAFT (assignment deadline should be extended separately)", submissionId);
+
+        return mapToSubmissionResponse(saved);
+    }
+
+    // Grants a single student a new deadline on the exercise behind this attempt.
+    @Override
+    public SubmissionResponse extendDeadline(String submissionId, ExtendDeadlineRequest request) {
+        Submission submission = submissionRepository.findByIdWithAnswers(submissionId)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài nộp với ID: " + submissionId));
+
+        if (request == null || request.getDeadline() == null) {
+            throw new IllegalArgumentException("Hạn nộp mới không được để trống");
+        }
+
+        log.info("⏰ Extending deadline for submission {} to {}", submissionId, request.getDeadline());
+
+        ExerciseAssignment assignment = assignmentRepository
+            .findByExerciseIdAndStudentId(submission.getExerciseId(), submission.getStudentId())
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Không tìm thấy phân công bài tập cho học sinh này để gia hạn"));
+
+        assignment.setDeadline(request.getDeadline());
+        assignmentRepository.save(assignment);
+
+        // If the attempt had already been auto-collected, release it back for work.
+        if (submission.getStatus() == SubmissionStatus.AUTO_SUBMITTED) {
+            submission.setStatus(SubmissionStatus.DRAFT);
+            submission.setAutoSubmitted(false);
+            submission.setSubmittedAt(null);
+            submissionRepository.save(submission);
+        }
+
+        return mapToSubmissionResponse(submission);
+    }
+
+    // Exempts (miễn) an attempt from grading so it stops counting as pending work.
+    @Override
+    public SubmissionResponse exemptSubmission(String submissionId) {
+        log.info("🚫 Exempting submission from grading: {}", submissionId);
+
+        Submission submission = submissionRepository.findByIdWithAnswers(submissionId)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài nộp với ID: " + submissionId));
+
+        submission.setExempted(true);
+        submission.setStatus(SubmissionStatus.GRADED);
+        submission.setTotalScore(0.0);
+        submission.setEssayScore(0.0);
+        submission.setGradedAt(LocalDateTime.now());
+
+        Submission saved = submissionRepository.save(submission);
+        syncAssignmentStatus(saved);
+
+        return mapToSubmissionResponse(saved);
+    }
+
+    // Resets a graded attempt so the tutor can grade it again from scratch.
+    @Override
+    public SubmissionResponse regradeSubmission(String submissionId) {
+        log.info("🔁 Resetting submission for re-grading: {}", submissionId);
+
+        Submission submission = submissionRepository.findByIdWithAnswers(submissionId)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài nộp với ID: " + submissionId));
+
+        submission.setStatus(submission.getAutoSubmitted() != null && submission.getAutoSubmitted()
+            ? SubmissionStatus.AUTO_SUBMITTED
+            : SubmissionStatus.SUBMITTED);
+        submission.setGradedAt(null);
+        submission.setExempted(false);
+
+        Submission saved = submissionRepository.save(submission);
+        syncAssignmentStatus(saved);
+
+        return mapToSubmissionResponse(saved);
+    }
+
     @Override
     public SubmissionIdentityReconcileResponse reconcileStudentIdentitySubmissions(Long studentProfileId, boolean dryRun) {
         if (studentProfileId == null) {
@@ -282,6 +386,7 @@ public class SubmissionServiceImpl implements SubmissionService {
                 switch (s.getStatus()) {
                     case DRAFT -> assignment.setStatus(com.tutor_management.backend.modules.exercise.domain.AssignmentStatus.STARTED);
                     case SUBMITTED -> assignment.setStatus(com.tutor_management.backend.modules.exercise.domain.AssignmentStatus.SUBMITTED);
+                    case AUTO_SUBMITTED -> assignment.setStatus(com.tutor_management.backend.modules.exercise.domain.AssignmentStatus.SUBMITTED);
                     case GRADED -> assignment.setStatus(com.tutor_management.backend.modules.exercise.domain.AssignmentStatus.GRADED);
                     case PENDING -> assignment.setStatus(com.tutor_management.backend.modules.exercise.domain.AssignmentStatus.PENDING);
                 }
@@ -378,7 +483,10 @@ public class SubmissionServiceImpl implements SubmissionService {
             if (type == QuestionType.MCQ) {
                 // MCQ points are set by AutoGradingService — read-only here, never overwrite
                 double pts = Optional.ofNullable(a.getPoints()).orElse(0.0);
-                if (a.getPoints() != null) {
+                // Count only answers that actually carry earned points (> 0).
+                // @Builder.Default initializes `points` to 0.0, so both wrong answers and
+                // answers that were never scored are indistinguishable via `!= null` alone.
+                if (a.getPoints() != null && a.getPoints() > 0.0) {
                     mcqAnswersWithPointData++;
                 }
                 mcq += pts;
@@ -402,9 +510,24 @@ public class SubmissionServiceImpl implements SubmissionService {
             mcq = previousMcq;
         }
 
+        // Fallback: no answer carries earned MCQ points (all 0.0 / unscored) while the
+        // submission already has a positive MCQ score — happens when AutoGradingService
+        // set `mcqScore` on the Submission but the per-answer `points` values were not
+        // persisted (e.g. DB flush order issue or answers replaced without re-grading).
         if (mappedMcqAnswers > 0 && mcqAnswersWithPointData == 0 && previousMcq > 0) {
-            log.warn("MCQ answers in submission {} have no point data. Preserving previous MCQ score {}",
+            log.warn("MCQ answers in submission {} carry no scored points. Preserving previous MCQ score {}",
                 s.getId(), previousMcq);
+            mcq = previousMcq;
+        }
+
+        // Safety guard: teacher manual grading has NO authority over MCQ scores.
+        // AutoGradingService is the sole owner of mcqScore. If recalculation somehow
+        // produces a lower value than what was already persisted (e.g. due to 0.0 defaults,
+        // lazy-load mismatches, or partial flush), preserve the stored score.
+        if (mcq < previousMcq) {
+            log.warn("Recalculated MCQ score ({}) is lower than stored MCQ score ({}) for submission {}. "
+                    + "Preserving stored value to prevent data loss.",
+                    mcq, previousMcq, s.getId());
             mcq = previousMcq;
         }
 
@@ -461,6 +584,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         }
         return switch (s.getStatus()) {
             case GRADED -> 4;
+            case AUTO_SUBMITTED -> 3;
             case SUBMITTED -> 3;
             case DRAFT -> 2;
             case PENDING -> 1;
@@ -530,6 +654,8 @@ public class SubmissionServiceImpl implements SubmissionService {
             .status(s.getStatus()).mcqScore(s.getMcqScore()).essayScore(s.getEssayScore()).totalScore(s.getTotalScore())
             .submittedAt(s.getSubmittedAt()).gradedAt(s.getGradedAt()).teacherComment(s.getTeacherComment())
             .createdAt(s.getCreatedAt()).updatedAt(s.getUpdatedAt())
+            .autoSubmitted(s.getAutoSubmitted()).exempted(s.getExempted())
+            .hasAnswers(!s.hasNoAnswers())
             .answers(s.getAnswers().stream().map(this::mapToAnswerResponse).toList())
             .build();
     }
@@ -547,6 +673,8 @@ public class SubmissionServiceImpl implements SubmissionService {
             .id(s.getId()).studentId(s.getStudentId()).studentName(u != null ? u.getFullName() : resolveStudentName(s.getStudentId()))
             .status(s.getStatus()).mcqScore(s.getMcqScore()).essayScore(s.getEssayScore()).totalScore(s.getTotalScore())
             .submittedAt(s.getSubmittedAt()).gradedAt(s.getGradedAt())
+            .autoSubmitted(s.getAutoSubmitted()).exempted(s.getExempted())
+            .hasAnswers(!s.hasNoAnswers())
             .build();
     }
 

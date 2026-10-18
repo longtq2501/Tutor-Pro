@@ -1,11 +1,13 @@
 'use client';
 
 import {
+    BarChart3,
     BookOpen,
     CalendarDays,
-    ClipboardList,
-    FileText,
-    GraduationCap, LayoutDashboard,
+    ClipboardCheck,
+    FolderArchive,
+    GraduationCap,
+    LayoutDashboard,
     LogOut,
     Menu,
     Settings,
@@ -188,7 +190,7 @@ const MainContentSwitcher = React.memo(({ currentView, hasAnyRole }: {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.1, ease: "easeInOut" }}
-                className="p-4 min-h-full"
+                className="p-4 min-h-full pb-24 lg:pb-28"
             >
                 {/* Dashboard */}
                 {currentView === 'dashboard' && hasAnyRole(['ADMIN', 'TUTOR']) && (
@@ -335,10 +337,10 @@ function AppContent() {
             { id: 'tutors', label: 'Gia Sư', icon: Users },
             { id: 'students', label: 'Học Sinh & PH', icon: GraduationCap },
             { id: 'finance', label: 'Tài Chính', icon: TrendingUp },
-            { id: 'reports', label: 'Báo Cáo', icon: FileText },
+            { id: 'reports', label: 'Báo Cáo', icon: BarChart3 },
             { id: 'calendar', label: 'Lịch dạy', icon: CalendarDays },
-            { id: 'exercises', label: 'Khảo thí', icon: ClipboardList },
-            { id: 'documents', label: 'Tài Liệu', icon: FileText },
+            { id: 'exercises', label: 'Khảo thí', icon: ClipboardCheck },
+            { id: 'documents', label: 'Tài Liệu', icon: FolderArchive },
             { id: 'lessons', label: 'Bài Giảng', icon: BookOpen },
             { id: 'live-room', label: 'Lớp học', icon: Video },
             { id: 'settings', label: 'Cài đặt', icon: Settings },

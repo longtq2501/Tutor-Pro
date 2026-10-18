@@ -3,6 +3,7 @@ package com.tutor_management.backend.modules.submission.controller;
 import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.shared.dto.response.ApiResponse;
 import com.tutor_management.backend.modules.submission.dto.request.CreateSubmissionRequest;
+import com.tutor_management.backend.modules.submission.dto.request.ExtendDeadlineRequest;
 import com.tutor_management.backend.modules.submission.dto.request.GradeSubmissionRequest;
 import com.tutor_management.backend.modules.submission.dto.response.SubmissionIdentityReconcileResponse;
 import com.tutor_management.backend.modules.submission.dto.response.SubmissionListItemResponse;
@@ -122,6 +123,56 @@ public class SubmissionController {
         log.info("Tutor providing feedback for submission {}", id);
         SubmissionResponse submission = submissionService.gradeSubmission(id, request);
         return ResponseEntity.ok(ApiResponse.success("Đã chấm điểm bài nộp thành công", submission));
+    }
+
+    /**
+     * Reopens an auto-collected or graded attempt so the student can work on it again.
+     * Authorized for: ADMIN, TUTOR.
+     */
+    @PostMapping("/{id}/reopen")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
+    public ResponseEntity<ApiResponse<SubmissionResponse>> reopenSubmission(@PathVariable String id) {
+        log.info("Tutor reopening submission {}", id);
+        SubmissionResponse submission = submissionService.reopenSubmission(id);
+        return ResponseEntity.ok(ApiResponse.success("Đã mở lại bài nộp cho học sinh làm tiếp", submission));
+    }
+
+    /**
+     * Grants a single student an extended deadline for the exercise behind this attempt.
+     * Authorized for: ADMIN, TUTOR.
+     */
+    @PostMapping("/{id}/extend")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
+    public ResponseEntity<ApiResponse<SubmissionResponse>> extendDeadline(
+            @PathVariable String id,
+            @Valid @RequestBody ExtendDeadlineRequest request) {
+        log.info("Tutor extending deadline for submission {} to {}", id, request.getDeadline());
+        SubmissionResponse submission = submissionService.extendDeadline(id, request);
+        return ResponseEntity.ok(ApiResponse.success("Đã gia hạn thời gian nộp bài cho học sinh", submission));
+    }
+
+    /**
+     * Exempts an attempt from grading (miễn bài) so it no longer counts as pending work.
+     * Authorized for: ADMIN, TUTOR.
+     */
+    @PostMapping("/{id}/exempt")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
+    public ResponseEntity<ApiResponse<SubmissionResponse>> exemptSubmission(@PathVariable String id) {
+        log.info("Tutor exempting submission {} from grading", id);
+        SubmissionResponse submission = submissionService.exemptSubmission(id);
+        return ResponseEntity.ok(ApiResponse.success("Đã miễn chấm bài nộp này", submission));
+    }
+
+    /**
+     * Resets a graded attempt so the tutor can grade it again from scratch.
+     * Authorized for: ADMIN, TUTOR.
+     */
+    @PostMapping("/{id}/regrade")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TUTOR')")
+    public ResponseEntity<ApiResponse<SubmissionResponse>> regradeSubmission(@PathVariable String id) {
+        log.info("Tutor resetting submission {} for re-grading", id);
+        SubmissionResponse submission = submissionService.regradeSubmission(id);
+        return ResponseEntity.ok(ApiResponse.success("Đã đưa bài nộp về trạng thái chờ chấm lại", submission));
     }
 
     @PostMapping("/reconcile/student/{studentProfileId}")

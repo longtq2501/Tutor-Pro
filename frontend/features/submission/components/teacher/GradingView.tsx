@@ -10,9 +10,10 @@ import { toast } from 'sonner';
 import { exerciseService } from '@/features/exercise-import/services/exerciseService';
 import { Exercise, Question, QuestionType } from '@/features/exercise-import/types/exercise.types';
 import { ArrowLeft, Check, CheckCircle2, Save, XCircle, AlertCircle } from 'lucide-react';
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { submissionService } from '../../services/submissionService';
 import { GradeSubmissionRequest, SubmissionResponse } from '../../types/submission.types';
+import { getSubmissionStatusPresentation, isAutoCollected, isBlankAutoCollected } from '../../constants/submissionStatus';
 import { cn, formatExerciseTitle } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -21,6 +22,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/hooks/useQueryKeys';
 import Image from 'next/image';
+import { SubmissionExceptionActions } from './SubmissionExceptionActions';
 
 interface GradingViewProps {
     submissionId: string;
@@ -44,36 +46,37 @@ export const GradingView: React.FC<GradingViewProps> = ({ submissionId, onBack, 
         return text.normalize('NFC');
     };
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setIsLoading(true);
-                const subData = await submissionService.getById(submissionId);
-                setSubmission(subData);
-                setTeacherComment(subData.teacherComment || '');
+    const fetchData = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            const subData = await submissionService.getById(submissionId);
+            setSubmission(subData);
+            setTeacherComment(subData.teacherComment || '');
 
-                const exData = await exerciseService.getById(subData.exerciseId);
-                setExercise(exData);
+            const exData = await exerciseService.getById(subData.exerciseId);
+            setExercise(exData);
 
-                // Initialize grades - ONLY for essay questions
-                const grades = new Map();
-                subData.answers.forEach(a => {
-                    const question = exData.questions?.find(q => q.id === a.questionId);
-                    if (question?.type === QuestionType.ESSAY) {
-                        if (a.points !== undefined || a.feedback) {
-                            grades.set(a.questionId, { points: a.points || 0, feedback: a.feedback || '' });
-                        }
+            // Initialize grades - ONLY for essay questions
+            const grades = new Map<string, { points: number; feedback: string }>();
+            subData.answers.forEach(a => {
+                const question = exData.questions?.find(q => q.id === a.questionId);
+                if (question?.type === QuestionType.ESSAY) {
+                    if (a.points !== undefined || a.feedback) {
+                        grades.set(a.questionId, { points: a.points || 0, feedback: a.feedback || '' });
                     }
-                });
-                setEssayGrades(grades);
-            } catch (err) {
-                toast.error("Error", { description: "Failed to load grading data" });
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchData();
+                }
+            });
+            setEssayGrades(grades);
+        } catch (err) {
+            toast.error("Error", { description: "Failed to load grading data" });
+        } finally {
+            setIsLoading(false);
+        }
     }, [submissionId]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleGradeChange = (questionId: string, field: 'points' | 'feedback', value: any) => {
@@ -115,6 +118,14 @@ export const GradingView: React.FC<GradingViewProps> = ({ submissionId, onBack, 
     const displayedTotalScore = isReviewMode
         ? Math.min(submission?.totalScore || (displayedMcqScore + displayedEssayScore), exercise?.totalPoints || Infinity)
         : finalTotal;
+
+    // FB-01/FB-03: an attempt the system collected after the deadline needs a clear,
+    // non-Alarmist explanation instead of looking like a student submission.
+    const autoCollected = isAutoCollected(submission);
+    // FB-03: a blank auto-collected attempt contains nothing a human can grade — the save
+    // button must be hidden so nobody "grades" an empty sheet.
+    const isBlankAutoAttempt = isBlankAutoCollected(submission);
+    const isGradeable = !isReviewMode && !isBlankAutoAttempt;
 
     const handleSaveGrade = async () => {
         if (!submission || !exercise) return;
@@ -203,10 +214,30 @@ export const GradingView: React.FC<GradingViewProps> = ({ submissionId, onBack, 
                                         <span className="font-bold text-foreground">{submission.studentName || submission.studentId}</span>
                                         <span className="opacity-50">|</span>
                                         <span>Nộp: {submission.submittedAt ? format(new Date(submission.submittedAt), 'HH:mm dd/MM') : 'N/A'}</span>
+                                        {autoCollected && (
+                                            <>
+                                                <span className="opacity-50">|</span>
+                                                <Badge
+                                                    variant="outline"
+                                                    className={cn(
+                                                        "h-5 px-1.5 text-[10px] font-bold border",
+                                                        getSubmissionStatusPresentation(submission.status).badgeClassName
+                                                    )}
+                                                >
+                                                    {getSubmissionStatusPresentation(submission.status).label}
+                                                </Badge>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             </div>
                             <div className="flex gap-2 shrink-0 self-end md:self-center">
+                                <SubmissionExceptionActions
+                                    submissionId={submission.id}
+                                    submission={submission}
+                                    isReviewMode={isReviewMode}
+                                    onSubmissionUpdated={fetchData}
+                                />
                                 <div className="flex flex-col items-center bg-secondary/30 px-2 py-0.5 rounded border border-border min-w-[60px]">
                                     <span className="text-[8px] text-muted-foreground uppercase font-semibold">MCQ</span>
                                     <span className="text-xs font-bold text-primary">{displayedMcqScore}</span>
@@ -221,6 +252,17 @@ export const GradingView: React.FC<GradingViewProps> = ({ submissionId, onBack, 
                                 </div>
                             </div>
                         </div>
+                        {autoCollected && (
+                            <div className="mt-1.5 flex items-start gap-2 text-[10px] text-red-700 dark:text-red-300 bg-red-500/10 p-1.5 rounded border border-red-500/30">
+                                <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-px" />
+                                <span>
+                                    <strong>Hệ thống tự thu bài khi hết hạn.</strong>{' '}
+                                    {isBlankAutoAttempt
+                                        ? 'Học sinh không để lại câu trả lời nào nên bài này không cần chấm — điểm 0 được giữ nguyên.'
+                                        : 'Phần tự luận chưa được chấm, hãy chấm và lưu điểm như bình thường nếu cần.'}
+                                </span>
+                            </div>
+                        )}
                         {!isReviewMode && totalCalculated > exercise.totalPoints && (
                             <div className="mt-1.5 flex items-center gap-2 text-[9px] text-red-600 bg-red-500/10 p-1 rounded border border-red-500/20">
                                 <AlertCircle className="h-3 w-3" />
@@ -431,10 +473,15 @@ export const GradingView: React.FC<GradingViewProps> = ({ submissionId, onBack, 
                         <Button variant="outline" onClick={onBack} className="min-w-[100px]">
                             {isReviewMode ? "Quay lại" : "Hủy bỏ"}
                         </Button>
-                        {!isReviewMode && (
+                        {isGradeable && (
                             <Button onClick={handleSaveGrade} disabled={isSubmitting} className="min-w-[150px]">
                                 <Save className="mr-2 h-4 w-4" /> Lưu điểm
                             </Button>
+                        )}
+                        {!isReviewMode && isBlankAutoAttempt && (
+                            <span className="flex items-center text-xs text-muted-foreground italic">
+                                Bài tự thu không có câu trả lời — không cần chấm điểm.
+                            </span>
                         )}
                     </div>
                 </div>

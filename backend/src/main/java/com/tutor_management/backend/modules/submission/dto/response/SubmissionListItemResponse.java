@@ -28,4 +28,19 @@ public class SubmissionListItemResponse {
     private Double totalScore;
     private LocalDateTime submittedAt;
     private LocalDateTime gradedAt;
+
+    /**
+     * True when the system auto-collected this attempt after the deadline.
+     */
+    private Boolean autoSubmitted;
+
+    /**
+     * True when the tutor exempted this attempt from grading.
+     */
+    private Boolean exempted;
+
+    /**
+     * Convenience flag: true when the attempt holds no meaningful answer.
+     */
+    private Boolean hasAnswers;
 }

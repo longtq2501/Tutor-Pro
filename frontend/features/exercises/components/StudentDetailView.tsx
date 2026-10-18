@@ -12,7 +12,8 @@ import {
     Clock,
     FileText,
     BookOpen,
-    Trophy
+    Trophy,
+    FileWarning
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -66,18 +67,28 @@ export const StudentDetailView: React.FC<StudentDetailViewProps> = ({
         return a.title.localeCompare(b.title, 'vi');
     };
 
+    // FB-01/FB-02: attempts the system collected after the deadline form their own
+    // partition. They must never be counted as "đã nộp" (the student did not submit)
+    // nor silently mixed into "đã chấm" (which would inflate the completion rate).
+    const isAutoCollected = (ex: ExerciseListItemResponse) =>
+        ex.autoSubmitted === true || statusOf(ex.submissionStatus) === 'AUTO_SUBMITTED';
+
     // Categorization uses a strict partition so detail counts match summary cards.
+    // AUTO_SUBMITTED is filtered out above, so only human-graded work reaches this bucket.
     const isGraded = (status: string) => status === 'GRADED';
     const isSubmittedBucket = (status: string) => ['DRAFT', 'SUBMITTED', 'STARTED'].includes(status);
 
-    const pending = exercises
+    const autoCollected = exercises.filter(isAutoCollected);
+    const countableExercises = exercises.filter(ex => !isAutoCollected(ex));
+
+    const pending = countableExercises
         .filter(ex => {
             const status = statusOf(ex.submissionStatus);
             return !isGraded(status) && !isSubmittedBucket(status);
         })
         .sort(sortByNearestDeadline);
-    const inProgress = exercises.filter(ex => isSubmittedBucket(statusOf(ex.submissionStatus)));
-    const graded = exercises.filter(ex => isGraded(statusOf(ex.submissionStatus)));
+    const inProgress = countableExercises.filter(ex => isSubmittedBucket(statusOf(ex.submissionStatus)));
+    const graded = countableExercises.filter(ex => isGraded(statusOf(ex.submissionStatus)));
 
     const handleRevokeAssignment = async (exercise: ExerciseListItemResponse) => {
         const confirmed = await confirm({
@@ -122,6 +133,7 @@ export const StudentDetailView: React.FC<StudentDetailViewProps> = ({
                 pendingCount={pending.length}
                 inProgressCount={inProgress.length}
                 gradedCount={graded.length}
+                autoCollectedCount={autoCollected.length}
                 totalAssigned={exercises.length}
             />
 
@@ -160,6 +172,28 @@ export const StudentDetailView: React.FC<StudentDetailViewProps> = ({
                 </div>
             </div>
 
+            {/* FB-01: auto-collected attempts get their own section so they can never be
+                mistaken for work the student actually handed in. */}
+            {autoCollected.length > 0 && (
+                <div className="mt-8">
+                    <PerformanceSection
+                        title="Hệ thống tự thu (quá hạn)"
+                        icon={<FileWarning className="h-5 w-5 text-red-500" />}
+                        count={autoCollected.length}
+                        isLoading={isLoading}
+                    >
+                        {autoCollected.map(ex => (
+                            <ExerciseRowCard
+                                key={ex.id}
+                                exercise={ex}
+                                label="Tự thu"
+                                onClick={() => onViewExercise(ex, 'GRADE')}
+                            />
+                        ))}
+                    </PerformanceSection>
+                </div>
+            )}
+
             <ConfirmationDialog />
         </motion.div>
     );
@@ -170,16 +204,21 @@ const StudentProfileHeader = ({
     pendingCount,
     inProgressCount,
     gradedCount,
+    autoCollectedCount,
     totalAssigned,
 }: {
     studentSummary: TutorStudentSummaryResponse;
     pendingCount: number;
     inProgressCount: number;
     gradedCount: number;
+    autoCollectedCount: number;
     totalAssigned: number;
 }) => {
-    const completionRate = totalAssigned > 0
-        ? Math.round((gradedCount / totalAssigned) * 100)
+    // FB-02: auto-collected attempts are excluded from the denominator so a student
+    // who missed a deadline is not punished twice in the "Đã học" ring.
+    const countedAssigned = Math.max(0, totalAssigned - autoCollectedCount);
+    const completionRate = countedAssigned > 0
+        ? Math.round((gradedCount / countedAssigned) * 100)
         : 0;
 
     return (
@@ -199,7 +238,7 @@ const StudentProfileHeader = ({
                             </h1>
                             <div className="flex flex-wrap items-center gap-4 text-muted-foreground font-semibold">
                                 <Badge variant="secondary" className="px-3 py-1 bg-primary/5 text-primary border-primary/20 text-xs rounded-lg">
-                                    Lớp: {studentSummary.grade || 'N/A'}
+                                    Lớp: {studentSummary.grade || '—'}
                                 </Badge>
                                 <span className="text-sm flex items-center gap-2 bg-muted/50 px-3 py-1 rounded-lg">
                                     <FileText className="h-4 w-4 text-primary/60" /> {totalAssigned} Tài liệu & Bài tập
@@ -210,6 +249,9 @@ const StudentProfileHeader = ({
                     <div className="flex items-center gap-12 w-full lg:w-auto overflow-x-auto pb-4 lg:pb-0 scrollbar-hide">
                         <StatItem iconColor="bg-orange-500" value={pendingCount} label="Chờ làm" />
                         <StatItem iconColor="bg-sky-500" value={inProgressCount} label="Đang làm" />
+                        {autoCollectedCount > 0 && (
+                            <StatItem iconColor="bg-red-500" value={autoCollectedCount} label="Tự thu" />
+                        )}
                         <StatItem iconColor="bg-green-500" value={gradedCount} label="Đã chấm" />
                         <ProgressRing percentage={completionRate} />
                     </div>
@@ -245,7 +287,7 @@ const ProgressRing = ({ percentage }: { percentage: number }) => (
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
             <span className="text-sm font-black leading-none">{percentage}%</span>
-            <span className="text-[7px] text-muted-foreground font-black uppercase tracking-tighter mt-1">Đã học</span>
+            <span className="text-[7px] text-muted-foreground font-black uppercase tracking-tighter mt-1">Đã làm</span>
         </div>
     </div>
 );

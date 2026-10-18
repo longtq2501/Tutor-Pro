@@ -11,10 +11,16 @@ import {
 } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { Eye, FileText, Loader2 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { submissionService } from '../../services/submissionService';
 import { SubmissionListItemResponse, SubmissionStatusEnum } from '../../types/submission.types';
+import {
+    getSubmissionStatusPresentation,
+    isAutoCollected,
+    isBlankAutoCollected,
+} from '../../constants/submissionStatus';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SubmissionExceptionActions } from './SubmissionExceptionActions';
 
 interface SubmissionListProps {
     exerciseId: string;
@@ -28,22 +34,23 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
     const [submissions, setSubmissions] = useState<SubmissionListItemResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchSubmissions = async () => {
-            try {
-                setIsLoading(true);
-                const data = await submissionService.listByExercise(exerciseId);
-                setSubmissions(data);
-            } catch (err) {
-                toast.error("Error", {
-                    description: "Failed to load submissions"
-                });
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchSubmissions();
+    const fetchSubmissions = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            const data = await submissionService.listByExercise(exerciseId);
+            setSubmissions(data);
+        } catch (err) {
+            toast.error("Lỗi", {
+                description: "Không thể tải danh sách bài nộp"
+            });
+        } finally {
+            setIsLoading(false);
+        }
     }, [exerciseId]);
+
+    useEffect(() => {
+        fetchSubmissions();
+    }, [fetchSubmissions]);
 
     if (isLoading) {
         return (
@@ -71,7 +78,7 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
         <Card className="animate-in fade-in slide-in-from-bottom-2 duration-400">
             <CardHeader className="py-3 px-4 border-b">
                 <CardTitle className="text-lg flex items-center gap-2">
-                    Student Submissions ({submissions.length})
+                    Bài nộp của học sinh ({submissions.length})
                     {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
                 </CardTitle>
             </CardHeader>
@@ -89,28 +96,35 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
                     <Table>
                         <TableHeader>
                             <TableRow className="h-10 hover:bg-transparent">
-                                <TableHead className="py-2 px-4">Student</TableHead>
-                                <TableHead className="py-2 px-4">Status</TableHead>
-                                <TableHead className="py-2 px-4">Submitted At</TableHead>
-                                <TableHead className="py-2 px-4 text-center">MCQ</TableHead>
-                                <TableHead className="py-2 px-4 text-center">Essay</TableHead>
-                                <TableHead className="py-2 px-4 text-center">Total</TableHead>
-                                <TableHead className="py-2 px-4 text-right">Actions</TableHead>
+                                <TableHead className="py-2 px-4">Học sinh</TableHead>
+                                <TableHead className="py-2 px-4">Trạng thái</TableHead>
+                                <TableHead className="py-2 px-4">Nộp lúc</TableHead>
+                                <TableHead className="py-2 px-4 text-center">Trắc nghiệm</TableHead>
+                                <TableHead className="py-2 px-4 text-center">Tự luận</TableHead>
+                                <TableHead className="py-2 px-4 text-center">Tổng</TableHead>
+                                <TableHead className="py-2 px-4 text-right">Thao tác</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {submissions.map((sub) => (
+                            {submissions.map((sub) => {
+                                // FB-09/FB-22: labels and colours come from the shared module,
+                                // so "Tự thu" looks identical on every teacher screen.
+                                const presentation = getSubmissionStatusPresentation(sub.status);
+                                const autoCollected = isAutoCollected(sub);
+                                const blankAutoCollected = isBlankAutoCollected(sub);
+
+                                return (
                                 <TableRow key={sub.id} className="h-12 hover:bg-muted/50 transition-colors">
                                     <TableCell className="py-1 px-4 font-medium">
                                         {sub.studentName || sub.studentId}
                                     </TableCell>
                                     <TableCell className="py-1 px-4">
-                                        <Badge variant={
-                                            sub.status === SubmissionStatusEnum.GRADED ? 'default' :
-                                                sub.status === SubmissionStatusEnum.SUBMITTED ? 'secondary' :
-                                                    sub.status === SubmissionStatusEnum.PENDING ? 'outline' : 'secondary'
-                                        } className={`px-2 py-0 h-5 text-[10px] ${sub.status === SubmissionStatusEnum.PENDING ? 'border-orange-200 text-orange-600 bg-orange-50 dark:bg-orange-950/20' : ''}`}>
-                                            {sub.status}
+                                        <Badge
+                                            variant="outline"
+                                            className={`px-2 py-0 h-5 text-[10px] border ${presentation.badgeClassName}`}
+                                            title={autoCollected ? 'Hệ thống tự thu khi hết hạn' : presentation.label}
+                                        >
+                                            {blankAutoCollected ? `${presentation.label} (trắng)` : presentation.label}
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="py-1 px-4 text-xs text-muted-foreground">
@@ -118,35 +132,53 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
                                     </TableCell>
                                     <TableCell className="py-1 px-4 text-center text-xs font-semibold">{sub.mcqScore ?? '-'}</TableCell>
                                     <TableCell className="py-1 px-4 text-center text-xs">
-                                        {sub.status === SubmissionStatusEnum.GRADED ? (
+                                        {blankAutoCollected ? (
+                                            <span className="text-muted-foreground/60 italic text-[10px]">Không cần chấm</span>
+                                        ) : sub.status === SubmissionStatusEnum.GRADED ? (
                                             <span className="font-semibold text-yellow-600 dark:text-yellow-500">{sub.essayScore}</span>
                                         ) : sub.status === SubmissionStatusEnum.PENDING ? (
-                                            <span className="text-muted-foreground/40 italic text-[10px]">Unstarted</span>
+                                            <span className="text-muted-foreground/40 italic text-[10px]">Chưa làm</span>
                                         ) : (
-                                            <span className="text-muted-foreground italic text-[10px]">Pending</span>
+                                            <span className="text-muted-foreground italic text-[10px]">Chờ chấm</span>
                                         )}
                                     </TableCell>
                                     <TableCell className="py-1 px-4 font-black text-center text-sm text-primary">
                                         {sub.totalScore ?? '-'}
                                     </TableCell>
                                     <TableCell className="py-1 px-4 text-right">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-8 w-8 p-0"
-                                            onClick={() => onSelectSubmission(sub.id)}
-                                            disabled={sub.status === SubmissionStatusEnum.PENDING}
-                                            title={sub.status === SubmissionStatusEnum.GRADED ? "View" : sub.status === SubmissionStatusEnum.PENDING ? "Not started" : "Grade"}
-                                        >
-                                            {sub.status === SubmissionStatusEnum.GRADED ? (
-                                                <Eye className="h-4 w-4" />
-                                            ) : (
-                                                <FileText className={`h-4 w-4 ${sub.status === SubmissionStatusEnum.PENDING ? 'opacity-20' : ''}`} />
-                                            )}
-                                        </Button>
+                                        <div className="flex items-center justify-end gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 w-8 p-0"
+                                                onClick={() => onSelectSubmission(sub.id)}
+                                                disabled={sub.status === SubmissionStatusEnum.PENDING}
+                                                title={
+                                                    blankAutoCollected ? 'Tự thu — không có câu trả lời'
+                                                        : sub.status === SubmissionStatusEnum.GRADED ? 'Xem bài'
+                                                            : sub.status === SubmissionStatusEnum.PENDING ? 'Chưa làm'
+                                                                : autoCollected ? 'Chấm bài tự thu' : 'Chấm bài'
+                                                }
+                                            >
+                                                {sub.status === SubmissionStatusEnum.GRADED && !blankAutoCollected ? (
+                                                    <Eye className="h-4 w-4" />
+                                                ) : (
+                                                    <FileText className={`h-4 w-4 ${sub.status === SubmissionStatusEnum.PENDING ? 'opacity-20' : ''}`} />
+                                                )}
+                                            </Button>
+                                            {/* FB-04: inline exception menu so a tutor can fix a collected
+                                                attempt without opening the full grading page first. */}
+                                            <SubmissionExceptionActions
+                                                compact
+                                                submissionId={sub.id}
+                                                submission={sub}
+                                                onSubmissionUpdated={fetchSubmissions}
+                                            />
+                                        </div>
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                                );
+                            })}
                         </TableBody>
                     </Table>
                 )}

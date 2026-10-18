@@ -33,7 +33,23 @@ public class SubmissionResponse {
     private String teacherComment;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    
+
+    /**
+     * True when the system auto-collected this attempt after the deadline.
+     */
+    private Boolean autoSubmitted;
+
+    /**
+     * True when the tutor exempted this attempt from grading.
+     */
+    private Boolean exempted;
+
+    /**
+     * Convenience flag: true when the attempt holds no meaningful answer.
+     * Lets the UI collapse the grading page for blank auto-collected attempts.
+     */
+    private Boolean hasAnswers;
+
     /**
      * Detailed breakdown of individual student answers.
      */

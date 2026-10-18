@@ -364,12 +364,155 @@ class SubmissionServiceTest {
 
         submissionService.autoSubmitExpiredSubmissions();
 
-        assertEquals(SubmissionStatus.SUBMITTED, expiredPending.getStatus());
+        // FB-01: an essay attempt cannot be auto-graded, so it lands in the dedicated
+        // "Tự thu" state instead of masquerading as a genuine SUBMITTED work.
+        assertEquals(SubmissionStatus.AUTO_SUBMITTED, expiredPending.getStatus());
         assertNotNull(expiredPending.getSubmittedAt());
         assertNull(expiredPending.getGradedAt());
 
         verify(submissionRepository, atLeastOnce()).save(any(Submission.class));
         verify(assignmentRepository).save(any(com.tutor_management.backend.modules.exercise.domain.ExerciseAssignment.class));
         assertEquals(com.tutor_management.backend.modules.exercise.domain.AssignmentStatus.SUBMITTED, assignment.getStatus());
-        }
+    }
+
+        /**
+         * FB-01: an expired attempt that contains an essay question must be collected as
+         * AUTO_SUBMITTED and flagged so the UI can label it "Tự thu".
+         */
+        @Test
+        void autoSubmitExpiredSubmissions_withEssay_shouldSetAutoSubmittedFlag() {
+        Submission expiredPending = Submission.builder()
+            .id("sub-expired-auto-flag")
+            .exerciseId(exerciseId)
+            .studentId(studentId)
+            .status(SubmissionStatus.PENDING)
+            .answers(new ArrayList<>())
+            .build();
+
+        com.tutor_management.backend.modules.exercise.domain.Exercise ex = new com.tutor_management.backend.modules.exercise.domain.Exercise();
+        ex.setId(exerciseId);
+        ex.setTitle("Bai kiem tra Essay");
+        ex.setCreatedBy("10");
+        ex.setTotalPoints(10);
+
+        com.tutor_management.backend.modules.exercise.domain.ExerciseAssignment assignment =
+            com.tutor_management.backend.modules.exercise.domain.ExerciseAssignment.builder()
+                .exerciseId(exerciseId)
+                .studentId(studentId)
+                .assignedBy("10")
+                .status(com.tutor_management.backend.modules.exercise.domain.AssignmentStatus.PENDING)
+                .build();
+
+        when(submissionRepository.findExpiredByStatuses(any(LocalDateTime.class), anyList()))
+            .thenReturn(List.of(expiredPending));
+        when(questionRepository.findByExerciseIdOrderByOrderIndex(eq(exerciseId)))
+            .thenReturn(List.of(Question.builder().id("qEssay").type(QuestionType.ESSAY).points(10.0).build()));
+        when(exerciseRepository.findById(eq(exerciseId))).thenReturn(Optional.of(ex));
+        when(assignmentRepository.findByExerciseIdAndStudentId(eq(exerciseId), eq(studentId)))
+            .thenReturn(Optional.of(assignment));
+        when(submissionRepository.findByIdWithAnswers(eq("sub-expired-auto-flag")))
+            .thenReturn(Optional.of(expiredPending));
+
+        doAnswer(invocation -> {
+            Submission submission = invocation.getArgument(0);
+            submission.setMcqScore(0.0);
+            submission.setEssayScore(0.0);
+            submission.setTotalScore(0.0);
+            return 0.0;
+        }).when(autoGradingService).gradeSubmission(any(Submission.class));
+
+        submissionService.autoSubmitExpiredSubmissions();
+
+        // FB-01: the attempt must be parked in the dedicated "Tự thu" state, never GRADED,
+        // and the API must expose the blank-attempt signal so the UI can collapse the page.
+        assertEquals(SubmissionStatus.AUTO_SUBMITTED, expiredPending.getStatus());
+        assertNotNull(expiredPending.getSubmittedAt());
+        assertTrue(expiredPending.hasNoAnswers(), "Blank attempt must report hasNoAnswers()");
+        // No human grading is required for a fully auto-graded blank attempt.
+        assertNull(expiredPending.getGradedAt(), "Auto-collected essay attempt must not be marked graded");
+
+        var response = submissionService.getSubmission("sub-expired-auto-flag");
+        assertEquals(SubmissionStatus.AUTO_SUBMITTED, response.getStatus());
+        assertEquals(Boolean.FALSE, response.getHasAnswers());
+    }
+
+    /**
+     * FB-01 fallback: a fully auto-collected MCQ attempt is auto-graded to a hard zero,
+     * lands in GRADED (no human needed) but keeps the auto-collected marker so the UI
+     * can still label it "Tự thu" instead of a genuine student submission.
+     */
+    @Test
+    void autoSubmitExpiredSubmissions_onlyMcq_shouldKeepZeroScoreAndFlagAutoCollected() {
+        Submission expiredDraft = Submission.builder()
+            .id("sub-expired-zero")
+            .exerciseId(exerciseId)
+            .studentId(studentId)
+            .status(SubmissionStatus.DRAFT)
+            .answers(new ArrayList<>())
+            .build();
+
+        com.tutor_management.backend.modules.exercise.domain.Exercise ex = new com.tutor_management.backend.modules.exercise.domain.Exercise();
+        ex.setId(exerciseId);
+        ex.setTitle("Bai kiem tra MCQ");
+        ex.setCreatedBy("10");
+        ex.setTotalPoints(10);
+
+        when(submissionRepository.findExpiredByStatuses(any(LocalDateTime.class), anyList()))
+            .thenReturn(List.of(expiredDraft));
+        when(questionRepository.findByExerciseIdOrderByOrderIndex(eq(exerciseId)))
+            .thenReturn(List.of(Question.builder().id("q1").type(QuestionType.MCQ).points(10.0).build()));
+        when(exerciseRepository.findById(eq(exerciseId))).thenReturn(Optional.of(ex));
+
+        doAnswer(invocation -> {
+            Submission submission = invocation.getArgument(0);
+            submission.setMcqScore(0.0);
+            submission.setEssayScore(0.0);
+            submission.setTotalScore(0.0);
+            return 0.0;
+        }).when(autoGradingService).gradeSubmission(any(Submission.class));
+
+        submissionService.autoSubmitExpiredSubmissions();
+
+        assertEquals(SubmissionStatus.GRADED, expiredDraft.getStatus());
+        assertEquals(0.0, expiredDraft.getTotalScore());
+        // Status is GRADED (nothing left for a human) but the attempt stays marked as
+        // machine-collected so it never counts as genuine student work.
+        assertEquals(Boolean.TRUE, expiredDraft.getAutoSubmitted());
+    }
+
+    /**
+     * FB-04: reopening an auto-collected attempt must send it back to DRAFT, clear the
+     * auto-collected flag and wipe the automatic zero so the student can work again.
+     */
+    @Test
+    void reopenSubmission_shouldResetToDraftAndClearAutoSubmitted() {
+        Submission submission = Submission.builder()
+            .id("sub-reopen")
+            .exerciseId(exerciseId)
+            .studentId(studentId)
+            .status(SubmissionStatus.AUTO_SUBMITTED)
+            .autoSubmitted(true)
+            .mcqScore(0.0)
+            .essayScore(0.0)
+            .totalScore(0.0)
+            .submittedAt(LocalDateTime.now().minusDays(2))
+            .gradedAt(LocalDateTime.now().minusDays(2))
+            .answers(new ArrayList<>())
+            .build();
+
+        when(submissionRepository.findByIdWithAnswers(eq("sub-reopen"))).thenReturn(Optional.of(submission));
+
+        var response = submissionService.reopenSubmission("sub-reopen");
+
+        assertEquals(SubmissionStatus.DRAFT, response.getStatus());
+        assertEquals(Boolean.FALSE, response.getAutoSubmitted());
+        assertEquals(0.0, response.getMcqScore());
+        assertEquals(0.0, response.getEssayScore());
+        assertEquals(0.0, response.getTotalScore());
+        assertNull(submission.getSubmittedAt());
+        assertNull(submission.getGradedAt());
+        assertEquals(SubmissionStatus.DRAFT, submission.getStatus());
+        assertFalse(submission.getAutoSubmitted());
+        verify(submissionRepository, atLeastOnce()).save(any(Submission.class));
+    }
 }

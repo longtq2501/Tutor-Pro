@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
     FEATURES,
     FEATURE_GROUPS,
+    FEATURE_GROUP_ORDER,
     getAllFeatures,
     getFeatureBySlug,
     getFeaturesByGroup,
@@ -85,6 +86,25 @@ describe('Landing Features Configuration', () => {
 
             const resolvedRelated = getRelatedFeatures(feature.slug);
             expect(resolvedRelated).toHaveLength(feature.related.length);
+        });
+    });
+
+    it('should expose the group order Vận hành → Học vụ → Giảng dạy → Đánh giá', () => {
+        expect(FEATURE_GROUP_ORDER).toEqual(['operations', 'academics', 'teaching', 'assessment']);
+        expect(FEATURE_GROUP_ORDER.map((key) => FEATURE_GROUPS[key].label)).toEqual([
+            'Vận hành',
+            'Học vụ',
+            'Giảng dạy',
+            'Đánh giá',
+        ]);
+        // Mọi nhóm đều có mặt trong thứ tự hiển thị, không thiếu không thừa
+        expect([...FEATURE_GROUP_ORDER].sort()).toEqual(Object.keys(FEATURE_GROUPS).sort());
+    });
+
+    it('should keep dropdown descriptions short enough to read fully in 2 lines', () => {
+        FEATURES.forEach((feature) => {
+            expect(feature.desc.length).toBeLessThanOrEqual(60);
+            expect(feature.desc).not.toMatch(/\.\.\.|…$/);
         });
     });
 });

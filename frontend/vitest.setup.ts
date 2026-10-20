@@ -21,7 +21,8 @@ global.MediaRecorder = class {
     onerror = vi.fn();
     state = 'inactive';
 } as unknown as typeof MediaRecorder;
-(global.MediaRecorder as any).isTypeSupported = vi.fn().mockReturnValue(true);
+(global.MediaRecorder as unknown as { isTypeSupported: (type: string) => boolean }).isTypeSupported =
+    vi.fn().mockReturnValue(true);
 
 // Mock ResizeObserver
 global.ResizeObserver = class {
@@ -44,6 +45,24 @@ global.IntersectionObserver = class {
 // Mock URL.createObjectURL and URL.revokeObjectURL
 global.URL.createObjectURL = vi.fn().mockReturnValue('blob:test');
 global.URL.revokeObjectURL = vi.fn();
+
+// Mock window.matchMedia (jsdom không cung cấp sẵn — dùng cho prefers-reduced-motion)
+if (typeof window !== 'undefined' && typeof window.matchMedia !== 'function') {
+    Object.defineProperty(window, 'matchMedia', {
+        writable: true,
+        configurable: true,
+        value: (query: string) => ({
+            matches: false,
+            media: query,
+            onchange: null,
+            addListener: vi.fn(),
+            removeListener: vi.fn(),
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+            dispatchEvent: vi.fn(),
+        }),
+    });
+}
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({

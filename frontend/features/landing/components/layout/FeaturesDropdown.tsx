@@ -1,164 +1,74 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { FEATURES, FEATURE_GROUPS, FeatureGroup } from '../../config/features';
+import { FEATURES, FEATURE_GROUPS, FEATURE_GROUP_ORDER, FeatureType } from '../../config/features';
+
+export const FEATURES_DROPDOWN_ID = 'lp-features-panel';
+
+const TYPE_LABELS: Record<FeatureType, string> = {
+    action: 'Thao tác',
+    view: 'Theo dõi',
+    mixed: 'Tổng hợp',
+};
 
 interface FeaturesDropdownProps {
+    /** id để trigger gắn với panel qua aria-controls */
+    id?: string;
     isOpen: boolean;
     onClose: () => void;
+    /** Giữ menu mở khi rê chuột vào panel (chống tắt nháy) */
+    onPanelPointerEnter?: (event: React.PointerEvent) => void;
+    onPanelPointerLeave?: (event: React.PointerEvent) => void;
 }
 
-const GROUPS_ORDER: FeatureGroup[] = ['teaching', 'assessment', 'operations', 'academics'];
-
-export function FeaturesDropdown({ isOpen, onClose }: FeaturesDropdownProps) {
-    const dropdownRef = useRef<HTMLDivElement | null>(null);
-
-    // Keyboard navigation: Esc closes dropdown
-    useEffect(() => {
-        if (!isOpen) return;
-
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                onClose();
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, onClose]);
-
-    if (!isOpen) return null;
-
+/**
+ * Mega menu "Tính năng".
+ * Luôn nằm trong DOM, trạng thái mở/đóng điều khiển bằng `data-open`
+ * để có chuyển động mượt (không dùng render có điều kiện hay display: none).
+ */
+export function FeaturesDropdown({
+    id = FEATURES_DROPDOWN_ID,
+    isOpen,
+    onClose,
+    onPanelPointerEnter,
+    onPanelPointerLeave,
+}: FeaturesDropdownProps) {
     return (
         <div
-            ref={dropdownRef}
-            className="lp-features-dropdown"
-            role="menu"
-            aria-label="Danh sách tính năng Tutor Pro"
-            style={{
-                position: 'absolute',
-                top: 'calc(100% + 10px)',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: 'min(94vw, 920px)',
-                background: 'var(--tile)',
-                border: '1px solid var(--line)',
-                borderRadius: '24px',
-                padding: '24px 28px',
-                boxShadow: '0 24px 60px rgba(0,0,0,0.4)',
-                zIndex: 100,
-                animation: 'lpFadeIn 0.2s ease',
-            }}
+            id={id}
+            className="lp-mega"
+            data-open={isOpen ? 'true' : 'false'}
+            onPointerEnter={onPanelPointerEnter}
+            onPointerLeave={onPanelPointerLeave}
         >
-            <div
-                style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
-                    gap: '24px',
-                }}
-            >
-                {GROUPS_ORDER.map((grpKey) => {
-                    const groupInfo = FEATURE_GROUPS[grpKey];
-                    const groupFeatures = FEATURES.filter((f) => f.group === grpKey);
+            <div className="lp-mega-grid">
+                {FEATURE_GROUP_ORDER.map((groupKey) => {
+                    const groupInfo = FEATURE_GROUPS[groupKey];
+                    const groupFeatures = FEATURES.filter((feature) => feature.group === groupKey);
 
                     return (
-                        <div key={grpKey} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <div
-                                style={{
-                                    fontSize: '12px',
-                                    fontWeight: 800,
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.06em',
-                                    color: 'var(--brand)',
-                                    marginBottom: '4px',
-                                    fontFamily: 'var(--font-baloo-2), system-ui, sans-serif',
-                                }}
-                            >
-                                {groupInfo.label}
-                            </div>
+                        <div key={groupKey} className="lp-mega-group" role="group" aria-label={groupInfo.label}>
+                            <div className="lp-mega-group-label">{groupInfo.label}</div>
 
-                            {groupFeatures.map((feat) => {
-                                const IconComponent = feat.icon;
-                                const isAction = feat.type === 'action';
-                                const typeLabel = isAction ? 'Thao tác' : feat.type === 'view' ? 'Theo dõi' : 'Tổng hợp';
+                            {groupFeatures.map((feature) => {
+                                const IconComponent = feature.icon;
 
                                 return (
                                     <Link
-                                        key={feat.slug}
-                                        href={`/features/${feat.slug}`}
+                                        key={feature.slug}
+                                        href={`/features/${feature.slug}`}
+                                        className="lp-mega-item"
                                         onClick={onClose}
-                                        role="menuitem"
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'flex-start',
-                                            gap: '12px',
-                                            padding: '10px 12px',
-                                            borderRadius: '14px',
-                                            textDecoration: 'none',
-                                            transition: 'background 0.15s ease',
-                                        }}
-                                        className="hover:bg-[var(--tile2)] group"
                                     >
-                                        <div
-                                            style={{
-                                                width: '32px',
-                                                height: '32px',
-                                                borderRadius: '8px',
-                                                background: 'var(--tile2)',
-                                                border: '1px solid var(--line)',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                color: 'var(--brand)',
-                                                flexShrink: 0,
-                                                marginTop: '2px',
-                                            }}
-                                            className="group-hover:border-[var(--brand)] transition-colors"
-                                        >
-                                            <IconComponent className="h-4 w-4" />
-                                        </div>
-
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                                                <span
-                                                    style={{
-                                                        fontSize: '14.5px',
-                                                        fontWeight: 700,
-                                                        color: 'var(--ink)',
-                                                    }}
-                                                    className="group-hover:text-[var(--brand)] transition-colors"
-                                                >
-                                                    {feat.name}
-                                                </span>
-                                                <span
-                                                    style={{
-                                                        fontSize: '10px',
-                                                        padding: '1px 6px',
-                                                        borderRadius: '999px',
-                                                        background: 'var(--tile2)',
-                                                        color: 'var(--mut)',
-                                                        fontWeight: 600,
-                                                    }}
-                                                >
-                                                    {typeLabel}
-                                                </span>
-                                            </div>
-                                            <p
-                                                style={{
-                                                    fontSize: '12.5px',
-                                                    color: 'var(--mut)',
-                                                    lineHeight: 1.35,
-                                                    margin: 0,
-                                                    display: '-webkit-box',
-                                                    WebkitLineClamp: 2,
-                                                    WebkitBoxOrient: 'vertical',
-                                                    overflow: 'hidden',
-                                                }}
-                                            >
-                                                {feat.desc}
-                                            </p>
-                                        </div>
+                                        <span className="lp-mega-item-head">
+                                            <span className="lp-mega-item-icon" aria-hidden="true">
+                                                <IconComponent className="h-4 w-4" />
+                                            </span>
+                                            <span className="lp-mega-item-name">{feature.name}</span>
+                                            <span className="lp-mega-item-type">{TYPE_LABELS[feature.type]}</span>
+                                        </span>
+                                        <p className="lp-mega-item-desc">{feature.desc}</p>
                                     </Link>
                                 );
                             })}
@@ -167,34 +77,11 @@ export function FeaturesDropdown({ isOpen, onClose }: FeaturesDropdownProps) {
                 })}
             </div>
 
-            {/* Dropdown footer banner */}
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginTop: '20px',
-                    paddingTop: '16px',
-                    borderTop: '1px solid var(--line)',
-                    fontSize: '13.5px',
-                }}
-            >
-                <span style={{ color: 'var(--mut)' }}>
+            <div className="lp-mega-footer">
+                <span className="lp-mega-footer-text">
                     Khám phá toàn bộ hệ thống tính năng chuyên sâu cho gia sư.
                 </span>
-                <Link
-                    href="/features"
-                    onClick={onClose}
-                    style={{
-                        color: 'var(--brand)',
-                        fontWeight: 700,
-                        textDecoration: 'none',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                    }}
-                    className="hover:underline"
-                >
+                <Link href="/features" className="lp-mega-footer-link" onClick={onClose}>
                     <span>Xem trang tổng hợp tính năng</span>
                     <span aria-hidden="true">→</span>
                 </Link>

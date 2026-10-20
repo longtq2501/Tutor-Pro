@@ -4,8 +4,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { TutorProLogo } from '@/components/shared/TutorProLogo';
-import { FeaturesDropdown } from './FeaturesDropdown';
-import { FEATURES, FEATURE_GROUPS } from '../../config/features';
+import { FeaturesDropdown, FEATURES_DROPDOWN_ID } from './FeaturesDropdown';
+import { FEATURES, FEATURE_GROUPS, FEATURE_GROUP_ORDER } from '../../config/features';
 import { Menu, X, ChevronDown } from 'lucide-react';
 
 export function NavBar() {
@@ -13,6 +13,7 @@ export function NavBar() {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const navRef = useRef<HTMLElement | null>(null);
+    const triggerRef = useRef<HTMLButtonElement | null>(null);
     const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const [prevPathname, setPrevPathname] = useState(pathname);
@@ -46,18 +47,60 @@ export function NavBar() {
         };
     }, [mobileMenuOpen]);
 
-    const handleMouseEnter = () => {
+    // Keyboard: Esc đóng dropdown và trả focus về nút "Tính năng"
+    useEffect(() => {
+        if (!dropdownOpen) return;
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key !== 'Escape') return;
+
+            if (closeTimeoutRef.current) {
+                clearTimeout(closeTimeoutRef.current);
+                closeTimeoutRef.current = null;
+            }
+            setDropdownOpen(false);
+            triggerRef.current?.focus();
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [dropdownOpen]);
+
+    const clearCloseTimeout = () => {
         if (closeTimeoutRef.current) {
             clearTimeout(closeTimeoutRef.current);
             closeTimeoutRef.current = null;
         }
-        setDropdownOpen(true);
     };
 
-    const handleMouseLeave = () => {
+    // Chống tắt nháy: rời chuột thì chờ 150ms mới đóng, quay lại kịp thì hủy
+    const scheduleCloseDropdown = () => {
+        clearCloseTimeout();
         closeTimeoutRef.current = setTimeout(() => {
             setDropdownOpen(false);
         }, 150);
+    };
+
+    // Chỉ mở/đóng bằng rê chuột với chuột thật; cảm ứng dùng bấm để bật tắt
+    const handlePointerEnter = (event: React.PointerEvent) => {
+        if (event.pointerType !== 'mouse') return;
+        clearCloseTimeout();
+        setDropdownOpen(true);
+    };
+
+    const handlePointerLeave = (event: React.PointerEvent) => {
+        if (event.pointerType !== 'mouse') return;
+        scheduleCloseDropdown();
+    };
+
+    const handleTriggerClick = () => {
+        clearCloseTimeout();
+        setDropdownOpen((open) => !open);
+    };
+
+    const handleDropdownClose = () => {
+        clearCloseTimeout();
+        setDropdownOpen(false);
     };
 
     return (
@@ -77,39 +120,29 @@ export function NavBar() {
                     <TutorProLogo iconClassName="h-9 w-9" />
                 </Link>
 
-                {/* Desktop Nav Links */}
-                <div className="lp-nav-links" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {/* Desktop Nav Links — display do CSS quyết định để ẩn được dưới 861px */}
+                <div className="lp-nav-links">
                     {/* Features Dropdown Trigger */}
                     <div
-                        onMouseEnter={handleMouseEnter}
-                        onMouseLeave={handleMouseLeave}
-                        style={{ position: 'relative' }}
+                        className="lp-mega-anchor"
+                        onPointerEnter={handlePointerEnter}
+                        onPointerLeave={handlePointerLeave}
                     >
-                        <Link
-                            href="/features"
-                            className="lp-nav-link"
-                            aria-haspopup="true"
+                        <button
+                            ref={triggerRef}
+                            type="button"
+                            className="lp-nav-link lp-mega-trigger"
                             aria-expanded={dropdownOpen}
-                            style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                            }}
+                            aria-controls={FEATURES_DROPDOWN_ID}
+                            onClick={handleTriggerClick}
                         >
                             <span>Tính năng</span>
                             <ChevronDown
-                                className="h-4 w-4"
-                                style={{
-                                    transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                                    transition: 'transform 0.2s ease',
-                                }}
+                                aria-hidden="true"
+                                className="h-4 w-4 lp-mega-chevron"
+                                data-open={dropdownOpen ? 'true' : 'false'}
                             />
-                        </Link>
-
-                        <FeaturesDropdown
-                            isOpen={dropdownOpen}
-                            onClose={() => setDropdownOpen(false)}
-                        />
+                        </button>
                     </div>
 
                     <Link href="/pricing" className="lp-nav-link">
@@ -118,7 +151,7 @@ export function NavBar() {
                 </div>
 
                 {/* Desktop CTA Button */}
-                <div className="hidden md:flex items-center gap-3">
+                <div className="hidden min-[861px]:flex items-center gap-3">
                     <Link
                         href="/register"
                         className="lp-btn lp-btn-primary"
@@ -127,8 +160,8 @@ export function NavBar() {
                     </Link>
                 </div>
 
-                {/* Mobile Menu Hamburger Button */}
-                <div className="flex md:hidden items-center gap-2">
+                {/* Mobile Menu Hamburger Button — dùng chung ngưỡng 861px với nav links */}
+                <div className="flex min-[861px]:hidden items-center gap-2">
                     <Link
                         href="/register"
                         className="lp-btn lp-btn-primary"
@@ -138,7 +171,10 @@ export function NavBar() {
                     </Link>
                     <button
                         type="button"
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        onClick={() => {
+                            setMobileMenuOpen(!mobileMenuOpen);
+                            setDropdownOpen(false);
+                        }}
                         aria-label={mobileMenuOpen ? 'Đóng menu' : 'Mở menu tính năng'}
                         aria-expanded={mobileMenuOpen}
                         style={{
@@ -156,12 +192,21 @@ export function NavBar() {
                         {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                     </button>
                 </div>
+
+                {/* Features Mega Menu — luôn trong DOM, căn giữa theo navbar (≥ 861px) */}
+                <FeaturesDropdown
+                    id={FEATURES_DROPDOWN_ID}
+                    isOpen={dropdownOpen}
+                    onClose={handleDropdownClose}
+                    onPanelPointerEnter={handlePointerEnter}
+                    onPanelPointerLeave={handlePointerLeave}
+                />
             </div>
 
             {/* Mobile Drawer Menu */}
             {mobileMenuOpen && (
                 <div
-                    className="md:hidden"
+                    className="min-[861px]:hidden"
                     style={{
                         position: 'fixed',
                         top: '64px',
@@ -194,7 +239,7 @@ export function NavBar() {
                             </Link>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '18px' }}>
-                                {(Object.keys(FEATURE_GROUPS) as (keyof typeof FEATURE_GROUPS)[]).map((grpKey) => {
+                                {FEATURE_GROUP_ORDER.map((grpKey) => {
                                     const groupInfo = FEATURE_GROUPS[grpKey];
                                     const groupFeatures = FEATURES.filter((f) => f.group === grpKey);
 

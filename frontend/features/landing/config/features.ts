@@ -36,6 +36,17 @@ export interface FeatureGroupInfo {
     description: string;
 }
 
+/**
+ * Thứ tự hiển thị nhóm tính năng — nguồn duy nhất cho navbar/dropdown/menu mobile.
+ * Thứ tự này khớp với menu app: Vận hành, Học vụ, Giảng dạy, Đánh giá.
+ */
+export const FEATURE_GROUP_ORDER: FeatureGroup[] = [
+    'operations',
+    'academics',
+    'teaching',
+    'assessment',
+];
+
 export const FEATURE_GROUPS: Record<FeatureGroup, FeatureGroupInfo> = {
     operations: {
         key: 'operations',
@@ -65,7 +76,7 @@ export const FEATURES: FeatureConfig[] = [
         slug: 'overview',
         name: 'Tổng Quan',
         tagline: 'Nhìn toàn cảnh công việc dạy học trong một bảng điều khiển',
-        desc: 'Theo dõi nhanh các buổi học hôm nay, học phí cần thu và việc cần xử lý ngay khi mở ứng dụng.',
+        desc: 'Buổi dạy hôm nay, học phí và việc gấp ngay khi mở app.',
         icon: LayoutDashboard,
         group: 'operations',
         type: 'view',
@@ -81,7 +92,7 @@ export const FEATURES: FeatureConfig[] = [
         slug: 'finance',
         name: 'Tài Chính',
         tagline: 'Quản lý học phí minh bạch, theo dõi công nợ chuẩn xác',
-        desc: 'Theo dõi chi tiết học phí từng học sinh, lập hóa đơn, đối soát VietQR và báo cáo doanh thu theo tháng.',
+        desc: 'Học phí từng em, hóa đơn và doanh thu theo tháng.',
         icon: Wallet,
         group: 'operations',
         type: 'mixed',
@@ -103,7 +114,7 @@ export const FEATURES: FeatureConfig[] = [
         slug: 'settings',
         name: 'Cài đặt',
         tagline: 'Tùy chỉnh hồ sơ dạy học và phương thức vận hành',
-        desc: 'Thiết lập thông tin cá nhân, định dạng tài khoản ngân hàng nhận học phí và các tùy chọn cá nhân hóa.',
+        desc: 'Hồ sơ gia sư, tài khoản nhận học phí và tùy chọn.',
         icon: Settings,
         group: 'operations',
         type: 'mixed',
@@ -127,7 +138,7 @@ export const FEATURES: FeatureConfig[] = [
         slug: 'students',
         name: 'Học Sinh & PH',
         tagline: 'Hồ sơ học tập trọn vẹn và cầu nối tin cậy với phụ huynh',
-        desc: 'Quản lý thông tin chi tiết từng học sinh, nhật ký học tập, liên hệ phụ huynh và tiến độ rèn luyện.',
+        desc: 'Hồ sơ học sinh, liên hệ phụ huynh và tiến độ học.',
         icon: Users,
         group: 'academics',
         type: 'action',
@@ -149,7 +160,7 @@ export const FEATURES: FeatureConfig[] = [
         slug: 'classes',
         name: 'Lớp học',
         tagline: 'Tổ chức lớp nhóm hoặc kèm 1-1 khoa học',
-        desc: 'Phân loại học sinh theo lớp, môn học hoặc trình độ để dễ dàng xếp lịch và giao học liệu đồng loạt.',
+        desc: 'Gom học sinh theo lớp, trình độ để xếp lịch nhanh.',
         icon: GraduationCap,
         group: 'academics',
         type: 'action',
@@ -173,7 +184,7 @@ export const FEATURES: FeatureConfig[] = [
         slug: 'schedule',
         name: 'Lịch dạy',
         tagline: 'Lịch trình thông minh, không lo trùng giờ hay quên ca',
-        desc: 'Xem lịch tuần, lịch tháng trực quan, hỗ trợ xếp lịch lặp định kỳ và tự động cảnh báo xung đột giờ dạy.',
+        desc: 'Lịch tuần, lịch tháng và cảnh báo trùng giờ dạy.',
         icon: Calendar,
         group: 'teaching',
         type: 'action',
@@ -195,7 +206,7 @@ export const FEATURES: FeatureConfig[] = [
         slug: 'documents',
         name: 'Tài Liệu',
         tagline: 'Kho tài liệu số hóa, tìm kiếm tức thì mọi giáo án',
-        desc: 'Lưu trữ giáo trình, đề cương, file đề thi PDF/Word tập trung để chia sẻ nhanh chóng với học sinh.',
+        desc: 'Kho giáo trình, đề thi tập trung, chia sẻ tức thì.',
         icon: FolderArchive,
         group: 'teaching',
         type: 'action',
@@ -217,7 +228,7 @@ export const FEATURES: FeatureConfig[] = [
         slug: 'lessons',
         name: 'Bài Giảng',
         tagline: 'Soạn giáo án và bài giảng theo lộ trình chuẩn mực',
-        desc: 'Tổ chức nội dung bài giảng theo từng chương mục, tích hợp tài nguyên đa phương tiện và phòng học trực tuyến.',
+        desc: 'Soạn bài theo chương mục, dạy trực tuyến tương tác.',
         icon: BookOpen,
         group: 'teaching',
         type: 'action',
@@ -241,7 +252,7 @@ export const FEATURES: FeatureConfig[] = [
         slug: 'reports',
         name: 'Báo Cáo',
         tagline: 'Báo cáo học tập chuyên nghiệp, gửi phụ huynh tin cậy',
-        desc: 'Tổng hợp số buổi học, điểm số bài tập và nhận xét có sự hỗ trợ của AI để xuất báo cáo PDF/hình ảnh đẹp mắt.',
+        desc: 'Báo cáo tiến độ có AI gợi ý nhận xét, xuất PDF.',
         icon: BarChart3,
         group: 'assessment',
         type: 'view',
@@ -257,7 +268,7 @@ export const FEATURES: FeatureConfig[] = [
         slug: 'exams',
         name: 'Khảo thí',
         tagline: 'Ngân hàng câu hỏi và chấm thi tự động chuẩn mực',
-        desc: 'Tạo bài tập trắc nghiệm và tự luận, tự động thu bài khi hết hạn, chấm điểm tức thì và theo dõi tiến độ nộp bài.',
+        desc: 'Tạo đề trắc nghiệm, tự luận và chấm điểm tự động.',
         icon: ClipboardCheck,
         group: 'assessment',
         type: 'action',

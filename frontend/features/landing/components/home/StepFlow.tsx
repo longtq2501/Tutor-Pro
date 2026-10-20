@@ -111,7 +111,6 @@ export function StepFlow() {
                         </div>
                         <div>
                             {s.visual}
-                            <p className="lp-visual-caption">Hình minh họa</p>
                         </div>
                     </article>
                 ))}

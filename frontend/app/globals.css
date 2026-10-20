@@ -608,6 +608,23 @@ body {
   --bi: #2a1c00;
   --red: #fb7185;
 
+  /* Nền lưới (task 01) */
+  --grid-rgb: 255, 255, 255;
+  --grid-a: 5;
+  --grid-size: 18px;
+
+  /* Color tokens cho card minh họa (task 03) */
+  --g1: #60a5fa;
+  --g2: #c084fc;
+  --g3: #fbbf24;
+  --g4: #f472b6;
+  --cal-empty: var(--tile2);
+  --cal-blue: color-mix(in srgb, var(--g1) 45%, var(--tile2));
+  --cal-plum: color-mix(in srgb, var(--g2) 45%, var(--tile2));
+  --cal-pink: color-mix(in srgb, var(--g4) 45%, var(--tile2));
+  --cal-amber: color-mix(in srgb, var(--g3) 55%, var(--tile2));
+  --visual-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+
   background-color: var(--bg);
   color: var(--ink);
   font-family: var(--font-nunito), system-ui, sans-serif;
@@ -621,32 +638,56 @@ body {
 @media (prefers-color-scheme: light) {
   html:not(.dark) .landing-page,
   html:not([data-theme="dark"]) .landing-page {
-    --bg: #f4f8fb;
+    --bg: #F9E8D2;
     --ink: #12263f;
-    --mut: #566a80;
+    --mut: #6E5D4F;
     --tile: #ffffff;
-    --tile2: #e8f0f7;
-    --line: #d3e0eb;
+    --tile2: #F5E7D3;
+    --line: #E2CDAF;
     --brand: #0e7c86;
     --acc: #f59e0b;
     --bi: #2a1c00;
     --red: #e11d48;
+    --grid-rgb: 138, 106, 61;
+    --grid-a: 10;
+    --g1: #0E7C86;
+    --g2: #7C5CBF;
+    --g3: #D97706;
+    --g4: #D14B64;
+    --cal-empty: color-mix(in srgb, var(--line) 45%, var(--tile));
+    --cal-blue: color-mix(in srgb, var(--g1) 30%, var(--tile));
+    --cal-plum: color-mix(in srgb, var(--g2) 30%, var(--tile));
+    --cal-pink: color-mix(in srgb, var(--g4) 30%, var(--tile));
+    --cal-amber: color-mix(in srgb, var(--g3) 30%, var(--tile));
+    --visual-shadow: 0 10px 16px -3px rgba(60, 40, 20, 0.10), 0 1px 2px rgba(60, 40, 20, 0.06);
   }
 }
 
 /* --- Layer 3: Ép light bằng data-theme --- */
 html[data-theme="light"] .landing-page,
 html.light .landing-page {
-  --bg: #f4f8fb;
+  --bg: #F9E8D2;
   --ink: #12263f;
-  --mut: #566a80;
+  --mut: #6E5D4F;
   --tile: #ffffff;
-  --tile2: #e8f0f7;
-  --line: #d3e0eb;
+  --tile2: #F5E7D3;
+  --line: #E2CDAF;
   --brand: #0e7c86;
   --acc: #f59e0b;
   --bi: #2a1c00;
   --red: #e11d48;
+  --grid-rgb: 138, 106, 61;
+  --grid-a: 10;
+  --g1: #0E7C86;
+  --g2: #7C5CBF;
+  --g3: #D97706;
+  --g4: #D14B64;
+  --cal-empty: color-mix(in srgb, var(--line) 45%, var(--tile));
+  --cal-blue: color-mix(in srgb, var(--g1) 30%, var(--tile));
+  --cal-plum: color-mix(in srgb, var(--g2) 30%, var(--tile));
+  --cal-pink: color-mix(in srgb, var(--g4) 30%, var(--tile));
+  --cal-amber: color-mix(in srgb, var(--g3) 30%, var(--tile));
+  --visual-shadow: 0 10px 16px -3px rgba(60, 40, 20, 0.10), 0 1px 2px rgba(60, 40, 20, 0.06);
 }
 
 .landing-page * {
@@ -714,11 +755,11 @@ html.light .landing-page .tutor-pro-logo {
 
 /* ============ Layout ============ */
 .landing-container {
-  max-width: 1120px;
+  max-width: 1280px;
   margin-left: auto;
   margin-right: auto;
-  padding-left: 22px;
-  padding-right: 22px;
+  padding-left: 24px;
+  padding-right: 24px;
 }
 
 /* Container riêng cho phần luồng 5 bước — phóng to hơn 1120px (mục 1) */
@@ -788,7 +829,7 @@ html.light .landing-page .tutor-pro-logo {
   border: 1px solid var(--line);
   border-radius: 26px;
   padding: 24px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--visual-shadow);
   width: 100%;
   position: relative;
   z-index: 2; /* nổi lên trên khối vuông cam sau nó (mục 2.2) */
@@ -822,7 +863,7 @@ html.light .landing-page .tutor-pro-logo {
   content: "";
   position: absolute;
   inset: -20% -10% -10% 30%;
-  background: radial-gradient(closest-side, rgba(45, 212, 191, 0.16), transparent);
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--brand) 16%, transparent), transparent);
   z-index: 0;
   pointer-events: none;
 }
@@ -886,12 +927,12 @@ html.light .landing-page .tutor-pro-logo {
 }
 
 .lp-status-paid {
-  background: color-mix(in srgb, var(--brand) 22%, transparent);
+  background: color-mix(in srgb, var(--brand) 22%, var(--tile2));
   color: var(--brand);
 }
 
 .lp-status-unpaid {
-  background: color-mix(in srgb, var(--red) 18%, transparent);
+  background: color-mix(in srgb, var(--red) 18%, var(--tile2));
   color: var(--red);
 }
 
@@ -940,32 +981,48 @@ html.light .landing-page .tutor-pro-logo {
   outline-offset: 2px;
 }
 
+/* ============ Nền lưới (Grid background) ============ */
+.lp-grid-bg {
+  position: relative;
+  isolation: isolate;       /* giữ lưới nằm sau nội dung, không lọt ra ngoài */
+}
+.lp-grid-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;     /* không chặn bấm chuột */
+  border-radius: inherit;
+  --line-c: rgba(var(--grid-rgb), calc(var(--grid-a) / 100));
+  background-image:
+    linear-gradient(var(--line-c) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-c) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+  -webkit-mask-image: radial-gradient(ellipse 72% 72% at 50% 50%, #000 25%, transparent 100%);
+          mask-image: radial-gradient(ellipse 72% 72% at 50% 50%, #000 25%, transparent 100%);
+}
+
 /* ============ Hero ============ */
 .lp-hero {
-  padding-top: 0;
-  padding-bottom: 0;
-  min-height: calc(100svh - 64px);
-  min-height: calc(100vh - 64px);
-  display: flex;
-  align-items: center;
+  padding-top: 56px;
+  padding-bottom: 72px;
 }
 
 .lp-hero-grid {
   display: grid;
-  grid-template-columns: 1.25fr 1fr;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
   align-items: center;
-  gap: 30px;
-  padding-top: 32px;
-  padding-bottom: 40px;
+  gap: 48px;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .lp-hero h1 {
-  font-size: clamp(36px, 4.4vw, 54px);
+  font-size: clamp(44px, 5.2vw, 72px);
   font-weight: 800;
-  line-height: 1.05;
-  margin-bottom: 22px;
+  line-height: 1.08;
+  margin-bottom: 24px;
   text-wrap: balance;
-  max-width: 18ch;
 }
 
 .lp-hero-line {
@@ -978,82 +1035,220 @@ html.light .landing-page .tutor-pro-logo {
   }
 }
 
-.lp-hero-desc {
-  font-size: 20px;
+.landing-page .lp-hero-desc {
+  font-size: 22px;
   color: var(--mut);
   line-height: 1.5;
-  max-width: 26em;
-  margin-bottom: 30px;
+  max-width: 28em;
+  margin-bottom: 32px;
 }
 
 .lp-hero-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 14px;
 }
 
-/* Hero 3D */
-.lp-hero-3d {
+.lp-hero-buttons .lp-btn {
+  padding: 14px 28px;
+}
+
+/* ============ Hero Video Frame ============ */
+.lp-hero-video-col {
+  width: 100%;
+}
+
+.lp-hero-video-frame {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--tile);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
   position: relative;
-  height: 420px;
-  perspective: 1000px;
   display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.lp-hero-rig {
-  position: relative;
+.lp-hero-video-element {
   width: 100%;
   height: 100%;
-  transform-style: preserve-3d;
-  transition: transform 0.18s ease-out;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.lp-mascot-wrap {
-  width: 290px;
-  transform: translateZ(30px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.25));
-}
-
-.lp-float-card {
-  position: absolute;
-  background: var(--tile);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 12px 16px;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--ink);
-  line-height: 1.3;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
-  min-width: 170px;
-}
-
-.lp-float-card small {
+  object-fit: cover;
   display: block;
-  color: var(--mut);
-  font-weight: 500;
+}
+
+.lp-video-toggle-btn {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s, color 0.15s;
+  z-index: 5;
+}
+
+.lp-video-toggle-btn:hover {
+  background: var(--tile2);
+  color: var(--brand);
+  transform: scale(1.05);
+}
+
+.lp-video-toggle-btn:focus-visible {
+  outline: 3px solid var(--acc);
+  outline-offset: 2px;
+}
+
+/* Skeleton Placeholder for App Preview */
+.lp-video-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: var(--tile);
+  user-select: none;
+}
+
+.lp-vp-titlebar {
+  height: 38px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 8px;
+  background: var(--tile2);
+}
+
+.lp-vp-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+  opacity: 0.75;
+}
+
+.lp-vp-dot-1 { background: #ef4444; }
+.lp-vp-dot-2 { background: #f59e0b; }
+.lp-vp-dot-3 { background: #10b981; }
+
+.lp-vp-title {
+  margin-left: 8px;
   font-size: 12px;
-  margin-top: 2px;
+  font-weight: 600;
+  color: var(--mut);
+  opacity: 0.8;
 }
 
-.lp-float-card-1 {
-  top: 40px;
-  left: 10px;
-  transform: translateZ(90px);
+.lp-vp-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 24% 1fr;
+  gap: 14px;
+  padding: 16px;
+  overflow: hidden;
 }
 
-.lp-float-card-2 {
-  bottom: 50px;
-  right: 10px;
-  transform: translateZ(110px);
+.lp-vp-sidebar {
+  background: var(--cal-empty);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lp-vp-bar {
+  height: 10px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--line) 75%, var(--tile));
+}
+
+.lp-vp-bar.w-70 { width: 70%; }
+.lp-vp-bar.w-85 { width: 85%; }
+.lp-vp-bar.w-60 { width: 60%; }
+.lp-vp-bar.w-75 { width: 75%; }
+.lp-vp-bar.w-50 { width: 50%; }
+
+.lp-vp-main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.lp-vp-header-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.lp-vp-pill {
+  height: 24px;
+  width: 110px;
+  border-radius: 999px;
+  background: var(--cal-empty);
+  border: 1px solid var(--line);
+}
+
+.lp-vp-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.lp-vp-card {
+  height: 48px;
+  border-radius: 12px;
+  background: var(--cal-empty);
+  border: 1px solid var(--line);
+}
+
+.lp-vp-panel {
+  flex: 1;
+  border-radius: 14px;
+  background: var(--cal-empty);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 16px;
+}
+
+.lp-vp-badge-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.lp-vp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--line);
+  color: var(--mut);
+  font-size: 13.5px;
+  font-weight: 600;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
 /* Mascot square bg */
@@ -1155,18 +1350,18 @@ html.light .landing-page .tutor-pro-logo {
   color: var(--ink);
 }
 
-/* ============ Flow intro (trở thành con của band, gọn, 96/56, min-height none) ============ */
+/* ============ Flow intro (trở thành con của band, gọn, 76/56, min-height none) ============ */
 .lp-flow-intro {
-  padding-top: 96px;
+  padding-top: 76px;
   padding-bottom: 56px;
-  min-height: 0; /* mục 3: KHÔNG còn 1 màn hình riêng */
-  display: block; /* reset flex từ vòng 1 */
+  min-height: 0;
+  display: block;
   scroll-snap-align: none;
   scroll-margin-top: 0;
 }
 
 .lp-flow-intro h2 {
-  font-size: clamp(30px, 4.4vw, 46px);
+  font-size: clamp(32px, 4vw, 48px);
   font-weight: 800;
   margin-bottom: 14px;
 }
@@ -1188,16 +1383,16 @@ html.light .landing-page .tutor-pro-logo {
 .lp-flow {
   position: relative;
   padding-left: 72px; /* container ngang lớn hơn, để đường dọc có không gian */
-  padding-top: 0;
-  padding-bottom: 40px; /* dãy bước 5 cuối không bị sát cạnh dưới band */
+  padding-top: 8px;   /* tổng khoảng cách từ chip tới bước 1: 56 + 8 = 64px */
+  padding-bottom: 56px;
 }
 
 .lp-flow::before {
   content: "";
   position: absolute;
   left: 27px; /* padding-left 72, nút trái 72-45=27 — tâm đường dọc */
-  top: 0;
-  bottom: 0;
+  top: 8px;
+  bottom: 56px;
   width: 3px;
   background: var(--line);
   border-radius: 3px;
@@ -1206,17 +1401,19 @@ html.light .landing-page .tutor-pro-logo {
 .lp-row {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); /* mục 1: hình rộng hơn chữ 1.3× */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); /* hình rộng hơn chữ 1.3× */
   align-items: center;
   justify-content: center;
-  gap: 56px; /* mục 1: 56px gap 2 cột */
-  min-height: 100vh;
-  min-height: calc(100svh - 64px - env(safe-area-inset-top, 0px));
+  gap: 56px; /* 56px gap 2 cột */
+  min-height: auto;
+  margin-bottom: 56px;
+  padding-top: 0;
+  padding-bottom: 0;
+  scroll-margin-top: calc(72px + env(safe-area-inset-top, 0px));
+}
+
+.lp-row:last-child {
   margin-bottom: 0;
-  padding-top: 16px;
-  padding-bottom: 16px;
-  scroll-snap-align: start;
-  scroll-margin-top: calc(64px + env(safe-area-inset-top, 0px));
 }
 
 .lp-row-text {
@@ -1259,7 +1456,7 @@ html.light .landing-page .tutor-pro-logo {
 }
 
 .lp-row-text h3 {
-  font-size: clamp(30px, 3.6vw, 52px);
+  font-size: clamp(28px, 3vw, 40px);
   font-weight: 800;
   margin-bottom: 18px;
   line-height: 1.12;
@@ -1268,7 +1465,7 @@ html.light .landing-page .tutor-pro-logo {
 
 .lp-row-text > p {
   color: var(--mut);
-  font-size: clamp(18px, 1.5vw, 21px);
+  font-size: 18px;
   line-height: 1.6;
   margin-bottom: 24px;
   max-width: 30em;
@@ -1288,6 +1485,7 @@ html.light .landing-page .tutor-pro-logo {
 
 /* Cột hình bên phải — mục 1 và 2.2 */
 .lp-row > :last-child {
+  width: 100%;
   max-width: 100%;
   justify-self: stretch;
 }
@@ -1306,7 +1504,7 @@ html.light .landing-page .tutor-pro-logo {
 .lp-cal-cell {
   aspect-ratio: 1/1;
   border-radius: 13px;
-  background: var(--tile2);
+  background: var(--cal-empty);
   position: relative;
   min-height: 68px; /* mục 1: ô lịch tối thiểu 68px */
 }
@@ -1523,30 +1721,26 @@ html.light .landing-page .tutor-pro-logo {
 
 .lp-cal-cell {
   aspect-ratio: 1/1;
-  border-radius: 9px;
-  background: var(--tile2);
+  border-radius: 13px;
+  background: var(--cal-empty);
   position: relative;
-  min-height: 38px;
+  min-height: 68px;
 }
 
 .lp-cal-cell.fill-plum {
-  background: #c084fc;
-  background: color-mix(in srgb, #c084fc 45%, var(--tile2));
+  background: var(--cal-plum);
 }
 
 .lp-cal-cell.fill-blue {
-  background: #60a5fa;
-  background: color-mix(in srgb, #60a5fa 45%, var(--tile2));
+  background: var(--cal-blue);
 }
 
 .lp-cal-cell.fill-pink {
-  background: #f472b6;
-  background: color-mix(in srgb, #f472b6 45%, var(--tile2));
+  background: var(--cal-pink);
 }
 
 .lp-cal-cell.fill-amber {
-  background: var(--acc);
-  background: color-mix(in srgb, var(--acc) 55%, var(--tile2));
+  background: var(--cal-amber);
 }
 
 .lp-cal-cell.conflict {
@@ -1691,6 +1885,7 @@ html.light .landing-page .tutor-pro-logo {
 .lp-ai-bubble {
   position: relative;
   background: var(--tile2);
+  border: 1px solid var(--line);
   border-radius: 18px;
   padding: 18px 20px;
   max-width: 100%;
@@ -1716,14 +1911,15 @@ html.light .landing-page .tutor-pro-logo {
 }
 
 .lp-fin-summary {
-  padding: 12px 16px;
+  padding: 14px 20px;
   border-radius: 16px;
   background: var(--tile2);
+  border: 1px solid var(--line);
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--ink);
 }
 
@@ -1742,10 +1938,11 @@ html.light .landing-page .tutor-pro-logo {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 10px 12px;
+  gap: 16px;
+  padding: 14px 16px;
   border-radius: 14px;
   background: var(--tile2);
+  border: 1px solid var(--line);
 }
 
 .lp-fin-left {
@@ -1814,9 +2011,9 @@ html.light .landing-page .tutor-pro-logo {
 
 .lp-prog-bar {
   width: 100%;
-  height: 12px;
+  height: 14px;
   border-radius: 999px;
-  background: var(--tile2);
+  background: var(--cal-empty);
   overflow: hidden;
 }
 
@@ -1837,13 +2034,13 @@ html.light .landing-page .tutor-pro-logo {
   background: var(--tile);
   border: 1px solid var(--line);
   border-radius: 40px;
-  padding: 50px 24px;
+  padding: 56px 24px;
   text-align: center;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
 }
 
 .lp-cta-block h2 {
-  font-size: clamp(30px, 4.4vw, 46px);
+  font-size: clamp(32px, 4vw, 48px);
   font-weight: 800;
   margin-bottom: 14px;
 }
@@ -1886,38 +2083,22 @@ html.light .landing-page .tutor-pro-logo {
     display: none;
   }
 
+  .lp-hero {
+    padding-top: 40px;
+    padding-bottom: 48px;
+  }
+
   .lp-hero-grid {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 32px;
   }
 
-  .lp-hero {
-    padding-top: 36px;
-    padding-bottom: 30px;
-  }
-
-  .lp-hero-3d {
-    height: 350px;
-  }
-
-  .lp-float-card-1 {
-    top: 20px;
-    left: 0;
-  }
-
-  .lp-float-card-2 {
-    bottom: 20px;
-    right: 0;
-  }
-
-  /* Flow intro — 1 màn hình trên mobile */
+  /* Flow intro trên mobile */
   .lp-flow-intro {
-    min-height: calc(100svh - 64px - env(safe-area-inset-top, 0px));
-    min-height: calc(100vh - 64px - env(safe-area-inset-top, 0px));
-    display: flex;
-    align-items: center;
-    padding-top: 24px;
-    padding-bottom: 24px;
+    min-height: 0;
+    display: block;
+    padding-top: 48px;
+    padding-bottom: 32px;
   }
 
   .lp-flow {
@@ -1930,15 +2111,11 @@ html.light .landing-page .tutor-pro-logo {
 
   .lp-row {
     grid-template-columns: 1fr;
-    gap: 16px;
-    /* Mục A: mobile vẫn 1 bước = 1 màn hình, nhưng dùng min-height
-       (không height cố định) để nội dung dài không bị cắt */
-    min-height: calc(100svh - 64px - env(safe-area-inset-top, 0px));
-    min-height: calc(100vh - 64px - env(safe-area-inset-top, 0px));
-    padding-top: 24px;
-    padding-bottom: 24px;
-    margin-bottom: 0;
-    align-content: center;
+    gap: 20px;
+    min-height: auto;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: 48px;
   }
 
   .lp-step-num {
@@ -1976,14 +2153,6 @@ html.light .landing-page .tutor-pro-logo {
   .lp-mascot-svg {
     width: 168px;
     height: 200px;
-  }
-
-  .lp-mascot-wrap {
-    width: 240px;
-  }
-
-  .lp-flow-intro {
-    padding-top: 30px;
   }
 
   .lp-chips-row {
@@ -2027,10 +2196,6 @@ html.light .landing-page .tutor-pro-logo {
   .lp-row,
   .lp-row-text {
     opacity: 1 !important;
-  }
-
-  .lp-hero-rig {
-    transform: none !important;
   }
 
   .lp-mascot-arm,

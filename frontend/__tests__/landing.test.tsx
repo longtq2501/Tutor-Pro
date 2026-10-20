@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import LandingPage from '@/app/page';
+import LandingPage from '@/app/(marketing)/page';
 
 describe('Landing Page (phiên bản B2)', () => {
     it('renders hero headline theo thiết kế mới', () => {
@@ -12,7 +12,7 @@ describe('Landing Page (phiên bản B2)', () => {
     it('renders flow intro với 5 bước tóm tắt', () => {
         render(<LandingPage />);
         expect(screen.getByText(/Một buổi dạy, từ đầu đến cuối/i)).toBeInTheDocument();
-        // Chip lables
+        // Chip labels
         expect(screen.getByText('Xếp lịch')).toBeInTheDocument();
         expect(screen.getByText('Dạy học')).toBeInTheDocument();
         expect(screen.getByText('Nhận xét')).toBeInTheDocument();
@@ -23,7 +23,7 @@ describe('Landing Page (phiên bản B2)', () => {
     it('có nhiều nút CTA "Dùng thử miễn phí" theo spec', () => {
         render(<LandingPage />);
         const buttons = screen.getAllByText(/Dùng thử miễn phí/i);
-        // Navbar + Hero + CTA cuối → ít nhất 2-3
+        // Hero + FinalCTA → ít nhất 2
         expect(buttons.length).toBeGreaterThanOrEqual(2);
     });
 
@@ -55,11 +55,19 @@ describe('Landing Page (phiên bản B2)', () => {
         expect(screen.getByText(/Sẵn sàng dạy nhẹ nhàng hơn/i)).toBeInTheDocument();
         expect(screen.getByText(/Dùng thử miễn phí, bắt đầu trong vài phút/i)).toBeInTheDocument();
     });
+
+    it('hiển thị khối FeatureGrid với đầy đủ 10 tính năng', () => {
+        render(<LandingPage />);
+        expect(screen.getByText('Hệ sinh thái 10 tính năng hoàn chỉnh')).toBeInTheDocument();
+        expect(screen.getByText('Lịch dạy')).toBeInTheDocument();
+        expect(screen.getByText('Báo Cáo')).toBeInTheDocument();
+        expect(screen.getByText('Khảo thí')).toBeInTheDocument();
+    });
 });
 
 describe('Features Page', () => {
     it('renders without crashing', async () => {
-        const { default: FeaturesPage } = await import('@/app/features/page');
+        const { default: FeaturesPage } = await import('@/app/(marketing)/features/page');
         render(<FeaturesPage />);
         expect(document.body).toBeTruthy();
     });
@@ -67,7 +75,7 @@ describe('Features Page', () => {
 
 describe('Pricing Page', () => {
     it('renders without crashing', async () => {
-        const { default: PricingPage } = await import('@/app/pricing/page');
+        const { default: PricingPage } = await import('@/app/(marketing)/pricing/page');
         render(<PricingPage />);
         expect(document.body).toBeTruthy();
     });

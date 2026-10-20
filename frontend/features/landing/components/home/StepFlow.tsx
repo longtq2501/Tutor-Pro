@@ -73,6 +73,7 @@ export function StepFlow() {
                         key={s.anchor}
                         id={s.anchor}
                         className="lp-row"
+                        data-tone={s.num}
                         aria-labelledby={`${s.anchor}-heading`}
                     >
                         <div className="lp-row-text">
@@ -88,20 +89,10 @@ export function StepFlow() {
                                 ))}
                             </ul>
                             {s.featureSlug && (
-                                <div style={{ marginTop: '16px' }}>
+                                <div className="lp-step-link-wrap">
                                     <Link
                                         href={`/features/${s.featureSlug}`}
-                                        style={{
-                                            display: 'inline-flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                            color: 'var(--brand)',
-                                            fontWeight: 700,
-                                            fontSize: '15px',
-                                            textDecoration: 'none',
-                                            transition: 'gap 0.2s ease',
-                                        }}
-                                        className="hover:underline"
+                                        className="lp-step-link"
                                     >
                                         <span>Tìm hiểu tính năng chi tiết</span>
                                         <span aria-hidden="true">→</span>
@@ -109,7 +100,7 @@ export function StepFlow() {
                                 </div>
                             )}
                         </div>
-                        <div>
+                        <div className="lp-visual-col">
                             {s.visual}
                         </div>
                     </article>

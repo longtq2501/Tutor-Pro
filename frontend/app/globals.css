@@ -618,6 +618,7 @@ body {
   --g2: #c084fc;
   --g3: #fbbf24;
   --g4: #f472b6;
+  --tone-alpha: 24%; /* quầng màu theo bước trên nền tối */
   --cal-empty: var(--tile2);
   --cal-blue: color-mix(in srgb, var(--g1) 45%, var(--tile2));
   --cal-plum: color-mix(in srgb, var(--g2) 45%, var(--tile2));
@@ -654,6 +655,7 @@ body {
     --g2: #7C5CBF;
     --g3: #D97706;
     --g4: #D14B64;
+    --tone-alpha: 30%;
     --cal-empty: color-mix(in srgb, var(--line) 45%, var(--tile));
     --cal-blue: color-mix(in srgb, var(--g1) 30%, var(--tile));
     --cal-plum: color-mix(in srgb, var(--g2) 30%, var(--tile));
@@ -682,6 +684,7 @@ html.light .landing-page {
   --g2: #7C5CBF;
   --g3: #D97706;
   --g4: #D14B64;
+  --tone-alpha: 30%;
   --cal-empty: color-mix(in srgb, var(--line) 45%, var(--tile));
   --cal-blue: color-mix(in srgb, var(--g1) 30%, var(--tile));
   --cal-plum: color-mix(in srgb, var(--g2) 30%, var(--tile));
@@ -828,9 +831,10 @@ html.light .landing-page .tutor-pro-logo {
   background: var(--tile);
   border: 1px solid var(--line);
   border-radius: 26px;
-  padding: 24px;
+  padding: clamp(14px, 2.4vw, 24px);
   box-shadow: var(--visual-shadow);
   width: 100%;
+  max-width: 100%;
   position: relative;
   z-index: 2; /* nổi lên trên khối vuông cam sau nó (mục 2.2) */
 }
@@ -924,6 +928,8 @@ html.light .landing-page .tutor-pro-logo {
   font-size: 13.5px;
   font-weight: 800;
   font-family: var(--font-baloo-2), system-ui, sans-serif;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .lp-status-paid {
@@ -1261,8 +1267,28 @@ html.light .landing-page .lp-mega {
     linear-gradient(var(--line-c) 1px, transparent 1px),
     linear-gradient(90deg, var(--line-c) 1px, transparent 1px);
   background-size: var(--grid-size) var(--grid-size);
-  -webkit-mask-image: radial-gradient(ellipse 72% 72% at 50% 50%, #000 25%, transparent 100%);
-          mask-image: radial-gradient(ellipse 72% 72% at 50% 50%, #000 25%, transparent 100%);
+  /* Hero/CTA dùng mặt nạ radial mặc định; dải luồng 5 bước truyền --grid-mask riêng. */
+  -webkit-mask-image: var(--grid-mask, radial-gradient(ellipse 72% 72% at 50% 50%, #000 25%, transparent 100%));
+          mask-image: var(--grid-mask, radial-gradient(ellipse 72% 72% at 50% 50%, #000 25%, transparent 100%));
+}
+
+/* --- Biến thể lưới cho dải dài (task 05: section luồng 5 bước) --- */
+.lp-grid-bg--band {
+  --grid-size: 24px;
+  --grid-a: 4; /* chế độ tối */
+  --grid-mask: linear-gradient(to bottom, transparent 0, #000 10%, #000 90%, transparent 100%);
+}
+
+@media (prefers-color-scheme: light) {
+  html:not(.dark) .landing-page .lp-grid-bg--band,
+  html:not([data-theme="dark"]) .landing-page .lp-grid-bg--band {
+    --grid-a: 6;
+  }
+}
+
+html[data-theme="light"] .landing-page .lp-grid-bg--band,
+html.light .landing-page .lp-grid-bg--band {
+  --grid-a: 6;
 }
 
 /* ============ Hero ============ */
@@ -1675,12 +1701,81 @@ html.light .landing-page .lp-mega {
   scroll-margin-top: calc(72px + env(safe-area-inset-top, 0px));
 }
 
+/* Task 05: mọi con trực tiếp của lưới phải co được, không đẩy tràn ngang. */
+.lp-row > * {
+  min-width: 0;
+}
+
+/* --- Task 05: quầng màu theo bước --- */
+.lp-row[data-tone="1"] { --tone: var(--g1); } /* Lịch dạy — teal */
+.lp-row[data-tone="2"] { --tone: var(--g2); } /* Dạy học — tím */
+.lp-row[data-tone="3"] { --tone: var(--g3); } /* Nhận xét — cam đất */
+.lp-row[data-tone="4"] { --tone: var(--g4); } /* Học phí — hồng đỏ */
+.lp-row[data-tone="5"] { --tone: var(--g1); } /* Tiến độ — teal */
+
+.lp-visual-col {
+  position: relative;
+  isolation: isolate; /* giữ quầng sau hình, không lọt ra ngoài cột */
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.lp-row[data-tone] .lp-visual-col::before {
+  content: "";
+  position: absolute;
+  inset: -16% 0; /* chỉ tràn dọc: không bao giờ tạo cuộn ngang */
+  z-index: -1;
+  pointer-events: none;
+  /* Bầu dục cùng bề ngang cột: gradient giữ nguyên cường độ tới 55% bán kính
+     rồi tắt dần tới 100%, nên sát mép trên/dưới hình vẫn còn màu và quầng tan
+     trong ~40-50px. Chỉ tràn dọc nên không bao giờ đụng mép ngang. */
+  background: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    color-mix(in srgb, var(--tone) var(--tone-alpha, 30%), transparent) 55%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.lp-row.active .lp-visual-col::before {
+  opacity: 1;
+}
+
+/* Link "Tìm hiểu tính năng chi tiết" — đủ vùng bấm trên mobile (task 05). */
+.lp-step-link-wrap {
+  margin-top: 16px;
+}
+
+.lp-step-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--brand);
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: none;
+  transition: gap 0.2s ease;
+}
+
+.lp-step-link:hover {
+  text-decoration: underline;
+}
+
+.lp-step-link:focus-visible {
+  outline: 3px solid var(--acc);
+  outline-offset: 3px;
+}
+
 .lp-row:last-child {
   margin-bottom: 0;
 }
 
 .lp-row-text {
   position: relative;
+  min-width: 0;
+  overflow-wrap: break-word;
   opacity: 0.5;
   transition: opacity 0.4s ease;
 }
@@ -1954,40 +2049,51 @@ html.light .landing-page .lp-mega {
 .lp-calendar {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 16px;
+  gap: clamp(8px, 2vw, 10px);
+  padding: clamp(12px, 3vw, 18px);
 }
 
 .lp-cal-header {
-  display: flex;
-  justify-content: space-between;
+  /* Hai mũi tên ở hai đầu, chữ "Tuần này" luôn ở giữa và không bị đè. */
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 28px;
   align-items: center;
+  text-align: center;
   font-weight: 800;
   font-family: var(--font-baloo-2), system-ui, sans-serif;
   color: var(--ink);
   margin-bottom: 4px;
 }
 
+.lp-cal-header > span:first-child,
+.lp-cal-header > span:last-child {
+  justify-self: center;
+}
+
 .lp-cal-days {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(7, minmax(0, 1fr)); /* 7 cột luôn đủ, ô co theo cột */
+  gap: clamp(4px, 1.2vw, 8px);
 }
 
 .lp-cal-day-label {
   text-align: center;
-  font-size: 12px;
+  font-size: clamp(10px, 2.6vw, 12px);
+  line-height: 1.1;
   color: var(--mut);
   font-weight: 700;
   padding: 4px 0;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .lp-cal-cell {
-  aspect-ratio: 1/1;
-  border-radius: 13px;
+  aspect-ratio: 1 / 0.9;
+  border-radius: clamp(8px, 1.8vw, 13px);
   background: var(--cal-empty);
   position: relative;
-  min-height: 68px;
+  min-height: 0; /* bỏ min-height cứng: đây là nguyên nhân tràn ngang ở 360px */
+  min-width: 0;
 }
 
 .lp-cal-cell.fill-plum {
@@ -2014,21 +2120,24 @@ html.light .landing-page .lp-mega {
   margin-top: 12px;
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 6px 10px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--red) 18%, transparent);
   color: var(--red);
   font-weight: 800;
   font-size: 13px;
+  line-height: 1.35;
   font-family: var(--font-baloo-2), system-ui, sans-serif;
   width: fit-content;
+  max-width: 100%;
 }
 
 /* ============ Step 2: Live teaching visual ============ */
 .lp-live {
   display: grid;
-  grid-template-columns: 1fr 90px;
+  grid-template-columns: minmax(0, 1fr) 90px;
   gap: 12px;
   padding: 16px;
 }
@@ -2063,6 +2172,7 @@ html.light .landing-page .lp-mega {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-width: 0;
 }
 
 .lp-avatar-tile {
@@ -2099,6 +2209,7 @@ html.light .landing-page .lp-mega {
 .lp-live-controls {
   grid-column: 1 / -1;
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   justify-content: center;
   padding-top: 4px;
@@ -2125,11 +2236,12 @@ html.light .landing-page .lp-mega {
 
 /* ============ Step 3: AI comment visual ============ */
 .lp-ai-bubble-wrap {
-  padding: 22px;
+  padding: clamp(16px, 3vw, 22px);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 14px;
+  min-width: 0;
 }
 
 .lp-ai-label {
@@ -2150,8 +2262,10 @@ html.light .landing-page .lp-mega {
   background: var(--tile2);
   border: 1px solid var(--line);
   border-radius: 18px;
-  padding: 18px 20px;
+  padding: clamp(14px, 3vw, 18px) clamp(14px, 4vw, 20px);
   max-width: 100%;
+  min-width: 0;
+  overflow-wrap: break-word;
   border-top-left-radius: 6px;
 }
 
@@ -2159,6 +2273,7 @@ html.light .landing-page .lp-mega {
   color: var(--ink);
   font-size: 15px;
   line-height: 1.6;
+  overflow-wrap: break-word;
 }
 
 .lp-ai-bubble p + p {
@@ -2167,10 +2282,11 @@ html.light .landing-page .lp-mega {
 
 /* ============ Step 4: Finance visual ============ */
 .lp-finance {
-  padding: 18px;
+  padding: clamp(12px, 3vw, 18px);
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-width: 0;
 }
 
 .lp-fin-summary {
@@ -2179,8 +2295,10 @@ html.light .landing-page .lp-mega {
   background: var(--tile2);
   border: 1px solid var(--line);
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: 4px 12px;
   font-weight: 700;
   font-size: 16px;
   color: var(--ink);
@@ -2201,11 +2319,12 @@ html.light .landing-page .lp-mega {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 14px 16px;
+  gap: 12px;
+  padding: clamp(10px, 2.5vw, 14px) clamp(10px, 3vw, 16px);
   border-radius: 14px;
   background: var(--tile2);
   border: 1px solid var(--line);
+  min-width: 0;
 }
 
 .lp-fin-left {
@@ -2213,6 +2332,7 @@ html.light .landing-page .lp-mega {
   align-items: center;
   gap: 10px;
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .lp-fin-avatar {
@@ -2237,26 +2357,32 @@ html.light .landing-page .lp-mega {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
 }
 
 /* ============ Step 5: Progress visual ============ */
 .lp-progress {
-  padding: 20px;
+  padding: clamp(16px, 3vw, 20px);
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
 }
 
 .lp-prog-item {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
 }
 
 .lp-prog-head {
   display: flex;
+  flex-wrap: wrap; /* xuống dòng khi thiếu chỗ, không đẩy tràn */
   justify-content: space-between;
   align-items: baseline;
+  gap: 4px 12px;
+  min-width: 0;
 }
 
 .lp-prog-name {
@@ -2264,16 +2390,20 @@ html.light .landing-page .lp-mega {
   font-family: var(--font-baloo-2), system-ui, sans-serif;
   font-size: 15px;
   color: var(--ink);
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .lp-prog-state {
   font-size: 12px;
   color: var(--mut);
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .lp-prog-bar {
   width: 100%;
+  max-width: 100%;
   height: 14px;
   border-radius: 999px;
   background: var(--cal-empty);
@@ -2382,11 +2512,11 @@ html.light .landing-page .lp-mega {
   }
 
   .lp-step-num {
-    /* Mobile: line center = flow-left + 16px
+    /* Mobile: line center = flow-left + 17.5px (left 16px, rộng 3px)
        flow padding-left 52px => row-text left = flow-left + 52
-       => num center = flow-left + 16 = row-text left - 36
-       => left (hình tròn cạnh trái) = -36 - 18 = -54 */
-    left: -54px;
+       => num center = row-text left - 34, bán kính 18
+       => left = -34 - 18 = -52 (mép trái vòng số = flow-left + 0, không bị cắt 2px như -54) */
+    left: -52px;
     width: 36px;
     height: 36px;
     font-size: 15px;
@@ -2419,13 +2549,17 @@ html.light .landing-page .lp-mega {
   }
 
   .lp-chips-row {
+    flex-wrap: wrap;
     gap: 8px;
+    max-width: 100%;
   }
 
   .lp-chip {
     padding: 6px 12px 6px 6px;
-    font-size: 13px;
+    font-size: 14px;
     gap: 8px;
+    max-width: 100%;
+    min-height: 44px; /* vùng bấm tối thiểu trên mobile */
   }
 
   .lp-chip-num {
@@ -2434,12 +2568,67 @@ html.light .landing-page .lp-mega {
     font-size: 11px;
   }
 
+  /* Link tính năng chi tiết: đủ 44px chiều cao để bấm trên mobile */
+  .lp-step-link {
+    min-height: 44px;
+  }
+
   .lp-live {
-    grid-template-columns: 1fr 72px;
+    grid-template-columns: minmax(0, 1fr) 72px;
   }
 
   .lp-whiteboard {
     min-height: 180px;
+  }
+
+  /* Quầng không vượt mép ngang trên mobile (tránh tạo cuộn ngang) */
+  .lp-row[data-tone] .lp-visual-col::before {
+    inset: -14% 0;
+  }
+}
+
+/* ============ Responsive ≤ 560px: hình minh họa co sâu hơn ============ */
+@media (max-width: 560px) {
+  /* Bước 2: bảng trắng một cột, hai avatar xuống thành hàng ngang bên dưới */
+  .lp-live {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .lp-whiteboard {
+    min-height: 160px;
+  }
+
+  .lp-participants {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .lp-avatar-tile {
+    flex: 1 1 0;
+    min-width: 0;
+    aspect-ratio: 16 / 10;
+  }
+
+  .lp-live-controls {
+    gap: 6px;
+    padding-top: 2px;
+  }
+
+  .lp-ctrl-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 15px;
+  }
+
+  .lp-cal-header {
+    grid-template-columns: 24px minmax(0, 1fr) 24px;
+  }
+
+  .lp-cal-alert {
+    border-radius: 14px;
   }
 }
 
@@ -2459,6 +2648,13 @@ html.light .landing-page .lp-mega {
   .lp-row,
   .lp-row-text {
     opacity: 1 !important;
+  }
+
+  /* Quầng màu: bỏ chuyển động, hiện nhẹ ở mọi bước */
+  .lp-row[data-tone] .lp-visual-col::before,
+  .lp-row.active[data-tone] .lp-visual-col::before {
+    opacity: 0.6 !important;
+    transition: none !important;
   }
 
   .lp-mascot-arm,

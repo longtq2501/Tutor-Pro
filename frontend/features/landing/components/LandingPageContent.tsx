@@ -10,8 +10,10 @@ export default function LandingPageContent() {
     return (
         <main>
             <Hero />
-            <FlowIntro steps={STEP_DATA} />
-            <StepFlow />
+            <div className="lp-grid-bg lp-grid-bg--band">
+                <FlowIntro steps={STEP_DATA} />
+                <StepFlow />
+            </div>
             <FeatureGrid />
             <FinalCTA />
         </main>

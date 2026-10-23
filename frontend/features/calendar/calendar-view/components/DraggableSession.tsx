@@ -55,8 +55,8 @@ export const DraggableSession = memo(({
                 }
             }}
             className={cn(
-                "group/session relative px-1.5 sm:px-2 py-1",
-                "rounded-lg sm:rounded-xl",
+                "group/session relative px-1.5 py-0.5 sm:py-1",
+                "rounded-md sm:rounded-lg",
                 "transition-all duration-200",
                 "hover:scale-[1.02] hover:shadow-md hover:z-20",
                 "cursor-grab active:cursor-grabbing border-l-[3px]",
@@ -69,13 +69,13 @@ export const DraggableSession = memo(({
             )}
         >
             {/* Left highlight strip */}
-            <div className={cn("absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl opacity-80", colors.dot)} />
+            <div className={cn("absolute left-0 top-0 bottom-0 w-[3px] rounded-l-lg opacity-80", colors.dot)} />
 
-            {/* P4: time FIRST, then name — tabular-nums, 11-12px, ≥4.5:1 contrast */}
+            {/* Time FIRST, then name — tabular-nums, >=11px */}
             <div className="flex items-center gap-1 relative z-10 min-w-0">
                 {/* Start time — leftmost, flex-shrink-0 so it never gets cut */}
                 <span className={cn(
-                    "tabular-nums text-[10px] sm:text-[11px] font-semibold flex-shrink-0 leading-none opacity-90",
+                    "tabular-nums text-[clamp(11px,1.2cqi,13px)] font-bold flex-shrink-0 leading-none opacity-90",
                     cancelled && "opacity-60"
                 )}>
                     {session.startTime}
@@ -85,7 +85,7 @@ export const DraggableSession = memo(({
                 {session.isOnline && (
                     <>
                         <Globe
-                            className="w-2.5 h-2.5 text-blue-600 dark:text-blue-400 flex-shrink-0"
+                            className="w-3 h-3 text-blue-600 dark:text-blue-400 flex-shrink-0"
                             aria-hidden="true"
                         />
                         <span className="sr-only">Buổi học trực tuyến</span>
@@ -94,7 +94,7 @@ export const DraggableSession = memo(({
 
                 {/* Student name — truncates cleanly with ellipsis */}
                 <span className={cn(
-                    "truncate text-[10px] sm:text-[11px] font-medium min-w-0 leading-none",
+                    "truncate text-[clamp(11px,1.2cqi,14px)] font-medium min-w-0 leading-none",
                     cancelled && "line-through opacity-70"
                 )}>
                     {session.studentName}
@@ -103,7 +103,7 @@ export const DraggableSession = memo(({
                 {/* Completed checkmark icon */}
                 {isCompleted && !cancelled && (
                     <CheckCircle2
-                        className="w-2.5 h-2.5 flex-shrink-0 ml-auto opacity-70"
+                        className="w-3 h-3 flex-shrink-0 ml-auto opacity-75"
                         aria-hidden="true"
                     />
                 )}

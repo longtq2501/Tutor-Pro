@@ -23,6 +23,9 @@ interface UIContextType {
     setTitleSlot: (slot: HTMLElement | null) => void;
     actionsSlot: HTMLElement | null;
     setActionsSlot: (slot: HTMLElement | null) => void;
+    // Container Query / Measured Width
+    containerWidth: number;
+    setContainerWidth: (w: number) => void;
 }
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
@@ -31,6 +34,12 @@ export function UIProvider({ children }: { children: ReactNode }) {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [activeDialogs, setActiveDialogs] = useState(0);
+    const [containerWidth, setContainerWidth] = useState<number>(() => {
+        if (typeof window !== 'undefined') {
+            return window.innerWidth;
+        }
+        return 1280;
+    });
 
     const openDialog = () => setActiveDialogs(prev => prev + 1);
     const closeDialog = () => setActiveDialogs(prev => Math.max(0, prev - 1));
@@ -79,7 +88,9 @@ export function UIProvider({ children }: { children: ReactNode }) {
             titleSlot,
             setTitleSlot,
             actionsSlot,
-            setActionsSlot
+            setActionsSlot,
+            containerWidth,
+            setContainerWidth,
         }}>
             {children}
         </UIContext.Provider>
@@ -122,26 +133,35 @@ export function HeaderPortal({ children, to }: { children: React.ReactNode; to: 
 }
 
 /**
- * Component to be used by features to project their header content into the layout
+ * Component to be used by features to project their header content into the layout.
+ * Designed for the single-row header (h-14 = 56px).
+ * Title has shrink-0 and min-width to avoid premature cut, subtitle hides first when space is tight.
  */
 export function DashboardHeader({ title, subtitle, actions }: { title: string; subtitle?: string | null; actions?: React.ReactNode }) {
+    const { containerWidth } = useUI();
+    // Hide subtitle first when containerWidth is constrained (< 1200px)
+    const showSubtitle = containerWidth >= 1200;
+
     return (
         <>
             <HeaderPortal to="title">
-                <div className="flex-1 min-w-[120px] sm:min-w-[180px] animate-in fade-in slide-in-from-left-4 duration-500 py-1">
-                    <h1 className="text-lg sm:text-xl lg:text-2xl 2xl:text-4xl 3xl:text-6xl font-black tracking-tight leading-[1.1] bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent break-words sm:whitespace-normal">
+                <div className="flex items-center gap-2 min-w-0 shrink-0">
+                    <h1
+                        title={subtitle ? `${title} – ${subtitle}` : title}
+                        className="text-[14px] sm:text-[16px] lg:text-[17px] font-black tracking-tight leading-none text-foreground truncate whitespace-nowrap shrink-0"
+                    >
                         {title}
                     </h1>
-                    {subtitle && (
-                        <p className="text-[10px] sm:text-xs lg:text-sm 2xl:text-lg 3xl:text-2xl text-muted-foreground mt-0.5 sm:mt-1 max-w-2xl 2xl:max-w-4xl font-medium line-clamp-1 sm:line-clamp-none opacity-80">
-                            {subtitle}
-                        </p>
+                    {subtitle && showSubtitle && (
+                        <span className="text-[13px] text-muted-foreground font-medium truncate opacity-70 whitespace-nowrap">
+                            — {subtitle}
+                        </span>
                     )}
                 </div>
             </HeaderPortal>
             {actions && (
                 <HeaderPortal to="actions">
-                    <div className="flex items-center justify-end gap-1.5 sm:gap-3 animate-in fade-in slide-in-from-right-4 duration-500 w-auto min-w-0 flex-shrink-1">
+                    <div className="flex items-center justify-end gap-1 sm:gap-1.5 min-w-0">
                         {actions}
                     </div>
                 </HeaderPortal>

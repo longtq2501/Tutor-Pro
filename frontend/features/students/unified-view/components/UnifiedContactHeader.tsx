@@ -1,10 +1,12 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Users, UserX, UserCircle, Wallet, Search, Plus } from 'lucide-react';
+import { Users, UserX, UserCircle, Wallet, Search, Plus, ChevronDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { useUI } from '@/contexts/UIContext';
 
 interface UnifiedContactHeaderProps {
     stats: {
@@ -19,6 +21,14 @@ interface UnifiedContactHeaderProps {
     onFilterChange: (val: string) => void;
     onAddStudent: () => void;
 }
+
+const FILTER_LABELS: Record<string, string> = {
+    all: 'Tất cả',
+    active: 'Đang học',
+    inactive: 'Đã nghỉ',
+    trung_tam: 'Trung tâm',
+    day_rieng: 'Dạy riêng',
+};
 
 function StatsCard({
     icon,
@@ -75,37 +85,112 @@ export function UnifiedContactStats({ stats, isLoading, isError }: { stats: Unif
 }
 
 export function UnifiedContactActions(props: Omit<UnifiedContactHeaderProps, 'stats'>) {
-    return (
-        <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:items-center justify-start lg:justify-end w-full animate-in fade-in slide-in-from-right-4 duration-500">
-            <div className="relative w-full md:w-48 lg:w-64">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                <Input
-                    placeholder="Tìm kiếm..."
-                    className="pl-9 h-10 w-full rounded-xl border-border/60 bg-background focus:ring-primary/10 transition-all font-medium text-sm"
-                    value={props.searchTerm}
-                    onChange={(e) => props.onSearchChange(e.target.value)}
-                />
-            </div>
+    const { containerWidth } = useUI();
+    const [searchOpen, setSearchOpen] = React.useState(false);
 
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-                <Tabs value={props.filter} onValueChange={props.onFilterChange} className="flex-1 sm:flex-none min-w-0">
-                    <TabsList className="h-10 p-1 bg-muted/50 rounded-xl border border-border/40 w-full sm:w-auto">
-                        <TabsTrigger value="all" className="flex-1 sm:flex-none rounded-lg font-bold text-[10px] h-8 px-2 sm:px-3">Tất cả</TabsTrigger>
-                        <TabsTrigger value="active" className="flex-1 sm:flex-none rounded-lg font-bold text-[10px] h-8 px-2 sm:px-3">Đang học</TabsTrigger>
-                        <TabsTrigger value="inactive" className="flex-1 sm:flex-none rounded-lg font-bold text-[10px] h-8 px-2 sm:px-3">Đã nghỉ</TabsTrigger>
-                        <TabsTrigger value="trung_tam" className="flex-1 sm:flex-none rounded-lg font-bold text-[10px] h-8 px-2 sm:px-3">Trung tâm</TabsTrigger>
-                        <TabsTrigger value="day_rieng" className="flex-1 sm:flex-none rounded-lg font-bold text-[10px] h-8 px-2 sm:px-3">Dạy riêng</TabsTrigger>
+    // Priority-plus thresholds based on measured content width
+    const showFullTabs = containerWidth >= 1000;
+    const showFullSearch = containerWidth >= 700;
+    const showAddText = containerWidth >= 520;
+
+    return (
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 shrink-0">
+            {/* Search */}
+            {showFullSearch ? (
+                <div className="relative w-36 sm:w-44 md:w-52">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                        placeholder="Tìm kiếm..."
+                        className="pl-8 h-8 w-full rounded-xl border-border/60 bg-card/50 text-[13px] font-medium"
+                        value={props.searchTerm}
+                        onChange={(e) => props.onSearchChange(e.target.value)}
+                    />
+                </div>
+            ) : (
+                <Popover open={searchOpen} onOpenChange={setSearchOpen}>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 rounded-xl border-border/40 hover:bg-muted/50 shrink-0"
+                            title="Tìm kiếm"
+                        >
+                            <Search className="w-4 h-4" />
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-2 rounded-xl z-50" align="end">
+                        <div className="relative">
+                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input
+                                autoFocus
+                                placeholder="Tìm kiếm học sinh..."
+                                className="pl-8 h-8 rounded-lg text-[13px]"
+                                value={props.searchTerm}
+                                onChange={(e) => props.onSearchChange(e.target.value)}
+                            />
+                        </div>
+                    </PopoverContent>
+                </Popover>
+            )}
+
+            {/* Filter: Full Segmented Tabs when wide, compact dropdown when narrow */}
+            {showFullTabs ? (
+                <Tabs value={props.filter} onValueChange={props.onFilterChange} className="shrink-0">
+                    <TabsList className="h-8 p-0.5 bg-muted/50 rounded-xl border border-border/40">
+                        {Object.entries(FILTER_LABELS).map(([val, label]) => (
+                            <TabsTrigger
+                                key={val}
+                                value={val}
+                                className="rounded-lg font-medium text-[13px] h-7 px-2.5 whitespace-nowrap"
+                            >
+                                {label}
+                            </TabsTrigger>
+                        ))}
                     </TabsList>
                 </Tabs>
+            ) : (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 rounded-xl px-2.5 gap-1.5 border-border/40 hover:bg-muted/50 bg-card/50 text-[13px] font-medium whitespace-nowrap shrink-0"
+                        >
+                            <span>{FILTER_LABELS[props.filter] || 'Lọc'}</span>
+                            <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-40 rounded-xl shadow-xl z-50">
+                        {Object.entries(FILTER_LABELS).map(([val, label]) => (
+                            <DropdownMenuItem
+                                key={val}
+                                onClick={() => props.onFilterChange(val)}
+                                className={cn(
+                                    "rounded-lg font-medium text-[13px] cursor-pointer",
+                                    props.filter === val && "bg-accent font-bold text-primary"
+                                )}
+                            >
+                                {label}
+                            </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            )}
 
-                <Button
-                    size="sm"
-                    onClick={props.onAddStudent}
-                    className="h-10 w-10 sm:w-auto shrink-0 rounded-xl bg-primary shadow-lg shadow-primary/20 font-bold text-xs gap-1.5 hover:scale-105 active:scale-95 transition-all p-0 sm:px-4"
-                >
-                    <Plus size={16} /> <span className="hidden sm:inline">Thêm học sinh</span>
-                </Button>
-            </div>
+            {/* P1: Thêm học sinh — never hidden, icon-only when narrow */}
+            <Button
+                size="sm"
+                onClick={props.onAddStudent}
+                title="Thêm học sinh"
+                aria-label="Thêm học sinh"
+                className={cn(
+                    "h-8 rounded-xl bg-primary text-primary-foreground font-semibold text-[13px] shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all whitespace-nowrap shrink-0",
+                    showAddText ? "px-3 gap-1.5" : "w-8 p-0 justify-center"
+                )}
+            >
+                <Plus className="w-4 h-4 shrink-0" strokeWidth={2.5} />
+                {showAddText && <span>Thêm học sinh</span>}
+            </Button>
         </div>
     );
 }

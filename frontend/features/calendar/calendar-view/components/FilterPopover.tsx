@@ -25,7 +25,8 @@ export function FilterPopover({
     onSearchChange,
     currentSource,
     onSourceChange,
-}: FilterPopoverProps) {
+    showLabel = true,
+}: FilterPopoverProps & { showLabel?: boolean }) {
     const [isOpen, setIsOpen] = useState(false);
 
     const handleStatusSelect = (status: string | 'ALL') => {
@@ -38,11 +39,23 @@ export function FilterPopover({
     return (
         <Popover open={isOpen} onOpenChange={setIsOpen}>
             <PopoverTrigger asChild>
-                <Button data-tour="calendar-session-filter" variant="outline" size="sm" className="h-8 2xl:h-10 rounded-2xl px-2 2xl:px-4 gap-1 border-border/40 hover:bg-muted/50 bg-card/50 shadow-sm transition-all active:scale-95">
-                    <Filter size={14} className={cn("w-3.5 h-3.5 2xl:w-4 2xl:h-4", isFiltered ? "text-primary fill-primary" : "")} />
-                    <span className="text-[8px] 2xl:text-[11px] font-black uppercase tracking-tighter 2xl:tracking-widest hidden sm:inline">
-                        Bộ lọc {isFiltered && "•"}
-                    </span>
+                <Button
+                    data-tour="calendar-session-filter"
+                    variant="outline"
+                    size="sm"
+                    title="Bộ lọc"
+                    aria-label="Bộ lọc"
+                    className={cn(
+                        "h-8 rounded-xl px-2 sm:px-3 gap-1.5 border-border/40 hover:bg-muted/50 bg-card/50 shadow-sm transition-all active:scale-95 whitespace-nowrap text-[13px] font-medium",
+                        !showLabel && "w-8 px-0 justify-center"
+                    )}
+                >
+                    <Filter size={15} className={cn("w-3.5 h-3.5 shrink-0", isFiltered ? "text-primary fill-primary" : "")} />
+                    {showLabel && (
+                        <span className="text-[13px] font-medium">
+                            Bộ lọc {isFiltered && "•"}
+                        </span>
+                    )}
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[calc(100vw-24px)] xs:w-72 sm:w-80 p-3.5 sm:p-5 rounded-[1.5rem] sm:rounded-[2rem] border-border/60 shadow-2xl space-y-3.5 sm:space-y-5 bg-background/95 backdrop-blur-xl animate-in fade-in zoom-in-95 data-[side=bottom]:slide-in-from-top-2 duration-300" align="end" sideOffset={8}>

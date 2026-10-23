@@ -12,7 +12,6 @@ import com.tutor_management.backend.exception.ResourceNotFoundException;
 import com.tutor_management.backend.modules.student.repository.StudentRepository;
 import com.tutor_management.backend.modules.tutor.entity.Tutor;
 import com.tutor_management.backend.modules.tutor.repository.TutorRepository;
-import com.tutor_management.backend.modules.auth.UserRepository;
 import com.tutor_management.backend.modules.course.repository.CourseLessonRepository;
 import com.tutor_management.backend.modules.course.repository.LessonProgressRepository;
 import com.tutor_management.backend.modules.finance.repository.SessionRecordRepository;
@@ -93,7 +92,8 @@ public class LessonLibraryService {
     }
 
     /**
-     * Retrieves only lessons that have not been assigned to any students (pure library items).
+     * Retrieves only lessons that have not been assigned to any students (pure
+     * library items).
      * Filtered by current tutor for multi-tenancy isolation.
      */
     @Transactional(readOnly = true)
@@ -104,25 +104,26 @@ public class LessonLibraryService {
     }
 
     /**
-     * Retrieves full details for a specific library lesson by ID (including content).
+     * Retrieves full details for a specific library lesson by ID (including
+     * content).
      * Filtered by current tutor for multi-tenancy isolation.
      */
     @Transactional(readOnly = true)
     public LibraryLessonResponse getLibraryLessonById(Long lessonId) {
         Lesson lesson = lessonRepository.findByIdWithDetails(lessonId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bài giảng với ID: " + lessonId));
-        
+
         // Verify it's a library lesson
         if (!lesson.getIsLibrary()) {
             throw new IllegalArgumentException("Bài giảng này không thuộc thư viện");
         }
-        
+
         // Verify tutor ownership (unless admin)
         Long tutorId = getCurrentTutorId();
         if (tutorId != null && lesson.getTutor() != null && !lesson.getTutor().getId().equals(tutorId)) {
             throw new IllegalArgumentException("Bạn không có quyền truy cập bài giảng này");
         }
-        
+
         return LibraryLessonResponse.fromEntity(lesson);
     }
 
@@ -146,7 +147,9 @@ public class LessonLibraryService {
                 .lessonDate(request.getLessonDate()).videoUrl(request.getVideoUrl())
                 .thumbnailUrl(request.getThumbnailUrl()).isLibrary(true)
                 .isPublished(request.getIsPublished())
-                .category(request.getCategoryId() != null ? categoryRepository.findById(request.getCategoryId()).orElse(null) : null)
+                .category(request.getCategoryId() != null
+                        ? categoryRepository.findById(request.getCategoryId()).orElse(null)
+                        : null)
                 .build();
 
         return LibraryLessonResponse.fromEntity(lessonRepository.save(lesson));
@@ -217,7 +220,7 @@ public class LessonLibraryService {
     public void deleteLibraryLesson(Long lessonId) {
         Lesson lesson = lessonRepository.findByIdWithDetails(lessonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài giảng."));
-        
+
         verifyLessonOwnership(lesson);
 
         // Cleanup external references (Force Delete)

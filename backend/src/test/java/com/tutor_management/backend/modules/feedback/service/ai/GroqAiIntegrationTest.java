@@ -4,8 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import com.tutor_management.backend.modules.feedback.dto.request.GenerateCommentRequest;
 
@@ -33,9 +31,9 @@ public class GroqAiIntegrationTest extends AbstractIntegrationTest {
                 .build();
 
         String comment = aiGeneratorService.generate(request);
-        
+
         System.out.println("🤖 AI Generated Comment: " + comment);
-        
+
         assertNotNull(comment);
         assertFalse(comment.isEmpty());
         assertTrue(comment.length() > 10);

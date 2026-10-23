@@ -1,8 +1,5 @@
 package com.tutor_management.backend.modules.lesson.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.tutor_management.backend.modules.finance.repository.SessionRecordRepository;
 import com.tutor_management.backend.modules.lesson.entity.Lesson;
 import com.tutor_management.backend.modules.lesson.entity.LessonAssignment;
@@ -60,14 +57,16 @@ public class LessonService {
 
     /**
      * Retrieves a single lesson assignment for a student.
-     * Validates that the lesson is officially assigned to the student OR linked to a session.
+     * Validates that the lesson is officially assigned to the student OR linked to
+     * a session.
      */
     @Cacheable(value = "lessons", key = "'lesson-' + #lessonId + '-student-' + #studentId")
     @Transactional(readOnly = true)
     public LessonResponse getLessonById(Long lessonId, Long studentId) {
         // 1. Try to find explicit homework assignment (Primary access)
-        java.util.Optional<LessonAssignment> assignmentOpt = assignmentRepository.findByLessonIdAndStudentId(lessonId, studentId);
-        
+        java.util.Optional<LessonAssignment> assignmentOpt = assignmentRepository.findByLessonIdAndStudentId(lessonId,
+                studentId);
+
         if (assignmentOpt.isPresent()) {
             LessonAssignment assignment = assignmentOpt.get();
             initializeMedia(assignment.getLesson());
@@ -78,9 +77,10 @@ public class LessonService {
         if (sessionRecordRepository.existsByStudentIdAndLessonId(studentId, lessonId)) {
             Lesson lesson = lessonRepository.findById(lessonId)
                     .orElseThrow(() -> new ResourceNotFoundException("Bài học không tồn tại."));
-            
+
             initializeMedia(lesson);
-            // Return response with null assignment (Student sees lesson content but no homework status)
+            // Return response with null assignment (Student sees lesson content but no
+            // homework status)
             return LessonResponse.fromEntity(lesson, null);
         }
 
@@ -91,7 +91,8 @@ public class LessonService {
      * Retrieves lessons assigned to a student within a specific month.
      */
     @Transactional(readOnly = true)
-    public Page<StudentLessonSummaryResponse> getLessonsByMonthYear(Long studentId, int year, int month, Pageable pageable) {
+    public Page<StudentLessonSummaryResponse> getLessonsByMonthYear(Long studentId, int year, int month,
+            Pageable pageable) {
         return assignmentRepository.findByStudentIdAndMonthYear(studentId, year, month, pageable)
                 .map(this::mapToStudentSummary);
     }
@@ -188,12 +189,5 @@ public class LessonService {
     private void initializeMedia(Lesson lesson) {
         Hibernate.initialize(lesson.getImages());
         Hibernate.initialize(lesson.getResources());
-    }
-
-    private List<LessonResponse> mapToResponses(List<LessonAssignment> assignments) {
-        assignments.forEach(a -> initializeMedia(a.getLesson()));
-        return assignments.stream()
-                .map(a -> LessonResponse.fromEntity(a.getLesson(), a))
-                .collect(Collectors.toList());
     }
 }

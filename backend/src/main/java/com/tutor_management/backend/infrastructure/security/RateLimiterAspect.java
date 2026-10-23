@@ -13,7 +13,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,27 +32,25 @@ public class RateLimiterAspect {
     @Before("@annotation(rateLimiter)")
     public void limit(JoinPoint joinPoint, RateLimiter rateLimiter) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
-            // If not authenticated, we could limit by IP, but for this specific 
+            // If not authenticated, we could limit by IP, but for this specific
             // requirement (Tutor session creation), they must be authenticated.
             return;
         }
 
         Long userId = user.getId();
         String methodKey = getMethodKey(joinPoint);
-        
-        Cache<Long, AtomicInteger> cache = caches.computeIfAbsent(methodKey, k -> 
-            Caffeine.newBuilder()
+
+        Cache<Long, AtomicInteger> cache = caches.computeIfAbsent(methodKey, k -> Caffeine.newBuilder()
                 .expireAfterWrite(rateLimiter.period(), TimeUnit.SECONDS)
-                .build()
-        );
+                .build());
 
         AtomicInteger count = cache.get(userId, k -> new AtomicInteger(0));
-        
+
         if (count.incrementAndGet() > rateLimiter.limit()) {
-            log.warn("Rate limit exceeded for user: {} on method: {}. Limit: {}/{}s", 
-                userId, methodKey, rateLimiter.limit(), rateLimiter.period());
+            log.warn("Rate limit exceeded for user: {} on method: {}. Limit: {}/{}s",
+                    userId, methodKey, rateLimiter.limit(), rateLimiter.period());
             throw new TooManyRequestsException("Tốc độ tạo phòng quá nhanh. Vui lòng thử lại sau.");
         }
     }

@@ -13,7 +13,6 @@ import org.springframework.cache.annotation.CacheEvict;
 
 import com.tutor_management.backend.exception.ResourceNotFoundException;
 import com.tutor_management.backend.modules.auth.User;
-import com.tutor_management.backend.modules.auth.UserRepository;
 import com.tutor_management.backend.modules.course.dto.request.CourseRequest;
 import com.tutor_management.backend.modules.course.dto.response.CourseDetailResponse;
 import com.tutor_management.backend.modules.course.dto.response.CourseResponse;
@@ -37,7 +36,6 @@ public class CourseService {
     private final CourseRepository courseRepository;
     private final CourseLessonRepository courseLessonRepository;
     private final LessonRepository lessonRepository;
-    private final UserRepository userRepository;
 
     /**
      * Retrieves all available courses using memory-efficient projections.
@@ -71,10 +69,10 @@ public class CourseService {
      * Clears all course-related caches to ensure data consistency.
      * 
      * @param request Data for the new course
-     * @param tutor The user authoring the course
+     * @param tutor   The user authoring the course
      * @return Summary response of the created course
      */
-    @CacheEvict(value = {"courseList", "courseDetail"}, allEntries = true)
+    @CacheEvict(value = { "courseList", "courseDetail" }, allEntries = true)
     public CourseResponse createCourse(CourseRequest request, User tutor) {
         Course course = Course.builder()
                 .title(request.getTitle())
@@ -98,21 +96,27 @@ public class CourseService {
     /**
      * Updates an existing course's metadata and synchronizes its curriculum.
      * 
-     * @param id Target Course ID
+     * @param id      Target Course ID
      * @param request Updated data
      * @return Updated course summary
      */
-    @CacheEvict(value = {"courseList", "courseDetail"}, allEntries = true)
+    @CacheEvict(value = { "courseList", "courseDetail" }, allEntries = true)
     public CourseResponse updateCourse(Long id, CourseRequest request) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found: " + id));
 
-        if (request.getTitle() != null) course.setTitle(request.getTitle());
-        if (request.getDescription() != null) course.setDescription(request.getDescription());
-        if (request.getThumbnailUrl() != null) course.setThumbnailUrl(request.getThumbnailUrl());
-        if (request.getDifficultyLevel() != null) course.setDifficultyLevel(request.getDifficultyLevel());
-        if (request.getEstimatedHours() != null) course.setEstimatedHours(request.getEstimatedHours());
-        if (request.getIsPublished() != null) course.setIsPublished(request.getIsPublished());
+        if (request.getTitle() != null)
+            course.setTitle(request.getTitle());
+        if (request.getDescription() != null)
+            course.setDescription(request.getDescription());
+        if (request.getThumbnailUrl() != null)
+            course.setThumbnailUrl(request.getThumbnailUrl());
+        if (request.getDifficultyLevel() != null)
+            course.setDifficultyLevel(request.getDifficultyLevel());
+        if (request.getEstimatedHours() != null)
+            course.setEstimatedHours(request.getEstimatedHours());
+        if (request.getIsPublished() != null)
+            course.setIsPublished(request.getIsPublished());
 
         if (request.getLessonIds() != null) {
             syncCourseLessons(course, request.getLessonIds());
@@ -122,10 +126,12 @@ public class CourseService {
     }
 
     /**
-     * Synchronizes the course's curriculum to match the provided list of lesson IDs.
-     * This method will clear existing mappings and rebuild them according to the new order.
+     * Synchronizes the course's curriculum to match the provided list of lesson
+     * IDs.
+     * This method will clear existing mappings and rebuild them according to the
+     * new order.
      * 
-     * @param course The course being updated
+     * @param course       The course being updated
      * @param newLessonIds The new ordered list of lesson IDs for the course
      */
     private void syncCourseLessons(Course course, List<Long> newLessonIds) {
@@ -154,7 +160,7 @@ public class CourseService {
      * 
      * @param id Course ID
      */
-    @CacheEvict(value = {"courseList", "courseDetail"}, allEntries = true)
+    @CacheEvict(value = { "courseList", "courseDetail" }, allEntries = true)
     public void deleteCourse(Long id) {
         if (!courseRepository.existsById(id)) {
             throw new ResourceNotFoundException("Course not found: " + id);

@@ -1,11 +1,13 @@
 'use client';
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { List, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { List, Calendar as CalendarIcon, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { FilterPopover } from './FilterPopover';
 import { HeaderActions } from './HeaderActions';
 import { Button } from '@/components/ui/button';
 import { useUI } from '@/contexts/UIContext';
+import { cn } from '@/lib/utils';
 import type { SessionRecord } from '@/lib/types/finance';
 import type { CalendarStats } from '../types';
 import type { CalendarViewType } from "./ViewSwitcher";
@@ -56,9 +58,50 @@ export const CalendarActions = ({
   const showFilterLabel = containerWidth >= 900;  // P2: icon-only when width < 900px
   const showTabLabels = containerWidth >= 800;    // P2: icon-only tabs when width < 800px
   const showTodayText = containerWidth >= 750;    // P1: hide "Tháng này" text when width < 750px
+  const showNavControls = containerWidth >= 480;  // P1: collapses into the "⋯" menu when width < 480px
+  const showViewTabs = containerWidth >= 600;     // P1: collapses into the "⋯" menu when width < 600px
+
+  // Controls that no longer fit in the header are re-exposed from the "⋯" menu
+  const collapsedMenu = (!showNavControls || !showViewTabs) ? (
+    <>
+      {!showNavControls && (
+        <>
+          <DropdownMenuItem onSelect={() => onNavigate(-1)} className="rounded-lg font-medium text-[13px] cursor-pointer">
+            <ChevronLeft className="w-4 h-4 mr-2 text-muted-foreground" />
+            Tháng trước
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={onToday} className="rounded-lg font-medium text-[13px] cursor-pointer">
+            Tháng này
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => onNavigate(1)} className="rounded-lg font-medium text-[13px] cursor-pointer">
+            <ChevronRight className="w-4 h-4 mr-2 text-muted-foreground" />
+            Tháng sau
+          </DropdownMenuItem>
+        </>
+      )}
+      {!showViewTabs && (
+        <>
+          <DropdownMenuItem
+            onSelect={() => onViewChange('month')}
+            className={cn("rounded-lg font-medium text-[13px] cursor-pointer", currentView === 'month' && "text-primary")}
+          >
+            <CalendarIcon className="w-4 h-4 mr-2" />
+            Xem theo tháng
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() => onViewChange('list')}
+            className={cn("rounded-lg font-medium text-[13px] cursor-pointer", currentView === 'list' && "text-primary")}
+          >
+            <List className="w-4 h-4 mr-2" />
+            Xem theo danh sách
+          </DropdownMenuItem>
+        </>
+      )}
+    </>
+  ) : null;
 
   return (
-    <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
+    <div className="flex flex-nowrap items-center justify-end gap-1 sm:gap-1.5 min-w-0">
 
       {/* P4: Stats Pills inside header (hidden when width < 1150px) */}
       {showStatsPills && (
@@ -81,69 +124,84 @@ export const CalendarActions = ({
       )}
 
       {/* P1: Navigation Controls (< Tháng này >) */}
-      <div className="flex items-center bg-muted/50 rounded-xl p-0.5 border border-border/40 shadow-sm shrink-0">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onNavigate(-1)}
-          aria-label="Tháng trước"
-          title="Tháng trước"
-          className="rounded-lg h-7 w-7 sm:h-7 sm:w-8"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </Button>
-        {showTodayText ? (
+      {showNavControls && (
+        <div className="flex items-center bg-muted/50 rounded-xl p-0.5 border border-border/40 shadow-sm shrink-0">
           <Button
             variant="ghost"
-            onClick={onToday}
-            className="px-2 font-medium text-[13px] rounded-lg h-7 whitespace-nowrap"
+            size="icon"
+            onClick={() => onNavigate(-1)}
+            aria-label="Tháng trước"
+            title="Tháng trước"
+            className="rounded-lg h-7 w-7 sm:h-7 sm:w-8"
           >
-            Tháng này
+            <ChevronLeft className="w-4 h-4" />
           </Button>
-        ) : null}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onNavigate(1)}
-          aria-label="Tháng sau"
-          title="Tháng sau"
-          className="rounded-lg h-7 w-7 sm:h-7 sm:w-8"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </Button>
-      </div>
+          {showTodayText ? (
+            <Button
+              variant="ghost"
+              onClick={onToday}
+              className="px-2 font-medium text-[13px] rounded-lg h-7 whitespace-nowrap"
+            >
+              Tháng này
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onToday}
+              aria-label="Tháng này"
+              title="Tháng này"
+              className="rounded-lg h-7 w-7 sm:h-7 sm:w-8"
+            >
+              <CalendarDays className="w-4 h-4" />
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onNavigate(1)}
+            aria-label="Tháng sau"
+            title="Tháng sau"
+            className="rounded-lg h-7 w-7 sm:h-7 sm:w-8"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
 
       {/* P1: View Tabs (Tháng / Danh sách) */}
-      <Tabs
-        value={currentView}
-        onValueChange={(v) => onViewChange(v as CalendarViewType)}
-        className="shrink-0"
-        data-tour="calendar-view-controls"
-      >
-        <TabsList
-          data-tour="calendar-view-filter"
-          className="bg-muted/50 p-0.5 rounded-xl border border-border/40 h-8"
+      {showViewTabs && (
+        <Tabs
+          value={currentView}
+          onValueChange={(v) => onViewChange(v as CalendarViewType)}
+          className="shrink-0"
+          data-tour="calendar-view-controls"
         >
-          <TabsTrigger
-            value="month"
-            title="Xem theo tháng"
-            aria-label="Xem theo tháng"
-            className="rounded-lg px-2 font-medium text-[13px] h-7 whitespace-nowrap gap-1"
+          <TabsList
+            data-tour="calendar-view-filter"
+            className="bg-muted/50 p-0.5 rounded-xl border border-border/40 h-8"
           >
-            <CalendarIcon className="w-4 h-4 shrink-0" />
-            {showTabLabels && <span>Tháng</span>}
-          </TabsTrigger>
-          <TabsTrigger
-            value="list"
-            title="Xem theo danh sách"
-            aria-label="Xem theo danh sách"
-            className="rounded-lg px-2 font-medium text-[13px] h-7 whitespace-nowrap gap-1"
-          >
-            <List className="w-4 h-4 shrink-0" />
-            {showTabLabels && <span>Danh sách</span>}
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+            <TabsTrigger
+              value="month"
+              title="Xem theo tháng"
+              aria-label="Xem theo tháng"
+              className="rounded-lg px-2 font-medium text-[13px] h-7 whitespace-nowrap gap-1"
+            >
+              <CalendarIcon className="w-4 h-4 shrink-0" />
+              {showTabLabels && <span>Tháng</span>}
+            </TabsTrigger>
+            <TabsTrigger
+              value="list"
+              title="Xem theo danh sách"
+              aria-label="Xem theo danh sách"
+              className="rounded-lg px-2 font-medium text-[13px] h-7 whitespace-nowrap gap-1"
+            >
+              <List className="w-4 h-4 shrink-0" />
+              {showTabLabels && <span>Danh sách</span>}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )}
 
       {/* P2 & P3 & P1 Actions */}
       <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 shrink-0">
@@ -166,6 +224,7 @@ export const CalendarActions = ({
           onReport={onReport}
           reportLoading={reportLoading}
           deleteLabel={deleteLabel}
+          extraMenu={collapsedMenu}
         />
       </div>
     </div>

@@ -6,13 +6,12 @@ import { ExerciseListItemResponse } from '@/features/exercise-import/types/exerc
 import { ExercisePlayer } from '@/features/submission/components/student/ExercisePlayer';
 import { TeacherGradingDashboard } from '@/features/submission/components/teacher/TeacherGradingDashboard';
 import { GradingView } from '@/features/submission/components/teacher/GradingView';
-import { ArrowLeft, Users, Library, X } from 'lucide-react';
 import { useState, useMemo } from 'react';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { ExerciseList } from './components/ExerciseList';
 import { TutorStudentGrid } from './components/TutorStudentGrid';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { ExerciseBackButton, ExerciseHeaderTabs } from './components/ExerciseHeaderActions';
 import { StudentDetailView } from './components/StudentDetailView';
 import { TutorStudentSummaryResponse } from '@/features/exercise-import/types/exercise.types';
 import { DashboardHeader } from '@/contexts/UIContext';
@@ -56,41 +55,17 @@ export default function ExerciseDashboard() {
     const headerContent = useMemo(() => {
         switch (viewMode) {
             case 'IMPORT':
-                return { title: 'Thêm bài tập', subtitle: 'Nhập bài tập mới vào hệ thống', actions: <Button variant="ghost" size="sm" onClick={handleBack} className="rounded-xl"><ArrowLeft className="mr-2 h-4 w-4" /> Quay lại</Button> };
+                return { title: 'Thêm bài tập', subtitle: 'Nhập bài tập mới vào hệ thống', actions: <ExerciseBackButton onBack={handleBack} /> };
             case 'GRADE':
-                return { title: selectedSubmissionId ? 'Chấm điểm bài làm' : 'Chấm điểm bài tập', subtitle: 'Đánh giá kết quả của học sinh', actions: <Button variant="ghost" size="sm" onClick={handleBack} className="rounded-xl"><ArrowLeft className="mr-2 h-4 w-4" /> Quay lại</Button> };
+                return { title: selectedSubmissionId ? 'Chấm điểm bài làm' : 'Chấm điểm bài tập', subtitle: 'Đánh giá kết quả của học sinh', actions: <ExerciseBackButton onBack={handleBack} /> };
             case 'REVIEW':
-                return { title: 'Xem lại bài tập', subtitle: 'Xem chi tiết kết quả và phản hồi', actions: <Button variant="ghost" size="sm" onClick={handleBack} className="rounded-xl"><ArrowLeft className="mr-2 h-4 w-4" /> Quay lại</Button> };
+                return { title: 'Xem lại bài tập', subtitle: 'Xem chi tiết kết quả và phản hồi', actions: <ExerciseBackButton onBack={handleBack} /> };
             default:
                 return {
                     title: 'Hệ thống Khảo thí',
                     subtitle: isTeacher ? "Quản lý ngân hàng câu hỏi, bài tập và theo dõi tiến độ học sinh." : "Danh sách bài tập và bài kiểm tra dành cho bạn.",
                     actions: isTeacher ? (
-                        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'STUDENTS' | 'LIBRARY')}>
-                            <TabsList className="h-10 p-1 bg-muted rounded-xl border border-border/50 w-auto flex gap-0">
-                                <TabsTrigger
-                                    value="STUDENTS"
-                                    className="rounded-lg font-semibold text-xs h-8 px-4 gap-2
-                                        data-[state=active]:bg-primary data-[state=active]:text-primary-foreground
-                                        data-[state=inactive]:text-muted-foreground
-                                        data-[state=active]:shadow-md transition-all duration-200"
-                                >
-                                    <Users className="h-3.5 w-3.5" />
-                                    <span>Theo học sinh</span>
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value="LIBRARY"
-                                    data-tour="exercises-library-tab"
-                                    className="rounded-lg font-semibold text-xs h-8 px-4 gap-2
-                                        data-[state=active]:bg-primary data-[state=active]:text-primary-foreground
-                                        data-[state=inactive]:text-muted-foreground
-                                        data-[state=active]:shadow-md transition-all duration-200"
-                                >
-                                    <Library className="h-3.5 w-3.5" />
-                                    <span>Thư viện bài tập</span>
-                                </TabsTrigger>
-                            </TabsList>
-                        </Tabs>
+                        <ExerciseHeaderTabs value={activeTab} onChange={setActiveTab} />
                     ) : null
                 };
         }

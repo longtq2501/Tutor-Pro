@@ -144,3 +144,52 @@ export const resolveSidebarDensity = (params: {
 export const isMobileViewport = (viewportWidth: number): boolean => {
   return viewportWidth < BREAKPOINTS.laptop;
 };
+
+/**
+ * Header density breakpoints.
+ *
+ * These are measured against the *content* width (viewport minus the expanded
+ * sidebar) instead of the viewport, so a header adapts correctly when the sidebar
+ * collapses/expands even though the viewport itself did not change.
+ */
+export const HEADER_BREAKPOINTS = {
+  /** Below 420px: only icon-only actions + an overflow ("⋯") menu fit. */
+  minimal: 0,
+  /** 420px+: compact (icon-only) primary actions are allowed. */
+  compact: 420,
+  /** 640px+: primary action labels can be rendered. */
+  comfortable: 640,
+  /** 900px+: secondary labels (view mode text, filters) can be rendered. */
+  wide: 900,
+  /** 1200px+: subtitle and low-priority info (stats pills, legend) can be rendered. */
+  full: 1200,
+} as const;
+
+export type HeaderDensity = 'minimal' | 'compact' | 'comfortable' | 'wide' | 'full';
+
+const HEADER_DENSITY_RANK: Record<HeaderDensity, number> = {
+  minimal: 0,
+  compact: 1,
+  comfortable: 2,
+  wide: 3,
+  full: 4,
+};
+
+/**
+ * Maps a measured content width (px) to a header density tier.
+ * Unknown widths (0/NaN during SSR or before measurement) fall back to `full`
+ * so nothing is collapsed prematurely.
+ */
+export const resolveHeaderDensity = (containerWidth: number): HeaderDensity => {
+  if (!Number.isFinite(containerWidth) || containerWidth <= 0) return 'full';
+  if (containerWidth >= HEADER_BREAKPOINTS.full) return 'full';
+  if (containerWidth >= HEADER_BREAKPOINTS.wide) return 'wide';
+  if (containerWidth >= HEADER_BREAKPOINTS.comfortable) return 'comfortable';
+  if (containerWidth >= HEADER_BREAKPOINTS.compact) return 'compact';
+  return 'minimal';
+};
+
+/** True when `density` is at least as roomy as `minimum`. */
+export const isHeaderDensityAtLeast = (density: HeaderDensity, minimum: HeaderDensity): boolean => {
+  return HEADER_DENSITY_RANK[density] >= HEADER_DENSITY_RANK[minimum];
+};

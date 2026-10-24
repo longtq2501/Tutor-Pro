@@ -95,7 +95,7 @@ const AppHeader = React.memo(({ user, initials, roleBadge, logout }: {
     return (
         // Single-row sticky header – h-14 (56px) on all screens
         <header className="border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-20 transition-all duration-300">
-            <div className="flex items-center h-14 px-3 lg:px-5 gap-2 min-w-0 overflow-hidden">
+            <div className="flex items-center h-14 px-2 sm:px-3 lg:px-5 gap-1.5 sm:gap-2 min-w-0 overflow-hidden">
 
                 {/* Hamburger (mobile only) */}
                 <Button
@@ -109,12 +109,12 @@ const AppHeader = React.memo(({ user, initials, roleBadge, logout }: {
                 </Button>
 
                 {/* Title Slot – shrink-0 so title NEVER shrinks prematurely */}
-                <div className="shrink-0 min-w-0">
+                <div className="min-w-0 flex-1">
                     <HeaderSlot id="title" />
                 </div>
 
-                {/* Actions Slot – pushes to right */}
-                <div className="flex-1 flex items-center justify-end gap-1 sm:gap-1.5 min-w-0 overflow-hidden">
+                {/* Actions Slot – keeps its intrinsic width, the title truncates instead */}
+                <div className="flex items-center justify-end gap-1 sm:gap-1.5 min-w-0 shrink-0 max-w-full">
                     <HeaderSlot id="actions" />
                 </div>
 

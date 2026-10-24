@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { FileDown, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { dashboardApi } from '@/lib/services/dashboard';
+import { useHeaderDensity } from '@/components/shared/ResponsiveHeaderActions';
+import { cn } from '@/lib/utils';
 
 interface DashboardExportButtonProps {
     currentMonth?: string;
@@ -13,6 +15,8 @@ interface DashboardExportButtonProps {
 
 export function DashboardExportButton({ currentMonth, filename = 'bao-cao-he-thong.pdf' }: DashboardExportButtonProps) {
     const [isExporting, setIsExporting] = useState(false);
+    const { atLeast } = useHeaderDensity();
+    const showLabel = atLeast('comfortable');
 
     const handleExport = async () => {
         setIsExporting(true);
@@ -48,15 +52,20 @@ export function DashboardExportButton({ currentMonth, filename = 'bao-cao-he-tho
             onClick={handleExport}
             disabled={isExporting}
             variant="outline"
-            className="gap-2 border-primary/20 hover:border-primary/50 bg-primary/5 hover:bg-primary/10 text-primary transition-all duration-300"
+            size="sm"
+            title="Xuất báo cáo PDF"
+            aria-label="Xuất báo cáo PDF"
+            className={cn(
+                "h-8 shrink-0 rounded-xl border-primary/20 hover:border-primary/50 bg-primary/5 hover:bg-primary/10 text-primary transition-all duration-300 whitespace-nowrap font-semibold text-[13px]",
+                showLabel ? "px-3 gap-1.5" : "w-8 p-0 justify-center"
+            )}
         >
             {isExporting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 shrink-0 animate-spin" />
             ) : (
-                <FileDown className="w-4 h-4" />
+                <FileDown className="w-4 h-4 shrink-0" />
             )}
-            <span className="hidden sm:inline">Xuất Báo Cáo</span>
-            <span className="sm:hidden">Xuất</span>
+            {showLabel && <span>Xuất Báo Cáo</span>}
         </Button>
     );
 }

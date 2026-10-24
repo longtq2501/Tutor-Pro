@@ -46,6 +46,7 @@ export function AdminShell({ children }: AdminShellProps) {
     useAdminThemeSync();
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(prev => prev !== true ? true : prev);
     }, []);
 
@@ -70,7 +71,6 @@ export function AdminShell({ children }: AdminShellProps) {
         if (pathname !== lastPathname) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setLastPathname(pathname);
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsMobileSidebarOpen(prev => prev !== false ? false : prev);
         }
     }, [pathname, lastPathname]);
@@ -106,8 +106,8 @@ export function AdminShell({ children }: AdminShellProps) {
             >
                 <AdminTopNav onMenuClick={toggleSidebar} />
 
-                <main className="mt-[52px] h-[calc(100vh-52px)] overflow-y-auto overflow-x-hidden p-5 lg:p-8">
-                    <div className="max-w-[1440px] mx-auto">
+                <main className="mt-[52px] h-[calc(100vh-52px)] overflow-y-auto overflow-x-hidden p-4 sm:p-5 lg:p-8">
+                    <div className="w-full max-w-[1440px] mx-auto min-w-0">
                         {children}
                     </div>
                 </main>

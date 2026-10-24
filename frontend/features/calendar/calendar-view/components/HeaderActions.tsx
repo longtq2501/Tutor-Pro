@@ -4,7 +4,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Plus, FileText, Loader2, MoreHorizontal, Sparkles, Trash2, Info } from 'lucide-react';
 import { StatusLegend } from './StatusLegend';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useUI } from '@/contexts/UIContext';
 import type { ReportScope } from '../utils/monthlyFeeReport';
 
@@ -19,6 +19,8 @@ interface HeaderActionsProps {
     reportLoading?: boolean;
     /** P5: label for the delete action, e.g. "Xóa các buổi trong tháng 10/2026" */
     deleteLabel?: string;
+    /** Extra items prepended to the "⋯" overflow menu (collapsed controls). */
+    extraMenu?: ReactNode;
 }
 
 export function HeaderActions({
@@ -31,6 +33,7 @@ export function HeaderActions({
     onReport,
     reportLoading = false,
     deleteLabel = 'Xóa các buổi trong tháng này',
+    extraMenu,
 }: HeaderActionsProps) {
     const { containerWidth } = useUI();
     const [reportOpen, setReportOpen] = useState(false);
@@ -44,7 +47,7 @@ export function HeaderActions({
     const showAddText = containerWidth >= 520;       // P1: drops text when < 520px (icon-only button)
 
     return (
-        <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 shrink-0">
+        <div className="flex flex-nowrap items-center justify-end gap-1 sm:gap-1.5 min-w-0 shrink-0">
             {/* P2: Báo cáo (shown in header when containerWidth >= 600) */}
             {showReportButton && (
                 <Popover open={reportOpen} onOpenChange={setReportOpen}>
@@ -123,6 +126,14 @@ export function HeaderActions({
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-60 rounded-xl shadow-xl border-border/60 z-50">
+                    {/* Collapsed priority controls (navigation / view switch) */}
+                    {extraMenu ? (
+                        <>
+                            {extraMenu}
+                            <DropdownMenuSeparator />
+                        </>
+                    ) : null}
+
                     {/* Collapsed P3: Chú thích */}
                     {!showLegendButton && (
                         <DropdownMenuItem

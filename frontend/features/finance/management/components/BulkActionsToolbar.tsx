@@ -34,16 +34,16 @@ export function BulkActionsToolbar({ actions }: BulkActionsToolbarProps) {
                     paddingLeft: 'var(--sidebar-width, 0px)',
                 }}
             >
-                <div className="bg-foreground text-background p-3 md:p-4 rounded-[2rem] shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4 md:gap-8 border border-white/10 backdrop-blur-xl w-fit max-w-[90vw] md:max-w-3xl pointer-events-auto mx-auto">
-                    <div className="flex items-center gap-3 pl-2 shrink-0">
-                        <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center font-black text-primary">
+                <div className="bg-foreground text-background p-2.5 sm:p-3 md:p-4 rounded-[1.5rem] sm:rounded-[2rem] shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 md:gap-8 border border-white/10 backdrop-blur-xl w-fit max-w-[calc(100vw-1.5rem)] md:max-w-3xl pointer-events-auto mx-auto min-w-0">
+                    <div className="flex items-center gap-2.5 sm:gap-3 sm:pl-2 shrink-0">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/10 flex items-center justify-center font-black text-primary text-sm sm:text-base shrink-0">
                             {selectedStudentIds.length}
                         </div>
-                        <div className="flex flex-col">
-                            <span className="text-xs md:text-sm font-bold whitespace-nowrap">Học sinh đã chọn</span>
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[11px] sm:text-xs md:text-sm font-bold whitespace-nowrap">Học sinh đã chọn</span>
                             <button
                                 onClick={clearSelection}
-                                className="text-[10px] md:text-xs text-muted-foreground hover:text-white underline text-left"
+                                className="text-[10px] md:text-xs text-muted-foreground hover:text-white underline text-left whitespace-nowrap"
                             >
                                 Bỏ chọn
                             </button>
@@ -54,7 +54,7 @@ export function BulkActionsToolbar({ actions }: BulkActionsToolbarProps) {
                         <Button
                             variant="secondary"
                             size="sm"
-                            className="rounded-xl font-bold h-9 md:h-10 px-3 md:px-4 shrink-0 transition-transform active:scale-95"
+                            className="rounded-xl font-bold h-9 md:h-10 px-3 md:px-4 shrink-0 transition-transform active:scale-95 whitespace-nowrap"
                             onClick={generateBulkInvoice}
                             disabled={generatingInvoice}
                         >

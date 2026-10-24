@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, UserX, UserCircle, Wallet, Search, Plus, ChevronDown } from 'lucide-react';
+import { Users, UserX, UserCircle, Wallet, Search, Plus, ChevronDown, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -92,9 +92,11 @@ export function UnifiedContactActions(props: Omit<UnifiedContactHeaderProps, 'st
     const showFullTabs = containerWidth >= 1000;
     const showFullSearch = containerWidth >= 700;
     const showAddText = containerWidth >= 520;
+    // Icon-only filter trigger when the label would push the row past its budget
+    const showFilterLabel = containerWidth >= 560;
 
     return (
-        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 shrink-0">
+        <div className="flex flex-nowrap items-center justify-end gap-1.5 sm:gap-2 min-w-0 shrink-0">
             {/* Search */}
             {showFullSearch ? (
                 <div className="relative w-36 sm:w-44 md:w-52">
@@ -114,6 +116,7 @@ export function UnifiedContactActions(props: Omit<UnifiedContactHeaderProps, 'st
                             size="icon"
                             className="h-8 w-8 rounded-xl border-border/40 hover:bg-muted/50 shrink-0"
                             title="Tìm kiếm"
+                            aria-label="Tìm kiếm"
                         >
                             <Search className="w-4 h-4" />
                         </Button>
@@ -154,10 +157,21 @@ export function UnifiedContactActions(props: Omit<UnifiedContactHeaderProps, 'st
                         <Button
                             variant="outline"
                             size="sm"
-                            className="h-8 rounded-xl px-2.5 gap-1.5 border-border/40 hover:bg-muted/50 bg-card/50 text-[13px] font-medium whitespace-nowrap shrink-0"
+                            title="Bộ lọc"
+                            aria-label="Bộ lọc"
+                            className={cn(
+                                "h-8 rounded-xl border-border/40 hover:bg-muted/50 bg-card/50 text-[13px] font-medium whitespace-nowrap shrink-0",
+                                showFilterLabel ? "px-2.5 gap-1.5" : "w-8 p-0 justify-center"
+                            )}
                         >
-                            <span>{FILTER_LABELS[props.filter] || 'Lọc'}</span>
-                            <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+                            {showFilterLabel ? (
+                                <>
+                                    <span>{FILTER_LABELS[props.filter] || 'Lọc'}</span>
+                                    <ChevronDown className="w-3.5 h-3.5 opacity-60 shrink-0" />
+                                </>
+                            ) : (
+                                <Filter className="w-4 h-4 shrink-0" />
+                            )}
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-40 rounded-xl shadow-xl z-50">

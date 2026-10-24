@@ -9,6 +9,7 @@ import { useCurrentSession } from '../hooks/useCurrentSession';
 import { useUpcomingSessions } from '../hooks/useUpcomingSessions';
 import { SessionCard } from './SessionCard';
 import { DashboardHeader } from '@/contexts/UIContext';
+import { headerIconButtonClass } from '@/components/shared/ResponsiveHeaderActions';
 
 interface LiveTeachingLobbyProps {
     onJoin: (roomId: string) => void;
@@ -117,15 +118,39 @@ export const LiveTeachingLobby: React.FC<LiveTeachingLobbyProps> = ({
                     : "Tham gia các buổi học trực tuyến cùng giáo viên của bạn. Vui lòng chuẩn bị thiết bị trước khi vào học."
                 }
                 actions={
-                    <div className="flex items-center gap-3">
-                        <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest mr-2">
-                            <Video className="w-3 h-3" />
+                    <div className="flex flex-nowrap items-center gap-2">
+                        <div className="inline-flex items-center gap-2 px-2.5 h-8 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
+                            <Video className="w-3 h-3 shrink-0" />
                             Live Teaching Hub
                         </div>
-                        <Button variant="outline" size="lg" onClick={handleRefresh} className="rounded-xl font-bold gap-2">
-                            <RefreshCw className={`w-4 h-4 ${isFetchingNextPage ? 'animate-spin' : ''}`} />
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleRefresh}
+                            title="Làm mới"
+                            className="h-8 rounded-xl gap-1.5 px-3 text-[13px] font-semibold whitespace-nowrap shrink-0"
+                        >
+                            <RefreshCw className={`w-4 h-4 shrink-0 ${isFetchingNextPage ? 'animate-spin' : ''}`} />
                             Làm mới
                         </Button>
+                    </div>
+                }
+                compactActions={
+                    <div className="flex flex-nowrap items-center gap-1.5">
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={handleRefresh}
+                            title="Làm mới"
+                            aria-label="Làm mới"
+                            className={headerIconButtonClass}
+                        >
+                            <RefreshCw className={`w-4 h-4 ${isFetchingNextPage ? 'animate-spin' : ''}`} />
+                        </Button>
+                        <div className="inline-flex h-8 items-center gap-1.5 px-2 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest whitespace-nowrap shrink-0">
+                            <Video className="w-3 h-3 shrink-0" />
+                            Live
+                        </div>
                     </div>
                 }
             />

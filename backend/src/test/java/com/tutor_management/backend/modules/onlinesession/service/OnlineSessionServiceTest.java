@@ -151,7 +151,6 @@ class OnlineSessionServiceTest {
         @DisplayName("Should create session and publish complete event")
         void createSession_Success() {
                 // Given
-                when(userRepository.findById(userId)).thenReturn(Optional.of(user));
                 when(tutorRepository.findByUserId(userId)).thenReturn(Optional.of(tutor));
                 when(tutorRepository.findById(tutorId)).thenReturn(Optional.of(tutor));
                 when(studentRepository.findById(studentId)).thenReturn(Optional.of(student));

@@ -43,6 +43,10 @@ public class ChatServiceImpl implements ChatService {
     public ChatMessageResponse saveMessage(String roomId, Long userId, ChatMessageRequest request) {
         log.info("Saving chat message for room {} by user {}", roomId, userId);
 
+        // Reject messages for rooms that are not part of an existing online session
+        onlineSessionRepository.findByRoomId(roomId)
+                .orElseThrow(() -> new RoomNotFoundException("Room not found: " + roomId));
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + userId));
 

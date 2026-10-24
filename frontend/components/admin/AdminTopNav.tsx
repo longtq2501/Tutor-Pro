@@ -90,9 +90,9 @@ export function AdminTopNav({ onMenuClick }: { onMenuClick?: () => void }) {
     };
 
     return (
-        <header className="fixed top-0 left-0 right-0 lg:left-16 h-[52px] admin-glass z-40 px-4 lg:px-6 flex items-center justify-between">
+        <header className="fixed top-0 left-0 right-0 lg:left-16 h-[52px] admin-glass z-40 px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-2 min-w-0 overflow-hidden">
             {/* Left: Mobile Menu + Breadcrumb */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                 {/* Hamburger — mobile only */}
                 <button
                     onClick={onMenuClick}
@@ -102,15 +102,15 @@ export function AdminTopNav({ onMenuClick }: { onMenuClick?: () => void }) {
                     <Menu className="h-5 w-5" />
                 </button>
 
-                <div className="flex items-center gap-2 text-xs font-medium">
-                    <span className="text-[var(--admin-text3)] uppercase tracking-wider hidden sm:inline">Admin</span>
-                    <ChevronRight className="h-3 w-3 text-[var(--admin-text3)] hidden sm:inline" />
-                    <span className="text-[var(--admin-text)]">{currentPage}</span>
+                <div className="flex items-center gap-2 text-xs font-medium min-w-0">
+                    <span className="text-[var(--admin-text3)] uppercase tracking-wider hidden sm:inline shrink-0">Admin</span>
+                    <ChevronRight className="h-3 w-3 text-[var(--admin-text3)] hidden sm:inline shrink-0" />
+                    <span className="text-[var(--admin-text)] truncate min-w-0">{currentPage}</span>
                 </div>
             </div>
 
             {/* Right: Actions */}
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2 sm:gap-4 lg:gap-6 shrink-0">
                 {/* Search Bar - UI Only */}
                 <div className="relative group hidden md:block">
                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
@@ -119,7 +119,7 @@ export function AdminTopNav({ onMenuClick }: { onMenuClick?: () => void }) {
                     <input
                         type="text"
                         placeholder="Tìm kiếm nhanh..."
-                        className="w-64 h-8 bg-[var(--admin-surface2)] border border-[var(--admin-border)] rounded-lg pl-9 pr-12 text-xs text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent-dim)] transition-all"
+                        className="w-40 lg:w-64 h-8 bg-[var(--admin-surface2)] border border-[var(--admin-border)] rounded-lg pl-9 pr-12 text-xs text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent-dim)] transition-all"
                         readOnly
                     />
                     <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
@@ -133,7 +133,7 @@ export function AdminTopNav({ onMenuClick }: { onMenuClick?: () => void }) {
                 <ModeToggle />
 
                 {/* Notifications */}
-                <button className="relative p-1.5 text-[var(--admin-text3)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface2)] rounded-lg transition-all">
+                <button aria-label="Thông báo" className="relative p-1.5 text-[var(--admin-text3)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface2)] rounded-lg transition-all shrink-0">
                     <Bell className="h-5 w-5" />
                     <span className="absolute top-1 right-1 w-2 h-2 bg-[var(--admin-accent)] rounded-full border-2 border-[var(--admin-surface)]" />
                 </button>
@@ -141,7 +141,7 @@ export function AdminTopNav({ onMenuClick }: { onMenuClick?: () => void }) {
                 {/* Avatar with Dropdown */}
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <button className="flex items-center gap-2 pl-2 border-l border-[var(--admin-border)] hover:opacity-80 transition-opacity">
+                        <button className="flex items-center gap-2 pl-2 border-l border-[var(--admin-border)] hover:opacity-80 transition-opacity shrink-0" aria-label="Tài khoản">
                             <Avatar className="h-8 w-8 rounded-lg border border-[var(--admin-accent)]/30">
                                 <AvatarImage src={user?.avatarUrl} alt={user?.fullName} className="object-cover" />
                                 <AvatarFallback className="bg-[var(--admin-accent-dim)] text-[var(--admin-accent)] text-xs font-bold">

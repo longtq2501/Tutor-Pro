@@ -94,8 +94,8 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="vi" suppressHydrationWarning>
-            <body className={`${inter.variable} ${beVietnamPro.variable} ${baloo2.variable} ${nunito.variable} font-sans antialiased`}>
+        <html lang="vi" suppressHydrationWarning className="h-full">
+            <body className={`${inter.variable} ${beVietnamPro.variable} ${baloo2.variable} ${nunito.variable} font-sans antialiased h-full min-h-0`}>
                 <QueryProvider>
                     <AuthProvider>
                         <ThemeProvider

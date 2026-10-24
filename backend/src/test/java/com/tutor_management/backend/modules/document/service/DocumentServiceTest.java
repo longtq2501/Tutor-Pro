@@ -2,9 +2,7 @@ package com.tutor_management.backend.modules.document.service;
 
 import com.tutor_management.backend.modules.auth.RoleEntity;
 import com.tutor_management.backend.modules.auth.User;
-import com.tutor_management.backend.modules.document.DocumentCategoryType;
 import com.tutor_management.backend.modules.document.dto.request.DocumentRequest;
-import com.tutor_management.backend.modules.document.dto.response.DocumentResponse;
 import com.tutor_management.backend.modules.document.entity.Document;
 import com.tutor_management.backend.modules.document.entity.DocumentCategory;
 import com.tutor_management.backend.modules.document.repository.DocumentCategoryRepository;
@@ -31,7 +29,6 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -99,7 +96,7 @@ class DocumentServiceTest {
         mockAuthentication(adminUser);
         Pageable pageable = PageRequest.of(0, 10);
         Page<Document> page = new PageImpl<>(List.of());
-        
+
         when(documentRepository.findAllWithStudent(null, null, null, false, pageable)).thenReturn(page);
 
         documentService.getAllDocuments(null, false, pageable);
@@ -112,10 +109,10 @@ class DocumentServiceTest {
     void getAllDocuments_Tutor_Success() {
         mockAuthentication(tutorUser);
         when(tutorRepository.findByUserId(2L)).thenReturn(Optional.of(tutor));
-        
+
         Pageable pageable = PageRequest.of(0, 10);
         Page<Document> page = new PageImpl<>(List.of());
-        
+
         when(documentRepository.findAllWithStudent(20L, null, null, false, pageable)).thenReturn(page);
 
         documentService.getAllDocuments(null, false, pageable);
@@ -128,10 +125,10 @@ class DocumentServiceTest {
     void getAllDocuments_Student_Success() {
         mockAuthentication(studentUser);
         when(studentRepository.findById(10L)).thenReturn(Optional.of(student));
-        
+
         Pageable pageable = PageRequest.of(0, 10);
         Page<Document> page = new PageImpl<>(List.of());
-        
+
         when(documentRepository.findAllWithStudent(20L, 10L, null, false, pageable)).thenReturn(page);
 
         documentService.getAllDocuments(null, false, pageable);
@@ -145,16 +142,16 @@ class DocumentServiceTest {
         mockAuthentication(tutorUser);
         when(tutorRepository.findByUserId(2L)).thenReturn(Optional.of(tutor));
         when(tutorRepository.findById(20L)).thenReturn(Optional.of(tutor));
-        
+
         DocumentRequest request = new DocumentRequest();
         request.setTitle("Test Doc");
         request.setCategory("GRAMMAR");
-        
+
         MultipartFile file = mock(MultipartFile.class);
         when(file.getOriginalFilename()).thenReturn("test.pdf");
         when(file.getSize()).thenReturn(1024L);
         when(file.getContentType()).thenReturn("application/pdf");
-        
+
         DocumentCategory category = DocumentCategory.builder().code("GRAMMAR").name("Grammar").build();
         when(documentCategoryRepository.findByCode("GRAMMAR")).thenReturn(Optional.of(category));
         when(cloudinaryService.uploadFile(any())).thenReturn("http://cloudinary.com/test.pdf");
@@ -175,13 +172,13 @@ class DocumentServiceTest {
     void deleteDocument_Owner_Success() {
         mockAuthentication(tutorUser);
         when(tutorRepository.findByUserId(2L)).thenReturn(Optional.of(tutor));
-        
+
         Document document = Document.builder()
                 .id(100L)
                 .tutor(tutor)
                 .filePath("http://test.com/file")
                 .build();
-        
+
         when(documentRepository.findById(100L)).thenReturn(Optional.of(document));
 
         documentService.deleteDocument(100L);
@@ -194,13 +191,13 @@ class DocumentServiceTest {
     void deleteDocument_NotOwner_ThrowsException() {
         mockAuthentication(tutorUser);
         when(tutorRepository.findByUserId(2L)).thenReturn(Optional.of(tutor));
-        
+
         Tutor otherTutor = Tutor.builder().id(99L).build();
         Document document = Document.builder()
                 .id(100L)
                 .tutor(otherTutor)
                 .build();
-        
+
         when(documentRepository.findById(100L)).thenReturn(Optional.of(document));
 
         assertThrows(RuntimeException.class, () -> documentService.deleteDocument(100L));

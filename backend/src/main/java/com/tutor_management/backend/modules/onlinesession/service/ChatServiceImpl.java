@@ -6,7 +6,6 @@ import com.tutor_management.backend.modules.onlinesession.dto.request.ChatMessag
 import com.tutor_management.backend.modules.onlinesession.dto.response.ChatMessageResponse;
 import com.tutor_management.backend.modules.onlinesession.dto.response.TypingResponse;
 import com.tutor_management.backend.modules.onlinesession.entity.ChatMessage;
-import com.tutor_management.backend.modules.onlinesession.entity.OnlineSession;
 import com.tutor_management.backend.modules.onlinesession.exception.RoomNotFoundException;
 import com.tutor_management.backend.modules.onlinesession.repository.ChatMessageRepository;
 import com.tutor_management.backend.modules.onlinesession.repository.OnlineSessionRepository;
@@ -44,9 +43,6 @@ public class ChatServiceImpl implements ChatService {
     public ChatMessageResponse saveMessage(String roomId, Long userId, ChatMessageRequest request) {
         log.info("Saving chat message for room {} by user {}", roomId, userId);
 
-        OnlineSession session = onlineSessionRepository.findByRoomId(roomId)
-                .orElseThrow(() -> new RoomNotFoundException("Room not found: " + roomId));
-
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + userId));
 
@@ -74,7 +70,7 @@ public class ChatServiceImpl implements ChatService {
     @Transactional(readOnly = true)
     public Page<ChatMessageResponse> getMessages(String roomId, Pageable pageable) {
         log.info("Fetching messages for room {} with pagination", roomId);
-        
+
         // Ensure room exists
         if (!onlineSessionRepository.existsByRoomId(roomId)) {
             throw new RoomNotFoundException("Room not found: " + roomId);
@@ -104,7 +100,8 @@ public class ChatServiceImpl implements ChatService {
     }
 
     /**
-     * Retrieves the full name of a user by their ID, with caching to improve performance.
+     * Retrieves the full name of a user by their ID, with caching to improve
+     * performance.
      *
      * @param userId the ID of the user
      * @return the full name of the user

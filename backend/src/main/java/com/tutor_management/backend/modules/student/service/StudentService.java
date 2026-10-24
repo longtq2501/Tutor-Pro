@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 import com.tutor_management.backend.exception.ResourceNotFoundException;
 import com.tutor_management.backend.modules.student.entity.Student;
 import com.tutor_management.backend.modules.student.repository.StudentRepository;
-import com.tutor_management.backend.modules.tutor.repository.TutorRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +31,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Service for managing student lifecycle, academic records, and associated user accounts.
+ * Service for managing student lifecycle, academic records, and associated user
+ * accounts.
  * Implements optimized batch-loading strategies to maintain performance.
  */
 @Service
@@ -53,21 +53,23 @@ public class StudentService {
     private static final String DEFAULT_PASSWORD = "student123";
 
     /**
-     * Retrieves all students with pre-calculated billing summaries and account links.
+     * Retrieves all students with pre-calculated billing summaries and account
+     * links.
      * Uses batch queries to solve N+1 problems.
      */
     @Transactional(readOnly = true)
     public List<StudentResponse> getAllStudents() {
         Long tutorId = securityContextUtils.getCurrentTutorId();
         List<Student> students;
-        
+
         if (tutorId == null) {
             students = studentRepository.findAllWithParentOrderByCreatedAtDesc();
         } else {
             students = studentRepository.findAllByTutorIdWithParentOrderByCreatedAtDesc(tutorId);
         }
 
-        if (students.isEmpty()) return Collections.emptyList();
+        if (students.isEmpty())
+            return Collections.emptyList();
 
         List<Long> studentIds = students.stream().map(Student::getId).toList();
 
@@ -79,7 +81,8 @@ public class StudentService {
                 .stream().collect(Collectors.toMap(User::getStudentId, u -> u, (u1, u2) -> u1));
 
         return students.stream()
-                .map(s -> convertToResponseOptimized(s, recordsMap.getOrDefault(s.getId(), Collections.emptyList()), usersMap.get(s.getId())))
+                .map(s -> convertToResponseOptimized(s, recordsMap.getOrDefault(s.getId(), Collections.emptyList()),
+                        usersMap.get(s.getId())))
                 .collect(Collectors.toList());
     }
 
@@ -101,38 +104,35 @@ public class StudentService {
             studentPage = studentRepository.findAllByTutorIdWithParent(tutorId, pageable);
         }
 
-        if (studentPage.isEmpty()) return Page.empty();
+        if (studentPage.isEmpty())
+            return Page.empty();
 
         List<Long> studentIds = studentPage.getContent().stream().map(Student::getId).toList();
 
         Map<Long, Long> unpaidMap = sessionRecordRepository.sumTotalUnpaidByStudentIdIn(studentIds)
                 .stream().collect(Collectors.toMap(
                         row -> (Long) row[0],
-                        row -> (Long) row[1]
-                ));
+                        row -> (Long) row[1]));
 
         Map<Long, Long> unpaidTaughtMap = sessionRecordRepository.sumTotalUnpaidTaughtByStudentIdIn(studentIds)
                 .stream().collect(Collectors.toMap(
                         row -> (Long) row[0],
-                        row -> (Long) row[1]
-                ));
+                        row -> (Long) row[1]));
 
         Map<Long, Long> paidMap = sessionRecordRepository.sumTotalPaidByStudentIdIn(studentIds)
                 .stream().collect(Collectors.toMap(
                         row -> (Long) row[0],
-                        row -> (Long) row[1]
-                ));
+                        row -> (Long) row[1]));
 
         Map<Long, User> usersMap = userRepository.findByStudentIdIn(studentIds)
                 .stream().collect(Collectors.toMap(User::getStudentId, u -> u, (u1, u2) -> u1));
 
         return studentPage.map(student -> convertToSummaryResponse(
-                student, 
-                unpaidMap.getOrDefault(student.getId(), 0L), 
+                student,
+                unpaidMap.getOrDefault(student.getId(), 0L),
                 unpaidTaughtMap.getOrDefault(student.getId(), 0L),
                 paidMap.getOrDefault(student.getId(), 0L),
-                usersMap.get(student.getId())
-        ));
+                usersMap.get(student.getId())));
     }
 
     /**
@@ -142,13 +142,14 @@ public class StudentService {
     public StudentResponse getStudentById(Long id) {
         Long tutorId = securityContextUtils.getCurrentTutorId();
         Student student;
-        
+
         if (tutorId == null) {
-             student = studentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy học sinh với ID: " + id));
+            student = studentRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy học sinh với ID: " + id));
         } else {
-             student = studentRepository.findByIdAndTutorId(id, tutorId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy học sinh với ID: " + id + " hoặc bạn không có quyền truy cập"));
+            student = studentRepository.findByIdAndTutorId(id, tutorId)
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Không tìm thấy học sinh với ID: " + id + " hoặc bạn không có quyền truy cập"));
         }
         return convertToResponse(student);
     }
@@ -164,7 +165,7 @@ public class StudentService {
         }
 
         log.info("Creating student: {}", request.getName());
-        
+
         Student student = Student.builder()
                 .tutorId(tutorId)
                 .name(request.getName())
@@ -194,19 +195,20 @@ public class StudentService {
     public StudentResponse updateStudent(Long id, StudentRequest request) {
         Long tutorId = securityContextUtils.getCurrentTutorId();
         log.info("Updating student ID: {}", id);
-        
+
         Student student;
         if (tutorId == null) {
             student = studentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy học sinh với ID: " + id));
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy học sinh với ID: " + id));
         } else {
-             student = studentRepository.findByIdAndTutorId(id, tutorId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy học sinh với ID: " + id + " hoặc bạn không có quyền truy cập"));
+            student = studentRepository.findByIdAndTutorId(id, tutorId)
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Không tìm thấy học sinh với ID: " + id + " hoặc bạn không có quyền truy cập"));
         }
 
         updateStudentFields(student, request);
         associateParent(student, request.getParentId());
-        
+
         updateAssociatedAccount(id, request);
 
         return convertToResponse(studentRepository.save(student));
@@ -219,14 +221,15 @@ public class StudentService {
     public void deleteStudent(Long id) {
         Long tutorId = securityContextUtils.getCurrentTutorId();
         log.warn("Deleting student ID: {}", id);
-        
+
         Student student;
         if (tutorId == null) {
             student = studentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy học sinh với ID: " + id));
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy học sinh với ID: " + id));
         } else {
-             student = studentRepository.findByIdAndTutorId(id, tutorId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy học sinh với ID: " + id + " hoặc bạn không có quyền truy cập"));
+            student = studentRepository.findByIdAndTutorId(id, tutorId)
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Không tìm thấy học sinh với ID: " + id + " hoặc bạn không có quyền truy cập"));
         }
 
         sessionRecordRepository.deleteAll(sessionRecordRepository.findByStudentId(id));
@@ -289,7 +292,8 @@ public class StudentService {
         String targetPassword = (password != null && !password.isBlank()) ? password : DEFAULT_PASSWORD;
 
         if (userRepository.existsByEmail(targetEmail)) {
-            if (email != null) throw new IllegalArgumentException("Email đã tồn tại: " + targetEmail);
+            if (email != null)
+                throw new IllegalArgumentException("Email đã tồn tại: " + targetEmail);
             targetEmail = generateEmailFromName(student.getName()) + student.getId() + "@students.tutormanagement.com";
         }
 
@@ -300,15 +304,17 @@ public class StudentService {
         Optional<User> userOpt = userRepository.findByStudentId(studentId);
         if (userOpt.isEmpty()) {
             if (Boolean.TRUE.equals(request.getCreateAccount())) {
-                provisionAccount(studentRepository.getReferenceById(studentId), request.getEmail(), request.getPassword());
+                provisionAccount(studentRepository.getReferenceById(studentId), request.getEmail(),
+                        request.getPassword());
             }
             return;
         }
- 
+
         User user = userOpt.get();
         if (request.getEmail() != null && !request.getEmail().isEmpty()) {
             userRepository.findByEmail(request.getEmail()).ifPresent(existing -> {
-                if (!existing.getId().equals(user.getId())) throw new IllegalArgumentException("Email đã được sử dụng");
+                if (!existing.getId().equals(user.getId()))
+                    throw new IllegalArgumentException("Email đã được sử dụng");
             });
             user.setEmail(request.getEmail());
         }
@@ -324,9 +330,12 @@ public class StudentService {
         student.setSchedule(request.getSchedule());
         student.setPricePerHour(request.getPricePerHour());
         student.setNotes(request.getNotes());
-        if (request.getActive() != null) student.setActive(request.getActive());
-        if (request.getNguon() != null) student.setNguon(normalizeNguon(request.getNguon()));
-        if (request.getStartMonth() != null) student.setStartMonth(request.getStartMonth());
+        if (request.getActive() != null)
+            student.setActive(request.getActive());
+        if (request.getNguon() != null)
+            student.setNguon(normalizeNguon(request.getNguon()));
+        if (request.getStartMonth() != null)
+            student.setStartMonth(request.getStartMonth());
     }
 
     private String normalizeNguon(String nguon) {
@@ -350,13 +359,16 @@ public class StudentService {
 
     private String generateUniqueEmail(Student student) {
         String email = generateEmailFromName(student.getName());
-        return userRepository.existsByEmail(email) ? 
-                generateEmailFromName(student.getName()) + student.getId() + "@students.tutormanagement.com" : email;
+        return userRepository.existsByEmail(email)
+                ? generateEmailFromName(student.getName()) + student.getId() + "@students.tutormanagement.com"
+                : email;
     }
 
     private String generateEmailFromName(String name) {
-        String normalized = java.text.Normalizer.normalize(name, java.text.Normalizer.Form.NFD).replaceAll("\\p{M}", "");
-        return normalized.toLowerCase().replaceAll("\\s+", "").replaceAll("[^a-z0-9]", "") + "@students.tutormanagement.com";
+        String normalized = java.text.Normalizer.normalize(name, java.text.Normalizer.Form.NFD).replaceAll("\\p{M}",
+                "");
+        return normalized.toLowerCase().replaceAll("\\s+", "").replaceAll("[^a-z0-9]", "")
+                + "@students.tutormanagement.com";
     }
 
     // --- Converters ---
@@ -413,7 +425,8 @@ public class StudentService {
         return response;
     }
 
-    private StudentSummaryResponse convertToSummaryResponse(Student student, Long totalUnpaid, Long totalUnpaidTaught, Long totalPaid, User user) {
+    private StudentSummaryResponse convertToSummaryResponse(Student student, Long totalUnpaid, Long totalUnpaidTaught,
+            Long totalPaid, User user) {
         String lastActiveMonth = student.getLastActiveMonth();
         Integer monthsLearned = calculateMonthsLearned(student.getStartMonth(), lastActiveMonth);
 
@@ -441,18 +454,25 @@ public class StudentService {
     }
 
     private Integer calculateMonthsLearned(String start, String last) {
-        if (start == null || last == null) return 0;
+        if (start == null || last == null)
+            return 0;
         try {
             return (int) ChronoUnit.MONTHS.between(YearMonth.parse(start), YearMonth.parse(last)) + 1;
-        } catch (Exception e) { return 0; }
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     private String buildLearningDuration(String start, Integer months) {
-        if (start == null) return "";
+        if (start == null)
+            return "";
         try {
             String[] p = start.split("-");
             String display = p[1] + "/" + p[0];
-            return (months != null && months > 0) ? "Bắt đầu: " + display + " • " + months + " tháng" : "Bắt đầu: " + display;
-        } catch (Exception e) { return start; }
+            return (months != null && months > 0) ? "Bắt đầu: " + display + " • " + months + " tháng"
+                    : "Bắt đầu: " + display;
+        } catch (Exception e) {
+            return start;
+        }
     }
 }

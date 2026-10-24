@@ -3,7 +3,6 @@ package com.tutor_management.backend.modules.onlinesession.security;
 import com.tutor_management.backend.modules.auth.User;
 import com.tutor_management.backend.modules.auth.UserRepository;
 import com.tutor_management.backend.modules.auth.service.JwtService;
-import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
@@ -23,12 +22,16 @@ import java.util.Map;
  * Interceptor for WebSocket messages to handle authentication.
  * Extracts JWT from CONNECT headers and sets the SecurityContext Principal.
  *
- * <p>Supports two token types:
+ * <p>
+ * Supports two token types:
  * <ol>
- *   <li><b>Room token</b> – short-lived token scoped to a live-teaching room. Used by the
- *       live-room feature. Principal name = userId string, session attributes include roomId.</li>
- *   <li><b>Main app JWT</b> – the standard application JWT. Used by the support-chat feature
- *       and any future non-room-scoped WebSocket handler.</li>
+ * <li><b>Room token</b> – short-lived token scoped to a live-teaching room.
+ * Used by the
+ * live-room feature. Principal name = userId string, session attributes include
+ * roomId.</li>
+ * <li><b>Main app JWT</b> – the standard application JWT. Used by the
+ * support-chat feature
+ * and any future non-room-scoped WebSocket handler.</li>
  * </ol>
  */
 @Component
@@ -73,7 +76,6 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
     private boolean tryAuthenticateRoomToken(String token, StompHeaderAccessor accessor) {
         try {
-            Claims claims = roomTokenService.validateToken(token);
             Long userId = roomTokenService.extractUserId(token);
             String roomId = roomTokenService.extractRoomId(token);
             String roleName = roomTokenService.extractRole(token);
@@ -108,7 +110,8 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             String roleName = user.getRole().getName();
             setAuthPrincipal(accessor, user.getId().toString(), roleName);
 
-            log.info("WebSocket authenticated via app JWT: userId={}, email={}, role={}", user.getId(), email, roleName);
+            log.info("WebSocket authenticated via app JWT: userId={}, email={}, role={}", user.getId(), email,
+                    roleName);
             return true;
         } catch (Exception e) {
             log.debug("Main JWT validation failed: {}", e.getMessage());
@@ -120,8 +123,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                 principalName,
                 null,
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + roleName))
-        );
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + roleName)));
         accessor.setUser(auth);
     }
 }

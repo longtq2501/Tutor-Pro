@@ -67,7 +67,7 @@ export default function CalendarView() {
   };
 
   return (
-    <div className="bg-transparent">
+    <div className="bg-transparent flex-1 flex flex-col min-h-0 h-full">
       <DashboardHeader
         title={`${MONTHS[view.currentDate.getMonth()]}, ${view.currentDate.getFullYear()}`}
         subtitle="Lịch trình dạy học"
@@ -84,6 +84,7 @@ export default function CalendarView() {
             isGenerating={view.isGenerating}
             sessions={view.filteredSessions}
             stats={view.stats}
+            onRevenueClick={view.exportToExcel}
             onFilterChange={view.setStatusFilter}
             currentFilter={view.statusFilter}
             searchQuery={view.searchQuery}
@@ -99,7 +100,7 @@ export default function CalendarView() {
       />
 
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEndInternal}>
-        <main data-tour="calendar-board" className="transition-all duration-300">
+        <main data-tour="calendar-board" className="flex-1 flex flex-col min-h-0 transition-all duration-300">
           <CalendarViewContent
             currentView={view.currentView}
             isInitialLoad={view.isInitialLoad}

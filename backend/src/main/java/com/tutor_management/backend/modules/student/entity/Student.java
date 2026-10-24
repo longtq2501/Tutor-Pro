@@ -6,7 +6,6 @@ import com.tutor_management.backend.modules.parent.entity.Parent;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * Domain entity representing a Student in the system.
@@ -17,16 +16,16 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "students", indexes = {
-    @Index(name = "idx_student_tutor_id", columnList = "tutor_id"),
-    @Index(name = "idx_student_parent_id", columnList = "parent_id"),
-    @Index(name = "idx_student_active", columnList = "active"),
-    @Index(name = "idx_student_created_at", columnList = "createdAt")
+        @Index(name = "idx_student_tutor_id", columnList = "tutor_id"),
+        @Index(name = "idx_student_parent_id", columnList = "parent_id"),
+        @Index(name = "idx_student_active", columnList = "active"),
+        @Index(name = "idx_student_created_at", columnList = "createdAt")
 })
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Student {
 
     @Id

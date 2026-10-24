@@ -8,6 +8,8 @@ import type { Document, DocumentCategory, Category } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { DashboardHeader } from '@/contexts/UIContext';
 import { Button } from '@/components/ui/button';
+import { HeaderActionsRow, useHeaderDensity } from '@/components/shared/ResponsiveHeaderActions';
+import { cn } from '@/lib/utils';
 
 interface Props {
   category: DocumentCategory | Category;
@@ -31,6 +33,8 @@ export const CategoryView = ({
 }: Props) => {
   const { user } = useAuth();
   const isStudent = user?.role === 'STUDENT';
+  const { atLeast } = useHeaderDensity();
+  const showActionLabels = atLeast('comfortable');
 
   const categoryKey = typeof category === 'string' ? category : category.code;
   const categoryInfo = CATEGORIES.find(c => c.key === categoryKey);
@@ -42,17 +46,37 @@ export const CategoryView = ({
         title={name}
         subtitle={`${documents.length} tài liệu`}
         actions={
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={onBack} className="rounded-xl h-8 text-xs">
-              <ArrowLeft className="mr-1 h-3 w-3" /> Quay lại
+          <HeaderActionsRow>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onBack}
+              title="Quay lại"
+              aria-label="Quay lại"
+              className={cn(
+                'h-8 shrink-0 rounded-xl font-semibold text-[13px] whitespace-nowrap',
+                showActionLabels ? 'px-2.5 gap-1.5' : 'w-8 p-0 justify-center'
+              )}
+            >
+              <ArrowLeft className="h-4 w-4 shrink-0" />
+              {showActionLabels && <span>Quay lại</span>}
             </Button>
             {!isStudent && (
-              <Button onClick={onUpload} size="sm" className="rounded-xl h-8 text-xs shadow-lg shadow-primary/20">
-                <Upload size={14} className="mr-1" />
-                Thêm tài liệu
+              <Button
+                onClick={onUpload}
+                size="sm"
+                title="Thêm tài liệu"
+                aria-label="Thêm tài liệu"
+                className={cn(
+                  'h-8 shrink-0 rounded-xl font-semibold text-[13px] shadow-lg shadow-primary/20 whitespace-nowrap',
+                  showActionLabels ? 'px-3 gap-1.5' : 'w-8 p-0 justify-center'
+                )}
+              >
+                <Upload className="h-4 w-4 shrink-0" />
+                {showActionLabels && <span>Thêm tài liệu</span>}
               </Button>
             )}
-          </div>
+          </HeaderActionsRow>
         }
       />
 

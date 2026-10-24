@@ -24,9 +24,9 @@ export function AdminPageHeader({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.33, 1, 0.68, 1] }}
-            className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2"
+            className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 sm:gap-6 pb-2 min-w-0"
         >
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2 sm:gap-3 min-w-0">
                 {category && (
                     <motion.div
                         initial={{ opacity: 0, x: -10 }}
@@ -38,14 +38,14 @@ export function AdminPageHeader({
                         <span>{category}</span>
                     </motion.div>
                 )}
-                <div className="space-y-1">
-                    <h1 className="text-5xl font-black text-foreground tracking-tighter leading-tight drop-shadow-sm">
+                <div className="space-y-1 min-w-0">
+                    <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground tracking-tighter leading-tight drop-shadow-sm break-words">
                         {title}
                         <span className="text-primary inline-block ml-1 animate-pulse prose-invert">.</span>
                     </h1>
-                    <p className="text-muted-foreground text-sm font-black uppercase tracking-[0.15em] opacity-60 flex items-center gap-2">
-                        <span className="w-8 h-px bg-border/50" />
-                        {subtitle}
+                    <p className="text-muted-foreground text-xs sm:text-sm font-black uppercase tracking-[0.15em] opacity-60 flex items-center gap-2 min-w-0">
+                        <span className="w-6 sm:w-8 h-px bg-border/50 shrink-0" />
+                        <span className="truncate">{subtitle}</span>
                     </p>
                 </div>
             </div>
@@ -55,7 +55,7 @@ export function AdminPageHeader({
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.3 }}
-                    className="flex items-center gap-3 backdrop-blur-xl p-2 bg-white/5 dark:bg-black/5 rounded-[1.5rem] border border-border/10 shadow-premium"
+                    className="flex flex-wrap items-center gap-2 sm:gap-3 backdrop-blur-xl p-1.5 sm:p-2 bg-white/5 dark:bg-black/5 rounded-[1.5rem] border border-border/10 shadow-premium max-w-full min-w-0"
                 >
                     {actions}
                 </motion.div>

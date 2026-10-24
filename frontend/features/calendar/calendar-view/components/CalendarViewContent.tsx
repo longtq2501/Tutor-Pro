@@ -76,7 +76,7 @@ export function CalendarViewContent({
         case 'month':
         default:
             return (
-                <div className="px-4 sm:px-6">
+                <div className="px-1 sm:px-2 pb-[12px] flex-1 flex flex-col min-h-0 h-full w-full overflow-hidden">
                     <CalendarGrid
                         days={filteredCalendarDays}
                         onDayClick={setSelectedDay}

@@ -38,15 +38,14 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
     };
 
     return (
-        <header className="h-14 border-b border-border flex items-center px-3 md:px-4 justify-between bg-card shrink-0 gap-2">
-            <div className="flex items-center gap-2 min-w-0">
+        <header className="h-14 border-b border-border flex items-center px-3 md:px-4 justify-between bg-card shrink-0 gap-2 min-w-0">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <h2 className="font-semibold truncate text-xs sm:text-sm md:text-base cursor-help flex items-center gap-1.5">
-                                <span className="hidden sm:inline">Phòng: </span>
-                                <span className="hidden sm:inline">{roomId}</span>
-                                <span className="sm:hidden">{roomId.slice(0, 8)}...</span>
+                            <h2 className="font-semibold truncate min-w-0 text-xs sm:text-sm md:text-base cursor-help flex items-center gap-1.5">
+                                <span className="hidden sm:inline truncate">{roomId}</span>
+                                <span className="sm:hidden truncate">{roomId.slice(0, 8)}…</span>
                             </h2>
                         </TooltipTrigger>
                         <TooltipContent className="flex flex-col gap-2 p-3">
@@ -74,25 +73,28 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
                     </span>
                 )}
             </div>
-            <div className="flex items-center gap-2 md:gap-3 shrink-0">
-                <span className="hidden md:inline text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 shrink-0">
+                <span className="hidden lg:inline text-xs text-muted-foreground whitespace-nowrap">
                     {isConnected ? '● Đã kết nối' : '○ Đang kết nối...'}
                 </span>
                 <ModeToggle />
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleLeaveRoom}
-                            className="h-9 w-9 p-0 text-red-500 hover:text-red-600 hover:bg-red-500/10"
-                            aria-label="Rời phòng học"
-                        >
-                            <LogOut className="h-4 w-4" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Rời phòng</TooltipContent>
-                </Tooltip>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={handleLeaveRoom}
+                                className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-500/10 shrink-0"
+                                aria-label="Rời phòng học"
+                                title="Rời phòng"
+                            >
+                                <LogOut className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Rời phòng</TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
             </div>
         </header>
     );

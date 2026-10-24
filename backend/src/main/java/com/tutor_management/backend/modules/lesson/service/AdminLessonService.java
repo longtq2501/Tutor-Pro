@@ -19,7 +19,6 @@ import com.tutor_management.backend.modules.student.repository.StudentRepository
 import com.tutor_management.backend.modules.tutor.entity.Tutor;
 import com.tutor_management.backend.modules.tutor.repository.TutorRepository;
 import com.tutor_management.backend.modules.auth.User;
-import com.tutor_management.backend.modules.auth.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -51,7 +50,6 @@ public class AdminLessonService {
     private final LessonCategoryRepository categoryRepository;
     private final SessionRecordRepository sessionRecordRepository;
     private final TutorRepository tutorRepository;
-    private final UserRepository userRepository;
     private final CourseLessonRepository courseLessonRepository;
     private final LessonProgressRepository lessonProgressRepository;
 
@@ -101,11 +99,11 @@ public class AdminLessonService {
      */
     @CacheEvict(value = "lessons", allEntries = true)
     public List<AdminLessonResponse> createLessonForStudents(CreateLessonRequest request) {
-        log.info("📝 Creating library lesson '{}' for {} students", request.getTitle(), 
+        log.info("📝 Creating library lesson '{}' for {} students", request.getTitle(),
                 request.getStudentIds() != null ? request.getStudentIds().size() : 0);
 
         Lesson lesson = buildLessonFromRequest(request);
-         lesson = lessonRepository.save(lesson);
+        lesson = lessonRepository.save(lesson);
 
         if (request.getStudentIds() != null && !request.getStudentIds().isEmpty()) {
             lesson.markAsAssigned();
@@ -169,21 +167,21 @@ public class AdminLessonService {
 
         verifyLessonOwnership(lesson);
         int count = lesson.getAssignedStudentCount();
-        
+
         // Cleanup all external references (Force Delete)
         sessionRecordRepository.deleteLessonReferences(id);
         courseLessonRepository.deleteByLessonId(id);
         lessonProgressRepository.deleteByLessonId(id);
-        
+
         // Purge legacy tables if they exist (Fix for DataIntegrityViolationException)
         try {
             lessonRepository.deleteLegacyAttachments(id);
         } catch (Exception e) {
             log.warn("Could not delete from legacy lesson_attachments table: {}", e.getMessage());
         }
-        
+
         lessonRepository.delete(lesson);
-        
+
         log.info("✅ Deleted lesson {} and removed {} student assignments", id, count);
     }
 
@@ -196,8 +194,10 @@ public class AdminLessonService {
         Lesson lesson = lessonRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài giảng với ID: " + id));
 
-        if (lesson.getIsPublished()) lesson.unpublish();
-        else lesson.publish();
+        if (lesson.getIsPublished())
+            lesson.unpublish();
+        else
+            lesson.publish();
 
         return AdminLessonResponse.fromEntity(lessonRepository.save(lesson));
     }
@@ -206,7 +206,7 @@ public class AdminLessonService {
      * Retrieves all lessons currently tasked to a specific student.
      * 
      * @param studentId The student's unique identifier.
-     * @param pageable The pagination information.
+     * @param pageable  The pagination information.
      * @return Page of lesson summaries for the student.
      */
     @Transactional(readOnly = true)
@@ -214,7 +214,7 @@ public class AdminLessonService {
         if (!studentRepository.existsById(studentId)) {
             throw new ResourceNotFoundException("Không tìm thấy học sinh với ID: " + studentId);
         }
-    
+
         return assignmentRepository.findByStudentIdOrderByAssignedDateDesc(studentId, pageable)
                 .map(a -> mapToSummary(a.getLesson()));
     }
@@ -253,7 +253,8 @@ public class AdminLessonService {
                 .lessonDate(r.getLessonDate()).videoUrl(r.getVideoUrl()).thumbnailUrl(r.getThumbnailUrl())
                 .isPublished(r.getIsPublished() != null ? r.getIsPublished() : false)
                 .isLibrary(r.getStudentIds() == null || r.getStudentIds().isEmpty())
-                .category(r.getCategoryId() != null ? categoryRepository.findById(r.getCategoryId()).orElse(null) : null)
+                .category(
+                        r.getCategoryId() != null ? categoryRepository.findById(r.getCategoryId()).orElse(null) : null)
                 .allowLateSubmission(r.getAllowLateSubmission() != null ? r.getAllowLateSubmission() : true)
                 .latePenaltyPercent(r.getLatePenaltyPercent() != null ? r.getLatePenaltyPercent() : 0.0)
                 .points(r.getPoints() != null ? r.getPoints() : 100)
@@ -271,35 +272,46 @@ public class AdminLessonService {
         if (r.getResources() != null) {
             r.getResources().forEach(res -> lesson.getResources().add(LessonResource.builder()
                     .lesson(lesson).title(res.getTitle()).description(res.getDescription())
-                    .resourceUrl(res.getResourceUrl()).resourceType(LessonResource.ResourceType.valueOf(res.getResourceType()))
+                    .resourceUrl(res.getResourceUrl())
+                    .resourceType(LessonResource.ResourceType.valueOf(res.getResourceType()))
                     .fileSize(res.getFileSize()).displayOrder(res.getDisplayOrder()).build()));
         }
 
-        if (Boolean.TRUE.equals(r.getIsPublished())) lesson.publish();
+        if (Boolean.TRUE.equals(r.getIsPublished()))
+            lesson.publish();
         return lesson;
     }
 
     private void applyUpdateToLesson(Lesson l, CreateLessonRequest r) {
-        if (r.getTutorName() != null) l.setTutorName(r.getTutorName());
-        if (r.getTitle() != null) l.setTitle(r.getTitle());
-        if (r.getSummary() != null) l.setSummary(r.getSummary());
-        if (r.getContent() != null) l.setContent(r.getContent());
-        if (r.getLessonDate() != null) l.setLessonDate(r.getLessonDate());
-        if (r.getVideoUrl() != null) l.setVideoUrl(r.getVideoUrl());
-        if (r.getThumbnailUrl() != null) l.setThumbnailUrl(r.getThumbnailUrl());
+        if (r.getTutorName() != null)
+            l.setTutorName(r.getTutorName());
+        if (r.getTitle() != null)
+            l.setTitle(r.getTitle());
+        if (r.getSummary() != null)
+            l.setSummary(r.getSummary());
+        if (r.getContent() != null)
+            l.setContent(r.getContent());
+        if (r.getLessonDate() != null)
+            l.setLessonDate(r.getLessonDate());
+        if (r.getVideoUrl() != null)
+            l.setVideoUrl(r.getVideoUrl());
+        if (r.getThumbnailUrl() != null)
+            l.setThumbnailUrl(r.getThumbnailUrl());
         l.setCategory(r.getCategoryId() != null ? categoryRepository.findById(r.getCategoryId()).orElse(null) : null);
 
         if (r.getImages() != null) {
             l.getImages().clear();
             r.getImages().forEach(dto -> l.getImages().add(LessonImage.builder()
-                    .lesson(l).imageUrl(dto.getImageUrl()).caption(dto.getCaption()).displayOrder(dto.getDisplayOrder()).build()));
+                    .lesson(l).imageUrl(dto.getImageUrl()).caption(dto.getCaption()).displayOrder(dto.getDisplayOrder())
+                    .build()));
         }
 
         if (r.getResources() != null) {
             l.getResources().clear();
             r.getResources().forEach(dto -> l.getResources().add(LessonResource.builder()
                     .lesson(l).title(dto.getTitle()).description(dto.getDescription()).resourceUrl(dto.getResourceUrl())
-                    .resourceType(LessonResource.ResourceType.valueOf(dto.getResourceType())).fileSize(dto.getFileSize())
+                    .resourceType(LessonResource.ResourceType.valueOf(dto.getResourceType()))
+                    .fileSize(dto.getFileSize())
                     .displayOrder(dto.getDisplayOrder()).build()));
         }
     }

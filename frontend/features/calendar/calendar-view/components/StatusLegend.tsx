@@ -69,35 +69,51 @@ const PAYMENT_STATUSES: LessonStatus[] = [
  * - Button labeled "Chú thích" (not just icon) with aria-expanded
  * - Closes on Esc / click outside (handled by Popover)
  */
-export function StatusLegend({ className }: { className?: string }) {
-    const [open, setOpen] = useState(false);
+export function StatusLegend({
+    className,
+    open: controlledOpen,
+    onOpenChange: controlledOnOpenChange,
+    trigger
+}: {
+    className?: string;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    trigger?: React.ReactNode;
+}) {
+    const [internalOpen, setInternalOpen] = useState(false);
+    const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+    const setIsOpen = controlledOnOpenChange || setInternalOpen;
 
     return (
-        <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-                <button
-                    aria-expanded={open}
-                    aria-haspopup="dialog"
-                    className={cn(
-                        "flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border border-border/40 bg-muted/30 hover:bg-muted/50 transition-all text-[11px] font-medium text-muted-foreground hover:text-foreground active:scale-95 shadow-sm",
-                        className
+        <Popover open={isOpen} onOpenChange={setIsOpen}>
+            {trigger !== null && (
+                <PopoverTrigger asChild>
+                    {trigger || (
+                        <button
+                            aria-expanded={isOpen}
+                            aria-haspopup="dialog"
+                            className={cn(
+                                "flex items-center gap-1.5 px-3 h-8 rounded-xl border border-border/40 bg-muted/30 hover:bg-muted/50 transition-all text-[13px] font-medium text-muted-foreground hover:text-foreground active:scale-95 shadow-sm whitespace-nowrap",
+                                className
+                            )}
+                        >
+                            <Info className="w-4 h-4 shrink-0" />
+                            <span>Chú thích</span>
+                        </button>
                     )}
-                >
-                    <Info className="w-3.5 h-3.5" />
-                    <span>Chú thích</span>
-                </button>
-            </PopoverTrigger>
+                </PopoverTrigger>
+            )}
             <PopoverContent
                 side="bottom"
                 align="end"
-                className="w-72 p-4 rounded-xl border-border/60 shadow-2xl dark:bg-zinc-900 border backdrop-blur-md"
-                onEscapeKeyDown={() => setOpen(false)}
-                onInteractOutside={() => setOpen(false)}
+                className="w-72 p-4 rounded-xl border-border/60 shadow-2xl dark:bg-zinc-900 border backdrop-blur-md z-50"
+                onEscapeKeyDown={() => setIsOpen(false)}
+                onInteractOutside={() => setIsOpen(false)}
             >
                 <div className="space-y-4">
                     {/* Group 1: Trạng thái buổi học */}
                     <div className="space-y-2">
-                        <p className="text-[12px] font-semibold text-muted-foreground">
+                        <p className="text-[13px] font-semibold text-muted-foreground">
                             Trạng thái buổi học
                         </p>
                         <div className="flex flex-col gap-1.5">
@@ -111,7 +127,7 @@ export function StatusLegend({ className }: { className?: string }) {
 
                     {/* Group 2: Thanh toán */}
                     <div className="space-y-2">
-                        <p className="text-[12px] font-semibold text-muted-foreground">
+                        <p className="text-[13px] font-semibold text-muted-foreground">
                             Thanh toán
                         </p>
                         <div className="flex flex-col gap-1.5">
@@ -119,11 +135,11 @@ export function StatusLegend({ className }: { className?: string }) {
                                 <MiniPill key={status} status={status} />
                             ))}
                             <PaymentLegendRow
-                                icon={<Clock className="w-3.5 h-3.5" />}
+                                icon={<Clock className="w-4 h-4" />}
                                 label="Biểu tượng đồng hồ = chờ xác nhận"
                             />
                             <PaymentLegendRow
-                                icon={<BadgeDollarSign className="w-3.5 h-3.5 text-sky-500" />}
+                                icon={<BadgeDollarSign className="w-4 h-4 text-sky-500" />}
                                 label="Biểu tượng ₫ = đã thanh toán"
                             />
                         </div>

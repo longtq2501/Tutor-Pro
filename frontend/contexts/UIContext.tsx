@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { cn } from '@/lib/utils';
+import { isHeaderDensityAtLeast, resolveHeaderDensity } from '@/lib/ui/responsive';
 
 interface UIContextType {
     isSidebarOpen: boolean;
@@ -23,14 +25,33 @@ interface UIContextType {
     setTitleSlot: (slot: HTMLElement | null) => void;
     actionsSlot: HTMLElement | null;
     setActionsSlot: (slot: HTMLElement | null) => void;
+    // Container Query / Measured Width
+    containerWidth: number;
+    setContainerWidth: (w: number) => void;
 }
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
 
-export function UIProvider({ children }: { children: ReactNode }) {
+export function UIProvider({
+    children,
+    initialContainerWidth,
+}: {
+    children: ReactNode;
+    /** Optional seed for the measured width — used by tests and SSR. */
+    initialContainerWidth?: number;
+}) {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [activeDialogs, setActiveDialogs] = useState(0);
+    const [containerWidth, setContainerWidth] = useState<number>(() => {
+        if (typeof initialContainerWidth === 'number' && initialContainerWidth > 0) {
+            return initialContainerWidth;
+        }
+        if (typeof window !== 'undefined') {
+            return window.innerWidth;
+        }
+        return 1280;
+    });
 
     const openDialog = () => setActiveDialogs(prev => prev + 1);
     const closeDialog = () => setActiveDialogs(prev => Math.max(0, prev - 1));
@@ -79,7 +100,9 @@ export function UIProvider({ children }: { children: ReactNode }) {
             titleSlot,
             setTitleSlot,
             actionsSlot,
-            setActionsSlot
+            setActionsSlot,
+            containerWidth,
+            setContainerWidth,
         }}>
             {children}
         </UIContext.Provider>
@@ -122,30 +145,67 @@ export function HeaderPortal({ children, to }: { children: React.ReactNode; to: 
 }
 
 /**
- * Component to be used by features to project their header content into the layout
+ * Component to be used by features to project their header content into the layout.
+ * Designed for the single-row header (h-14 = 56px).
+ *
+ * Responsive contract:
+ * - The title always truncates first (`min-w-0` + `truncate`), never the actions.
+ * - Low-priority text (subtitle) is only rendered at `full` density (>= 1200px).
+ * - `compactActions` replaces `actions` below `comfortable` density (< 640px), so
+ *   modules can swap wide controls for icon-only / overflow-menu variants.
  */
-export function DashboardHeader({ title, subtitle, actions }: { title: string; subtitle?: string | null; actions?: React.ReactNode }) {
+export function DashboardHeader({
+    title,
+    subtitle,
+    actions,
+    compactActions,
+    actionsClassName,
+}: {
+    title: string;
+    subtitle?: string | null;
+    actions?: React.ReactNode;
+    /** Alternative (fewer/smaller) controls rendered below 640px of content width. */
+    compactActions?: React.ReactNode;
+    /** Extra classes applied to the actions wrapper. */
+    actionsClassName?: string;
+}) {
+    const { containerWidth } = useUI();
+    const density = resolveHeaderDensity(containerWidth);
+    // Hide subtitle first when the content area is constrained (< 1200px)
+    const showSubtitle = isHeaderDensityAtLeast(density, 'full');
+    const useCompactActions = Boolean(compactActions) && !isHeaderDensityAtLeast(density, 'comfortable');
+    const renderedActions = useCompactActions ? compactActions : actions;
+
     return (
         <>
             <HeaderPortal to="title">
-                <div className="flex-1 min-w-[120px] sm:min-w-[180px] animate-in fade-in slide-in-from-left-4 duration-500 py-1">
-                    <h1 className="text-lg sm:text-xl lg:text-2xl 2xl:text-4xl 3xl:text-6xl font-black tracking-tight leading-[1.1] bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent break-words sm:whitespace-normal">
+                <div className="flex items-center gap-2 min-w-0 max-w-full">
+                    <h1
+                        title={subtitle ? `${title} – ${subtitle}` : title}
+                        className="text-[14px] sm:text-[16px] lg:text-[17px] font-black tracking-tight leading-none text-foreground truncate min-w-0"
+                    >
                         {title}
                     </h1>
-                    {subtitle && (
-                        <p className="text-[10px] sm:text-xs lg:text-sm 2xl:text-lg 3xl:text-2xl text-muted-foreground mt-0.5 sm:mt-1 max-w-2xl 2xl:max-w-4xl font-medium line-clamp-1 sm:line-clamp-none opacity-80">
-                            {subtitle}
-                        </p>
+                    {subtitle && showSubtitle && (
+                        <span className="hidden md:block text-[13px] text-muted-foreground font-medium truncate opacity-70 min-w-0">
+                            — {subtitle}
+                        </span>
                     )}
                 </div>
             </HeaderPortal>
-            {actions && (
+            {renderedActions ? (
                 <HeaderPortal to="actions">
-                    <div className="flex items-center justify-end gap-1.5 sm:gap-3 animate-in fade-in slide-in-from-right-4 duration-500 w-auto min-w-0 flex-shrink-1">
-                        {actions}
+                    <div
+                        data-header-actions
+                        className={cn(
+                            'flex flex-nowrap items-center justify-end gap-1 sm:gap-1.5 min-w-0 shrink-0',
+                            actionsClassName
+                        )}
+                    >
+                        {renderedActions}
                     </div>
                 </HeaderPortal>
-            )}
+            ) : null}
         </>
     );
 }

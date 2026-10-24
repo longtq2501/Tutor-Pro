@@ -1,7 +1,8 @@
 import {
-    X, Plus, Calendar, Clock, BookOpen, Check, Circle,
+    X, Calendar, Clock, BookOpen, Check, Circle,
     CheckSquare, Square, Loader2, Globe, MoreHorizontal,
-    RotateCcw, Trash2
+    RotateCcw, Trash2,
+    Plus
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
@@ -178,7 +179,7 @@ export const DayDetailModal = ({
     const remainingRevenue = totalRevenue - paidRevenue;
 
     return createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
             {/* Backdrop – light: 40% black; dark: background/80 blur */}
             <motion.div
                 initial={{ opacity: 0 }}
@@ -195,7 +196,7 @@ export const DayDetailModal = ({
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: "20%", opacity: 0 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="relative bg-card rounded-[2.5rem] shadow-2xl w-full max-w-lg overflow-hidden border border-border/60"
+                className="relative bg-card rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl w-full sm:max-w-lg max-h-[92vh] sm:max-h-[90vh] overflow-hidden border border-border/60 flex flex-col"
             >
                 {/* Header – violet, flat color */}
                 <div className="relative p-6 sm:p-8 pb-12 sm:pb-16 bg-violet-600 dark:bg-violet-700">
@@ -222,14 +223,6 @@ export const DayDetailModal = ({
                         <div className="flex items-center gap-2 shrink-0">
                             <Button
                                 variant="ghost"
-                                onClick={() => onAddSession(day.dateStr)}
-                                className="rounded-xl h-9 px-3 text-white hover:bg-white/10 text-xs font-medium gap-1.5"
-                            >
-                                <Plus size={16} strokeWidth={2.5} />
-                                <span className="hidden sm:inline">Thêm buổi</span>
-                            </Button>
-                            <Button
-                                variant="ghost"
                                 size="icon"
                                 onClick={onClose}
                                 aria-label="Đóng"
@@ -243,9 +236,9 @@ export const DayDetailModal = ({
 
                 {/* Content card – overlaps header, light gray body */}
                 <div
-                    className="relative z-10 -mt-8 mx-4 sm:mx-6 rounded-[2rem] border border-border/60 shadow-xl flex flex-col overflow-hidden
+                    className="relative z-10 -mt-8 mx-3 sm:mx-6 rounded-[2rem] border border-border/60 shadow-xl flex flex-col overflow-hidden
                                bg-[#F4F4F6] dark:bg-card"
-                    style={{ maxHeight: '65vh' }}
+                    style={{ maxHeight: 'min(65vh, 520px)' }}
                 >
                     {/* Stats strip – white card, no shadow (A1) */}
                     {day.sessions.length > 0 && (

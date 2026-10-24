@@ -93,6 +93,11 @@
   --color-ring: hsl(var(--ring));
 }
 
+html, body {
+  height: 100%;
+  min-height: 100dvh;
+}
+
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);

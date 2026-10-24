@@ -16,7 +16,8 @@ import {
     Users,
     Video
 } from 'lucide-react';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
+import { cn } from '@/lib/utils';
 
 // ============================================================================
 // FEATURE-BASED IMPORTS (All refactored)
@@ -92,84 +93,88 @@ const AppHeader = React.memo(({ user, initials, roleBadge, logout }: {
     const router = useRouter();
 
     return (
-        <header className="border-b border-border bg-background/50 backdrop-blur-xl sticky top-0 z-20 transition-all duration-300">
-            <div className="flex flex-col w-full">
-                {/* Global Utility Bar - Top */}
-                <div className="flex items-center justify-between h-14 lg:h-16 px-4 lg:px-8">
-                    <div className="flex items-center gap-4">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="lg:hidden h-9 w-9"
-                            onClick={() => setSidebarOpen(true)}
-                        >
-                            <Menu className="h-5 w-5" />
-                        </Button>
+        // Single-row sticky header – h-14 (56px) on all screens
+        <header className="border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-20 transition-all duration-300">
+            <div className="flex items-center h-14 px-2 sm:px-3 lg:px-5 gap-1.5 sm:gap-2 min-w-0 overflow-hidden">
 
-                        {/* Breadcrumb-like indicator (Small on desktop) */}
-                        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground/60 lg:hidden">
-                            {/* Mobile Title Slot or logic can go here if needed, keeping it simple for now */}
-                        </div>
-                    </div>
+                {/* Hamburger (mobile only) */}
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="lg:hidden h-8 w-8 shrink-0"
+                    onClick={() => setSidebarOpen(true)}
+                    aria-label="Mở menu"
+                >
+                    <Menu className="h-5 w-5" />
+                </Button>
 
-                    <div className="flex items-center gap-2 lg:gap-4 flex-shrink-0">
-                        <NotificationBell />
-                        <ModeToggle />
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="relative h-9 w-9 lg:h-10 lg:w-10 rounded-full hover:bg-white/5 transition-colors">
-                                    <Avatar className="h-9 w-9 lg:h-10 lg:w-10 border border-primary/20">
-                                        <AvatarImage src={user?.avatarUrl} alt={user?.fullName} className="object-cover" />
-                                        <AvatarFallback className="bg-primary text-primary-foreground text-xs lg:text-sm font-bold">
-                                            {initials}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-64 bg-background/95 backdrop-blur-xl border-border shadow-2xl" align="end" forceMount>
-                                <DropdownMenuLabel className="font-normal p-4">
-                                    <div className="flex flex-col space-y-2">
-                                        <div className="flex flex-col">
-                                            <p className="text-sm font-bold leading-none text-foreground">{user?.fullName}</p>
-                                            <p className="text-xs leading-none text-muted-foreground mt-1 truncate">
-                                                {user?.email}
-                                            </p>
-                                        </div>
-                                        {roleBadge && (
-                                            <span className={`inline-flex items-center w-fit px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${roleBadge.color}`}>
-                                                {roleBadge.label}
-                                            </span>
-                                        )}
-                                    </div>
-                                </DropdownMenuLabel>
-                                <DropdownMenuSeparator className="bg-border/50" />
-                                <DropdownMenuItem
-                                    onClick={() => router.push('/dashboard?view=settings')}
-                                    className="cursor-pointer p-3 focus:bg-primary/5 group"
-                                >
-                                    <User className="mr-2 h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                                    <span className="font-bold">Thông tin cá nhân</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator className="bg-border/50" />
-                                <DropdownMenuItem onClick={() => logout()} className="text-red-600 dark:text-red-400 cursor-pointer p-3 focus:bg-red-500/5 group">
-                                    <LogOut className="mr-2 h-4 w-4 text-red-600/70 group-hover:text-red-600 transition-colors" />
-                                    <span className="font-bold">Đăng xuất</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
+                {/* Title Slot – shrink-0 so title NEVER shrinks prematurely */}
+                <div className="min-w-0 flex-1">
+                    <HeaderSlot id="title" />
                 </div>
 
-                {/* Hero Title & Actions Bar - Responsive layout */}
-                <div className="px-4 lg:px-8 pb-2 lg:pb-6 xl:pb-8 flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4 xl:gap-8 min-w-0">
-                    <div className="flex-1 min-w-0">
-                        <HeaderSlot id="title" />
-                    </div>
+                {/* Actions Slot – keeps its intrinsic width, the title truncates instead */}
+                <div className="flex items-center justify-end gap-1 sm:gap-1.5 min-w-0 shrink-0 max-w-full">
+                    <HeaderSlot id="actions" />
+                </div>
 
-                    {/* Actions Slot */}
-                    <div className="flex items-center gap-2 sm:gap-3 flex-nowrap min-w-0 flex-shrink-1">
-                        <HeaderSlot id="actions" />
-                    </div>
+                {/* Separator */}
+                <div className="h-6 w-px bg-border/60 shrink-0 hidden md:block" />
+
+                {/* Global Utility: Notification + Avatar — NEVER HIDDEN, ALWAYS VISIBLE */}
+                <div className="flex items-center gap-1 shrink-0 z-10">
+                    <NotificationBell />
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="relative h-8 w-8 rounded-full hover:bg-muted/50 transition-colors p-0">
+                                <Avatar className="h-8 w-8 border border-primary/20">
+                                    <AvatarImage src={user?.avatarUrl} alt={user?.fullName} className="object-cover" />
+                                    <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
+                                        {initials}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-64 bg-background/95 backdrop-blur-xl border-border shadow-2xl" align="end" forceMount>
+                            <DropdownMenuLabel className="font-normal p-4">
+                                <div className="flex flex-col space-y-2">
+                                    <div className="flex flex-col">
+                                        <p className="text-sm font-bold leading-none text-foreground">{user?.fullName}</p>
+                                        <p className="text-xs leading-none text-muted-foreground mt-1 truncate">
+                                            {user?.email}
+                                        </p>
+                                    </div>
+                                    {roleBadge && (
+                                        <span className={`inline-flex items-center w-fit px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${roleBadge.color}`}>
+                                            {roleBadge.label}
+                                        </span>
+                                    )}
+                                </div>
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator className="bg-border/50" />
+
+                            {/* Mode Toggle inside menu */}
+                            <div className="px-3 py-2">
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Giao diện</p>
+                                <ModeToggle compact />
+                            </div>
+                            <DropdownMenuSeparator className="bg-border/50" />
+
+                            <DropdownMenuItem
+                                onClick={() => router.push('/dashboard?view=settings')}
+                                className="cursor-pointer p-3 focus:bg-primary/5 group"
+                            >
+                                <User className="mr-2 h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                <span className="font-bold">Thông tin cá nhân</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-border/50" />
+                            <DropdownMenuItem onClick={() => logout()} className="text-red-600 dark:text-red-400 cursor-pointer p-3 focus:bg-red-500/5 group">
+                                <LogOut className="mr-2 h-4 w-4 text-red-600/70 group-hover:text-red-600 transition-colors" />
+                                <span className="font-bold">Đăng xuất</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
         </header>
@@ -178,11 +183,15 @@ const AppHeader = React.memo(({ user, initials, roleBadge, logout }: {
 AppHeader.displayName = 'AppHeader';
 
 
+
 const MainContentSwitcher = React.memo(({ currentView, hasAnyRole }: {
     currentView: View;
     hasAnyRole: (roles: ("ADMIN" | "TUTOR" | "STUDENT")[]) => boolean;
 }) => (
-    <main className="flex-1 overflow-y-auto min-w-0 overscroll-none relative bg-background [scrollbar-gutter:stable]">
+    <main className={cn(
+        "flex-1 min-w-0 overscroll-none relative bg-background",
+        currentView === 'calendar' ? "flex flex-col h-full min-h-0 overflow-hidden" : "overflow-y-auto [scrollbar-gutter:stable]"
+    )}>
         <AnimatePresence mode="wait" initial={false}>
             <motion.div
                 key={currentView}
@@ -190,7 +199,10 @@ const MainContentSwitcher = React.memo(({ currentView, hasAnyRole }: {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.1, ease: "easeInOut" }}
-                className="p-4 min-h-full pb-24 lg:pb-28"
+                className={cn(
+                    "p-4 min-h-full pb-24 lg:pb-28",
+                    currentView === 'calendar' && "flex flex-col flex-1 h-full p-1.5 sm:p-2 pb-1.5 sm:pb-2 min-h-0 overflow-hidden"
+                )}
             >
                 {/* Dashboard */}
                 {currentView === 'dashboard' && hasAnyRole(['ADMIN', 'TUTOR']) && (
@@ -218,7 +230,7 @@ const MainContentSwitcher = React.memo(({ currentView, hasAnyRole }: {
                 )}
                 {/* {currentView === 'monthly' && hasAnyRole(['ADMIN', 'TUTOR']) && <MonthlyView />} */}
                 {currentView === 'calendar' && hasAnyRole(['ADMIN', 'TUTOR']) && (
-                    <section data-tour="module-calendar">
+                    <section data-tour="module-calendar" className="flex-1 flex flex-col h-full min-h-0 overflow-hidden">
                         <CalendarView />
                     </section>
                 )}
@@ -384,6 +396,23 @@ function AppContent() {
     const roleBadge = useMemo(() => user ? getRoleBadge(user.role) : null, [user]);
     const initials = useMemo(() => user ? getInitials(user.fullName) : '', [user]);
 
+    // Measure content wrapper with ResizeObserver for priority-plus responsiveness
+    const contentWrapperRef = useRef<HTMLDivElement>(null);
+    const { setContainerWidth } = useUI();
+
+    useEffect(() => {
+        const el = contentWrapperRef.current;
+        if (!el) return;
+        const ro = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const width = Math.round(entry.contentRect.width);
+                setContainerWidth(width);
+            }
+        });
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, [setContainerWidth]);
+
     // 🚀 FULL SCREEN TAKEOVER LIVE ROOM MODE
     // If in live-room view AND roomId is present, render bypassing the layout
     if (currentView === 'live-room' && roomId) {
@@ -396,7 +425,7 @@ function AppContent() {
 
     // Standard Dashboard Layout
     return (
-        <div className="flex h-screen relative isolate bg-background">
+        <div className="flex h-[100dvh] max-h-[100dvh] relative isolate bg-background overflow-hidden pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]">
             {/* Background elements */}
             <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none hidden dark:block">
                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/5 via-purple-500/5 to-background transition-all duration-500" />
@@ -409,7 +438,10 @@ function AppContent() {
                 isLocked={showTour}
             />
 
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10 bg-background">
+            <div
+                ref={contentWrapperRef}
+                className="flex-1 flex flex-col h-full min-h-0 min-w-0 overflow-hidden relative z-10 bg-background @container [container-type:inline-size]"
+            >
                 <AppHeader
                     user={user}
                     initials={initials}

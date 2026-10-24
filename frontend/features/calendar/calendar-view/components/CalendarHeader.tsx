@@ -1,11 +1,13 @@
 'use client';
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Columns, List, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
-import { StatsOverview } from './StatsOverview';
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { List, Calendar as CalendarIcon, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { FilterPopover } from './FilterPopover';
 import { HeaderActions } from './HeaderActions';
 import { Button } from '@/components/ui/button';
+import { useUI } from '@/contexts/UIContext';
+import { cn } from '@/lib/utils';
 import type { SessionRecord } from '@/lib/types/finance';
 import type { CalendarStats } from '../types';
 import type { CalendarViewType } from "./ViewSwitcher";
@@ -22,6 +24,7 @@ interface Props {
   isGenerating?: boolean;
   sessions: SessionRecord[];
   stats: CalendarStats;
+  onRevenueClick?: () => void;
   currentFilter?: string;
   searchQuery?: string;
   onFilterChange?: (status: string | 'ALL') => void;
@@ -34,95 +37,196 @@ interface Props {
   reportLoading?: boolean;
 }
 
+/**
+ * Calendar header actions — fits inside the 56px single-row AppHeader.
+ * Priority-plus responsive layout measured via ResizeObserver (containerWidth).
+ * All controls are strictly h-8 (32px), text >= 13px, whitespace-nowrap.
+ */
 export const CalendarActions = ({
   currentDate, currentView, onViewChange, onNavigate, onToday, onAddSession,
-  onAutoGenerate, onGenerateInvoice, isGenerating = false, sessions, stats,
-  onFilterChange, currentFilter = 'ALL', searchQuery = '',
-  onSearchChange, onDeleteMonth, isFetching = false, currentSource = 'ALL', onSourceChange, onReport, reportLoading
+  onAutoGenerate, onGenerateInvoice, isGenerating = false, sessions,
+  stats, onRevenueClick, onFilterChange, currentFilter = 'ALL', searchQuery = '',
+  onSearchChange, onDeleteMonth, currentSource = 'ALL', onSourceChange, onReport, reportLoading
 }: Props) => {
-  // P5: dynamic delete label includes current month/year
+  const { containerWidth } = useUI();
   const month = currentDate.getMonth() + 1;
   const year = currentDate.getFullYear();
   const deleteLabel = `Xóa các buổi trong tháng ${month}/${year}`;
+
+  // Priority-plus thresholds
+  const showStatsPills = containerWidth >= 1150; // P4: hide first when width < 1150px
+  const showFilterLabel = containerWidth >= 900;  // P2: icon-only when width < 900px
+  const showTabLabels = containerWidth >= 800;    // P2: icon-only tabs when width < 800px
+  const showTodayText = containerWidth >= 750;    // P1: hide "Tháng này" text when width < 750px
+  const showNavControls = containerWidth >= 480;  // P1: collapses into the "⋯" menu when width < 480px
+  const showViewTabs = containerWidth >= 600;     // P1: collapses into the "⋯" menu when width < 600px
+
+  // Controls that no longer fit in the header are re-exposed from the "⋯" menu
+  const collapsedMenu = (!showNavControls || !showViewTabs) ? (
+    <>
+      {!showNavControls && (
+        <>
+          <DropdownMenuItem onSelect={() => onNavigate(-1)} className="rounded-lg font-medium text-[13px] cursor-pointer">
+            <ChevronLeft className="w-4 h-4 mr-2 text-muted-foreground" />
+            Tháng trước
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={onToday} className="rounded-lg font-medium text-[13px] cursor-pointer">
+            Tháng này
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => onNavigate(1)} className="rounded-lg font-medium text-[13px] cursor-pointer">
+            <ChevronRight className="w-4 h-4 mr-2 text-muted-foreground" />
+            Tháng sau
+          </DropdownMenuItem>
+        </>
+      )}
+      {!showViewTabs && (
+        <>
+          <DropdownMenuItem
+            onSelect={() => onViewChange('month')}
+            className={cn("rounded-lg font-medium text-[13px] cursor-pointer", currentView === 'month' && "text-primary")}
+          >
+            <CalendarIcon className="w-4 h-4 mr-2" />
+            Xem theo tháng
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() => onViewChange('list')}
+            className={cn("rounded-lg font-medium text-[13px] cursor-pointer", currentView === 'list' && "text-primary")}
+          >
+            <List className="w-4 h-4 mr-2" />
+            Xem theo danh sách
+          </DropdownMenuItem>
+        </>
+      )}
+    </>
+  ) : null;
+
   return (
-    // Outer wrapper: stack vertically on small screens, row on xl+
-    <div className="flex flex-col xl:flex-row xl:items-center gap-2 xl:gap-3 w-full">
+    <div className="flex flex-nowrap items-center justify-end gap-1 sm:gap-1.5 min-w-0">
 
-      {/* Row 1 (on mobile/md): Navigation + View Tabs + Filter + Actions */}
-      <div className="flex flex-wrap items-center gap-2 sm:gap-3 xl:contents">
+      {/* P4: Stats Pills inside header (hidden when width < 1150px) */}
+      {showStatsPills && (
+        <div className="flex items-center gap-1.5 shrink-0 animate-in fade-in duration-300">
+          <div className="h-8 px-2.5 rounded-lg border border-blue-100 dark:border-blue-500/20 bg-blue-50/50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-300 flex items-center text-[13px] font-medium whitespace-nowrap">
+            <span className="font-bold mr-1">{stats.total}</span> buổi
+          </div>
+          <div className="h-8 px-2.5 rounded-lg border border-emerald-100 dark:border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 flex items-center text-[13px] font-medium whitespace-nowrap">
+            <span className="font-bold mr-1">{stats.completed}</span> hoàn thành
+          </div>
+          <button
+            type="button"
+            onClick={onRevenueClick}
+            title="Bấm để xem chi tiết doanh thu"
+            className="h-8 px-2.5 rounded-lg border border-orange-100 dark:border-orange-500/20 bg-orange-50/50 dark:bg-orange-500/15 text-orange-600 dark:text-orange-300 flex items-center text-[13px] font-bold whitespace-nowrap hover:shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+          >
+            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(stats.revenue)}
+          </button>
+        </div>
+      )}
 
-        {/* Navigation Controls */}
-        <div className="flex items-center bg-muted/50 rounded-2xl p-0.5 border border-border/40 shadow-sm shrink-0">
-          <Button variant="ghost" size="icon" onClick={() => onNavigate(-1)} className="rounded-xl h-8 w-8">
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
+      {/* P1: Navigation Controls (< Tháng này >) */}
+      {showNavControls && (
+        <div className="flex items-center bg-muted/50 rounded-xl p-0.5 border border-border/40 shadow-sm shrink-0">
           <Button
             variant="ghost"
-            onClick={onToday}
-            className="px-2 sm:px-3 font-black uppercase tracking-widest text-[9px] sm:text-[10px] rounded-xl h-8 whitespace-nowrap"
+            size="icon"
+            onClick={() => onNavigate(-1)}
+            aria-label="Tháng trước"
+            title="Tháng trước"
+            className="rounded-lg h-7 w-7 sm:h-7 sm:w-8"
           >
-            Tháng này
+            <ChevronLeft className="w-4 h-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => onNavigate(1)} className="rounded-xl h-8 w-8">
+          {showTodayText ? (
+            <Button
+              variant="ghost"
+              onClick={onToday}
+              className="px-2 font-medium text-[13px] rounded-lg h-7 whitespace-nowrap"
+            >
+              Tháng này
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onToday}
+              aria-label="Tháng này"
+              title="Tháng này"
+              className="rounded-lg h-7 w-7 sm:h-7 sm:w-8"
+            >
+              <CalendarDays className="w-4 h-4" />
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onNavigate(1)}
+            aria-label="Tháng sau"
+            title="Tháng sau"
+            className="rounded-lg h-7 w-7 sm:h-7 sm:w-8"
+          >
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
+      )}
 
-        {/* View Tabs — visible from md up */}
-        <Tabs value={currentView} onValueChange={(v) => onViewChange(v as CalendarViewType)} className="hidden md:flex shrink-0" data-tour="calendar-view-controls">
-          <TabsList data-tour="calendar-view-filter" className="bg-muted/50 p-0.5 sm:p-1 rounded-2xl border border-border/40 h-8 2xl:h-10">
-            <TabsTrigger value="month" className="rounded-xl px-1.5 2xl:px-3 font-black uppercase tracking-tighter text-[9px] xl:text-[8px] 2xl:text-[9px]">
-              <CalendarIcon className="w-3.5 h-3.5 sm:hidden" />
-              <span className="hidden sm:inline">Tháng</span>
+      {/* P1: View Tabs (Tháng / Danh sách) */}
+      {showViewTabs && (
+        <Tabs
+          value={currentView}
+          onValueChange={(v) => onViewChange(v as CalendarViewType)}
+          className="shrink-0"
+          data-tour="calendar-view-controls"
+        >
+          <TabsList
+            data-tour="calendar-view-filter"
+            className="bg-muted/50 p-0.5 rounded-xl border border-border/40 h-8"
+          >
+            <TabsTrigger
+              value="month"
+              title="Xem theo tháng"
+              aria-label="Xem theo tháng"
+              className="rounded-lg px-2 font-medium text-[13px] h-7 whitespace-nowrap gap-1"
+            >
+              <CalendarIcon className="w-4 h-4 shrink-0" />
+              {showTabLabels && <span>Tháng</span>}
             </TabsTrigger>
-            <TabsTrigger value="week" className="rounded-xl px-1.5 2xl:px-3 font-black uppercase tracking-tighter text-[9px] xl:text-[8px] 2xl:text-[9px]">
-              <Columns className="w-3.5 h-3.5 sm:hidden" />
-              <span className="hidden sm:inline">Tuần</span>
-            </TabsTrigger>
-            <TabsTrigger value="list" className="rounded-xl px-1.5 2xl:px-3 font-black uppercase tracking-tighter text-[9px] xl:text-[8px] 2xl:text-[9px]">
-              <List className="w-3.5 h-3.5 sm:hidden" />
-              <span className="hidden sm:inline">D.Sách</span>
+            <TabsTrigger
+              value="list"
+              title="Xem theo danh sách"
+              aria-label="Xem theo danh sách"
+              className="rounded-lg px-2 font-medium text-[13px] h-7 whitespace-nowrap gap-1"
+            >
+              <List className="w-4 h-4 shrink-0" />
+              {showTabLabels && <span>Danh sách</span>}
             </TabsTrigger>
           </TabsList>
         </Tabs>
+      )}
 
-        {/* Spacer pushes Filter + Actions to the right on larger screens */}
-        <div className="flex-1 hidden xl:block" />
-
-        {/* Stats — show from xl, placed inline before filter/actions on xl+ */}
-        <div className="hidden xl:flex items-center gap-1 2xl:gap-2 shrink-0">
-          <StatsOverview stats={stats} onRevenueClick={onGenerateInvoice} />
-        </div>
-
-        {/* Filter + Actions */}
-        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 ml-auto xl:ml-0">
-          <FilterPopover
-            currentFilter={currentFilter}
-            searchQuery={searchQuery}
-            onFilterChange={onFilterChange!}
-            onSearchChange={onSearchChange!}
-            currentSource={currentSource}
-            onSourceChange={onSourceChange!}
-          />
-          <HeaderActions
-            onAddSession={onAddSession}
-            onGenerateInvoice={onGenerateInvoice}
-            onAutoGenerate={onAutoGenerate}
-            onDeleteMonth={onDeleteMonth!}
-            isGenerating={isGenerating}
-            sessionsCount={sessions.length}
-            onReport={onReport}
-            reportLoading={reportLoading}
-            deleteLabel={deleteLabel}
-          />
-        </div>
+      {/* P2 & P3 & P1 Actions */}
+      <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 shrink-0">
+        <FilterPopover
+          currentFilter={currentFilter}
+          searchQuery={searchQuery}
+          onFilterChange={onFilterChange!}
+          onSearchChange={onSearchChange!}
+          currentSource={currentSource}
+          onSourceChange={onSourceChange!}
+          showLabel={showFilterLabel}
+        />
+        <HeaderActions
+          onAddSession={onAddSession}
+          onGenerateInvoice={onGenerateInvoice}
+          onAutoGenerate={onAutoGenerate}
+          onDeleteMonth={onDeleteMonth!}
+          isGenerating={isGenerating}
+          sessionsCount={sessions.length}
+          onReport={onReport}
+          reportLoading={reportLoading}
+          deleteLabel={deleteLabel}
+          extraMenu={collapsedMenu}
+        />
       </div>
-
-      {/* Stats row visible only on md and below xl (between nav row and calendar) */}
-      <div className="flex xl:hidden items-center gap-2 flex-wrap">
-        <StatsOverview stats={stats} onRevenueClick={onGenerateInvoice} />
-      </div>
-
     </div>
   );
 };

@@ -228,6 +228,8 @@ export function LessonForm({
           description: 'Điền thông tin để tạo bài giảng mới',
           icon: FileText,
           submitLabel: 'Tạo bài giảng',
+          iconColor: 'text-emerald-600',
+          iconBg: 'bg-emerald-50 dark:bg-emerald-900/20',
         };
       case 'edit':
         return {
@@ -235,13 +237,17 @@ export function LessonForm({
           description: 'Cập nhật thông tin bài giảng',
           icon: Edit,
           submitLabel: 'Cập nhật',
+          iconColor: 'text-amber-600',
+          iconBg: 'bg-amber-50 dark:bg-amber-900/20',
         };
       case 'library':
         return {
-          title: 'Thêm vào kho học liệu',
-          description: 'Tạo bài giảng mẫu trong kho',
+          title: 'Thêm bài giảng mới',
+          description: 'Tạo bài giảng mẫu trong kho học liệu',
           icon: BookOpen,
           submitLabel: 'Thêm vào kho',
+          iconColor: 'text-primary',
+          iconBg: 'bg-primary/10',
         };
     }
   };
@@ -251,15 +257,20 @@ export function LessonForm({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[1400px] h-[95vh] flex flex-col p-0 overflow-hidden gap-0 rounded-lg">
-        <DialogHeader className="px-6 py-4 shrink-0 border-b">
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Icon className="h-5 w-5" />
-            <span>{config.title}</span>
-          </DialogTitle>
-          <DialogDescription>
-            {config.description}
-          </DialogDescription>
+      <DialogContent className="w-[95vw] max-w-[1400px] h-[95vh] flex flex-col p-0 overflow-hidden gap-0 rounded-2xl data-[state=open]:slide-in-from-bottom-4 data-[state=closed]:slide-out-to-bottom-4">
+        {/* Unified Header */}
+        <DialogHeader className="flex-row items-center gap-3.5 px-5 py-4 shrink-0 border-b bg-card">
+          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0", config.iconBg)}>
+            <Icon className={cn("h-5 w-5", config.iconColor)} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <DialogTitle className="text-base font-semibold text-foreground leading-none mb-0.5">
+              {config.title}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground leading-none">
+              {config.description}
+            </DialogDescription>
+          </div>
         </DialogHeader>
 
         <Form {...form}>
@@ -585,26 +596,24 @@ export function LessonForm({
               </Tabs>
             </div>
 
-            <DialogFooter className="px-6 py-4 bg-background border-t shrink-0 flex items-center justify-between sm:justify-between w-full">
+            <DialogFooter className="px-5 py-4 bg-card border-t shrink-0 flex items-center justify-between sm:justify-between w-full gap-3">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => handleOpenChange(false)}
                 disabled={isLoading}
+                className="rounded-xl"
               >
                 Hủy bỏ
               </Button>
-              <div className="flex gap-2">
-                {/* Could add 'Save Draft' button here later */}
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="min-w-[120px]"
-                >
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {config.submitLabel}
-                </Button>
-              </div>
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="min-w-[140px] rounded-xl shadow-lg shadow-primary/20 bg-gradient-to-r from-primary to-primary/90 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              >
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {config.submitLabel}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

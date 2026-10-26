@@ -17,31 +17,35 @@ interface StudentCardProps {
 
 /**
  * StudentCard Component
- * Displays a summary of student Information and available actions.
- * Adheres to 50-line SOP by delegating to sub-components.
+ * Displays a summary of student information and available actions.
+ * Inactive students have all action buttons disabled except Edit.
  */
 export function StudentCard({ student, onEdit, onDelete, onSchedule, onAddSession }: StudentCardProps) {
+  const isInactive = !student.active;
+
   return (
     <div
       className={`
-        group relative bg-card rounded-3xl p-5 sm:p-6 border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl
-        ${student.active
-          ? 'border-border hover:border-primary'
-          : 'border-border bg-muted/30 opacity-80 hover:opacity-100'}
+        group relative bg-card rounded-2xl border transition-all duration-300
+        ${isInactive
+          ? 'border-border/50 opacity-50 hover:opacity-70'
+          : 'border-border hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-md'}
       `}
     >
-      <div className="flex justify-between items-start mb-6">
-        <StudentCardHeader student={student} />
-        <StudentEditActions onEdit={onEdit} onDelete={onDelete} />
+      <div className="p-5 sm:p-6">
+        <div className="flex justify-between items-start mb-5">
+          <StudentCardHeader student={student} />
+          <StudentEditActions onEdit={onEdit} onDelete={onDelete} isInactive={isInactive} />
+        </div>
+
+        <StudentCardDetails student={student} />
+
+        <StudentCardActions
+          active={student.active}
+          onSchedule={onSchedule}
+          onAddSession={onAddSession}
+        />
       </div>
-
-      <StudentCardDetails student={student} />
-
-      <StudentCardActions
-        active={student.active}
-        onSchedule={onSchedule}
-        onAddSession={onAddSession}
-      />
     </div>
   );
 }

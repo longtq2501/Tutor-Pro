@@ -64,9 +64,9 @@ export function DayView({ day, onAddSession, onSessionClick, onSessionEdit, onUp
                 </div>
                 <button
                     onClick={() => onAddSession(day.dateStr)}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-bold shadow-sm hover:scale-105 transition-all"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs sm:text-sm font-medium shadow-sm hover:bg-primary/90 transition-colors"
                 >
-                    <Plus size={16} /> Thêm buổi học
+                    <Plus size={15} /> Thêm buổi học
                 </button>
             </div>
 

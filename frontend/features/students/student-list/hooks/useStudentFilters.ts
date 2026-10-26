@@ -1,40 +1,9 @@
-// ============================================================================
-// 📁 student-list/hooks/useStudentFilters.ts
-// ============================================================================
-import { useMemo, useCallback } from 'react';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useMemo, useState } from 'react';
 import type { Student } from '@/lib/types';
 
 export function useStudentFilters(students: Student[]) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  // Read initial values from URL or defaults
-  const filterStatus = (searchParams.get('status') as 'all' | 'active' | 'inactive') || 'all';
-  const searchTerm = searchParams.get('search') || '';
-
-  // Helper to update URL params
-  const createQueryString = useCallback(
-    (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (value) {
-        params.set(name, value);
-      } else {
-        params.delete(name);
-      }
-      return params.toString();
-    },
-    [searchParams]
-  );
-
-  const setFilterStatus = (status: 'all' | 'active' | 'inactive') => {
-    router.push(`${pathname}?${createQueryString('status', status)}`, { scroll: false });
-  };
-
-  const setSearchTerm = (term: string) => {
-    router.push(`${pathname}?${createQueryString('search', term)}`, { scroll: false });
-  };
+  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const filteredStudents = useMemo(() => {
     return students.filter(student => {

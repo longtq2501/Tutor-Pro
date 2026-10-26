@@ -26,26 +26,31 @@ export function AttachmentSection({
     toggleDoc
 }: AttachmentSectionProps) {
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-border/50 mt-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-3 border-t border-border mt-4">
             {/* Lessons List */}
-            <div className="space-y-2">
-                <Label className="text-sm font-semibold flex items-center gap-1.5 text-orange-600 dark:text-orange-400">
-                    <BookOpen className="w-3.5 h-3.5" />
-                    Đính kèm Bài giảng
-                    <Badge variant="secondary" className="ml-auto text-[10px] h-5 px-1.5">{selectedLessonIds.length} đã chọn</Badge>
-                </Label>
-                <ScrollArea className="h-[150px] w-full rounded-xl border border-border/50 bg-muted/20 p-2">
-                    <div className="space-y-2">
+            <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium flex items-center gap-1.5 text-foreground">
+                        <BookOpen className="w-3.5 h-3.5 text-primary" />
+                        Bài giảng
+                    </Label>
+                    {selectedLessonIds.length > 0 && (
+                        <Badge variant="secondary" className="text-[10px] h-5 px-1.5">{selectedLessonIds.length} đã chọn</Badge>
+                    )}
+                </div>
+                <ScrollArea className="h-[140px] w-full rounded-lg border border-border bg-muted/20 p-2">
+                    <div className="space-y-1.5">
                         {lessons?.map((lesson: { id: number; title: string; summary?: string }) => (
-                            <div key={lesson.id} className="flex items-start space-x-2 p-1.5 hover:bg-muted/50 rounded-lg transition-colors">
+                            <div key={lesson.id} className="flex items-start space-x-2 p-1.5 hover:bg-muted/50 rounded-md transition-colors">
                                 <Checkbox
                                     id={`lesson-${lesson.id}`}
                                     checked={selectedLessonIds.includes(lesson.id)}
                                     onCheckedChange={() => toggleLesson(lesson.id)}
+                                    className="mt-0.5"
                                 />
                                 <label
                                     htmlFor={`lesson-${lesson.id}`}
-                                    className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer pt-0.5"
+                                    className="text-xs font-medium leading-tight cursor-pointer"
                                 >
                                     {lesson.title}
                                     {lesson.summary && <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{lesson.summary}</p>}
@@ -58,16 +63,20 @@ export function AttachmentSection({
             </div>
 
             {/* Documents List */}
-            <div className="space-y-2">
-                <Label className="text-sm font-semibold flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
-                    <FileText className="w-3.5 h-3.5" />
-                    Đính kèm Tài liệu
-                    <Badge variant="secondary" className="ml-auto text-[10px] h-5 px-1.5">{selectedDocIds.length} đã chọn</Badge>
-                </Label>
-                <ScrollArea className="h-[150px] w-full rounded-xl border border-border/50 bg-muted/20 p-2">
-                    <div className="space-y-2">
+            <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium flex items-center gap-1.5 text-foreground">
+                        <FileText className="w-3.5 h-3.5 text-primary" />
+                        Tài liệu
+                    </Label>
+                    {selectedDocIds.length > 0 && (
+                        <Badge variant="secondary" className="text-[10px] h-5 px-1.5">{selectedDocIds.length} đã chọn</Badge>
+                    )}
+                </div>
+                <ScrollArea className="h-[140px] w-full rounded-lg border border-border bg-muted/20 p-2">
+                    <div className="space-y-1.5">
                         {documents?.map(doc => (
-                            <div key={doc.id} className="flex items-center space-x-2 p-1.5 hover:bg-muted/50 rounded-lg transition-colors">
+                            <div key={doc.id} className="flex items-center space-x-2 p-1.5 hover:bg-muted/50 rounded-md transition-colors">
                                 <Checkbox
                                     id={`doc-${doc.id}`}
                                     checked={selectedDocIds.includes(doc.id)}
@@ -75,7 +84,7 @@ export function AttachmentSection({
                                 />
                                 <label
                                     htmlFor={`doc-${doc.id}`}
-                                    className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                    className="text-xs font-medium leading-none cursor-pointer truncate"
                                 >
                                     {doc.title || doc.fileName}
                                 </label>

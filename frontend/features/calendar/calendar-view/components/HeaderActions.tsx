@@ -82,20 +82,20 @@ export function HeaderActions({
                 </Popover>
             )}
 
-            {/* P1: Tiết học mới — NEVER HIDDEN, icon-only when narrow */}
+            {/* P1: Thêm buổi học — NEVER HIDDEN, icon-only when narrow */}
             <Button
                 data-tour="calendar-add-session"
                 size="sm"
-                title="Tiết học mới"
-                aria-label="Tiết học mới"
+                title="Thêm buổi học"
+                aria-label="Thêm buổi học"
                 className={cn(
-                    "h-8 rounded-xl bg-primary text-primary-foreground font-semibold text-[13px] shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all whitespace-nowrap",
+                    "h-8 rounded-lg bg-primary text-primary-foreground font-medium text-xs sm:text-[13px] shadow-sm hover:bg-primary/90 transition-colors whitespace-nowrap",
                     showAddText ? "px-3 gap-1.5" : "w-8 px-0 justify-center"
                 )}
                 onClick={onAddSession}
             >
-                <Plus className="w-4 h-4 shrink-0" strokeWidth={2.5} />
-                {showAddText && <span>Tiết học mới</span>}
+                <Plus className="w-4 h-4 shrink-0" />
+                {showAddText && <span>Thêm buổi học</span>}
             </Button>
 
             {/* P3: "Chú thích" button (visible when containerWidth >= 1050) */}

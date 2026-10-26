@@ -86,10 +86,10 @@ export function EnhancedRevenueChart({ data, isLoading = false }: EnhancedRevenu
                         className="border rounded-lg p-1 bg-muted/30"
                     >
                         <ToggleGroupItem value="6m" size="sm" className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-                            6th
+                            6 tháng
                         </ToggleGroupItem>
                         <ToggleGroupItem value="1y" size="sm" className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-                            1n
+                            1 năm
                         </ToggleGroupItem>
                         <ToggleGroupItem value="all" size="sm" className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
                             Tất cả

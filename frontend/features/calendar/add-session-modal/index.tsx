@@ -1,18 +1,24 @@
 'use client';
 
-import { Clock, Plus, X, Sparkles, Zap } from 'lucide-react';
+import { Clock, Plus, Calendar, BookOpen, User, Hash, Loader2 } from 'lucide-react';
 import type { AddSessionModalProps } from './types';
 import { useSessionForm } from './hooks/useSessionForm';
-import { DateField, NumberField, StudentField } from './components/FormField';
-import { SummaryCard } from './components/SummaryCard';
-import { ActionButtons } from './components/ActionButtons';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useUI } from '@/contexts/UIContext';
-import { useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useState } from 'react';
 
 export default function AddSessionModal({ onClose, onSubmit, initialDate, students, initialStudentId }: AddSessionModalProps) {
   const {
@@ -26,153 +32,192 @@ export default function AddSessionModal({ onClose, onSubmit, initialDate, studen
     totalHours, month, validate
   } = useSessionForm(initialDate, initialStudentId);
 
-  const { openDialog, closeDialog } = useUI();
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    openDialog();
-    document.body.style.overflow = 'hidden';
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      closeDialog();
-      document.body.style.overflow = 'unset';
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [openDialog, closeDialog, onClose]);
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validate()) onSubmit(studentId, sessions, hoursPerSession, sessionDate, month, subject, startTime, endTime);
+    if (!validate()) return;
+    try {
+      setLoading(true);
+      await onSubmit(studentId, sessions, hoursPerSession, sessionDate, month, subject, startTime, endTime);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (typeof document === 'undefined') return null;
-
-  return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.15 }}
-        onClick={onClose}
-        className="absolute inset-0 bg-background/80 backdrop-blur-md"
-      />
-
-      <motion.div
-        initial={{ y: "100%", opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: "20%", opacity: 0 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
-        className="relative bg-card rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl w-full max-w-lg overflow-hidden border border-border/60"
-      >
-        {/* Header with Gradient */}
-        <div className="relative p-6 sm:p-8 pb-10 sm:pb-16 bg-gradient-to-br from-blue-600 to-indigo-700">
-          {/* Decorative element */}
-          <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
-
-          <div className="relative flex items-center justify-between text-white">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shrink-0">
-                <Plus size={20} className="sm:hidden" strokeWidth={3} />
-                <Plus size={24} className="hidden sm:block" strokeWidth={3} />
-              </div>
-              <div>
-                <h3 className="text-white font-black uppercase tracking-widest text-xs sm:text-sm">Thêm buổi dạy mới</h3>
-                <p className="text-white/70 text-[10px] sm:text-xs font-bold mt-0.5 sm:mt-1 flex items-center gap-1">
-                  Khởi tạo buổi học nhanh chóng
-                </p>
-              </div>
-            </div>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="rounded-full text-white hover:bg-white/10 h-8 w-8 sm:h-10 sm:w-10"
-            >
-              <X size={20} className="sm:hidden" />
-              <X size={24} className="hidden sm:block" />
-            </Button>
+  return (
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[500px] w-[95vw] max-w-[95vw] sm:w-full p-0 bg-card rounded-2xl shadow-xl border border-border flex flex-col max-h-[90dvh] overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center gap-3.5 p-5 border-b border-border flex-shrink-0 bg-card">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
+            <Calendar className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <DialogTitle className="text-base font-semibold text-foreground">
+              Thêm Buổi Học
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Ghi nhận buổi dạy mới vào lịch giảng dạy
+            </p>
           </div>
         </div>
 
-        {/* Form Content */}
-        <form onSubmit={handleSubmit} className="relative z-10 -mt-6 sm:-mt-8 mx-3 sm:mx-6 bg-card rounded-[1.5rem] sm:rounded-[2rem] border border-border/60 shadow-xl overflow-hidden p-4 sm:p-6 space-y-4 sm:space-y-6 max-h-[75vh] overflow-y-auto no-scrollbar">
-
-          {/* Student & Date Section */}
-          <div className="space-y-4">
-            <StudentField students={students} value={studentId} onChange={setStudentId} />
-            <DateField value={sessionDate} onChange={setSessionDate} />
-          </div>
-
-          {/* Quick Metrics */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <NumberField label="Số buổi" value={sessions} onChange={setSessions} min={1} step={1} icon={<Zap size={14} className="text-orange-500" />} />
-            <NumberField
-              label="Giờ / buổi"
-              value={hoursPerSession}
-              onChange={setHoursPerSession}
-              min={0.1}
-              step={0.1}
-              icon={<Clock size={14} className="text-blue-500" />}
-            />
-          </div>
-
-          {/* Details Section */}
-          <div className="p-4 sm:p-5 rounded-[1.2rem] sm:rounded-[1.5rem] bg-muted/30 border border-border/40 space-y-3 sm:space-y-4">
-            <div className="space-y-1.5 sm:space-y-2">
-              <Label className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-muted-foreground ml-2">Môn học</Label>
-              <Input
-                type="text"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="VD: Toán 10, Lý 11..."
-                className="h-11 sm:h-12 px-4 sm:px-5 rounded-xl border-border/60 focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all font-bold text-sm"
-              />
+        {/* Scrollable Form Body */}
+        <div className="flex-1 p-5 overflow-y-auto min-h-0">
+          <form id="calendar-add-session-form" onSubmit={handleSubmit} className="space-y-4">
+            {/* Student selection */}
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-primary" />
+                Học sinh <span className="text-destructive">*</span>
+              </Label>
+              <Select value={studentId ? studentId.toString() : ''} onValueChange={(v) => setStudentId(Number(v))}>
+                <SelectTrigger className="h-10 rounded-lg">
+                  <SelectValue placeholder="-- Chọn học sinh --" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  {students.map((student) => (
+                    <SelectItem key={student.id} value={student.id.toString()}>
+                      {student.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-muted-foreground ml-2">Giờ bắt đầu</Label>
+            {/* Date and Subject */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-primary" />
+                  Ngày học <span className="text-destructive">*</span>
+                </Label>
                 <Input
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="h-11 sm:h-12 px-4 sm:px-5 rounded-xl border-border/60 focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all font-bold text-sm"
+                  type="date"
+                  value={sessionDate}
+                  onChange={(e) => setSessionDate(e.target.value)}
+                  className="h-10 rounded-lg"
+                  required
                 />
               </div>
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-muted-foreground ml-2">Giờ kết thúc</Label>
+
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium flex items-center gap-1.5">
+                  <BookOpen className="w-3.5 h-3.5 text-primary" />
+                  Môn học
+                </Label>
                 <Input
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="h-11 sm:h-12 px-4 sm:px-5 rounded-xl border-border/60 focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all font-bold text-sm"
+                  type="text"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="Ví dụ: Toán 10, Tiếng Anh..."
+                  className="h-10 rounded-lg"
                 />
               </div>
             </div>
-            <p className="text-[10px] text-muted-foreground font-medium italic flex items-center gap-1">
-              <Sparkles size={10} className="text-blue-400" />
-              Tự động tính số giờ dựa trên khung giờ đã chọn.
-            </p>
-          </div>
 
-          {/* Summary Section */}
-          <SummaryCard totalHours={totalHours} month={month} />
+            {/* Time Frame */}
+            <div className="bg-muted/30 p-3.5 rounded-xl border border-border space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium flex items-center gap-1.5">
+                  <Clock className="w-4 h-4 text-primary" />
+                  Khung giờ học
+                </Label>
+                {hoursPerSession > 0 && (
+                  <div className="px-2.5 py-0.5 bg-primary/10 border border-primary/20 rounded-full text-xs font-medium text-primary flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    <span>{hoursPerSession} giờ</span>
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <div className="text-xs text-muted-foreground font-medium px-0.5">Bắt đầu</div>
+                  <Input
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    className="h-10 rounded-lg bg-background"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xs text-muted-foreground font-medium px-0.5">Kết thúc</div>
+                  <Input
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    className="h-10 rounded-lg bg-background"
+                  />
+                </div>
+              </div>
+            </div>
 
-          {/* Actions */}
-          <div className="pt-2">
-            <ActionButtons onClose={onClose} />
-          </div>
-        </form>
+            {/* Sessions count & Duration */}
+            <div className="grid grid-cols-2 gap-3.5">
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium flex items-center gap-1.5">
+                  <Hash className="w-3.5 h-3.5 text-primary" />
+                  Số buổi
+                </Label>
+                <Input
+                  type="number"
+                  value={sessions}
+                  onChange={(e) => setSessions(parseFloat(e.target.value) || 1)}
+                  min={1}
+                  step={1}
+                  className="h-10 rounded-lg text-center font-medium"
+                  required
+                />
+              </div>
 
-        {/* Bottom padding for the overlapping effect */}
-        <div className="h-4 sm:h-6" />
-      </motion.div>
-    </div>,
-    document.body
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-primary" />
+                  Giờ / buổi
+                </Label>
+                <Input
+                  type="number"
+                  value={hoursPerSession}
+                  onChange={(e) => setHoursPerSession(parseFloat(e.target.value) || 0.5)}
+                  min={0.1}
+                  step={0.1}
+                  className="h-10 rounded-lg text-center font-medium"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Summary Banner */}
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border text-sm">
+              <span className="text-muted-foreground">Tổng thời lượng ({month || '--/--'}):</span>
+              <span className="font-bold text-foreground">{totalHours.toFixed(1)} giờ</span>
+            </div>
+          </form>
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-border flex gap-2.5 flex-shrink-0 bg-card">
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1 h-10 font-medium"
+            onClick={onClose}
+            disabled={loading}
+          >
+            Hủy
+          </Button>
+          <Button
+            type="submit"
+            form="calendar-add-session-form"
+            className="flex-1 h-10 font-medium"
+            disabled={loading}
+          >
+            {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            Thêm buổi học
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

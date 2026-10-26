@@ -196,16 +196,38 @@ export const useWebRTCSignaling = (
             }
         };
 
-        // Add tracks only if stream is already available.
-        // If not, late-sync effect will call addTrack when stream arrives.
+        // Add tracks if stream available; otherwise add recvonly transceivers
+        // so this peer can still receive audio/video from the other peer without sending.
         const stream = localStreamRef.current;
-        if (stream) {
-            stream.getTracks().forEach(track => {
-                console.log(`[WebRTC] Adding initial track: ${track.kind}`);
+        const hasAudio = stream && stream.getAudioTracks().length > 0;
+        const hasVideo = stream && stream.getVideoTracks().length > 0;
+
+        if (hasAudio) {
+            stream.getAudioTracks().forEach(track => {
+                console.log(`[WebRTC] Adding initial track: audio`);
                 pc.addTrack(track, stream);
             });
         } else {
-            console.log('[WebRTC] No local stream yet — tracks will be added when available');
+            try {
+                pc.addTransceiver('audio', { direction: 'recvonly' });
+                console.log('[WebRTC] Added recvonly transceiver for audio');
+            } catch (e) {
+                console.warn('[WebRTC] Could not add audio recvonly transceiver:', e);
+            }
+        }
+
+        if (hasVideo) {
+            stream.getVideoTracks().forEach(track => {
+                console.log(`[WebRTC] Adding initial track: video`);
+                pc.addTrack(track, stream);
+            });
+        } else {
+            try {
+                pc.addTransceiver('video', { direction: 'recvonly' });
+                console.log('[WebRTC] Added recvonly transceiver for video');
+            } catch (e) {
+                console.warn('[WebRTC] Could not add video recvonly transceiver:', e);
+            }
         }
 
         pcRef.current = pc;
@@ -389,20 +411,37 @@ export const useWebRTCSignaling = (
         if (!pcRef.current || !state.localStream) return;
 
         const pc = pcRef.current;
+        const transceivers = pc.getTransceivers ? pc.getTransceivers() : [];
         const senders = pc.getSenders();
 
         state.localStream.getTracks().forEach(track => {
-            const existingSender = senders.find(s => s.track?.kind === track.kind);
-            if (!existingSender) {
-                // No sender for this kind → add the track
-                console.log(`[WebRTC] Late-adding track: ${track.kind}`);
-                pc.addTrack(track, state.localStream!);
-            } else if (existingSender.track !== track) {
-                // Sender exists but track changed (e.g. after retry()) → replace
-                console.log(`[WebRTC] Late-replacing track: ${track.kind}`);
-                existingSender.replaceTrack(track).catch(err =>
-                    console.warn('[WebRTC] Late replaceTrack failed:', err)
-                );
+            const existingTransceiver = transceivers.find(t =>
+                (t.sender.track?.kind === track.kind) || (t.receiver.track?.kind === track.kind)
+            );
+
+            if (existingTransceiver) {
+                if (existingTransceiver.direction === 'recvonly') {
+                    existingTransceiver.direction = 'sendrecv';
+                }
+                if (existingTransceiver.sender.track !== track) {
+                    console.log(`[WebRTC] Late-replacing track on transceiver: ${track.kind}`);
+                    existingTransceiver.sender.replaceTrack(track).catch(err =>
+                        console.warn('[WebRTC] Late replaceTrack failed:', err)
+                    );
+                }
+            } else {
+                const existingSender = senders.find(s => s.track?.kind === track.kind);
+                if (!existingSender) {
+                    // No sender for this kind → add the track
+                    console.log(`[WebRTC] Late-adding track: ${track.kind}`);
+                    pc.addTrack(track, state.localStream!);
+                } else if (existingSender.track !== track) {
+                    // Sender exists but track changed (e.g. after retry()) → replace
+                    console.log(`[WebRTC] Late-replacing track: ${track.kind}`);
+                    existingSender.replaceTrack(track).catch(err =>
+                        console.warn('[WebRTC] Late replaceTrack failed:', err)
+                    );
+                }
             }
         });
     }, [state.localStream]);

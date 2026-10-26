@@ -112,9 +112,9 @@ export const RoomMainContent: React.FC<RoomMainContentProps> = ({
     };
 
     // ---- Camera error banner: shown to BOTH sides ----
-    // Tutor sees their own error directly.
-    // Student sees a generic "giáo viên gặp sự cố" when connected but remoteStream is null.
-    const showTutorCameraError = isTutor && !!media.error;
+    const [dismissMediaBanner, setDismissMediaBanner] = React.useState(false);
+    // User sees their own media error directly (tutor or student)
+    const showLocalMediaError = !dismissMediaBanner && !!media.error;
     const showRemoteCameraWarning =
         !isTutor &&
         state.connectionState === 'CONNECTED' &&
@@ -216,25 +216,32 @@ export const RoomMainContent: React.FC<RoomMainContentProps> = ({
             )}>
                 <div className="flex flex-col gap-3 flex-1 min-h-0 overflow-hidden">
 
-                    {/* ✅ Banner: Tutor thấy lỗi camera của chính mình */}
-                    {showTutorCameraError && (
+                    {/* ✅ Banner: Người dùng thấy cảnh báo thiết bị media của chính mình */}
+                    {showLocalMediaError && (
                         <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 animate-in fade-in slide-in-from-top-2">
                             <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
                             <div className="flex-1 min-w-0">
                                 <p className="text-amber-600 dark:text-amber-400 text-[10px] font-bold">
-                                    Camera không hoạt động
+                                    {media.stream?.getAudioTracks().length ? 'Không tìm thấy camera (Micro vẫn hoạt động)' : 'Không tìm thấy thiết bị media'}
                                 </p>
                                 <p className="text-amber-600/70 dark:text-amber-400/70 text-[10px] mt-0.5 leading-relaxed">
-                                    {getMediaErrorText(media.error)}
+                                    {getMediaErrorText(media.error)} Bạn vẫn có thể dùng Bảng trắng, Chat và Chia sẻ màn hình bình thường.
                                 </p>
-                                {/* Retry button */}
-                                <button
-                                    onClick={() => media.retry()}
-                                    className="mt-1.5 flex items-center gap-1 text-[10px] text-amber-500 hover:text-amber-400 font-semibold transition-colors"
-                                >
-                                    <RefreshCw className="w-3 h-3" />
-                                    Thử lại
-                                </button>
+                                <div className="mt-2 flex items-center gap-2">
+                                    <button
+                                        onClick={() => setDismissMediaBanner(true)}
+                                        className="text-[10px] bg-amber-500/20 hover:bg-amber-500/30 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded font-semibold transition-colors"
+                                    >
+                                        Tiếp tục không có camera
+                                    </button>
+                                    <button
+                                        onClick={() => media.retry()}
+                                        className="flex items-center gap-1 text-[10px] text-amber-500 hover:text-amber-400 font-semibold transition-colors"
+                                    >
+                                        <RefreshCw className="w-3 h-3" />
+                                        Thử lại
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}

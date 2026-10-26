@@ -1,10 +1,11 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { SessionRecord } from '@/lib/types/finance';
-import { cn } from '@/lib/utils';
-import { BookOpen, X } from 'lucide-react';
-
 import type { LessonStatus } from '@/lib/types/lesson-status';
+import { LESSON_STATUS_LABELS } from '@/lib/types/lesson-status';
+import { cn } from '@/lib/utils';
+import { BookOpen, CheckCircle2, Globe, Monitor, X } from 'lucide-react';
+import { getStatusColors } from '../../../utils/statusColors';
 
 interface ModalHeaderProps {
     session: SessionRecord;
@@ -16,60 +17,82 @@ export function ModalHeader({ session, currentStatus, onClose }: ModalHeaderProp
     const status = currentStatus || (session.status as LessonStatus);
     const isCancelled = status === 'CANCELLED_BY_STUDENT' || status === 'CANCELLED_BY_TUTOR';
     const isPaid = !isCancelled && (session.paid || status === 'PAID');
-
-    // Flat solid colors instead of gradients (A3)
-    const headerBg = isCancelled
-        ? 'bg-amber-600 dark:bg-amber-700'
-        : isPaid
-            ? 'bg-emerald-600 dark:bg-emerald-700'
-            : 'bg-blue-600 dark:bg-blue-700';
+    const isCompleted = status === 'COMPLETED' || isPaid;
+    const statusColors = getStatusColors(status);
 
     return (
-        <div className={cn(
-            "relative p-2.5 sm:p-6 shrink-0 transition-colors duration-300",
-            headerBg
-        )}>
-            {/* Removed white/10 glow blob – only modal itself keeps shadow */}
-
-            <div className="relative flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-white/20 border border-white/30 flex items-center justify-center text-white shrink-0">
-                        <BookOpen size={14} className="sm:hidden" />
-                        <BookOpen size={24} className="hidden sm:block" />
+        <div className="relative px-4 py-3.5 sm:px-6 sm:py-4 shrink-0 bg-card border-b border-border/60 transition-colors">
+            <div className="flex items-center justify-between gap-3">
+                {/* Left: Icon + Title details */}
+                <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+                    {/* Icon container with soft status tint */}
+                    <div className={cn(
+                        "w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 border transition-colors",
+                        isCompleted
+                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                            : isCancelled
+                                ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                                : "bg-primary/10 text-primary border-primary/20"
+                    )}>
+                        {isCompleted ? (
+                            <CheckCircle2 size={20} className="sm:size-5" />
+                        ) : (
+                            <BookOpen size={20} className="sm:size-5" />
+                        )}
                     </div>
-                    <div>
-                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
-                            {/* Label: sentence case, not all-caps, no letter-spacing */}
-                            <h3 className="text-white/90 font-medium text-[11px] sm:text-[13px] whitespace-nowrap">Chi tiết buổi học</h3>
-                            <Badge className="bg-white/20 hover:bg-white/30 text-white border-0 py-0 h-4 text-[8px] sm:text-[9px] font-medium">
-                                #{session.sessionNumber ? session.sessionNumber : session.id}
+
+                    {/* Title info */}
+                    <div className="min-w-0">
+                        {/* Badges row */}
+                        <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                            <span className="text-[11px] font-medium text-muted-foreground hidden sm:inline">
+                                Chi tiết buổi học
+                            </span>
+                            <Badge variant="outline" className="h-5 px-1.5 py-0 text-[10px] font-semibold bg-muted/50 border-border/60 text-foreground/80">
+                                #{session.sessionNumber ?? session.id}
                             </Badge>
-                            <Badge className="bg-white/20 hover:bg-white/30 text-white border-0 py-0 h-4 text-[8px] sm:text-[9px] font-medium">
+                            <Badge variant="outline" className="h-5 px-1.5 py-0 text-[10px] font-semibold bg-muted/50 border-border/60 text-foreground/80">
                                 {session.sessionDate}
                             </Badge>
-                            {session.isOnline && (
-                                <Badge className="bg-blue-400 hover:bg-blue-500 text-white border-0 py-0 h-4 text-[8px] sm:text-[9px] font-medium">
-                                    🌐 Dạy Online
+                            {session.isOnline ? (
+                                <Badge variant="outline" className="h-5 px-2 py-0 text-[10px] font-semibold bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30 flex items-center gap-1">
+                                    <Globe size={10} />
+                                    <span>Online</span>
+                                </Badge>
+                            ) : (
+                                <Badge variant="outline" className="h-5 px-2 py-0 text-[10px] font-semibold bg-muted/30 text-muted-foreground border-border/50 flex items-center gap-1">
+                                    <Monitor size={10} />
+                                    <span>Offline</span>
                                 </Badge>
                             )}
                         </div>
-                        {/* Student name: Title Case, weight 600, ~17px */}
-                        <h1 className="text-[14px] sm:text-xl font-semibold text-white leading-tight capitalize">
+
+                        {/* Student Name */}
+                        <h2 className="text-base sm:text-lg font-bold text-foreground leading-tight capitalize truncate">
                             {session.studentName}
-                        </h1>
+                        </h2>
                     </div>
                 </div>
 
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={onClose}
-                    aria-label="Đóng"
-                    className="rounded-full text-white hover:bg-white/20 h-6 w-6 sm:h-10 sm:w-10 shrink-0"
-                >
-                    <X size={14} className="sm:hidden" />
-                    <X size={20} className="hidden sm:block" />
-                </Button>
+                {/* Right: Status pill + Close button */}
+                <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <span className={cn(
+                        "hidden sm:inline-flex items-center rounded-lg px-2.5 py-1 text-[11px] font-semibold border select-none transition-colors",
+                        statusColors.bg, statusColors.border, statusColors.text
+                    )}>
+                        {LESSON_STATUS_LABELS[status as keyof typeof LESSON_STATUS_LABELS] || status}
+                    </span>
+
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={onClose}
+                        aria-label="Đóng"
+                        className="rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/80 h-8 w-8 sm:h-9 sm:w-9"
+                    >
+                        <X size={18} />
+                    </Button>
+                </div>
             </div>
         </div>
     );

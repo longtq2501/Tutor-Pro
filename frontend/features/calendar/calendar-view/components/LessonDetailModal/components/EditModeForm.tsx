@@ -1,3 +1,8 @@
+'use client';
+
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
     Select,
     SelectContent,
@@ -7,17 +12,15 @@ import {
 } from "@/components/ui/select";
 import type { LessonStatus } from '@/lib/types/lesson-status';
 import { LESSON_STATUS_LABELS } from '@/lib/types/lesson-status';
-import { Clock } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { AlertCircle, Clock } from 'lucide-react';
 import { LessonDetailFormData } from '../types';
 import { LibrarySelection } from './LibrarySelection';
-import type { LessonLibraryDTO } from '@/features/learning/lessons/types';
-import type { Document } from '@/lib/types/document';
 
 interface EditModeFormProps {
     formData: LessonDetailFormData;
     setFormData: (data: LessonDetailFormData) => void;
     handleSubmit: (e?: React.FormEvent) => void;
-    // Props for LibrarySelection
     activeTab: 'lessons' | 'documents';
     setActiveTab: (tab: 'lessons' | 'documents') => void;
     searchTerm: string;
@@ -41,91 +44,130 @@ export function EditModeForm({
     handleSubmit,
     ...libraryProps
 }: EditModeFormProps) {
+    const timeError = formData.startTime && formData.endTime && formData.endTime <= formData.startTime;
+    const isCancellation = formData.status === 'CANCELLED_BY_STUDENT' || formData.status === 'CANCELLED_BY_TUTOR';
+
     return (
-        <form id="premium-edit-form" onSubmit={handleSubmit} className="h-full min-h-0 animate-in fade-in slide-in-from-right-2 duration-300">
-            <div className="h-full min-h-0 flex flex-col gap-4 lg:grid lg:grid-cols-[360px_minmax(0,1fr)] lg:gap-4">
-                <div className="space-y-4 lg:space-y-3">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2 sm:gap-3">
-                        <div className="space-y-1 sm:space-y-1.5">
-                            <label className="text-[11px] sm:text-[12px] font-medium text-muted-foreground ml-1">Bắt đầu</label>
+        <form
+            id="premium-edit-form"
+            onSubmit={handleSubmit}
+            className="flex-1 min-h-0 animate-in fade-in slide-in-from-right-2 duration-200 flex flex-col"
+        >
+            <div className="flex-1 min-h-0 flex flex-col gap-4 lg:grid lg:grid-cols-[290px_minmax(0,1fr)] lg:gap-5">
+
+                {/* LEFT: Form fields */}
+                <div className="space-y-3 lg:overflow-y-auto lg:no-scrollbar">
+
+                    {/* Time row */}
+                    <div className="grid grid-cols-2 gap-3">
+                        {/* Start time */}
+                        <div className="space-y-1.5">
+                            <Label htmlFor="start-time" className="text-xs text-muted-foreground font-medium">
+                                Bắt đầu
+                            </Label>
                             <div className="relative">
-                                <input
+                                <Input
+                                    id="start-time"
                                     type="time"
                                     value={formData.startTime}
                                     onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                                    className="w-full h-[33px] sm:h-10 pl-2 sm:pl-3 pr-7 sm:pr-10 rounded-lg sm:rounded-xl bg-muted/40 border-border/60 focus:bg-background focus:ring-2 focus:ring-primary/10 text-[10px] sm:text-[11px] font-bold outline-none transition-all appearance-none"
+                                    className="pr-8 text-sm font-medium"
                                 />
-                                <Clock className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground pointer-events-none" />
+                                <Clock className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50 pointer-events-none" />
                             </div>
                         </div>
-                        <div className="space-y-1 sm:space-y-1.5">
-                            <label className="text-[11px] sm:text-[12px] font-medium text-muted-foreground ml-1">Kết thúc</label>
+
+                        {/* End time */}
+                        <div className="space-y-1.5">
+                            <Label htmlFor="end-time" className="text-xs text-muted-foreground font-medium">
+                                Kết thúc
+                            </Label>
                             <div className="relative">
-                                <input
+                                <Input
+                                    id="end-time"
                                     type="time"
                                     value={formData.endTime}
                                     onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                                    className="w-full h-[33px] sm:h-10 pl-2 sm:pl-3 pr-7 sm:pr-10 rounded-lg sm:rounded-xl bg-muted/40 border-border/60 focus:bg-background focus:ring-2 focus:ring-primary/10 text-[10px] sm:text-[11px] font-bold outline-none transition-all appearance-none"
+                                    className={cn(
+                                        "pr-8 text-sm font-medium",
+                                        timeError && "border-destructive focus-visible:ring-destructive/20"
+                                    )}
                                 />
-                                <Clock className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground pointer-events-none" />
+                                <Clock className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50 pointer-events-none" />
                             </div>
-                            {/* D5: inline validation error */}
-                            {formData.startTime && formData.endTime && formData.endTime <= formData.startTime && (
-                                <p className="text-[10px] text-red-500 ml-1 mt-0.5">Giờ kết thúc phải sau giờ bắt đầu</p>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2 sm:gap-3">
-                        <div className="space-y-1 sm:space-y-1.5">
-                            <label className="text-[11px] sm:text-[12px] font-medium text-muted-foreground ml-1">Môn học</label>
-                            <input
-                                type="text"
-                                value={formData.subject}
-                                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                                placeholder="Môn học..."
-                                className="w-full h-[33px] sm:h-10 px-2 sm:px-3 rounded-lg sm:rounded-xl bg-muted/40 border-border/60 focus:bg-background focus:ring-2 focus:ring-primary/10 text-[10px] sm:text-[11px] font-bold outline-none transition-all"
-                            />
-                        </div>
-
-                        <div className="space-y-1 sm:space-y-1.5">
-                            <label className="text-[11px] sm:text-[12px] font-medium text-muted-foreground ml-1">Trạng thái</label>
-                            <Select
-                                value={formData.status}
-                                onValueChange={(val) => setFormData({ ...formData, status: val as LessonStatus })}
-                            >
-                                <SelectTrigger className="h-[33px] sm:h-10 px-2 sm:px-3 rounded-lg sm:rounded-xl bg-muted/40 border-border/60 focus:bg-background text-[10px] sm:text-[11px] font-bold shadow-none">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-xl border-border/60 shadow-xl">
-                                    {Object.entries(LESSON_STATUS_LABELS).map(([val, label]) => (
-                                        <SelectItem key={val} value={val} className="text-xs font-medium">
-                                            {label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {(formData.status === 'CANCELLED_BY_STUDENT' || formData.status === 'CANCELLED_BY_TUTOR') && (
-                                <p className="text-[10px] text-amber-600 dark:text-amber-400 ml-1">
-                                    Buổi học hủy sẽ tính 0đ và không tính vào học phí
+                            {timeError && (
+                                <p className="flex items-center gap-1 text-[11px] text-destructive font-medium">
+                                    <AlertCircle size={10} className="shrink-0" />
+                                    Giờ kết thúc phải sau bắt đầu
                                 </p>
                             )}
                         </div>
                     </div>
 
-                    <div className="space-y-1 sm:space-y-1.5">
-                        <label className="text-[11px] sm:text-[12px] font-medium text-muted-foreground ml-1">Ghi chú</label>
-                        <textarea
+                    {/* Subject */}
+                    <div className="space-y-1.5">
+                        <Label htmlFor="subject" className="text-xs text-muted-foreground font-medium">
+                            Môn học
+                        </Label>
+                        <Input
+                            id="subject"
+                            type="text"
+                            value={formData.subject}
+                            onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                            placeholder="VD: Toán 12, Vật lý..."
+                            className="text-sm font-medium"
+                        />
+                    </div>
+
+                    {/* Status */}
+                    <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground font-medium">
+                            Trạng thái
+                        </Label>
+                        <Select
+                            value={formData.status}
+                            onValueChange={(val) => setFormData({ ...formData, status: val as LessonStatus })}
+                        >
+                            <SelectTrigger className={cn(
+                                "text-sm font-medium",
+                                isCancellation && "border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-900/10"
+                            )}>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {Object.entries(LESSON_STATUS_LABELS).map(([val, label]) => (
+                                    <SelectItem key={val} value={val} className="text-sm">
+                                        {label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {isCancellation && (
+                            <p className="flex items-center gap-1.5 text-[11px] text-amber-600 dark:text-amber-400 font-medium">
+                                <AlertCircle size={11} className="shrink-0" />
+                                Buổi hủy tính 0đ, không ghi nhận học phí
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Notes */}
+                    <div className="space-y-1.5">
+                        <Label htmlFor="notes" className="text-xs text-muted-foreground font-medium">
+                            Ghi chú
+                        </Label>
+                        <Textarea
+                            id="notes"
                             value={formData.notes}
                             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                             rows={3}
-                            placeholder="Ghi chú buổi học..."
-                            className="w-full p-2 sm:p-3 rounded-lg sm:rounded-xl bg-muted/40 border-border/60 focus:bg-background focus:ring-2 focus:ring-primary/10 text-[9px] sm:text-[11px] font-medium outline-none resize-none no-scrollbar"
+                            placeholder="Nội dung ghi chú buổi học..."
+                            className="resize-none text-sm font-medium no-scrollbar"
                         />
                     </div>
                 </div>
 
-                <div className="min-h-[320px] lg:min-h-0 lg:h-full">
+                {/* RIGHT: Library */}
+                <div className="min-h-[220px] lg:min-h-0 lg:h-full flex flex-col">
                     <LibrarySelection {...libraryProps} />
                 </div>
             </div>

@@ -13,7 +13,6 @@ import { RoomHeader } from './RoomHeader';
 import { MobileNavigation, RoomTab } from './MobileNavigation';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { ErrorRecoveryDialog } from './ErrorRecoveryDialog';
-import { MediaFallbackUI } from './MediaFallbackUI';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useHeartbeat } from '../hooks/useHeartbeat';
 import { useRoomSync } from '../hooks/useRoomSync';
@@ -148,25 +147,14 @@ export const LiveRoomDisplay: React.FC<LiveRoomDisplayProps> = ({ roomId, curren
                         isRecording={media.isRecording}
                     />
 
-                    {media.error ? (
-                        <div className="flex-1 flex items-center justify-center bg-background/50 backdrop-blur-sm z-10">
-                            <MediaFallbackUI
-                                error={media.error}
-                                isLoading={media.isLoading}
-                                onRetry={() => media.retry()}
-                                devices={media.devices}
-                            />
-                        </div>
-                    ) : (
-                        <RoomMainContent
-                            roomId={roomId}
-                            currentUserId={currentUserId}
-                            activeTab={activeTab}
-                            media={media}
-                            sendMessage={sendMessage}
-                            onTabChange={handleTabChange}
-                        />
-                    )}
+                    <RoomMainContent
+                        roomId={roomId}
+                        currentUserId={currentUserId}
+                        activeTab={activeTab}
+                        media={media}
+                        sendMessage={sendMessage}
+                        onTabChange={handleTabChange}
+                    />
 
                     {isMobile && (
                         <MobileNavigation activeTab={activeTab} onTabChange={handleTabChange} />
@@ -186,11 +174,12 @@ export const LiveRoomDisplay: React.FC<LiveRoomDisplayProps> = ({ roomId, curren
             <ErrorRecoveryDialog
                 isOpen={
                     !hasGivenUp && // ✅ Don't show if given up
-                    (state.connectionState === 'FAILED' || !!media.error)
+                    state.connectionState === 'FAILED'
                 }
-                error={state.error || (media.error ? "Lỗi thiết bị media" : null)}
+                error={state.error}
                 onRetry={handleRetry}
                 onAudioOnly={handleAudioOnly}
+                onDismiss={() => setHasGivenUp(true)}
                 onExit={() => {
                     setHasGivenUp(true); // ✅ Set flag on exit
                     router.push('/dashboard');

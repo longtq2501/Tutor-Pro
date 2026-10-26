@@ -184,4 +184,21 @@ class RoomTokenServiceTest {
         // Then
         assertFalse(isExpired);
     }
+
+    @Test
+    @DisplayName("Should handle non-base64 secret key gracefully using fallback hashing")
+    void generateAndValidateToken_NonBase64Secret() {
+        // Given raw non-base64 string with underscores (like default config)
+        ReflectionTestUtils.setField(roomTokenService, "secretKey", "your_online_session_random_secret_string");
+
+        // When
+        String token = roomTokenService.generateToken("room-fallback", 99L, "STUDENT");
+
+        // Then
+        assertNotNull(token);
+        assertNotNull(roomTokenService.validateToken(token));
+        assertEquals("room-fallback", roomTokenService.extractRoomId(token));
+        assertEquals(99L, roomTokenService.extractUserId(token));
+        assertEquals("STUDENT", roomTokenService.extractRole(token));
+    }
 }

@@ -1,9 +1,13 @@
+'use client';
+
+import { useState } from 'react';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { SmartFeedbackForm } from "@/features/feedback/components/SmartFeedbackForm";
 import type { LessonStatus } from '@/lib/types/lesson-status';
 import { isCompletedStatus } from '@/lib/types/lesson-status';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowLeft } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
 // Internal Components
@@ -55,62 +59,62 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
 
     const { onClose } = props;
     const isTaughtOrPaid = isCompletedStatus(localSession.status as LessonStatus);
+    const [mobileFeedbackOpen, setMobileFeedbackOpen] = useState(false);
 
     if (typeof document === 'undefined') return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-4">
+            {/* Backdrop */}
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
                 onClick={onClose}
-                className="absolute inset-0 bg-black/40 dark:bg-background/80 dark:backdrop-blur-md"
+                className="absolute inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-xs"
             />
 
+            {/* Modal panel */}
             <motion.div
                 initial={{ y: "100%", opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: "20%", opacity: 0 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
+                transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
                 className={cn(
-                    // Mobile: bottom sheet (slides from bottom, no bottom radius)
-                    // Desktop: centered dialog with border-radius on all sides
-                    "relative bg-[#F4F4F6] dark:bg-card shadow-2xl w-full border border-border/60 flex flex-col overflow-hidden",
-                    // Mobile: full-width bottom sheet pinned to bottom
-                    "rounded-t-[2rem] sm:rounded-[2rem]",
-                    // Heights: dvh to respect mobile browser chrome
-                    isTaughtOrPaid
-                        ? "max-w-6xl max-h-[90dvh] sm:h-[90dvh]"
-                        : mode === 'edit'
-                            ? "max-w-4xl max-h-[90dvh] sm:h-[90dvh]"
-                            : "max-w-lg max-h-[90dvh] sm:max-h-[90dvh]"
+                    // Base
+                    "relative bg-card shadow-2xl w-full border border-border/60 flex flex-col overflow-hidden",
+                    // Mobile: bottom sheet | Desktop: centered dialog
+                    "rounded-t-[1.75rem] sm:rounded-2xl",
+                    // Sizing
+                    mode === 'edit'
+                        ? "max-w-4xl max-h-[92dvh] sm:max-h-[88dvh] lg:h-[600px]"
+                        : isTaughtOrPaid
+                            ? "max-w-4xl lg:max-w-5xl max-h-[92dvh] sm:max-h-[88dvh] lg:h-[620px]"
+                            : "max-w-md max-h-[90dvh]"
                 )}
             >
+                {/* 1. Modal Header */}
                 <ModalHeader
                     session={localSession}
                     currentStatus={mode === 'edit' ? formData.status : undefined}
                     onClose={onClose}
                 />
 
-                {/* Main Content */}
-                <div className={cn(
-                    "flex-1 w-full overflow-hidden flex flex-col lg:flex-row",
-                    isTaughtOrPaid ? "" : ""
-                )}>
-
-                    {/* LEFT COLUMN: full-width on mobile, fixed 280px on lg+ */}
+                {/* 2. Main Content Body */}
+                <div className="flex-1 w-full overflow-hidden flex flex-col lg:flex-row min-h-0">
+                    {/* MAIN COLUMN: Details (view mode) or Full Edit form (edit mode) */}
                     <div className={cn(
-                        "flex flex-col bg-transparent min-h-0",
-                        isTaughtOrPaid
-                            // Two-column mode: left is 280px fixed on desktop, full-width on mobile
-                            ? "w-full lg:h-full lg:w-[280px] lg:min-w-[280px] lg:max-w-[280px] shrink-0 border-b lg:border-b-0 lg:border-r border-border/60"
-                            : "w-full h-full"
+                        "flex flex-col min-h-0",
+                        isTaughtOrPaid && mode === 'view'
+                            ? "w-full lg:w-[380px] xl:w-[400px] shrink-0 lg:border-r border-border/60"
+                            : "w-full flex-1"
                     )}>
                         <div className={cn(
-                            "flex-1 p-4 sm:p-6",
-                            mode === 'edit' ? "flex flex-col h-full overflow-y-auto gap-4 sm:gap-6" : "overflow-y-auto space-y-6"
+                            "flex-1 px-4 sm:px-6 py-3.5 sm:py-4",
+                            mode === 'edit'
+                                ? "overflow-y-auto lg:overflow-hidden flex flex-col gap-3.5"
+                                : "overflow-y-auto space-y-3.5"
                         )}>
                             <StudentCard
                                 session={localSession}
@@ -118,7 +122,15 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
                             />
 
                             {mode === 'view' ? (
-                                <ViewModeContent session={localSession} />
+                                <ViewModeContent
+                                    session={localSession}
+                                    canConvert={canConvert}
+                                    onConvertToOnline={() => setShowConvertConfirm(true)}
+                                    onRevertToOffline={() => setShowRevertConfirm(true)}
+                                    isConverting={isConverting}
+                                    onOpenFeedback={() => setMobileFeedbackOpen(true)}
+                                    isTaughtOrPaid={isTaughtOrPaid}
+                                />
                             ) : (
                                 <EditModeForm
                                     formData={formData}
@@ -140,26 +152,11 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
                                 />
                             )}
                         </div>
-
-                        <ModalFooter
-                            mode={mode}
-                            setMode={setMode}
-                            loading={loading}
-                            isDirty={isDirty}
-                            globalSelectedCount={globalSelectedCount}
-                            handleDuplicate={handleDuplicate}
-                            setConfirmDeleteOpen={setConfirmDeleteOpen}
-                            onConvertToOnline={() => setShowConvertConfirm(true)}
-                            onRevertToOffline={() => setShowRevertConfirm(true)}
-                            canConvert={canConvert}
-                            isConverting={isConverting}
-                            isOnline={!!localSession.isOnline}
-                        />
                     </div>
 
-                    {/* RIGHT COLUMN */}
-                    {isTaughtOrPaid && (
-                        <div className="flex-1 bg-muted/5 flex flex-col min-h-0 lg:h-full overflow-y-auto lg:overflow-hidden">
+                    {/* RIGHT COLUMN: Feedback (desktop only, view mode for completed/paid sessions) */}
+                    {isTaughtOrPaid && mode === 'view' && (
+                        <div className="hidden lg:flex flex-1 min-h-0 overflow-y-auto flex-col bg-muted/15 dark:bg-muted/5">
                             <SmartFeedbackForm
                                 sessionRecordId={localSession.id}
                                 studentId={localSession.studentId}
@@ -169,7 +166,59 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
                     )}
                 </div>
 
-                {/* Floating Badge */}
+                {/* 3. Full-width Footer at Root Level */}
+                <ModalFooter
+                    mode={mode}
+                    setMode={(m) => {
+                        setMode(m);
+                        setMobileFeedbackOpen(false);
+                    }}
+                    loading={loading}
+                    isDirty={isDirty}
+                    globalSelectedCount={globalSelectedCount}
+                    handleDuplicate={handleDuplicate}
+                    setConfirmDeleteOpen={setConfirmDeleteOpen}
+                />
+
+                {/* 4. Mobile Slide-Over Feedback Panel */}
+                <AnimatePresence>
+                    {isTaughtOrPaid && mode === 'view' && mobileFeedbackOpen && (
+                        <motion.div
+                            initial={{ x: "100%" }}
+                            animate={{ x: 0 }}
+                            exit={{ x: "100%" }}
+                            transition={{ type: "spring", damping: 28, stiffness: 280 }}
+                            className="absolute inset-0 z-50 bg-card flex flex-col min-h-0 lg:hidden"
+                        >
+                            {/* Navigation Bar */}
+                            <div className="px-4 py-3 bg-card border-b border-border/60 flex items-center justify-between shrink-0">
+                                <button
+                                    type="button"
+                                    onClick={() => setMobileFeedbackOpen(false)}
+                                    className="flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary/80 transition-colors"
+                                >
+                                    <ArrowLeft size={16} />
+                                    <span>Quay lại buổi học</span>
+                                </button>
+                                <span className="text-xs font-semibold text-muted-foreground truncate max-w-[150px]">
+                                    {localSession.studentName}
+                                </span>
+                            </div>
+
+                            {/* Full-height Feedback Form on Mobile */}
+                            <div className="flex-1 min-h-0 overflow-y-auto flex flex-col bg-muted/10 dark:bg-muted/5">
+                                <SmartFeedbackForm
+                                    sessionRecordId={localSession.id}
+                                    studentId={localSession.studentId}
+                                    studentName={localSession.studentName}
+                                    onSuccess={() => setMobileFeedbackOpen(false)}
+                                />
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Floating selection badge */}
                 <AnimatePresence>
                     {mode === 'edit' && globalSelectedCount > 0 && (
                         <motion.div
@@ -178,17 +227,18 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
                             exit={{ y: 50, opacity: 0 }}
                             className="fixed bottom-8 right-8 z-50 pointer-events-none"
                         >
-                            <div className="bg-primary text-primary-foreground px-5 py-3 rounded-full shadow-2xl flex items-center gap-3">
-                                <span className="bg-primary-foreground/20 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black">
+                            <div className="bg-primary text-primary-foreground px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2.5">
+                                <span className="bg-primary-foreground/20 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black">
                                     {globalSelectedCount}
                                 </span>
-                                <span className="text-xs font-black">✓ {globalSelectedCount} mục đã chọn</span>
+                                <span className="text-xs font-bold">{globalSelectedCount} mục đã chọn</span>
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
             </motion.div>
 
+            {/* Confirm dialogs */}
             {confirmDeleteOpen && (
                 <ConfirmDialog
                     open={confirmDeleteOpen}

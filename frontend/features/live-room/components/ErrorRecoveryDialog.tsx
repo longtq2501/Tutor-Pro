@@ -24,6 +24,8 @@ interface ErrorRecoveryDialogProps {
     onAudioOnly: () => void;
     /** Callback to exit the room */
     onExit: () => void;
+    /** Optional callback to continue to room without media/retry */
+    onDismiss?: () => void;
 }
 
 /**
@@ -35,7 +37,8 @@ export const ErrorRecoveryDialog: React.FC<ErrorRecoveryDialogProps> = ({
     error,
     onRetry,
     onAudioOnly,
-    onExit
+    onExit,
+    onDismiss
 }) => {
     const [showDiagnostics, setShowDiagnostics] = React.useState(false);
 
@@ -113,6 +116,15 @@ export const ErrorRecoveryDialog: React.FC<ErrorRecoveryDialogProps> = ({
                 </div>
 
                 <AlertDialogFooter className="flex-col sm:flex-col gap-2">
+                    {onDismiss && (
+                        <Button
+                            variant="ghost"
+                            className="w-full text-xs text-muted-foreground hover:text-foreground"
+                            onClick={onDismiss}
+                        >
+                            Tiếp tục vào lớp (Bảng trắng & Chat)
+                        </Button>
+                    )}
                     <AlertDialogCancel
                         className="w-full gap-2 border-none hover:bg-muted"
                         onClick={onExit}

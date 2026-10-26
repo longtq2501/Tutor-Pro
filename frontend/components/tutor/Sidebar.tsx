@@ -130,52 +130,49 @@ export const Sidebar = memo(({ currentView, setCurrentView, navItems, isLocked =
     const renderNavButton = (item: NavItem) => {
         const isActive = currentView === item.id;
         const Icon = item.icon;
+        // Use separate layoutId per mode to prevent cross-mode animation glitch
+        const activeBgId = effectiveCollapsed ? `active-bg-collapsed` : `active-bg-expanded`;
 
         const buttonNode = (
-            <motion.button
+            <button
                 key={item.id}
-                layout
                 onClick={() => handleNavClick(item.id)}
                 data-tour={getTourDataAttr(item.id)}
                 className={cn(
-                    "relative flex items-center w-full rounded-2xl transition-colors group",
+                    "relative flex items-center rounded-2xl transition-colors group",
                     responsiveConfig.navItemHeightClass,
                     isActive ? "text-primary" : "text-muted-foreground hover:bg-muted/30 hover:text-foreground",
-                    effectiveCollapsed ? "justify-center w-14 mx-auto" : "px-4 w-full"
+                    effectiveCollapsed ? "justify-center w-10 mx-auto" : "px-4 w-full"
                 )}
             >
                 <AnimatePresence>
                     {isActive && (
                         <motion.div
-                            layoutId="active-bg"
-                            className="absolute inset-1.5 bg-primary/10 rounded-xl z-0"
+                            layoutId={activeBgId}
+                            className="absolute inset-1 bg-primary/10 rounded-xl z-0"
                             transition={SPRING_CONFIG}
                         />
                     )}
                 </AnimatePresence>
 
-                <motion.div
-                    layout="position"
-                    className="relative z-10 flex justify-center items-center shrink-0"
-                    style={{ width: 24, height: 24 }}
-                >
+                <div className="relative z-10 flex justify-center items-center shrink-0" style={{ width: 24, height: 24 }}>
                     <Icon size={responsiveConfig.iconSize} strokeWidth={isActive ? 2.5 : 2} />
-                </motion.div>
+                </div>
 
                 <AnimatePresence mode="popLayout">
                     {!effectiveCollapsed && (
                         <motion.span
-                            layout="position"
-                            initial={{ opacity: 0, x: -10 }}
+                            initial={{ opacity: 0, x: -8 }}
                             animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -10 }}
-                            className="relative z-10 ml-4 font-semibold whitespace-nowrap overflow-hidden"
+                            exit={{ opacity: 0, x: -8 }}
+                            transition={{ duration: 0.15 }}
+                            className="relative z-10 ml-3 font-semibold whitespace-nowrap overflow-hidden"
                         >
                             {item.label}
                         </motion.span>
                     )}
                 </AnimatePresence>
-            </motion.button>
+            </button>
         );
 
         if (effectiveCollapsed) {

@@ -78,7 +78,11 @@ export function SmartFeedbackForm({
                         </form>
                     </Form>
                 ) : (
-                    <FeedbackViewMode values={watchedValues} />
+                    <FeedbackViewMode
+                        values={watchedValues}
+                        hasData={hasData}
+                        onEdit={() => setIsEditing(true)}
+                    />
                 )}
             </div>
 

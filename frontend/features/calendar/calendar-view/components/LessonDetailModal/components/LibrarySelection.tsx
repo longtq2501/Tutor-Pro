@@ -64,19 +64,19 @@ export function LibrarySelection({
     };
 
     return (
-        <div className="h-full min-h-0 space-y-3 pt-3 border-t border-border/60 flex flex-col overflow-hidden">
+        <div className="h-full min-h-0 space-y-2.5 pt-3 lg:pt-0 border-t lg:border-t-0 border-border/60 flex flex-col overflow-hidden">
             {/* Stats Bar */}
-            <div className="grid grid-cols-3 gap-2 px-1">
-                <div className="flex flex-col items-center p-1.5 sm:p-2 bg-primary/5 rounded-lg border border-primary/10">
-                    <span className="text-base sm:text-lg font-black text-primary leading-none">{categories.length}</span>
+            <div className="grid grid-cols-3 gap-2 px-0.5">
+                <div className="flex flex-col items-center p-1.5 bg-primary/5 rounded-lg border border-primary/10">
+                    <span className="text-sm sm:text-base font-black text-primary leading-none">{categories.length}</span>
                     <span className="text-[8px] sm:text-[9px] text-muted-foreground font-bold uppercase mt-1">Danh mục</span>
                 </div>
-                <div className="flex flex-col items-center p-1.5 sm:p-2 bg-primary/5 rounded-lg border border-primary/10">
-                    <span className="text-base sm:text-lg font-black text-primary leading-none">{filteredItems.length}</span>
+                <div className="flex flex-col items-center p-1.5 bg-primary/5 rounded-lg border border-primary/10">
+                    <span className="text-sm sm:text-base font-black text-primary leading-none">{filteredItems.length}</span>
                     <span className="text-[8px] sm:text-[9px] text-muted-foreground font-bold uppercase mt-1">Tìm thấy</span>
                 </div>
-                <div className="flex flex-col items-center p-1.5 sm:p-2 bg-primary/5 rounded-lg border border-primary/10">
-                    <span className="text-base sm:text-lg font-black text-primary leading-none">{currentTabSelectedCount}</span>
+                <div className="flex flex-col items-center p-1.5 bg-primary/5 rounded-lg border border-primary/10">
+                    <span className="text-sm sm:text-base font-black text-primary leading-none">{currentTabSelectedCount}</span>
                     <span className="text-[8px] sm:text-[9px] text-muted-foreground font-bold uppercase mt-1">Đã chọn</span>
                 </div>
             </div>
@@ -87,25 +87,25 @@ export function LibrarySelection({
                     type="button"
                     onClick={() => setActiveTab('lessons')}
                     className={cn(
-                        "flex-1 py-1.5 sm:py-2 rounded-lg font-bold text-[10px] sm:text-xs transition-all flex items-center justify-center gap-1 sm:gap-2",
+                        "flex-1 py-1.5 rounded-lg font-bold text-[10px] sm:text-xs transition-all flex items-center justify-center gap-1.5",
                         activeTab === 'lessons'
                             ? "bg-background text-foreground shadow-sm ring-1 ring-border/50"
                             : "text-muted-foreground hover:text-foreground hover:bg-background/50"
                     )}
                 >
-                    <span className="text-sm sm:text-base">📖</span> Kho bài giảng
+                    <span className="text-sm">📖</span> Kho bài giảng
                 </button>
                 <button
                     type="button"
                     onClick={() => setActiveTab('documents')}
                     className={cn(
-                        "flex-1 py-1.5 sm:py-2 rounded-lg font-bold text-[10px] sm:text-xs transition-all flex items-center justify-center gap-1 sm:gap-2",
+                        "flex-1 py-1.5 rounded-lg font-bold text-[10px] sm:text-xs transition-all flex items-center justify-center gap-1.5",
                         activeTab === 'documents'
                             ? "bg-background text-foreground shadow-sm ring-1 ring-border/50"
                             : "text-muted-foreground hover:text-foreground hover:bg-background/50"
                     )}
                 >
-                    <span className="text-sm sm:text-base">📄</span> Kho tài liệu
+                    <span className="text-sm">📄</span> Kho tài liệu
                 </button>
             </div>
 
@@ -118,7 +118,7 @@ export function LibrarySelection({
                         placeholder={`Tìm kiếm...`}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-9 pr-8 py-2.5 border border-border/60 rounded-xl focus:border-primary/50 focus:ring-4 focus:ring-primary/10 bg-background text-xs font-semibold transition-all outline-none"
+                        className="w-full pl-9 pr-8 py-2 border border-border/60 rounded-xl focus:border-primary/50 focus:ring-4 focus:ring-primary/10 bg-background text-xs font-semibold transition-all outline-none"
                     />
                     {searchTerm && (
                         <button
@@ -134,10 +134,10 @@ export function LibrarySelection({
                     value={selectedCategory}
                     onValueChange={(val) => setSelectedCategory(val)}
                 >
-                    <SelectTrigger className="w-auto min-w-[120px] h-10 border-border/60 rounded-xl bg-background text-[10px] sm:text-xs font-semibold hover:bg-muted/30 transition-colors focus:ring-4 focus:ring-primary/10">
+                    <SelectTrigger className="w-auto min-w-[110px] h-9 border-border/60 rounded-xl bg-background text-[10px] sm:text-xs font-semibold hover:bg-muted/30 transition-colors focus:ring-4 focus:ring-primary/10">
                         <SelectValue placeholder="Danh mục" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl border-border/60 shadow-xl max-h-[300px]">
+                    <SelectContent className="rounded-xl border-border/60 shadow-xl max-h-[260px]">
                         {categories.map(cat => (
                             <SelectItem key={cat} value={cat} className="text-xs font-medium">
                                 {cat === 'all' ? '✨ Tất cả' : cat}
@@ -147,20 +147,18 @@ export function LibrarySelection({
                 </Select>
             </div>
 
-
-
             {/* Virtualized List - Dynamic Height */}
             <div
                 ref={parentRef}
-                className="flex-1 overflow-auto border border-border/60 rounded-xl bg-muted/20 min-h-[240px] lg:min-h-0 no-scrollbar relative"
+                className="flex-1 overflow-auto border border-border/60 rounded-xl bg-muted/20 min-h-[160px] lg:min-h-0 no-scrollbar relative"
             >
                 {filteredItems.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 animate-in fade-in zoom-in-95 duration-300">
-                        <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
-                            <Search size={24} className="opacity-30" />
+                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-4 sm:p-5 animate-in fade-in zoom-in-95 duration-300">
+                        <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-2.5">
+                            <Search size={20} className="opacity-30" />
                         </div>
-                        <p className="text-sm font-bold">Không tìm thấy kết quả</p>
-                        <p className="text-xs opacity-60 mt-1">Thử tìm với từ khóa khác</p>
+                        <p className="text-xs font-bold text-foreground">Không tìm thấy kết quả</p>
+                        <p className="text-[11px] opacity-60 mt-0.5">Thử tìm với từ khóa khác</p>
                     </div>
                 ) : (
                     <div style={{ height: `${virtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>

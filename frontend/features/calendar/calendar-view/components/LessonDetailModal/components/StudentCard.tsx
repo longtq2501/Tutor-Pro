@@ -14,41 +14,46 @@ export function StudentCard({ session, currentStatus }: StudentCardProps) {
     const status = currentStatus || (session.status as LessonStatus);
     const statusColors = getStatusColors(status);
 
+    // Generate initials (up to 2 chars)
+    const initials = session.studentName
+        ?.split(' ')
+        .filter(Boolean)
+        .map(w => w[0])
+        .slice(-2)
+        .join('')
+        .toUpperCase() || '?';
+
     return (
-        <div className="relative">
-            <div className={cn(
-                "flex items-center gap-2 sm:gap-3 p-2.5 sm:p-4",
-                "rounded-xl sm:rounded-2xl relative overflow-hidden",
-                // neutral bg + border only, no shadow on card itself
-                "bg-white dark:bg-card border border-[#E5E7EB] dark:border-border/40"
-            )}>
-                {/* Avatar */}
-                <div className="relative z-10 shrink-0">
-                    <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white font-bold text-[11px] sm:text-lg">
-                        {session.studentName?.charAt(0).toUpperCase()}
-                    </div>
-                    <div className={cn("absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-background", statusColors.dot)} />
+        <div className="flex items-center gap-3 sm:gap-3.5 p-3 sm:p-3.5 rounded-xl border bg-card dark:bg-card/70 border-border/50 shadow-2xs">
+            {/* Avatar */}
+            <div className="relative shrink-0">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground font-bold text-sm select-none shadow-xs">
+                    {initials}
                 </div>
-
-                {/* Info */}
-                <div className="flex-1 relative z-10 min-w-0">
-                    {/* Label: sentence case, 12px, neutral gray */}
-                    <div className="text-[11px] sm:text-[12px] font-medium text-muted-foreground mb-0.5">Học sinh</div>
-                    {/* Name: Title Case weight 500-600, 15-17px */}
-                    <h4 className="text-[13px] sm:text-[16px] font-semibold capitalize tracking-tight leading-none truncate">
-                        {session.studentName}
-                    </h4>
-                </div>
-
-                {/* Badge: reduced saturation - light bg, bold same-tone text */}
-                <Badge className={cn(
-                    "relative z-10 rounded-lg px-2.5 py-1 text-[9px] sm:text-[10px] font-semibold border-0",
-                    "tracking-normal",
-                    statusColors.bg, statusColors.text
-                )}>
-                    {LESSON_STATUS_LABELS[status as keyof typeof LESSON_STATUS_LABELS] || status}
-                </Badge>
+                {/* Status dot */}
+                <div className={cn(
+                    "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-background",
+                    statusColors.dot
+                )} />
             </div>
+
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+                <p className="text-[10px] sm:text-[11px] font-medium text-muted-foreground leading-none mb-1">
+                    Học sinh
+                </p>
+                <h4 className="text-sm sm:text-base font-semibold text-foreground tracking-tight leading-snug truncate capitalize">
+                    {session.studentName}
+                </h4>
+            </div>
+
+            {/* Status badge */}
+            <span className={cn(
+                "inline-flex items-center rounded-lg px-2.5 py-1 text-[10px] sm:text-[11px] font-semibold border shrink-0 whitespace-nowrap select-none transition-colors",
+                statusColors.bg, statusColors.border, statusColors.text
+            )}>
+                {LESSON_STATUS_LABELS[status as keyof typeof LESSON_STATUS_LABELS] || status}
+            </span>
         </div>
     );
 }

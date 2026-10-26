@@ -184,6 +184,23 @@ export const useMediaStream = (
             setError(null);
             await getDevices();
         } catch (err: unknown) {
+            // If both video & audio were requested and it failed (e.g., no webcam plugged in),
+            // attempt automatic fallback to audio-only so the user still has microphone.
+            if (constraints.video && constraints.audio) {
+                try {
+                    console.warn('[MediaStream] Video+Audio failed, attempting audio-only fallback...');
+                    const audioStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+                    streamRef.current = audioStream;
+                    audioStream.getAudioTracks().forEach(t => { t.enabled = !muteStateRef.current.audio; });
+                    setStream(audioStream);
+                    setError('NotFoundError'); // Camera missing, but audio works
+                    await getDevices();
+                    return;
+                } catch (audioErr) {
+                    console.warn('[MediaStream] Audio fallback also failed:', audioErr);
+                }
+            }
+
             const errName = err instanceof Error ? err.name : '';
             const errMessage = err instanceof Error ? err.message : '';
 
@@ -226,6 +243,23 @@ export const useMediaStream = (
         stopStream();
         setRetryCount(prev => prev + 1);
     }, [stopStream]);
+
+    // Automatically detect when user plugs in/unplugs a camera or microphone
+    useEffect(() => {
+        if (typeof navigator === 'undefined' || !navigator.mediaDevices?.addEventListener) return;
+        const handleDeviceChange = async () => {
+            console.log('[MediaStream] Device change detected (ondevicechange)');
+            await getDevices();
+            if (error) {
+                console.log('[MediaStream] Retrying media acquisition after device change...');
+                retry();
+            }
+        };
+        navigator.mediaDevices.addEventListener('devicechange', handleDeviceChange);
+        return () => {
+            navigator.mediaDevices.removeEventListener('devicechange', handleDeviceChange);
+        };
+    }, [getDevices, error, retry]);
 
     const switchDevice = useCallback((deviceId: string, kind: 'audio' | 'video') => {
         setConstraints(prev => ({

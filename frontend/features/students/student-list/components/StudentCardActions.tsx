@@ -1,32 +1,26 @@
-import { Repeat, Plus } from 'lucide-react';
+import { CalendarDays, Plus } from 'lucide-react';
 
 interface StudentCardActionsProps {
     active: boolean;
     onSchedule: () => void;
-    onAddSession: () => void;
+    onAddSession?: () => void;
 }
 
 /**
- * Action buttons section of the StudentCard.
- * Includes Schedule and Add Session buttons.
+ * Action buttons for StudentCard.
+ * When student is inactive: ALL buttons are disabled.
+ * Edit button is handled separately in StudentEditActions (always enabled).
  */
-export function StudentCardActions({ active, onSchedule, onAddSession }: StudentCardActionsProps) {
+export function StudentCardActions({ active, onSchedule }: StudentCardActionsProps) {
     return (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="w-full">
             <button
                 onClick={onSchedule}
-                className="px-4 py-2.5 bg-slate-100 dark:bg-muted text-foreground hover:bg-slate-200 dark:hover:bg-accent border border-border rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2"
-            >
-                <Repeat size={16} />
-                Lịch
-            </button>
-            <button
-                onClick={onAddSession}
                 disabled={!active}
-                className="px-4 py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                className="w-full px-3 py-2 rounded-lg text-xs font-medium border border-border bg-background text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
             >
-                <Plus size={16} />
-                Buổi Học
+                <CalendarDays size={13} />
+                Thêm lịch cố định
             </button>
         </div>
     );

@@ -190,7 +190,7 @@ const MainContentSwitcher = React.memo(({ currentView, hasAnyRole }: {
 }) => (
     <main className={cn(
         "flex-1 min-w-0 overscroll-none relative bg-background",
-        currentView === 'calendar' ? "flex flex-col h-full min-h-0 overflow-hidden" : "overflow-y-auto [scrollbar-gutter:stable]"
+        currentView === 'calendar' ? "flex flex-col h-full min-h-0 overflow-hidden" : "overflow-y-auto"
     )}>
         <AnimatePresence mode="wait" initial={false}>
             <motion.div
@@ -200,7 +200,7 @@ const MainContentSwitcher = React.memo(({ currentView, hasAnyRole }: {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.1, ease: "easeInOut" }}
                 className={cn(
-                    "p-4 min-h-full pb-24 lg:pb-28",
+                    "p-3 sm:p-4 pb-6 sm:pb-8",
                     currentView === 'calendar' && "flex flex-col flex-1 h-full p-1.5 sm:p-2 pb-1.5 sm:pb-2 min-h-0 overflow-hidden"
                 )}
             >

@@ -10,6 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -38,8 +39,10 @@ import { useRouter } from 'next/navigation';
 import {
   BookOpen,
   Calendar,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   Edit,
   LayoutGrid,
   List,
@@ -66,7 +69,6 @@ import { AssignStudentsDialog } from './AssignStudentsDialog';
 import { CategoryManagerDialog } from './CategoryManagerDialog';
 import { EditLessonDialog } from './EditLessonDialog';
 import { LessonForm } from './LessonForm';
-import { PremiumCategoryCard } from './PremiumCategoryCard';
 import { PremiumLessonCard } from './PremiumLessonCard';
 
 const ITEMS_PER_PAGE = 8; // Compact view: 8 items per page
@@ -186,6 +188,7 @@ export function LessonLibraryTab() {
   const [currentPage, setCurrentPage] = useState(1);
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAllCategories, setShowAllCategories] = useState(false);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
 
   useEffect(() => {
@@ -369,55 +372,88 @@ export function LessonLibraryTab() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <PremiumCategoryCard
-            title="Tất cả bài giảng"
-            count={lessons.length}
-            icon={<BookOpen className="w-7 h-7" />}
-            gradient="from-blue-600 to-indigo-600"
-            isActive={selectedCategoryFilter === 'all'}
-            onClick={() => {
-              setSelectedCategoryFilter('all');
-              setCurrentPage(1);
-            }}
-          />
+        {/* Category Filter Pills - Compact Horizontal Scroll */}
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {/* All */}
+            <button
+              onClick={() => { setSelectedCategoryFilter('all'); setCurrentPage(1); }}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold border transition-all duration-200",
+                selectedCategoryFilter === 'all'
+                  ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
+                  : "bg-card text-foreground border-border hover:border-primary/50 hover:bg-primary/5"
+              )}
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              Tất cả
+              <span className={cn(
+                "ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                selectedCategoryFilter === 'all' ? "bg-white/20 text-primary-foreground" : "bg-muted text-muted-foreground"
+              )}>{lessons.length}</span>
+            </button>
 
-          {categories.map((cat, idx) => {
-            const lessonCount = categoryStats[cat.id] || 0;
-            // Dynamic gradients based on index if color is generic
-            const gradients = [
-              "from-emerald-500 to-teal-600",
-              "from-orange-500 to-amber-600",
-              "from-pink-500 to-rose-600",
-              "from-purple-500 to-violet-600"
-            ];
+            {/* Dynamic categories - show limited or all */}
+            {(showAllCategories ? categories : categories.slice(0, 4)).map((cat) => {
+              const lessonCount = categoryStats[cat.id] || 0;
+              const isActive = selectedCategoryFilter === String(cat.id);
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => { setSelectedCategoryFilter(String(cat.id)); setCurrentPage(1); }}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold border transition-all duration-200",
+                    isActive
+                      ? "border-transparent text-white shadow-md"
+                      : "bg-card border-border hover:border-primary/40"
+                  )}
+                  style={isActive ? { backgroundColor: cat.color, boxShadow: `0 4px 14px ${cat.color}40` } : { color: cat.color, borderColor: `${cat.color}50` }}
+                >
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ backgroundColor: cat.color }}
+                  />
+                  {cat.name}
+                  <span className={cn(
+                    "ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                    isActive ? "bg-white/25 text-white" : "bg-muted text-muted-foreground"
+                  )}>{lessonCount}</span>
+                </button>
+              );
+            })}
 
-            return (
-              <PremiumCategoryCard
-                key={cat.id}
-                title={cat.name}
-                count={lessonCount}
-                gradient={gradients[idx % gradients.length]}
-                isActive={selectedCategoryFilter === String(cat.id)}
-                onClick={() => {
-                  setSelectedCategoryFilter(String(cat.id));
-                  setCurrentPage(1);
-                }}
-              />
-            );
-          })}
+            {/* Uncategorized */}
+            <button
+              onClick={() => { setSelectedCategoryFilter('none'); setCurrentPage(1); }}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold border transition-all duration-200",
+                selectedCategoryFilter === 'none'
+                  ? "bg-slate-600 text-white border-slate-600 shadow-md"
+                  : "bg-card text-foreground border-border hover:border-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+              )}
+            >
+              <Tag className="w-3.5 h-3.5" />
+              Chưa phân loại
+              <span className={cn(
+                "ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                selectedCategoryFilter === 'none' ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
+              )}>{categoryStats.none || 0}</span>
+            </button>
 
-          <PremiumCategoryCard
-            title="Chưa phân loại"
-            count={categoryStats.none || 0}
-            icon={<Tag className="w-7 h-7" />}
-            gradient="from-slate-500 to-slate-700"
-            isActive={selectedCategoryFilter === 'none'}
-            onClick={() => {
-              setSelectedCategoryFilter('none');
-              setCurrentPage(1);
-            }}
-          />
+            {/* Show more / less toggle */}
+            {categories.length > 4 && (
+              <button
+                onClick={() => setShowAllCategories(v => !v)}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-semibold border border-dashed border-muted-foreground/30 text-muted-foreground hover:border-primary/50 hover:text-primary transition-all duration-200 bg-card"
+              >
+                {showAllCategories ? (
+                  <><ChevronUp className="w-3.5 h-3.5" /> Thu gọn</>
+                ) : (
+                  <><ChevronDown className="w-3.5 h-3.5" /> +{categories.length - 4} danh mục</>
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </section>
 
@@ -456,10 +492,10 @@ export function LessonLibraryTab() {
           <Button
             size="lg"
             onClick={() => setIsFormOpen(true)}
-            className="rounded-xl h-11 px-6 shadow-lg shadow-primary/20 bg-gradient-to-r from-primary to-primary/90 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            className="rounded-xl h-11 px-6 shadow-lg shadow-primary/20 bg-gradient-to-r from-primary to-primary/90 hover:scale-[1.02] active:scale-[0.98] transition-all shrink-0"
           >
             <Plus className="mr-2 h-5 w-5" />
-            Thêm bài mới
+            Thêm bài giảng mới
           </Button>
         </div>
 

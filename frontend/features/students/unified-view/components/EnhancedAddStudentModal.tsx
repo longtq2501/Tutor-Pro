@@ -50,13 +50,11 @@ export function EnhancedAddStudentModal({
         onClose();
     });
 
-    // Use parents hook for selector
     const { parents, loadParents } = useParents();
 
     useEffect(() => {
         if (open) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setStep(prev => prev !== 1 ? 1 : prev);
+            setStep(1);
         }
     }, [open]);
 
@@ -80,95 +78,75 @@ export function EnhancedAddStudentModal({
         updateField('email', email);
     };
 
-    // Handle successful parent addition
     const handleParentAdded = (newParentId?: number) => {
-        loadParents(); // Refresh list
+        loadParents();
         if (newParentId) {
             updateField('parentId', newParentId);
         }
         setShowAddParent(false);
     };
 
-    const handleNextStep = () => {
-        // Basic validation for step 1
-        if (!formData.name) {
-            // Ideally use toast, but native alert for simplicity in this logic block or just rely on submit validation
-            // preventing progress if critical fields missing
-        }
-        setStep(2);
-    };
-
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[550px] w-[95vw] max-w-[95vw] sm:w-full max-h-[90vh] p-0 overflow-hidden bg-card rounded-[32px] shadow-2xl border-none transition-all duration-300 flex flex-col">
+            <DialogContent className="sm:max-w-[520px] w-[95vw] max-w-[95vw] sm:w-full p-0 bg-card rounded-2xl shadow-xl border border-border flex flex-col max-h-[90dvh] overflow-hidden">
                 {/* Header */}
-                <div className="p-6 border-b bg-gradient-to-br from-muted/30 to-muted/10 rounded-t-3xl flex-shrink-0">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0 shadow-sm">
-                            <UserPlus className="w-6 h-6 text-primary" />
+                <div className="p-5 border-b border-border flex-shrink-0 bg-card">
+                    <div className="flex items-center gap-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
+                            <UserPlus className="w-5 h-5" />
                         </div>
-                        <div className="flex-1">
-                            <DialogTitle className="text-xl font-bold tracking-tight">
-                                {editingStudent ? 'Cập Nhật Hồ Sơ' : 'Thêm Học Sinh Mới'}
+                        <div className="flex-1 min-w-0">
+                            <DialogTitle className="text-base font-semibold text-foreground">
+                                {editingStudent ? 'Cập Nhật Hồ Sơ Học Sinh' : 'Thêm Học Sinh Mới'}
                             </DialogTitle>
                             <p className="text-sm text-muted-foreground mt-0.5">
-                                {step === 1 ? 'Thông tin cá nhân & liên hệ' :
-                                    step === 2 ? 'Thiết lập học vụ & ghi chú' :
-                                        'Tài khoản đăng nhập (Tùy chọn)'}
+                                {step === 1 ? 'Bước 1/3: Thông tin cá nhân & liên hệ' :
+                                    step === 2 ? 'Bước 2/3: Thiết lập học vụ & ghi chú' :
+                                        'Bước 3/3: Tài khoản học sinh (Tùy chọn)'}
                             </p>
                         </div>
-                        {/* Close Button removed */}
                     </div>
 
-                    {/* Progress Steps */}
-                    <div className="flex items-center gap-3 mt-6">
-                        <div className={cn(
-                            "flex-1 h-2 rounded-full transition-all duration-500 shadow-sm",
-                            step >= 1 ? "bg-primary" : "bg-muted"
-                        )} />
-                        <div className={cn(
-                            "flex-1 h-2 rounded-full transition-all duration-500 shadow-sm",
-                            step >= 2 ? "bg-primary" : "bg-muted"
-                        )} />
-                        <div className={cn(
-                            "flex-1 h-2 rounded-full transition-all duration-500 shadow-sm",
-                            step >= 3 ? "bg-primary" : "bg-muted"
-                        )} />
+                    {/* Step indicator */}
+                    <div className="grid grid-cols-3 gap-2 mt-4">
+                        <div className={cn("h-1.5 rounded-full transition-colors", step >= 1 ? "bg-primary" : "bg-muted")} />
+                        <div className={cn("h-1.5 rounded-full transition-colors", step >= 2 ? "bg-primary" : "bg-muted")} />
+                        <div className={cn("h-1.5 rounded-full transition-colors", step >= 3 ? "bg-primary" : "bg-muted")} />
                     </div>
                 </div>
 
                 {/* Form Content */}
-                <div className="flex-1 p-6 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                <div className="flex-1 p-5 overflow-y-auto min-h-0">
                     {step === 1 && (
-                        <div className="space-y-5 animate-in slide-in-from-left-4 fade-in duration-300">
+                        <div className="space-y-4">
                             {/* Basic Info */}
-                            <div className="space-y-2">
+                            <div className="space-y-1.5">
                                 <Label htmlFor="name" className="text-sm font-medium">
-                                    Họ và tên <span className="text-red-500">*</span>
+                                    Họ và tên <span className="text-destructive">*</span>
                                 </Label>
                                 <Input
                                     id="name"
                                     placeholder="Ví dụ: Nguyễn Văn A"
-                                    className="h-11 rounded-xl border-muted-foreground/20 focus:border-primary/50 transition-colors"
+                                    className="h-10 rounded-lg"
                                     value={formData.name}
                                     onChange={e => updateField('name', e.target.value)}
                                 />
                             </div>
 
                             {/* Parent Selection */}
-                            <div className="space-y-2">
+                            <div className="space-y-1.5">
                                 <Label className="text-sm font-medium">Phụ huynh liên kết</Label>
                                 <div className="flex gap-2">
                                     <Select
                                         value={formData.parentId?.toString() || ''}
                                         onValueChange={(val) => updateField('parentId', Number(val))}
                                     >
-                                        <SelectTrigger className="flex-1 h-11 rounded-xl border-muted-foreground/20 focus:border-primary/50 transition-colors">
+                                        <SelectTrigger className="flex-1 h-10 rounded-lg">
                                             <SelectValue placeholder="-- Chọn phụ huynh --" />
                                         </SelectTrigger>
                                         <SelectContent className="rounded-xl">
                                             {parents.map(parent => (
-                                                <SelectItem key={parent.id} value={parent.id.toString()} className="rounded-lg">
+                                                <SelectItem key={parent.id} value={parent.id.toString()}>
                                                     <div className="flex items-center gap-2">
                                                         <UserCircle className="w-4 h-4 text-muted-foreground" />
                                                         <span>{parent.name}</span>
@@ -185,48 +163,48 @@ export function EnhancedAddStudentModal({
                                         type="button"
                                         variant="outline"
                                         size="icon"
-                                        className="h-11 w-11 shrink-0 rounded-xl hover:bg-primary/10 hover:border-primary/50 transition-all"
+                                        className="h-10 w-10 shrink-0 rounded-lg"
                                         onClick={() => setShowAddParent(true)}
                                         title="Thêm phụ huynh mới"
                                     >
-                                        <Plus className="w-5 h-5" />
+                                        <Plus className="w-4 h-4" />
                                     </Button>
                                 </div>
                             </div>
 
                             {/* Contact Info */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="space-y-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                <div className="space-y-1.5">
                                     <Label htmlFor="phone" className="text-sm font-medium">Số điện thoại</Label>
                                     <Input
                                         id="phone"
                                         placeholder="0901234567"
-                                        className="h-11 rounded-xl border-muted-foreground/20 focus:border-primary/50 transition-colors"
+                                        className="h-10 rounded-lg"
                                         value={formData.phone || ''}
                                         onChange={e => updateField('phone', e.target.value)}
                                     />
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="space-y-1.5">
                                     <Label htmlFor="startMonth" className="text-sm font-medium">Tháng bắt đầu</Label>
                                     <Input
                                         id="startMonth"
                                         type="month"
-                                        className="h-11 rounded-xl border-muted-foreground/20 focus:border-primary/50 transition-colors"
+                                        className="h-10 rounded-lg"
                                         value={formData.startMonth || ''}
                                         onChange={e => updateField('startMonth', e.target.value)}
                                     />
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="space-y-1.5">
                                 <Label htmlFor="schedule" className="text-sm font-medium">
-                                    Lịch học cố định <span className="text-red-500">*</span>
+                                    Lịch học cố định <span className="text-destructive">*</span>
                                 </Label>
                                 <Input
                                     id="schedule"
                                     placeholder="Ví dụ: T2, T4 (18:00 - 19:30)"
-                                    className="h-11 rounded-xl border-muted-foreground/20 bg-muted/30 focus:bg-background focus:border-primary/50 transition-all"
+                                    className="h-10 rounded-lg"
                                     value={formData.schedule}
                                     onChange={e => updateField('schedule', e.target.value)}
                                 />
@@ -236,19 +214,19 @@ export function EnhancedAddStudentModal({
                     )}
 
                     {step === 2 && (
-                        <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
+                        <div className="space-y-4">
                             {/* Status Toggle */}
-                            <div className="space-y-3">
+                            <div className="space-y-2">
                                 <Label className="text-sm font-medium">Trạng thái học tập</Label>
-                                <div className="bg-muted/50 p-1.5 rounded-xl inline-flex w-full shadow-sm border border-border/30">
+                                <div className="bg-muted/40 p-1 rounded-lg inline-flex w-full border border-border">
                                     <button
                                         type="button"
                                         onClick={() => updateField('active', true)}
                                         className={cn(
-                                            "flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200",
+                                            "flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors",
                                             formData.active
-                                                ? "bg-background text-foreground shadow-md border border-border/50"
-                                                : "text-muted-foreground hover:bg-background/50 hover:text-foreground"
+                                                ? "bg-background text-foreground shadow-sm"
+                                                : "text-muted-foreground hover:text-foreground"
                                         )}
                                     >
                                         Đang học
@@ -257,10 +235,10 @@ export function EnhancedAddStudentModal({
                                         type="button"
                                         onClick={() => updateField('active', false)}
                                         className={cn(
-                                            "flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200",
+                                            "flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors",
                                             !formData.active
-                                                ? "bg-background text-foreground shadow-md border border-border/50"
-                                                : "text-muted-foreground hover:bg-background/50 hover:text-foreground"
+                                                ? "bg-background text-foreground shadow-sm"
+                                                : "text-muted-foreground hover:text-foreground"
                                         )}
                                     >
                                         Đã nghỉ / Tạm dừng
@@ -268,9 +246,9 @@ export function EnhancedAddStudentModal({
                                 </div>
                             </div>
 
-                            <div className="space-y-3">
+                            <div className="space-y-2">
                                 <Label className="text-sm font-medium">Nguồn học sinh</Label>
-                                <div className="bg-muted/50 p-1.5 rounded-xl inline-flex w-full shadow-sm border border-border/30">
+                                <div className="bg-muted/40 p-1 rounded-lg inline-flex w-full border border-border">
                                     {([
                                         ['trung_tam', 'Trung tâm'],
                                         ['day_rieng', 'Dạy riêng'],
@@ -280,10 +258,10 @@ export function EnhancedAddStudentModal({
                                             type="button"
                                             onClick={() => updateField('nguon', value)}
                                             className={cn(
-                                                "flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200",
+                                                "flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors",
                                                 formData.nguon === value
-                                                    ? "bg-background text-foreground shadow-md border border-border/50"
-                                                    : "text-muted-foreground hover:bg-background/50 hover:text-foreground"
+                                                    ? "bg-background text-foreground shadow-sm"
+                                                    : "text-muted-foreground hover:text-foreground"
                                             )}
                                         >
                                             {label}
@@ -292,21 +270,21 @@ export function EnhancedAddStudentModal({
                                 </div>
                             </div>
 
-                            <Separator className="my-4" />
+                            <Separator />
 
                             {/* Hourly Rate */}
-                            <div className="space-y-2">
+                            <div className="space-y-1.5">
                                 <Label htmlFor="price" className="text-sm font-medium">Học phí / giờ (VNĐ)</Label>
                                 <div className="relative">
                                     <Input
                                         id="price"
                                         type="number"
                                         placeholder="200000"
-                                        className="h-12 pl-4 pr-12 text-lg font-semibold tracking-wide rounded-xl border-muted-foreground/20 focus:border-primary/50 transition-colors"
+                                        className="h-10 pl-3 pr-8 rounded-lg"
                                         value={formData.pricePerHour}
                                         onChange={e => updateField('pricePerHour', Number(e.target.value))}
                                     />
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium pointer-events-none">
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium pointer-events-none">
                                         đ
                                     </div>
                                 </div>
@@ -314,13 +292,13 @@ export function EnhancedAddStudentModal({
                             </div>
 
                             {/* Notes */}
-                            <div className="space-y-2">
+                            <div className="space-y-1.5">
                                 <Label htmlFor="notes" className="text-sm font-medium">Ghi chú thêm</Label>
                                 <Textarea
                                     id="notes"
-                                    rows={4}
+                                    rows={3}
                                     placeholder="Ghi chú về trình độ, mục tiêu hoặc cần lưu ý..."
-                                    className="resize-none rounded-xl border-muted-foreground/20 focus:border-primary/50 transition-colors"
+                                    className="resize-none rounded-lg"
                                     value={formData.notes || ''}
                                     onChange={e => updateField('notes', e.target.value)}
                                 />
@@ -329,24 +307,24 @@ export function EnhancedAddStudentModal({
                     )}
 
                     {step === 3 && (
-                        <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
+                        <div className="space-y-4">
                             {/* Create Account Toggle */}
                             <div className={cn(
-                                "p-5 rounded-2xl border transition-all duration-300",
+                                "p-4 rounded-xl border transition-colors",
                                 formData.createAccount
-                                    ? "bg-primary/5 border-primary/30 shadow-sm"
+                                    ? "bg-primary/5 border-primary/30"
                                     : "bg-muted/30 border-border"
                             )}>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <div className={cn(
-                                            "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
-                                            formData.createAccount ? "bg-primary text-primary-foreground" : "bg-muted-foreground/20 text-muted-foreground"
+                                            "w-9 h-9 rounded-lg flex items-center justify-center transition-colors",
+                                            formData.createAccount ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                                         )}>
-                                            <ShieldCheck className="w-5 h-5" />
+                                            <ShieldCheck className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <Label className="text-base font-bold cursor-pointer" htmlFor="createAccount">
+                                            <Label className="text-sm font-semibold cursor-pointer" htmlFor="createAccount">
                                                 Tạo tài khoản học sinh
                                             </Label>
                                             <p className="text-xs text-muted-foreground">Cho phép học sinh đăng nhập vào hệ thống</p>
@@ -357,31 +335,31 @@ export function EnhancedAddStudentModal({
                                         id="createAccount"
                                         onClick={() => updateField('createAccount', !formData.createAccount)}
                                         className={cn(
-                                            "w-12 h-6 rounded-full relative transition-colors duration-200 focus:outline-none",
+                                            "w-11 h-6 rounded-full relative transition-colors duration-200 focus:outline-none",
                                             formData.createAccount ? "bg-primary" : "bg-muted-foreground/30"
                                         )}
                                     >
                                         <div className={cn(
                                             "absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 shadow-sm",
-                                            formData.createAccount ? "translate-x-6" : "translate-x-0"
+                                            formData.createAccount ? "translate-x-5" : "translate-x-0"
                                         )} />
                                     </button>
                                 </div>
                             </div>
 
                             {formData.createAccount && (
-                                <div className="space-y-5 animate-in fade-in zoom-in-95 duration-300">
+                                <div className="space-y-4 pt-1">
                                     {/* Email */}
-                                    <div className="space-y-2">
+                                    <div className="space-y-1.5">
                                         <div className="flex items-center justify-between">
-                                            <Label htmlFor="email" className="text-sm font-medium flex items-center gap-2">
-                                                <Mail className="w-4 h-4 text-muted-foreground" />
+                                            <Label htmlFor="email" className="text-sm font-medium flex items-center gap-1.5">
+                                                <Mail className="w-3.5 h-3.5 text-muted-foreground" />
                                                 Email đăng nhập
                                             </Label>
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-7 text-[10px] px-2 text-primary hover:text-primary/80"
+                                                className="h-6 text-xs px-2 text-primary hover:text-primary/80"
                                                 onClick={(e) => {
                                                     e.preventDefault();
                                                     generateEmailFromStudentName();
@@ -394,23 +372,23 @@ export function EnhancedAddStudentModal({
                                             id="email"
                                             type="email"
                                             placeholder="hocsinh@students.tutormanagement.com"
-                                            className="h-11 rounded-xl border-muted-foreground/20 focus:border-primary/50"
+                                            className="h-10 rounded-lg"
                                             value={formData.email || ''}
                                             onChange={e => updateField('email', e.target.value)}
                                         />
                                     </div>
 
                                     {/* Password */}
-                                    <div className="space-y-2">
+                                    <div className="space-y-1.5">
                                         <div className="flex items-center justify-between">
-                                            <Label htmlFor="pass" className="text-sm font-medium flex items-center gap-2">
-                                                <Lock className="w-4 h-4 text-muted-foreground" />
+                                            <Label htmlFor="pass" className="text-sm font-medium flex items-center gap-1.5">
+                                                <Lock className="w-3.5 h-3.5 text-muted-foreground" />
                                                 Mật khẩu
                                             </Label>
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-7 text-[10px] px-2 text-primary hover:text-primary/80"
+                                                className="h-6 text-xs px-2 text-primary hover:text-primary/80"
                                                 onClick={(e) => {
                                                     e.preventDefault();
                                                     generatePassword();
@@ -424,17 +402,17 @@ export function EnhancedAddStudentModal({
                                             <Input
                                                 id="pass"
                                                 type={showPassword ? "text" : "password"}
-                                                placeholder="Sử dụng mật khẩu mạnh"
-                                                className="h-11 pl-4 pr-12 rounded-xl border-muted-foreground/20 focus:border-primary/50"
+                                                placeholder="Mật khẩu"
+                                                className="h-10 pl-3 pr-10 rounded-lg"
                                                 value={formData.password || ''}
                                                 onChange={e => updateField('password', e.target.value)}
                                             />
                                             <button
                                                 type="button"
                                                 onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                                             >
-                                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                             </button>
                                         </div>
                                     </div>
@@ -442,9 +420,9 @@ export function EnhancedAddStudentModal({
                             )}
 
                             {!formData.createAccount && (
-                                <div className="text-center py-8 px-4 bg-muted/20 rounded-2xl border border-dashed border-border/60">
-                                    <ShieldCheck className="w-8 h-8 text-muted-foreground/40 mx-auto mb-3" />
-                                    <p className="text-sm text-muted-foreground max-w-[280px] mx-auto">
+                                <div className="text-center py-6 px-4 bg-muted/20 rounded-xl border border-dashed border-border">
+                                    <ShieldCheck className="w-7 h-7 text-muted-foreground/40 mx-auto mb-2" />
+                                    <p className="text-xs text-muted-foreground max-w-[280px] mx-auto">
                                         Học sinh sẽ không có tài khoản đăng nhập. Bạn có thể thiết lập tài khoản này sau bất cứ lúc nào.
                                     </p>
                                 </div>
@@ -454,37 +432,37 @@ export function EnhancedAddStudentModal({
                 </div>
 
                 {/* Footer */}
-                <div className="flex-shrink-0 p-6 border-t flex gap-3 bg-gradient-to-br from-muted/10 to-muted/30 rounded-b-3xl relative z-10">
+                <div className="p-4 border-t border-border flex gap-2.5 flex-shrink-0 bg-card">
                     <Button
                         variant="outline"
-                        className="flex-1 h-11 rounded-xl hover:bg-muted/50 transition-all"
+                        className="flex-1 h-10 font-medium"
                         onClick={step === 1 ? onClose : () => setStep(prev => prev - 1)}
                         disabled={loading}
                     >
-                        {step === 1 ? 'Hủy Bỏ' : 'Quay lại'}
+                        {step === 1 ? 'Hủy' : 'Quay lại'}
                     </Button>
 
                     {step < 3 ? (
                         <Button
-                            className="flex-1 h-11 rounded-xl shadow-md hover:shadow-lg transition-all"
+                            className="flex-1 h-10 font-medium"
                             onClick={() => setStep(prev => prev + 1)}
-                            disabled={!formData.name || !formData.schedule} // Basic Validation
+                            disabled={!formData.name || !formData.schedule}
                         >
                             Tiếp tục
-                            <ChevronRight className="w-4 h-4 ml-2" />
+                            <ChevronRight className="w-4 h-4 ml-1.5" />
                         </Button>
                     ) : (
                         <Button
-                            className="flex-1 group h-11 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-md hover:shadow-lg transition-all"
+                            className="flex-1 h-10 font-medium"
                             onClick={submit}
                             disabled={loading}
                         >
                             {loading ? (
                                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                             ) : (
-                                <Check className="w-4 h-4 mr-2 group-hover:scale-125 transition-transform" />
+                                <Check className="w-4 h-4 mr-1.5" />
                             )}
-                            {editingStudent ? 'Lưu Thay Đổi' : 'Tạo Hồ Sơ'}
+                            {editingStudent ? 'Lưu Thay Đổi' : 'Tạo Học Sinh'}
                         </Button>
                     )}
                 </div>

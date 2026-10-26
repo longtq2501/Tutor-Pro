@@ -1,4 +1,4 @@
-import { X, Save, Repeat, AlertCircle, Calendar, BookOpen, Clock, FileText } from 'lucide-react';
+import { Repeat, AlertCircle, BookOpen, FileText, Loader2 } from 'lucide-react';
 import type { RecurringSchedule } from '@/lib/types';
 import { useRecurringScheduleForm } from '../hooks/useRecurringScheduleForm';
 import { DaySelector } from './DaySelector';
@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
 
 interface RecurringScheduleModalProps {
   studentId: number;
@@ -37,52 +36,45 @@ export function RecurringScheduleModal({
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[550px] w-[95vw] max-w-[95vw] sm:w-full max-h-[90vh] p-0 overflow-hidden bg-card rounded-3xl shadow-2xl border-2 border-border/50 transition-all duration-300 flex flex-col">
+      <DialogContent className="sm:max-w-[500px] w-[95vw] max-w-[95vw] sm:w-full p-0 bg-card rounded-2xl shadow-xl border border-border flex flex-col max-h-[90dvh] overflow-hidden">
         {/* Header */}
-        <div className="p-6 border-b bg-gradient-to-br from-blue-500/10 via-primary/10 to-purple-500/10 rounded-t-3xl flex-shrink-0">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-primary flex items-center justify-center flex-shrink-0 shadow-lg text-white">
-              <Repeat size={28} />
-            </div>
-            <div className="flex-1">
-              <DialogTitle className="text-xl font-bold tracking-tight">
-                {existingSchedule ? 'Sửa Lịch Cố Định' : 'Tạo Lịch Cố Định'}
-              </DialogTitle>
-              <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
-                <span className="text-muted-foreground/70">Học sinh:</span>
-                <span className="font-semibold text-foreground bg-background/50 px-2 py-0.5 rounded-md">
-                  {studentName}
-                </span>
-              </p>
-            </div>
+        <div className="flex items-center gap-3.5 p-5 border-b border-border flex-shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
+            <Repeat className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <DialogTitle className="text-base font-semibold text-foreground">
+              {existingSchedule ? 'Sửa Lịch Cố Định' : 'Tạo Lịch Cố Định'}
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Học sinh: <span className="font-medium text-foreground">{studentName}</span>
+            </p>
           </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 p-6 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent relative">
+        <div className="flex-1 p-5 overflow-y-auto min-h-0 relative">
           {isLoadingData && (
-            <div className="absolute inset-0 z-50 bg-background/60 backdrop-blur-[2px] flex items-center justify-center animate-in fade-in duration-300">
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-                <p className="text-sm font-medium text-muted-foreground">Đang tải lịch...</p>
+            <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                <p className="text-xs text-muted-foreground">Đang tải lịch...</p>
               </div>
             </div>
           )}
-          <div className={cn(
-            "space-y-6 transition-all duration-300",
-            isLoadingData ? "opacity-0 scale-95" : "animate-in slide-in-from-bottom-4 fade-in duration-300"
-          )}>
+
+          <div className="space-y-4">
             {error && (
-              <div className="bg-rose-50 dark:bg-rose-900/30 border border-rose-100 dark:border-rose-800 p-4 rounded-xl flex items-center gap-3 text-sm text-rose-700 dark:text-rose-400">
-                <AlertCircle size={20} />
-                {error}
+              <div className="bg-destructive/10 border border-destructive/20 p-3 rounded-lg flex items-center gap-2.5 text-sm text-destructive">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{error}</span>
               </div>
             )}
 
             <DaySelector selectedDays={formData.daysOfWeek} onToggle={toggleDay} />
 
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold flex items-center gap-1.5">
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium flex items-center gap-1.5">
                 <BookOpen className="w-3.5 h-3.5 text-primary" />
                 Môn học
               </Label>
@@ -90,7 +82,7 @@ export function RecurringScheduleModal({
                 type="text"
                 value={formData.subject || ''}
                 onChange={e => updateField('subject', e.target.value)}
-                className="h-12 rounded-xl border-2 border-muted-foreground/20 focus:border-primary/50 hover:border-primary/30 transition-all bg-muted/30"
+                className="h-10 rounded-lg"
                 placeholder="Ví dụ: Toán, Tiếng Anh..."
               />
             </div>
@@ -108,8 +100,8 @@ export function RecurringScheduleModal({
               onChange={updateField}
             />
 
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold flex items-center gap-1.5">
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium flex items-center gap-1.5">
                 <FileText className="w-3.5 h-3.5 text-primary" />
                 Ghi chú
               </Label>
@@ -117,7 +109,7 @@ export function RecurringScheduleModal({
                 value={formData.notes}
                 onChange={e => updateField('notes', e.target.value)}
                 rows={2}
-                className="resize-none rounded-xl border-2 border-muted-foreground/20 focus:border-primary/50 hover:border-primary/30 transition-all bg-muted/30"
+                className="resize-none rounded-lg"
                 placeholder="Ghi chú thêm về lịch..."
               />
             </div>
@@ -125,10 +117,10 @@ export function RecurringScheduleModal({
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 p-6 border-t flex gap-3 bg-gradient-to-br from-muted/20 to-muted/40 rounded-b-3xl relative z-10">
+        <div className="p-4 border-t border-border flex gap-2.5 flex-shrink-0">
           <Button
             variant="outline"
-            className="flex-1 h-12 rounded-xl hover:bg-muted/70 transition-all border-2 font-semibold"
+            className="flex-1 h-10 font-medium"
             onClick={onClose}
             disabled={loading}
           >
@@ -137,14 +129,10 @@ export function RecurringScheduleModal({
           <Button
             onClick={submit}
             disabled={loading}
-            className="flex-[2] h-12 bg-gradient-to-r from-blue-500 to-primary hover:from-blue-600 hover:to-primary/90 text-white rounded-xl shadow-lg hover:shadow-xl transition-all font-semibold"
+            className="flex-1 h-10 font-medium"
           >
-            {loading ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white" />
-            ) : (
-              <Save size={18} />
-            )}
-            {existingSchedule ? 'Cập Nhật' : 'Lưu Thiết Lập'}
+            {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {existingSchedule ? 'Cập Nhật' : 'Lưu Lịch'}
           </Button>
         </div>
       </DialogContent>

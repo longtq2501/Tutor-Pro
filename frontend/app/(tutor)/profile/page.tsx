@@ -248,8 +248,8 @@ export default function ProfilePage() {
     };
 
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 w-full max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+        <div>
+            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 w-full pt-1">
                 {/* Sidebar */}
                 <aside className="lg:w-56 flex-shrink-0">
                     <nav className="space-y-1">
@@ -279,32 +279,32 @@ export default function ProfilePage() {
                 </aside>
 
                 {/* Content */}
-                <main className="flex-1 min-w-0 space-y-10">
+                <main className="flex-1 min-w-0 space-y-6">
                     {activeSection === 'profile' && (
-                        <div className="space-y-10">
+                        <div className="space-y-6">
                             <div>
-                                <h3 className="text-2xl font-bold tracking-tight text-foreground">
+                                <h3 className="text-xl font-bold tracking-tight text-foreground">
                                     Thông tin cá nhân
                                 </h3>
-                                <p className="text-muted-foreground mt-1">
+                                <p className="text-muted-foreground mt-0.5 text-sm">
                                     Quản lý ảnh đại diện và thông tin tài khoản
                                 </p>
                             </div>
 
-                            <div className="border-t border-border/60 pt-8">
-                                <div className="flex flex-col sm:flex-row gap-10 sm:gap-14">
-                                    <div className="flex flex-col items-center sm:items-start space-y-3">
+                            <div className="border-t border-border/60 pt-5">
+                                <div className="flex flex-col sm:flex-row gap-8 sm:gap-10">
+                                    <div className="flex flex-col items-center sm:items-start space-y-2">
                                         <AvatarUpload size="xl" className="ring-2 ring-border/50" />
                                         <div className="text-center sm:text-left">
                                             <p className="text-sm font-semibold text-foreground">Ảnh đại diện</p>
-                                            <p className="text-xs text-muted-foreground mt-0.5 max-w-[220px]">
+                                            <p className="text-xs text-muted-foreground mt-0.5 max-w-[200px]">
                                                 Kéo chỉnh vị trí trong khung tròn rồi lưu
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div className="flex-1 space-y-8">
-                                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+                                    <div className="flex-1 space-y-5">
+                                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                                             {/* Basic Info */}
                                             <div className="space-y-4">
                                                 <div className="space-y-2">
@@ -368,18 +368,18 @@ export default function ProfilePage() {
 
                                             {/* Payment Info Section - Only for TUTOR and ADMIN */}
                                             {user.role !== 'STUDENT' && (
-                                            <div className="border-t border-border/60 pt-8 space-y-6">
+                                            <div className="border-t border-border/60 pt-4 space-y-3.5">
                                                 <div>
-                                                    <h4 className="text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
-                                                        <CreditCard className="h-5 w-5 text-primary" />
+                                                    <h4 className="text-base font-bold tracking-tight text-foreground flex items-center gap-2">
+                                                        <CreditCard className="h-4 w-4 text-primary" />
                                                         Thông tin thanh toán
                                                     </h4>
-                                                    <p className="text-sm text-muted-foreground mt-1">
+                                                    <p className="text-xs text-muted-foreground mt-0.5">
                                                         Thông tin này sẽ được sử dụng để cá nhân hóa báo giá gửi đến học sinh.
                                                     </p>
                                                 </div>
 
-                                                <div className="grid gap-6 sm:grid-cols-2 max-w-2xl xl:max-w-3xl">
+                                                <div className="grid gap-3.5 sm:grid-cols-2 max-w-2xl xl:max-w-3xl">
                                                     <div className="space-y-2">
                                                         <Label htmlFor="bankSelect" className="text-sm font-medium flex items-center gap-2">
                                                             <Building2 className="h-4 w-4 text-muted-foreground" />

@@ -7,7 +7,6 @@ import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/hooks/useQueryKeys';
-import { AnimatePresence, motion } from 'framer-motion';
 import { CategoryFormModal } from './CategoryFormModal';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -107,73 +106,65 @@ export const CategoryGrid = memo(({
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
-        <AnimatePresence mode="popLayout">
-          {displayCategories.map((cat: Category) => {
-            const code = cat.code;
-            const name = cat.name;
-            const icon = <FileText className="w-6 h-6 lg:w-8 lg:h-8" />;
-            const color = cat.color || '';
-            const count = counts?.[code] || 0;
-            const isDynamic = !!cat.id;
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4 p-1">
+        {displayCategories.map((cat: Category) => {
+          const code = cat.code;
+          const name = cat.name;
+          const icon = <FileText className="w-6 h-6 lg:w-8 lg:h-8" />;
+          const color = cat.color || '';
+          const count = counts?.[code] || 0;
+          const isDynamic = !!cat.id;
 
-            // Fallback gradient if no color set
-            const bgClass = color ? '' : 'bg-gradient-to-r from-blue-500 to-blue-600';
+          // Fallback gradient if no color set
+          const bgClass = color ? '' : 'bg-gradient-to-r from-blue-500 to-blue-600';
 
-            return (
-              <motion.div
-                key={code}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ type: "spring", duration: 0.4 }}
-                className="relative group"
+          return (
+            <div
+              key={code}
+              className="relative group rounded-xl transition-all duration-200 hover:-translate-y-1 hover:shadow-xl"
+            >
+              <button
+                onClick={() => onCategoryClick(code as DocumentCategory)}
+                className={`w-full ${bgClass} text-white rounded-xl p-4 lg:p-6 text-left transition-all`}
+                style={color ? { backgroundColor: color } : {}}
               >
-                <button
-                  onClick={() => onCategoryClick(code as DocumentCategory)}
-                  className={`w-full ${bgClass} text-white rounded-xl p-4 lg:p-6 text-left hover:shadow-lg transition-all transform hover:scale-[1.02] will-change-transform contain-layout`}
-                  style={color ? { backgroundColor: color } : {}}
-                >
-                  <div className="flex items-center justify-between w-full">
-                    <div className="flex items-center gap-2 lg:gap-4 min-w-0 flex-1">
-                      <div className="shrink-0 p-2 lg:p-3 bg-white/20 rounded-xl backdrop-blur-md">
-                        {icon}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-bold text-sm lg:text-lg truncate">{name}</h3>
-                        <p className="text-white/80 text-[10px] lg:text-sm truncate">{count} tài liệu</p>
-                      </div>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2 lg:gap-4 min-w-0 flex-1">
+                    <div className="shrink-0 p-2 lg:p-3 bg-white/20 rounded-xl backdrop-blur-md">
+                      {icon}
                     </div>
-                    <div className="shrink-0 ml-3 bg-white/20 rounded-lg px-2 lg:px-3 py-1">
-                      <span className="text-xs lg:text-sm font-medium">{count}</span>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-bold text-sm lg:text-lg truncate">{name}</h3>
+                      <p className="text-white/80 text-[10px] lg:text-sm truncate">{count} tài liệu</p>
                     </div>
                   </div>
-                </button>
-
-                {isDynamic && !isStudent && (
-                  <div className="absolute top-2 right-2 flex items-center gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                    <button
-                      onClick={(e) => handleEditClick(e, cat)}
-                      className="p-1.5 bg-black/20 hover:bg-black/40 text-white rounded-full transition-colors backdrop-blur-sm"
-                      title="Chỉnh sửa"
-                    >
-                      <Pencil size={14} />
-                    </button>
-                    <button
-                      onClick={(e) => handleDeleteClick(e, cat.id, name)}
-                      className="p-1.5 bg-black/20 hover:bg-red-500/80 text-white rounded-full transition-colors backdrop-blur-sm"
-                      title="Xóa danh mục"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                  <div className="shrink-0 ml-3 bg-white/20 rounded-lg px-2 lg:px-3 py-1">
+                    <span className="text-xs lg:text-sm font-medium">{count}</span>
                   </div>
-                )}
-              </motion.div>
-            );
-          })}
+                </div>
+              </button>
 
-        </AnimatePresence>
+              {isDynamic && !isStudent && (
+                <div className="absolute top-2 right-2 flex items-center gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                  <button
+                    onClick={(e) => handleEditClick(e, cat)}
+                    className="p-1.5 bg-black/20 hover:bg-black/40 text-white rounded-full transition-colors backdrop-blur-sm"
+                    title="Chỉnh sửa"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  <button
+                    onClick={(e) => handleDeleteClick(e, cat.id, name)}
+                    className="p-1.5 bg-black/20 hover:bg-red-500/80 text-white rounded-full transition-colors backdrop-blur-sm"
+                    title="Xóa danh mục"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {hasMoreCategories && (

@@ -1,6 +1,5 @@
 'use client';
 
-import { Card, CardContent } from '@/components/ui/card';
 import { ReportExportButtons } from '@/features/reports/components/ReportExportButtons';
 import { ReportForm } from '@/features/reports/components/ReportForm';
 import { ReportPreview } from '@/features/reports/components/ReportPreview';
@@ -91,63 +90,63 @@ export default function ReportsFeature() {
   }, [loadStudents]);
 
   return (
-    <div className="space-y-4">
+    <div className="bg-transparent flex-1 flex flex-col min-h-0 h-full">
       <DashboardHeader
         title="Báo Cáo"
         subtitle="Tạo và xuất báo cáo tiến độ học sinh theo tháng."
       />
 
-      <Card>
-        <CardContent className="space-y-4">
-          <div data-tour="reports-form">
-            <ReportForm
-              students={students}
-              selectedStudentId={selectedStudentId}
-              monthValue={monthValue}
-              isLoading={loadingReport}
-              onStudentChange={setSelectedStudentId}
-              onMonthChange={setMonthValue}
-              onGenerate={generateReport}
-            />
+      <div className="bg-card rounded-2xl shadow-xl border border-border/40 overflow-hidden flex-1 flex flex-col min-h-0 h-full w-full p-4 sm:p-5">
+        <div data-tour="reports-form" className="shrink-0 mb-4">
+          <ReportForm
+            students={students}
+            selectedStudentId={selectedStudentId}
+            monthValue={monthValue}
+            isLoading={loadingReport}
+            onStudentChange={setSelectedStudentId}
+            onMonthChange={setMonthValue}
+            onGenerate={generateReport}
+          />
+        </div>
+
+        <div className="flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-[1.3fr_0.7fr] gap-4 overflow-y-auto lg:overflow-hidden">
+          <div className="h-auto lg:h-full min-h-0 flex flex-col lg:overflow-y-auto pr-1 custom-scrollbar">
+            {previewData ? (
+              <div data-tour="reports-preview">
+                <ReportPreview data={previewData} />
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-border/60 p-8 text-center text-sm text-muted-foreground flex-1 flex items-center justify-center min-h-[220px]">
+                Chọn học sinh và tháng, sau đó bấm "Tạo báo cáo" để xem preview.
+              </div>
+            )}
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
-            <div>
-              {previewData ? (
-                <div data-tour="reports-preview">
-                  <ReportPreview data={previewData} />
-                </div>
-              ) : (
-                <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-                  Chọn học sinh và tháng, sau đó bấm "Tạo báo cáo" để xem preview.
-                </div>
-              )}
+          <div className="h-auto lg:h-full min-h-0 flex flex-col gap-4 lg:overflow-y-auto pr-1 custom-scrollbar">
+            <div data-tour="reports-comment" className="shrink-0">
+              <TutorCommentBox
+                key={`${selectedStudentId ?? 'none'}-${monthValue}`}
+                value={comment}
+                disabled={!previewData}
+                onChange={setComment}
+                onSave={handleSaveComment}
+              />
             </div>
 
-            <div className="space-y-4">
-              <div data-tour="reports-comment">
-                <TutorCommentBox
-                  key={`${selectedStudentId ?? 'none'}-${monthValue}`}
-                  value={comment}
-                  disabled={!previewData}
-                  onChange={setComment}
-                  onSave={handleSaveComment}
-                />
-              </div>
-
+            <div className="flex-1 min-h-0">
               <SessionFeedbackList feedbacks={previewData?.sessionFeedbacks || []} />
             </div>
           </div>
+        </div>
 
-          <div data-tour="reports-export-actions">
-            <ReportExportButtons
-              disabled={!previewData || !selectedStudentId}
-              studentId={selectedStudentId}
-              data={previewData}
-            />
-          </div>
-        </CardContent>
-      </Card>
+        <div data-tour="reports-export-actions" className="shrink-0 pt-3 mt-4 border-t border-border/40">
+          <ReportExportButtons
+            disabled={!previewData || !selectedStudentId}
+            studentId={selectedStudentId}
+            data={previewData}
+          />
+        </div>
+      </div>
     </div>
   );
 }

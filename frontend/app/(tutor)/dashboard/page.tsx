@@ -25,7 +25,6 @@ import { cn } from '@/lib/utils';
 import AdminDashboard from '@/features/dashboard/admin-dashboard';
 import { StudentViewSkeleton } from '@/features/students/unified-view/components/StudentViewSkeleton';
 import { FinanceViewSkeleton } from '@/features/finance/management/components/FinanceViewSkeleton';
-import { AnimatePresence, motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
 
 
@@ -187,21 +186,18 @@ AppHeader.displayName = 'AppHeader';
 const MainContentSwitcher = React.memo(({ currentView, hasAnyRole }: {
     currentView: View;
     hasAnyRole: (roles: ("ADMIN" | "TUTOR" | "STUDENT")[]) => boolean;
-}) => (
-    <main className={cn(
-        "flex-1 min-w-0 overscroll-none relative bg-background",
-        currentView === 'calendar' ? "flex flex-col h-full min-h-0 overflow-hidden" : "overflow-y-auto"
-    )}>
-        <AnimatePresence mode="wait" initial={false}>
-            <motion.div
+}) => {
+    const isFullHeight = currentView === 'calendar' || currentView === 'documents' || currentView === 'reports';
+
+    return (
+        <main className="flex-1 min-w-0 overscroll-none relative bg-background flex flex-col h-full min-h-0 overflow-hidden">
+            <div
                 key={currentView}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.1, ease: "easeInOut" }}
                 className={cn(
-                    "p-3 sm:p-4 pb-6 sm:pb-8",
-                    currentView === 'calendar' && "flex flex-col flex-1 h-full p-1.5 sm:p-2 pb-1.5 sm:pb-2 min-h-0 overflow-hidden"
+                    "w-full flex-1 min-h-0",
+                    isFullHeight
+                        ? "flex flex-col h-full p-1.5 sm:p-2 pb-1.5 sm:pb-2 overflow-hidden"
+                        : "overflow-y-auto p-3 sm:p-4 pb-6 sm:pb-8"
                 )}
             >
                 {/* Dashboard */}
@@ -224,7 +220,7 @@ const MainContentSwitcher = React.memo(({ currentView, hasAnyRole }: {
                     </section>
                 )}
                 {currentView === 'reports' && hasAnyRole(['TUTOR']) && (
-                    <section data-tour="module-reports">
+                    <section data-tour="module-reports" className="flex-1 flex flex-col h-full min-h-0 overflow-hidden">
                         <ReportsFeature />
                     </section>
                 )}
@@ -272,7 +268,7 @@ const MainContentSwitcher = React.memo(({ currentView, hasAnyRole }: {
                 {/* Other views */}
                 {/* {currentView === 'unpaid' && hasAnyRole(['ADMIN', 'TUTOR']) && <UnpaidSessionsView />} */}
                 {currentView === 'documents' && (
-                    <section data-tour="module-documents">
+                    <section data-tour="module-documents" className="flex-1 flex flex-col h-full min-h-0 overflow-hidden">
                         <DocumentLibrary />
                     </section>
                 )}
@@ -283,10 +279,10 @@ const MainContentSwitcher = React.memo(({ currentView, hasAnyRole }: {
                         <p className="text-muted-foreground">Bạn không có quyền xem trang này</p>
                     </div>
                 )}
-            </motion.div>
-        </AnimatePresence>
-    </main>
-));
+            </div>
+        </main>
+    );
+});
 MainContentSwitcher.displayName = 'MainContentSwitcher';
 
 function AppContent() {

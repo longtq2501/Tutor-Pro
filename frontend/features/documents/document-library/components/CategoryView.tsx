@@ -1,5 +1,4 @@
 import { Upload, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
 import { CATEGORIES } from '../constants';
 import { SearchBar } from './SearchBar';
 import { DocumentList } from './DocumentList';
@@ -41,7 +40,7 @@ export const CategoryView = ({
   const name = categoryInfo?.name || (typeof category === 'object' ? category.name : category);
 
   return (
-    <div className="space-y-4 pb-24 sm:pb-32">
+    <div className="bg-transparent flex-1 flex flex-col min-h-0 h-full">
       <DashboardHeader
         title={name}
         subtitle={`${documents.length} tài liệu`}
@@ -80,49 +79,32 @@ export const CategoryView = ({
         }
       />
 
-      <div className="bg-card rounded-xl shadow-md p-3 lg:p-4 transition-colors border border-border">
-        <SearchBar value={searchQuery} onChange={onSearchChange} />
+      <div className="bg-card rounded-2xl shadow-xl border border-border/40 overflow-hidden flex-1 flex flex-col min-h-0 h-full w-full p-3 sm:p-4 @container">
+        <div className="shrink-0 mb-3">
+          <SearchBar value={searchQuery} onChange={onSearchChange} />
+        </div>
 
-        <div className="mt-2 relative min-h-[400px]">
-          <AnimatePresence>
-            {isLoading ? (
-              <motion.div
-                key="skeleton"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="absolute inset-0 top-0 left-0 w-full"
-              >
-                <DocumentListSkeleton />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="content"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <DocumentList
-                  documents={documents}
-                  searchQuery={searchQuery}
-                  onPreview={onPreview}
-                  onDownload={onDownload}
-                  onDelete={onDelete}
-                  onAddNew={onUpload}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+        <div className="flex-1 min-h-0 overflow-y-auto relative pr-1 custom-scrollbar">
+          {isLoading ? (
+            <DocumentListSkeleton />
+          ) : (
+            <DocumentList
+              documents={documents}
+              searchQuery={searchQuery}
+              onPreview={onPreview}
+              onDownload={onDownload}
+              onDelete={onDelete}
+              onAddNew={onUpload}
+            />
+          )}
         </div>
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-4 mt-8">
+          <div className="shrink-0 flex items-center justify-center gap-4 pt-3 border-t border-border/40 mt-auto">
             <button
               disabled={page === 0}
               onClick={() => setPage(page - 1)}
-              className="p-2 border rounded-full hover:bg-muted disabled:opacity-50"
+              className="p-2 border rounded-full hover:bg-muted disabled:opacity-50 transition-colors"
             >
               <ChevronLeft size={20} />
             </button>
@@ -130,7 +112,7 @@ export const CategoryView = ({
             <button
               disabled={page >= totalPages - 1}
               onClick={() => setPage(page + 1)}
-              className="p-2 border rounded-full hover:bg-muted disabled:opacity-50"
+              className="p-2 border rounded-full hover:bg-muted disabled:opacity-50 transition-colors"
             >
               <ChevronRight size={20} />
             </button>

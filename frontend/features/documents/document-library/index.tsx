@@ -81,7 +81,7 @@ export default function DocumentLibrary() {
 
   if (!selectedCategory) {
     return (
-      <>
+      <div className="bg-transparent flex-1 flex flex-col min-h-0 h-full">
         <DashboardHeader
           title="Kho Tài Liệu Tiếng Anh"
           subtitle="Quản lý tài liệu theo danh mục để dễ tìm kiếm sau này"
@@ -96,11 +96,11 @@ export default function DocumentLibrary() {
           )}
         />
 
-        <div className="space-y-6 pb-20 sm:pb-32">
-          <div data-tour="documents-stats">
+        <div className="flex-1 min-h-0 flex flex-col space-y-4 overflow-y-auto pr-1 custom-scrollbar pb-6">
+          <div data-tour="documents-stats" className="shrink-0">
             <StatsCards stats={stats} />
           </div>
-          <div data-tour="documents-grid">
+          <div data-tour="documents-grid" className="flex-1 min-h-0">
             <CategoryGrid
               categories={categories}
               counts={stats.categoryCounts}
@@ -125,7 +125,7 @@ export default function DocumentLibrary() {
           onOpenChange={setIsCategoryFormOpen}
           initialData={editingCategory}
         />
-      </>
+      </div>
     );
   }
 

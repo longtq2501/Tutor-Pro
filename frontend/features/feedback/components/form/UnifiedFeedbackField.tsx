@@ -131,37 +131,47 @@ export function UnifiedFeedbackField({
 
             {/* Rating Pill Selector (if field has rating) */}
             {ratingField && (
-                <div
-                    role="radiogroup"
-                    aria-label={label}
-                    className="flex flex-wrap items-center gap-1.5 pt-0.5 pb-1"
-                >
-                    {ratings.map((r) => {
-                        const isSelected = currentRating === r;
-                        return (
-                            <button
-                                key={r}
-                                type="button"
-                                role="radio"
-                                aria-checked={isSelected}
-                                aria-pressed={isSelected}
-                                onClick={() =>
-                                    form.setValue(ratingField, r, {
-                                        shouldDirty: true,
-                                        shouldValidate: true,
-                                    })
-                                }
-                                className={cn(
-                                    "text-[12px] px-2.5 py-1 rounded-lg border transition-all select-none font-medium",
-                                    isSelected
-                                        ? "bg-primary text-primary-foreground border-primary font-semibold shadow-sm"
-                                        : "bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground border-border/50"
-                                )}
-                            >
-                                {r}
-                            </button>
-                        );
-                    })}
+                <div data-field={ratingField} className="space-y-1">
+                    <div
+                        role="radiogroup"
+                        aria-label={label}
+                        className={cn(
+                            "flex flex-wrap items-center gap-1.5 pt-0.5 pb-1 rounded-lg transition-colors",
+                            form.formState.errors[ratingField] && "p-1 border border-destructive/40 bg-destructive/5"
+                        )}
+                    >
+                        {ratings.map((r) => {
+                            const isSelected = currentRating === r;
+                            return (
+                                <button
+                                    key={r}
+                                    type="button"
+                                    role="radio"
+                                    aria-checked={isSelected}
+                                    aria-pressed={isSelected}
+                                    onClick={() =>
+                                        form.setValue(ratingField, r, {
+                                            shouldDirty: true,
+                                            shouldValidate: true,
+                                        })
+                                    }
+                                    className={cn(
+                                        "text-[12px] px-2.5 py-1 rounded-lg border transition-all select-none font-medium",
+                                        isSelected
+                                            ? "bg-primary text-primary-foreground border-primary font-semibold shadow-sm"
+                                            : "bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground border-border/50"
+                                    )}
+                                >
+                                    {r}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    {form.formState.errors[ratingField]?.message && (
+                        <p className="text-[11px] font-medium text-destructive">
+                            {String(form.formState.errors[ratingField]?.message)}
+                        </p>
+                    )}
                 </div>
             )}
 
@@ -170,7 +180,7 @@ export function UnifiedFeedbackField({
                 control={form.control}
                 name={commentField}
                 render={({ field }) => (
-                    <FormItem className="space-y-1.5">
+                    <FormItem className="space-y-1.5" data-field={commentField}>
                         <FormControl>
                             <div className="relative">
                                 <Textarea

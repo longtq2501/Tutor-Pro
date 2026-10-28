@@ -161,6 +161,7 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
                                 sessionRecordId={localSession.id}
                                 studentId={localSession.studentId}
                                 studentName={localSession.studentName}
+                                defaultLessonContent={localSession.subject || localSession.notes || undefined}
                             />
                         </div>
                     )}
@@ -211,6 +212,7 @@ export function LessonDetailModal(props: LessonDetailModalProps) {
                                     sessionRecordId={localSession.id}
                                     studentId={localSession.studentId}
                                     studentName={localSession.studentName}
+                                    defaultLessonContent={localSession.subject || localSession.notes || undefined}
                                     onSuccess={() => setMobileFeedbackOpen(false)}
                                 />
                             </div>

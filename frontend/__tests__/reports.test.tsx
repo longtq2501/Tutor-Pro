@@ -20,7 +20,7 @@ describe('ReportForm', () => {
   it('renders student selector and month picker', () => {
     render(
       <ReportForm
-        students={[{ id: 1, name: 'Nguyễn Văn A' } as any]}
+        students={[{ id: 1, name: 'Nguyễn Văn A' } as unknown as import('@/lib/types').Student]}
         selectedStudentId={1}
         monthValue="2026-03"
         isLoading={false}
@@ -37,8 +37,8 @@ describe('ReportForm', () => {
 
   it('disables export button when no data loaded', () => {
     render(<ReportExportButtons disabled={true} studentId={null} data={null} />);
-    expect(screen.getByRole('button', { name: 'Export PDF' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Export PNG (ảnh)' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Xuất PDF' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Xuất ảnh PNG' })).toBeDisabled();
   });
 });
 
@@ -49,7 +49,7 @@ describe('TutorCommentBox', () => {
   });
 
   it('shows saving indicator when typing', async () => {
-    let resolveSave: any = null;
+    let resolveSave: () => void = () => {};
     const onSave = vi.fn().mockImplementation(
       () =>
         new Promise<void>((resolve) => {
@@ -75,7 +75,7 @@ describe('TutorCommentBox', () => {
       { timeout: 1800 },
     );
 
-    resolveSave?.();
+    resolveSave();
 
     await waitFor(() => {
       expect(screen.getByText('Đã lưu ✓')).toBeInTheDocument();

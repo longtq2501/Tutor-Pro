@@ -94,7 +94,7 @@ export function TutorCommentBox({ value, disabled = false, onChange, onSave }: T
         value={value}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
-        placeholder="Nhập nhận xét tổng kết tháng của học sinh..."
+        placeholder="Nhập nhận xét tổng kết tháng..."
         className="min-h-36 rounded-lg border-border/80 bg-background p-3 text-sm font-medium text-foreground shadow-xs focus-visible:ring-primary placeholder:text-muted-foreground/60 transition-all leading-relaxed"
       />
     </div>

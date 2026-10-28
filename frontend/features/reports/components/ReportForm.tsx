@@ -58,7 +58,7 @@ export function ReportForm({
         <div className="space-y-1.5">
           <label className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
             <Calendar className="h-3.5 w-3.5 text-primary" />
-            <span>Tháng báo cáo</span>
+            <span>Tháng</span>
           </label>
           <input
             type="month"

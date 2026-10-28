@@ -198,7 +198,7 @@ export const LiveTeachingLobby: React.FC<LiveTeachingLobbyProps> = ({
                             <div className="bg-muted/30 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <CalendarDays className="w-7 h-7 text-muted-foreground/40" />
                             </div>
-                            <h4 className="text-lg font-bold mb-1.5 text-foreground">Hôm nay không có buổi dạy nào</h4>
+                            <h4 className="text-lg font-bold mb-1.5 text-foreground">Hôm nay không có buổi dạy nào.</h4>
                             <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
                                 {isTutor
                                     ? "Tất cả các buổi học online của hôm nay sẽ xuất hiện tại đây. Bạn có thể chuyển đổi buổi học từ lịch sang Online nếu cần."

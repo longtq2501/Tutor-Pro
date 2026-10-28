@@ -57,7 +57,7 @@ export default function TutorsFeature() {
     };
 
     return (
-        <div className="space-y-6 p-6 w-full">
+        <div className="space-y-6 w-full">
             <DashboardHeader
                 title="Gia sư"
                 subtitle="Quản lý danh sách gia sư trong hệ thống"

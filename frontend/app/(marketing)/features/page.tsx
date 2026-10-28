@@ -5,10 +5,10 @@ import { FEATURES, FEATURE_GROUPS, FeatureGroup } from '@/features/landing/confi
 
 export const metadata: Metadata = {
     title: 'Tất cả tính năng — Tutor Pro',
-    description: 'Khám phá trọn bộ 10 tính năng của Tutor Pro: Lịch dạy, Lớp học, Học phí, Báo cáo AI, Khảo thí và Quản lý học sinh.',
+    description: 'Khám phá trọn bộ 10 tính năng của Tutor Pro: Lịch dạy, Lớp học, Học phí, Báo cáo học tập, Khảo thí và Quản lý học sinh.',
     openGraph: {
         title: 'Tất cả tính năng — Tutor Pro',
-        description: 'Khám phá trọn bộ 10 tính năng của Tutor Pro: Lịch dạy, Lớp học, Học phí, Báo cáo AI, Khảo thí và Quản lý học sinh.',
+        description: 'Khám phá trọn bộ 10 tính năng của Tutor Pro: Lịch dạy, Lớp học, Học phí, Báo cáo học tập, Khảo thí và Quản lý học sinh.',
     },
 };
 

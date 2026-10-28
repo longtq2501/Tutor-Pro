@@ -9,7 +9,6 @@ import { StudentDetailModal } from './components/StudentDetailModal';
 import { UnifiedContactStats, UnifiedContactActions } from './components/UnifiedContactHeader';
 import { useUnifiedView } from './hooks/useUnifiedView';
 import { DashboardHeader } from '@/contexts/UIContext';
-import { useMemo } from 'react';
 
 export default function UnifiedContactManagement() {
     const {
@@ -43,7 +42,7 @@ export default function UnifiedContactManagement() {
     } = useUnifiedView();
 
     return (
-        <div className="p-4 sm:p-6 space-y-6 sm:space-y-8 w-full">
+        <div className="space-y-6 sm:space-y-8 w-full">
             <DashboardHeader
                 title="Học Sinh & Phụ Huynh"
                 subtitle="Quản lý thông tin học sinh và phụ huynh trong hệ thống"

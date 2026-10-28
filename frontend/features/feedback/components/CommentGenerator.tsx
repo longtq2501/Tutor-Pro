@@ -9,13 +9,12 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { RatingSelect } from "./generator/RatingSelect";
 import { TemplateManagerModal } from "./templates/TemplateManagerModal";
 import { SaveTemplateModal } from "./templates/SaveTemplateModal";
 import { useFeedbackTemplates } from "../hooks/useFeedbackTemplates";
 import { FeedbackTemplate } from "../types";
-import { Zap, Bookmark, Settings2, Plus, Sparkles, X, Check } from "lucide-react";
+import { Zap, Bookmark, Settings2, Plus, X, Check } from "lucide-react";
 import {
     Tooltip,
     TooltipContent,
@@ -49,7 +48,7 @@ export interface CommentGeneratorProps {
 
 /**
  * Fast, tutor-friendly comment editor with quick templates and snippet management.
- * Replaces high-latency/unreliable AI generation with instant, customizable personal snippets.
+ * Uses instant, customizable personal snippets for efficient feedback writing.
  */
 export function CommentGenerator({
     form,

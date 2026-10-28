@@ -175,7 +175,7 @@ public class PDFGeneratorService {
         }
         document.add(assessmentTable);
 
-        document.add(new Paragraph("AI FEEDBACK THAM KHẢO")
+        document.add(new Paragraph("NHẬN XÉT CÁC BUỔI HỌC")
             .setFont(getBoldFont())
             .setFontSize(13)
             .setMarginBottom(8));

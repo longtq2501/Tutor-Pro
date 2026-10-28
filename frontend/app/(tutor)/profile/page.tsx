@@ -248,127 +248,126 @@ export default function ProfilePage() {
     };
 
     return (
-        <div>
-            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 w-full pt-1">
-                {/* Sidebar */}
-                <aside className="lg:w-56 flex-shrink-0">
-                    <nav className="space-y-1">
-                        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-3 mb-4">
-                            Cài đặt
-                        </h2>
-                        {SIDEBAR_ITEMS.map((item) => {
-                            const Icon = item.icon;
-                            return (
-                                <button
-                                    key={item.id}
-                                    type="button"
-                                    onClick={() => setActiveSection(item.id)}
-                                    className={cn(
-                                        'w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors',
-                                        activeSection === item.id
-                                            ? 'bg-primary/10 text-primary'
-                                            : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
-                                    )}
-                                >
-                                    <Icon className="h-4 w-4 shrink-0" />
-                                    {item.label}
-                                </button>
-                            );
-                        })}
-                    </nav>
-                </aside>
+        <div className="bg-card rounded-2xl border border-border/60 shadow-xs p-4 sm:p-6 w-full h-full flex flex-col lg:flex-row gap-6 lg:gap-8 overflow-y-auto">
+            {/* Sidebar */}
+            <aside className="lg:w-60 shrink-0 border-b lg:border-b-0 lg:border-r border-border/60 pb-4 lg:pb-0 lg:pr-6">
+                <nav className="space-y-1">
+                    <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-3 mb-3">
+                        Cài đặt
+                    </h2>
+                    {SIDEBAR_ITEMS.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                            <button
+                                key={item.id}
+                                type="button"
+                                onClick={() => setActiveSection(item.id)}
+                                className={cn(
+                                    'w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition-all',
+                                    activeSection === item.id
+                                        ? 'bg-primary/10 text-primary shadow-xs'
+                                        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                                )}
+                            >
+                                <Icon className="h-4 w-4 shrink-0" />
+                                {item.label}
+                            </button>
+                        );
+                    })}
+                </nav>
+            </aside>
 
-                {/* Content */}
-                <main className="flex-1 min-w-0 space-y-6">
-                    {activeSection === 'profile' && (
-                        <div className="space-y-6">
-                            <div>
-                                <h3 className="text-xl font-bold tracking-tight text-foreground">
-                                    Thông tin cá nhân
-                                </h3>
-                                <p className="text-muted-foreground mt-0.5 text-sm">
-                                    Quản lý ảnh đại diện và thông tin tài khoản
-                                </p>
-                            </div>
+            {/* Content */}
+            <main className="flex-1 min-w-0 space-y-6">
+                {activeSection === 'profile' && (
+                    <div className="space-y-6">
+                        <div>
+                            <h3 className="text-xl font-bold tracking-tight text-foreground">
+                                Thông tin cá nhân
+                            </h3>
+                            <p className="text-muted-foreground mt-0.5 text-sm">
+                                Quản lý ảnh đại diện và thông tin tài khoản
+                            </p>
+                        </div>
 
-                            <div className="border-t border-border/60 pt-5">
-                                <div className="flex flex-col sm:flex-row gap-8 sm:gap-10">
-                                    <div className="flex flex-col items-center sm:items-start space-y-2">
-                                        <AvatarUpload size="xl" className="ring-2 ring-border/50" />
-                                        <div className="text-center sm:text-left">
-                                            <p className="text-sm font-semibold text-foreground">Ảnh đại diện</p>
-                                            <p className="text-xs text-muted-foreground mt-0.5 max-w-[200px]">
-                                                Kéo chỉnh vị trí trong khung tròn rồi lưu
-                                            </p>
-                                        </div>
+                        <div className="border-t border-border/60 pt-5">
+                            <div className="flex flex-col md:flex-row gap-8 md:gap-10 items-start w-full">
+                                <div className="flex flex-col items-center md:items-start space-y-2 shrink-0">
+                                    <AvatarUpload size="xl" className="ring-2 ring-border/50 shadow-sm" />
+                                    <div className="text-center md:text-left">
+                                        <p className="text-sm font-bold text-foreground">Ảnh đại diện</p>
+                                        <p className="text-xs text-muted-foreground mt-0.5 max-w-[200px]">
+                                            Kéo chỉnh vị trí trong khung tròn rồi lưu
+                                        </p>
                                     </div>
+                                </div>
 
-                                    <div className="flex-1 space-y-5">
-                                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-                                            {/* Basic Info */}
-                                            <div className="space-y-4">
+                                <div className="flex-1 min-w-0 w-full space-y-6">
+                                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 w-full">
+                                        {/* Basic Info */}
+                                        <div className="grid gap-4 sm:grid-cols-2 w-full">
+                                            <div className="sm:col-span-2 space-y-2">
+                                                <Label htmlFor="fullName" className="text-sm font-semibold flex items-center gap-2">
+                                                    <User className="h-4 w-4 text-primary" />
+                                                    Họ và tên
+                                                </Label>
+                                                <Input
+                                                    id="fullName"
+                                                    {...register('fullName')}
+                                                    placeholder="Nhập họ và tên của bạn"
+                                                    className={cn(
+                                                        'h-11 w-full rounded-xl',
+                                                        errors.fullName && 'border-destructive focus-visible:ring-destructive'
+                                                    )}
+                                                    disabled={isSaving}
+                                                />
+                                                {errors.fullName && (
+                                                    <p className="text-xs font-medium text-destructive mt-1">
+                                                        {errors.fullName.message}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Account Info Read-only */}
+                                        <div className="border-t border-border/50 pt-5 space-y-3">
+                                            <h4 className="text-sm font-bold text-foreground">Thông tin đăng nhập</h4>
+                                            <div className="grid gap-4 sm:grid-cols-2 w-full">
                                                 <div className="space-y-2">
-                                                    <Label htmlFor="fullName" className="text-sm font-medium flex items-center gap-2">
-                                                        <User className="h-4 w-4 text-muted-foreground" />
-                                                        Họ và tên
+                                                    <Label className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                                                        <Mail className="h-4 w-4 text-muted-foreground" />
+                                                        Email
                                                     </Label>
-                                                    <Input
-                                                        id="fullName"
-                                                        {...register('fullName')}
-                                                        placeholder="Nhập họ và tên của bạn"
-                                                        className={cn(
-                                                            'h-11 w-full max-w-md xl:max-w-lg',
-                                                            errors.fullName && 'border-destructive focus-visible:ring-destructive'
-                                                        )}
-                                                        disabled={isSaving}
-                                                    />
-                                                    {errors.fullName && (
-                                                        <p className="text-xs font-medium text-destructive mt-1">
-                                                            {errors.fullName.message}
-                                                        </p>
-                                                    )}
+                                                    <p className="px-3.5 py-2.5 rounded-xl bg-muted/40 border border-border/50 text-foreground font-semibold text-sm truncate">
+                                                        {user.email}
+                                                    </p>
                                                 </div>
-                                            </div>
-
-                                            {/* Account Info Read-only */}
-                                            <div className="border-t border-border/40 pt-6 space-y-4">
-                                                <h4 className="text-sm font-semibold text-foreground">Thông tin đăng nhập</h4>
-                                                <div className="grid gap-4 sm:grid-cols-2 w-full max-w-xl xl:max-w-2xl">
-                                                    <div className="space-y-2">
-                                                        <Label className="text-sm text-muted-foreground flex items-center gap-2">
-                                                            <Mail className="h-4 w-4" />
-                                                            Email
+                                                <div className="space-y-2">
+                                                    <Label className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                                                        <Shield className="h-4 w-4 text-muted-foreground" />
+                                                        Vai trò
+                                                    </Label>
+                                                    <p className="px-3.5 py-2.5 rounded-xl bg-muted/40 border border-border/50 text-foreground font-semibold text-sm capitalize">
+                                                        {user.role}
+                                                    </p>
+                                                </div>
+                                                {user.studentId && (
+                                                    <div className="space-y-2 sm:col-span-2">
+                                                        <Label className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                                                            <Hash className="h-4 w-4 text-muted-foreground" />
+                                                            Mã học sinh
                                                         </Label>
-                                                        <p className="px-3 py-2 rounded-md bg-muted/40 text-foreground font-medium text-sm">
-                                                            {user.email}
+                                                        <p className="px-3.5 py-2.5 rounded-xl bg-muted/40 border border-border/50 text-foreground font-semibold text-sm">
+                                                            #{user.studentId}
                                                         </p>
                                                     </div>
-                                                    <div className="space-y-2">
-                                                        <Label className="text-sm text-muted-foreground flex items-center gap-2">
-                                                            <Shield className="h-4 w-4" />
-                                                            Vai trò
-                                                        </Label>
-                                                        <p className="px-3 py-2 rounded-md bg-muted/40 text-foreground font-medium text-sm capitalize">
-                                                            {user.role}
-                                                        </p>
-                                                    </div>
-                                                    {user.studentId && (
-                                                        <div className="space-y-2">
-                                                            <Label className="text-sm text-muted-foreground flex items-center gap-2">
-                                                                <Hash className="h-4 w-4" />
-                                                                Mã học sinh
-                                                            </Label>
-                                                            <p className="px-3 py-2 rounded-md bg-muted/40 text-foreground font-medium text-sm">
-                                                                #{user.studentId}
-                                                            </p>
-                                                        </div>
-                                                    )}
-                                                </div>
+                                                )}
                                             </div>
+                                        </div>
 
-                                            {/* Payment Info Section - Only for TUTOR and ADMIN */}
-                                            {user.role !== 'STUDENT' && (
-                                            <div className="border-t border-border/60 pt-4 space-y-3.5">
+                                        {/* Payment Info Section - Only for TUTOR and ADMIN */}
+                                        {user.role !== 'STUDENT' && (
+                                            <div className="border-t border-border/50 pt-5 space-y-4">
                                                 <div>
                                                     <h4 className="text-base font-bold tracking-tight text-foreground flex items-center gap-2">
                                                         <CreditCard className="h-4 w-4 text-primary" />
@@ -379,9 +378,9 @@ export default function ProfilePage() {
                                                     </p>
                                                 </div>
 
-                                                <div className="grid gap-3.5 sm:grid-cols-2 max-w-2xl xl:max-w-3xl">
+                                                <div className="grid gap-4 sm:grid-cols-2 w-full">
                                                     <div className="space-y-2">
-                                                        <Label htmlFor="bankSelect" className="text-sm font-medium flex items-center gap-2">
+                                                        <Label htmlFor="bankSelect" className="text-sm font-semibold flex items-center gap-2">
                                                             <Building2 className="h-4 w-4 text-muted-foreground" />
                                                             Chọn ngân hàng
                                                         </Label>
@@ -397,7 +396,7 @@ export default function ProfilePage() {
                                                             disabled={isSaving}
                                                         >
                                                             <SelectTrigger id="bankSelect" className={cn(
-                                                                'h-11',
+                                                                'h-11 rounded-xl',
                                                                 errors.bankCode && 'border-destructive'
                                                             )}>
                                                                 <SelectValue placeholder="Chọn ngân hàng của bạn" />
@@ -406,7 +405,7 @@ export default function ProfilePage() {
                                                                 {VIETNAM_BANKS.map((bank) => (
                                                                     <SelectItem key={bank.code} value={bank.code}>
                                                                         <div className="flex flex-col text-left">
-                                                                            <span className="font-medium">{bank.shortName}</span>
+                                                                            <span className="font-semibold">{bank.shortName}</span>
                                                                             <span className="text-[10px] text-muted-foreground line-clamp-1">{bank.name}</span>
                                                                         </div>
                                                                     </SelectItem>
@@ -421,7 +420,7 @@ export default function ProfilePage() {
                                                     </div>
 
                                                     <div className="space-y-2">
-                                                        <Label htmlFor="accountNumber" className="text-sm font-medium flex items-center gap-2">
+                                                        <Label htmlFor="accountNumber" className="text-sm font-semibold flex items-center gap-2">
                                                             <CreditCard className="h-4 w-4 text-muted-foreground" />
                                                             Số tài khoản
                                                         </Label>
@@ -430,7 +429,7 @@ export default function ProfilePage() {
                                                             {...register('accountNumber')}
                                                             placeholder="Nhập số tài khoản"
                                                             className={cn(
-                                                                'h-11',
+                                                                'h-11 rounded-xl',
                                                                 errors.accountNumber && 'border-destructive focus-visible:ring-destructive'
                                                             )}
                                                             disabled={isSaving}
@@ -443,7 +442,7 @@ export default function ProfilePage() {
                                                     </div>
 
                                                     <div className="sm:col-span-2 space-y-2">
-                                                        <Label htmlFor="accountName" className="text-sm font-medium flex items-center gap-2">
+                                                        <Label htmlFor="accountName" className="text-sm font-semibold flex items-center gap-2">
                                                             <User className="h-4 w-4 text-muted-foreground" />
                                                             Tên chủ tài khoản
                                                         </Label>
@@ -456,7 +455,7 @@ export default function ProfilePage() {
                                                             })}
                                                             placeholder="Nhập tên chủ tài khoản (viết hoa không dấu)"
                                                             className={cn(
-                                                                'h-11',
+                                                                'h-11 rounded-xl',
                                                                 errors.accountName && 'border-destructive focus-visible:ring-destructive'
                                                             )}
                                                             disabled={isSaving}
@@ -469,70 +468,69 @@ export default function ProfilePage() {
                                                     </div>
                                                 </div>
                                             </div>
-                                            )}
+                                        )}
 
-                                            <div className="pt-4">
-                                                <Button
-                                                    type="submit"
-                                                    className="h-11 px-8 font-medium"
-                                                    disabled={isSaving}
-                                                >
-                                                    {isSaving ? (
-                                                        <>
-                                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                            Đang lưu...
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Save className="mr-2 h-4 w-4" />
-                                                            Lưu thay đổi
-                                                        </>
-                                                    )}
-                                                </Button>
-                                            </div>
-                                        </form>
-                                    </div>
+                                        <div className="pt-2">
+                                            <Button
+                                                type="submit"
+                                                className="h-11 px-8 rounded-xl font-bold shadow-sm"
+                                                disabled={isSaving}
+                                            >
+                                                {isSaving ? (
+                                                    <>
+                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                        Đang lưu...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Save className="mr-2 h-4 w-4" />
+                                                        Lưu thay đổi
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         </div>
-                    )}
+                    </div>
+                )}
 
-                    {activeSection === 'password' && (
-                        <div className="space-y-10">
-                            <div>
-                                <h3 className="text-2xl font-bold tracking-tight text-foreground">
-                                    Đổi mật khẩu
-                                </h3>
-                                <p className="text-muted-foreground mt-1">
-                                    Cập nhật mật khẩu đăng nhập của bạn
-                                </p>
-                            </div>
-                            <div className="border-t border-border/60 pt-8">
-                                <PasswordChangeForm
-                                    onSubmit={handlePasswordChange}
-                                    isLoading={isChangingPassword}
-                                />
-                            </div>
+                {activeSection === 'password' && (
+                    <div className="space-y-10">
+                        <div>
+                            <h3 className="text-2xl font-bold tracking-tight text-foreground">
+                                Đổi mật khẩu
+                            </h3>
+                            <p className="text-muted-foreground mt-1">
+                                Cập nhật mật khẩu đăng nhập của bạn
+                            </p>
                         </div>
-                    )}
+                        <div className="border-t border-border/60 pt-8">
+                            <PasswordChangeForm
+                                onSubmit={handlePasswordChange}
+                                isLoading={isChangingPassword}
+                            />
+                        </div>
+                    </div>
+                )}
 
-                    {activeSection === 'notifications' && (
-                        <div className="space-y-10">
-                            <div>
-                                <h3 className="text-2xl font-bold tracking-tight text-foreground">
-                                    Thông báo
-                                </h3>
-                                <p className="text-muted-foreground mt-1">
-                                    Tùy chọn nhận thông báo (tính năng đang phát triển)
-                                </p>
-                            </div>
-                            <div className="border-t border-border/60 pt-8">
-                                <p className="text-sm text-muted-foreground">Cài đặt thông báo sẽ được bổ sung sau.</p>
-                            </div>
+                {activeSection === 'notifications' && (
+                    <div className="space-y-10">
+                        <div>
+                            <h3 className="text-2xl font-bold tracking-tight text-foreground">
+                                Thông báo
+                            </h3>
+                            <p className="text-muted-foreground mt-1">
+                                Tùy chọn nhận thông báo (tính năng đang phát triển)
+                            </p>
                         </div>
-                    )}
-                </main>
-            </div>
+                        <div className="border-t border-border/60 pt-8">
+                            <p className="text-sm text-muted-foreground">Cài đặt thông báo sẽ được bổ sung sau.</p>
+                        </div>
+                    </div>
+                )}
+            </main>
         </div>
     );
 }

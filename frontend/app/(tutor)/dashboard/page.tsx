@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
+import { AnimatePresence, motion } from 'framer-motion';
 
 // ============================================================================
 // FEATURE-BASED IMPORTS (All refactored)
@@ -187,99 +188,110 @@ const MainContentSwitcher = React.memo(({ currentView, hasAnyRole }: {
     currentView: View;
     hasAnyRole: (roles: ("ADMIN" | "TUTOR" | "STUDENT")[]) => boolean;
 }) => {
-    const isFullHeight = currentView === 'calendar' || currentView === 'documents' || currentView === 'reports';
+    // "Panel" modules: fill height, no outer padding (they manage their own)
+    const isPanelModule = (
+        currentView === 'calendar' ||
+        currentView === 'documents' ||
+        currentView === 'reports' ||
+        currentView === 'settings' ||
+        currentView === 'lessons' ||
+        currentView === 'live-room'
+    );
 
     return (
         <main className="flex-1 min-w-0 overscroll-none relative bg-background flex flex-col h-full min-h-0 overflow-hidden">
-            <div
-                key={currentView}
-                className={cn(
-                    "w-full flex-1 min-h-0",
-                    isFullHeight
-                        ? "flex flex-col h-full p-1.5 sm:p-2 pb-1.5 sm:pb-2 overflow-hidden"
-                        : "overflow-y-auto p-3 sm:p-4 pb-6 sm:pb-8"
-                )}
-            >
-                {/* Dashboard */}
-                {currentView === 'dashboard' && hasAnyRole(['ADMIN', 'TUTOR']) && (
-                    <section data-tour="module-dashboard">
-                        <AdminDashboard />
-                    </section>
-                )}
-                {currentView === 'dashboard' && hasAnyRole(['STUDENT']) && <StudentDashboard />}
+            <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                    key={currentView}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15, ease: 'easeInOut' }}
+                    className={cn(
+                        "w-full flex-1 min-h-0",
+                        isPanelModule
+                            ? "flex flex-col h-full p-3 sm:p-4 overflow-hidden"
+                            : "overflow-y-auto p-3 sm:p-4 pb-8"
+                    )}
+                >
+                    {/* Dashboard */}
+                    {currentView === 'dashboard' && hasAnyRole(['ADMIN', 'TUTOR']) && (
+                        <section data-tour="module-dashboard">
+                            <AdminDashboard />
+                        </section>
+                    )}
+                    {currentView === 'dashboard' && hasAnyRole(['STUDENT']) && <StudentDashboard />}
 
-                {/* All feature-based views */}
-                {(currentView === 'students' || currentView === 'parents') && hasAnyRole(['ADMIN', 'TUTOR']) && (
-                    <section data-tour="module-students">
-                        <UnifiedStudentView />
-                    </section>
-                )}
-                {(currentView === 'finance' || currentView === 'monthly') && hasAnyRole(['ADMIN', 'TUTOR']) && (
-                    <section data-tour="module-finance">
-                        <FinanceDashboard />
-                    </section>
-                )}
-                {currentView === 'reports' && hasAnyRole(['TUTOR']) && (
-                    <section data-tour="module-reports" className="flex-1 flex flex-col h-full min-h-0 overflow-hidden">
-                        <ReportsFeature />
-                    </section>
-                )}
-                {/* {currentView === 'monthly' && hasAnyRole(['ADMIN', 'TUTOR']) && <MonthlyView />} */}
-                {currentView === 'calendar' && hasAnyRole(['ADMIN', 'TUTOR']) && (
-                    <section data-tour="module-calendar" className="flex-1 flex flex-col h-full min-h-0 overflow-hidden">
-                        <CalendarView />
-                    </section>
-                )}
+                    {/* All feature-based views */}
+                    {(currentView === 'students' || currentView === 'parents') && hasAnyRole(['ADMIN', 'TUTOR']) && (
+                        <section data-tour="module-students">
+                            <UnifiedStudentView />
+                        </section>
+                    )}
+                    {(currentView === 'finance' || currentView === 'monthly') && hasAnyRole(['ADMIN', 'TUTOR']) && (
+                        <section data-tour="module-finance">
+                            <FinanceDashboard />
+                        </section>
+                    )}
+                    {currentView === 'reports' && hasAnyRole(['TUTOR']) && (
+                        <section data-tour="module-reports" className="flex-1 flex flex-col h-full min-h-0 overflow-hidden">
+                            <ReportsFeature />
+                        </section>
+                    )}
+                    {currentView === 'calendar' && hasAnyRole(['ADMIN', 'TUTOR']) && (
+                        <section data-tour="module-calendar" className="flex-1 flex flex-col h-full min-h-0 overflow-hidden">
+                            <CalendarView />
+                        </section>
+                    )}
 
-                {/* New Exercise Dashboard */}
-                {currentView === 'exercises' && (
-                    <section data-tour="module-exercises">
-                        <ExerciseDashboard />
-                    </section>
-                )}
+                    {/* New Exercise Dashboard */}
+                    {currentView === 'exercises' && (
+                        <section data-tour="module-exercises">
+                            <ExerciseDashboard />
+                        </section>
+                    )}
 
-                {/* Admin/Tutor Lesson Manager */}
-                {currentView === 'lessons' && hasAnyRole(['ADMIN', 'TUTOR']) && (
-                    <section data-tour="module-lessons">
-                        <AdminLessonManager />
-                    </section>
-                )}
-                {/* Tutor Management */}
-                {currentView === 'tutors' && hasAnyRole(['ADMIN']) && <TutorsFeature />}
+                    {/* Admin/Tutor Lesson Manager */}
+                    {currentView === 'lessons' && hasAnyRole(['ADMIN', 'TUTOR']) && (
+                        <section data-tour="module-lessons" className="flex-1 flex flex-col h-full min-h-0 overflow-hidden">
+                            <AdminLessonManager />
+                        </section>
+                    )}
+                    {/* Tutor Management */}
+                    {currentView === 'tutors' && hasAnyRole(['ADMIN']) && <TutorsFeature />}
 
-                {/* Live Room */}
-                {currentView === 'live-room' && (
-                    <section data-tour="module-live-room">
-                        <LiveRoomFeature />
-                    </section>
-                )}
+                    {/* Live Room */}
+                    {currentView === 'live-room' && (
+                        <section data-tour="module-live-room" className="flex-1 flex flex-col h-full min-h-0 overflow-hidden">
+                            <LiveRoomFeature />
+                        </section>
+                    )}
 
-                {/* Settings */}
-                {currentView === 'settings' && (
-                    <section data-tour="module-settings">
-                        <SettingsView />
-                    </section>
-                )}
+                    {/* Settings */}
+                    {currentView === 'settings' && (
+                        <section data-tour="module-settings" className="flex-1 flex flex-col h-full min-h-0 overflow-hidden">
+                            <SettingsView />
+                        </section>
+                    )}
 
-                {/* Student Lesson View */}
-                {currentView === 'lessons' && hasAnyRole(['STUDENT']) && <LessonViewWrapper />}
+                    {/* Student Lesson View */}
+                    {currentView === 'lessons' && hasAnyRole(['STUDENT']) && <LessonViewWrapper />}
 
+                    {/* Other views */}
+                    {currentView === 'documents' && (
+                        <section data-tour="module-documents" className="flex-1 flex flex-col h-full min-h-0 overflow-hidden">
+                            <DocumentLibrary />
+                        </section>
+                    )}
 
-                {/* Other views */}
-                {/* {currentView === 'unpaid' && hasAnyRole(['ADMIN', 'TUTOR']) && <UnpaidSessionsView />} */}
-                {currentView === 'documents' && (
-                    <section data-tour="module-documents" className="flex-1 flex flex-col h-full min-h-0 overflow-hidden">
-                        <DocumentLibrary />
-                    </section>
-                )}
-
-                {/* Fallback */}
-                {currentView === 'dashboard' && !hasAnyRole(['ADMIN', 'TUTOR', 'STUDENT']) && (
-                    <div className="text-center py-20">
-                        <p className="text-muted-foreground">Bạn không có quyền xem trang này</p>
-                    </div>
-                )}
-            </div>
+                    {/* Fallback */}
+                    {currentView === 'dashboard' && !hasAnyRole(['ADMIN', 'TUTOR', 'STUDENT']) && (
+                        <div className="text-center py-20">
+                            <p className="text-muted-foreground">Bạn không có quyền xem trang này</p>
+                        </div>
+                    )}
+                </motion.div>
+            </AnimatePresence>
         </main>
     );
 });

@@ -8,31 +8,45 @@ import { FeedbackHeader } from "./form/FeedbackHeader";
 import { FeedbackViewMode } from "./form/FeedbackViewMode";
 import { FeedbackFormFields } from "./form/FeedbackFormFields";
 
+import { toast } from "sonner";
+import { FieldErrors } from "react-hook-form";
+import type { FormValues } from "../hooks/useSmartFeedbackForm";
+
 interface SmartFeedbackFormProps {
     sessionRecordId: number;
     studentId: number;
     studentName: string;
+    defaultLessonContent?: string;
     onSuccess?: () => void;
 }
 
 const RATINGS = ["Xuất Sắc", "Giỏi", "Khá", "Trung Bình", "Tệ"];
 
-// P4: Track how many of the 5 key fields are filled (for footer progress)
+// Track how many of the 5 sections/fields are filled
 function countFilledFields(values: ReturnType<typeof useSmartFeedbackForm>['watchedValues']): number {
-    const fields = [
-        values.lessonContent,
-        values.attitudeRating,
-        values.attitudeComment,
-        values.absorptionRating,
-        values.absorptionComment,
+    const isFilled = (val?: string | null) => Boolean(val && String(val).trim().length > 0);
+    
+    const steps = [
+        // 1. Buổi học / Nội dung bài học
+        isFilled(values.lessonContent),
+        // 2. Thái độ học tập (nhận xét hoặc đánh giá)
+        isFilled(values.attitudeComment) || isFilled(values.attitudeRating),
+        // 3. Khả năng tiếp thu (nhận xét hoặc đánh giá)
+        isFilled(values.absorptionComment) || isFilled(values.absorptionRating),
+        // 4. Kiến thức chưa nắm vững
+        isFilled(values.knowledgeGaps),
+        // 5. Lý do / giải pháp
+        isFilled(values.solutions),
     ];
-    return fields.filter(v => v && String(v).trim().length > 0).length;
+
+    return steps.filter(Boolean).length;
 }
 
 export function SmartFeedbackForm({
     sessionRecordId,
     studentId,
     studentName,
+    defaultLessonContent,
     onSuccess,
 }: SmartFeedbackFormProps) {
     const {
@@ -49,10 +63,35 @@ export function SmartFeedbackForm({
     } = useSmartFeedbackForm({
         sessionRecordId,
         studentId,
+        defaultLessonContent,
         onSuccess,
     });
 
     const filledCount = isEditing ? countFilledFields(watchedValues) : 0;
+
+    const handleSave = form.handleSubmit(
+        async (values: FormValues) => {
+            await onSubmit(values);
+        },
+        (errors: FieldErrors<FormValues>) => {
+            const errorMessages = Object.values(errors)
+                .map((err) => (err as any)?.message)
+                .filter(Boolean);
+            const msg = errorMessages[0] || "Vui lòng nhập đầy đủ thông tin nhận xét trước khi lưu.";
+            toast.error(msg);
+
+            // Auto-scroll smoothly to the first error
+            const firstErrorKey = Object.keys(errors)[0];
+            if (firstErrorKey) {
+                const el = document.querySelector(`[data-field="${firstErrorKey}"]`) ||
+                           document.querySelector(`[name="${firstErrorKey}"]`);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    (el as HTMLElement).focus?.();
+                }
+            }
+        }
+    );
 
     return (
         <div className="flex flex-col h-full relative">
@@ -69,7 +108,7 @@ export function SmartFeedbackForm({
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
                 {isEditing ? (
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                        <form onSubmit={handleSave} className="space-y-6">
                             <FeedbackFormFields
                                 form={form}
                                 studentName={studentName}
@@ -109,7 +148,7 @@ export function SmartFeedbackForm({
                     </div>
 
                     <Button
-                        onClick={form.handleSubmit(onSubmit)}
+                        onClick={handleSave}
                         disabled={isSaving}
                         className="h-9 px-5 text-sm font-semibold shadow-lg shadow-emerald-500/20 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl"
                     >

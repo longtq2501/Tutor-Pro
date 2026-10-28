@@ -10,26 +10,44 @@ import { feedbackService } from "../services/feedbackService";
 import { FeedbackStatus } from "../types";
 
 export const formSchema = z.object({
-    lessonContent: z.string().min(1, "Nội dung bài học là bắt buộc"),
-    attitudeRating: z.string().min(1, "Vui lòng chọn đánh giá"),
-    attitudeComment: z.string().min(1, "Vui lòng nhập nhận xét"),
-    absorptionRating: z.string().min(1, "Vui lòng chọn đánh giá"),
-    absorptionComment: z.string().min(1, "Vui lòng nhập nhận xét"),
+    lessonContent: z.string().optional(),
+    attitudeRating: z.string().optional(),
+    attitudeComment: z.string().optional(),
+    absorptionRating: z.string().optional(),
+    absorptionComment: z.string().optional(),
     knowledgeGaps: z.string().optional(),
     solutions: z.string().optional(),
-});
+}).refine(
+    (data) => {
+        return Boolean(
+            data.lessonContent?.trim() ||
+            data.attitudeComment?.trim() ||
+            data.absorptionComment?.trim() ||
+            data.knowledgeGaps?.trim() ||
+            data.solutions?.trim() ||
+            data.attitudeRating ||
+            data.absorptionRating
+        );
+    },
+    {
+        message: "Vui lòng nhập nội dung nhận xét trước khi lưu.",
+        path: ["attitudeComment"],
+    }
+);
 
 export type FormValues = z.infer<typeof formSchema>;
 
 interface UseSmartFeedbackFormProps {
     sessionRecordId: number;
     studentId: number;
+    defaultLessonContent?: string;
     onSuccess?: () => void;
 }
 
 export function useSmartFeedbackForm({
     sessionRecordId,
     studentId,
+    defaultLessonContent,
     onSuccess,
 }: UseSmartFeedbackFormProps) {
     const queryClient = useQueryClient();
@@ -41,10 +59,10 @@ export function useSmartFeedbackForm({
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            lessonContent: "",
-            attitudeRating: "",
+            lessonContent: defaultLessonContent || "",
+            attitudeRating: "Khá",
             attitudeComment: "",
-            absorptionRating: "",
+            absorptionRating: "Khá",
             absorptionComment: "",
             knowledgeGaps: "",
             solutions: "",
@@ -62,11 +80,11 @@ export function useSmartFeedbackForm({
             setExistingFeedbackId(existing.id);
             setHasData(true);
             form.reset({
-                lessonContent: existing.lessonContent,
-                attitudeRating: existing.attitudeRating,
-                attitudeComment: existing.attitudeComment,
-                absorptionRating: existing.absorptionRating,
-                absorptionComment: existing.absorptionComment,
+                lessonContent: existing.lessonContent || defaultLessonContent || "",
+                attitudeRating: existing.attitudeRating || "Khá",
+                attitudeComment: existing.attitudeComment || "",
+                absorptionRating: existing.absorptionRating || "Khá",
+                absorptionComment: existing.absorptionComment || "",
                 knowledgeGaps: existing.knowledgeGaps || "",
                 solutions: existing.solutions || "",
             });
@@ -74,16 +92,16 @@ export function useSmartFeedbackForm({
             setExistingFeedbackId(null);
             setHasData(false);
             form.reset({
-                lessonContent: "",
-                attitudeRating: "",
+                lessonContent: defaultLessonContent || "",
+                attitudeRating: "Khá",
                 attitudeComment: "",
-                absorptionRating: "",
+                absorptionRating: "Khá",
                 absorptionComment: "",
                 knowledgeGaps: "",
                 solutions: "",
             });
         }
-    }, [existing, form]);
+    }, [existing, defaultLessonContent, form]);
 
     const onSubmit = async (values: FormValues) => {
         setIsSaving(true);
@@ -91,7 +109,11 @@ export function useSmartFeedbackForm({
             const payload = {
                 sessionRecordId,
                 studentId,
-                ...values,
+                lessonContent: values.lessonContent?.trim() || defaultLessonContent || "Ôn tập kiến thức và rèn luyện kỹ năng",
+                attitudeRating: values.attitudeRating || "Khá",
+                attitudeComment: values.attitudeComment || "",
+                absorptionRating: values.absorptionRating || "Khá",
+                absorptionComment: values.absorptionComment || "",
                 knowledgeGaps: values.knowledgeGaps || "",
                 solutions: values.solutions || "",
                 status: FeedbackStatus.SUBMITTED

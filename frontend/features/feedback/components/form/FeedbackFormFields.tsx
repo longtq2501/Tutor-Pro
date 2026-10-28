@@ -23,10 +23,10 @@ export function FeedbackFormFields({
     ratings = ["Xuất Sắc", "Giỏi", "Khá", "Trung Bình", "Tệ"],
 }: FeedbackFormFieldsProps) {
     return (
-        <div className="space-y-6 max-w-4xl mx-auto">
+        <div className="space-y-4 max-w-4xl mx-auto">
             {/* Nhóm 1: Buổi học */}
-            <section className="space-y-3">
-                <h4 className="text-[13px] font-semibold text-muted-foreground pb-1.5 border-b border-border/40">
+            <section className="space-y-2">
+                <h4 className="text-[13px] font-semibold text-muted-foreground pb-1 border-b border-border/40">
                     Buổi học
                 </h4>
                 <UnifiedFeedbackField
@@ -39,12 +39,12 @@ export function FeedbackFormFields({
             </section>
 
             {/* Nhóm 2: Đánh giá */}
-            <section className="space-y-3">
-                <h4 className="text-[13px] font-semibold text-muted-foreground pb-1.5 border-b border-border/40">
+            <section className="space-y-2">
+                <h4 className="text-[13px] font-semibold text-muted-foreground pb-1 border-b border-border/40">
                     Đánh giá
                 </h4>
                 {/* Side-by-side on desktop, vertical on mobile */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <UnifiedFeedbackField
                         form={form}
                         label="Thái độ học tập"
@@ -68,11 +68,11 @@ export function FeedbackFormFields({
             </section>
 
             {/* Nhóm 3: Cần cải thiện */}
-            <section className="space-y-3">
-                <h4 className="text-[13px] font-semibold text-muted-foreground pb-1.5 border-b border-border/40">
+            <section className="space-y-2">
+                <h4 className="text-[13px] font-semibold text-muted-foreground pb-1 border-b border-border/40">
                     Cần cải thiện
                 </h4>
-                <div className="space-y-5">
+                <div className="space-y-4">
                     <UnifiedFeedbackField
                         form={form}
                         label="Kiến thức chưa nắm vững"

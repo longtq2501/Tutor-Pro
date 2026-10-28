@@ -46,7 +46,7 @@ export interface SessionFeedbackResponse {
 }
 
 /**
- * Parameters for the AI Comment Generation API.
+ * Parameters for the Comment Generation request (legacy endpoint, kept for compatibility).
  */
 export interface GenerateCommentRequest {
     category: 'ATTITUDE' | 'ABSORPTION' | 'GAPS' | 'SOLUTIONS';

@@ -6,7 +6,6 @@ import { exerciseService } from '@/features/exercise-import/services/exerciseSer
 import { ExerciseListItemResponse, TutorStudentSummaryResponse } from '@/features/exercise-import/types/exercise.types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import {
     ArrowLeft,
     Clock,
@@ -23,6 +22,7 @@ import { PerformanceSection } from './PerformanceSection';
 import { toast } from 'sonner';
 import { useConfirm } from '@/hooks/useConfirm';
 import axios from 'axios';
+import { getStudentGradeBadge } from './TutorStudentCard';
 
 interface StudentDetailViewProps {
     studentSummary: TutorStudentSummaryResponse;
@@ -234,13 +234,19 @@ const StudentProfileHeader = ({
                             <h1 className="text-2xl font-bold tracking-tight text-foreground truncate">
                                 {studentSummary.studentName}
                             </h1>
-                            <div className="flex flex-wrap items-center gap-3 text-muted-foreground font-medium text-xs">
-                                {/* FB-11/FB-15: only render the class badge when there is actual data */}
-                                {studentSummary.grade && (
-                                    <Badge variant="secondary" className="px-2.5 py-0.5 bg-primary/5 text-primary border-primary/20 text-xs rounded-md font-semibold">
-                                        {studentSummary.grade}
-                                    </Badge>
-                                )}
+                            <div className="flex flex-wrap items-center gap-2.5 text-muted-foreground font-medium text-xs">
+                                {(() => {
+                                    const badgeInfo = getStudentGradeBadge(studentSummary.grade);
+                                    if (!badgeInfo) return null;
+                                    return (
+                                        <span className={cn(
+                                            "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border",
+                                            badgeInfo.className
+                                        )}>
+                                            {badgeInfo.label}
+                                        </span>
+                                    );
+                                })()}
                                 <span className="flex items-center gap-1.5 bg-muted/60 px-2.5 py-1 rounded-md text-xs font-medium">
                                     <FileText className="h-3.5 w-3.5 text-primary/70" /> {totalAssigned} Bài tập &amp; Tài liệu
                                 </span>

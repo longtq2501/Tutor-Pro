@@ -67,28 +67,29 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-4">
+        <div className="landing-page min-h-screen flex items-center justify-center bg-[var(--bg)] text-[var(--ink)] lp-grid-bg p-4 relative overflow-hidden transition-colors duration-300">
+            {/* Ambient background glow accents matching brand */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-20 -right-40 w-96 h-96 bg-purple-500/10 dark:bg-purple-500/20 rounded-full blur-3xl" />
-                <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-3xl" />
+                <div className="absolute top-1/4 -right-20 w-80 h-80 bg-[var(--acc)]/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-[var(--brand)]/15 rounded-full blur-3xl pointer-events-none" />
             </div>
 
-            <Card className="w-full max-w-md relative z-10 shadow-2xl border-2">
-                <CardHeader className="space-y-4 text-center pb-2">
-                    <div className="mx-auto w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center">
-                        <TutorProLogo collapsed iconClassName="h-12 w-12" />
+            <Card className="w-full max-w-md relative z-10 shadow-2xl border border-[var(--line)] bg-[var(--tile)] rounded-2xl overflow-hidden backdrop-blur-md">
+                <CardHeader className="space-y-3 text-center pb-2 pt-8">
+                    <div className="mx-auto w-14 h-14 bg-[var(--brand)]/10 border border-[var(--brand)]/20 rounded-2xl flex items-center justify-center shadow-xs">
+                        <TutorProLogo collapsed iconClassName="h-10 w-10" />
                     </div>
                     <div>
-                        <CardTitle className="text-3xl font-bold">
+                        <CardTitle className="text-3xl font-extrabold tracking-tight font-[family-name:var(--font-baloo-2)] text-[var(--ink)]">
                             Trở thành Gia sư
                         </CardTitle>
-                        <CardDescription className="text-base mt-2">
+                        <CardDescription className="text-sm mt-1.5 text-[var(--mut)]">
                             Quản lý lớp học và học sinh hiệu quả hơn với Tutor Pro
                         </CardDescription>
                     </div>
                 </CardHeader>
 
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-6 px-6 pb-8">
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {error && (
                             <Alert variant="destructive" className="animate-in fade-in-50">
@@ -97,7 +98,7 @@ export default function RegisterPage() {
                         )}
 
                         <div className="space-y-2">
-                            <Label htmlFor="fullName">Họ và tên</Label>
+                            <Label htmlFor="fullName" className="text-sm font-semibold text-[var(--ink)]">Họ và tên</Label>
                             <Input
                                 id="fullName"
                                 placeholder="Nguyễn Văn A"
@@ -105,12 +106,12 @@ export default function RegisterPage() {
                                 onChange={(e) => setFullName(e.target.value)}
                                 required
                                 disabled={loading}
-                                className="h-11 border-muted-foreground/20 focus:border-primary"
+                                className="h-11 rounded-xl bg-[var(--tile)] border-[var(--line)] text-[var(--ink)] placeholder:text-[var(--mut)]/60 focus-visible:ring-[var(--brand)] transition-all"
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="email" className="text-sm font-semibold text-[var(--ink)]">Email</Label>
                             <Input
                                 id="email"
                                 type="email"
@@ -119,12 +120,12 @@ export default function RegisterPage() {
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                                 disabled={loading}
-                                className="h-11 border-muted-foreground/20 focus:border-primary"
+                                className="h-11 rounded-xl bg-[var(--tile)] border-[var(--line)] text-[var(--ink)] placeholder:text-[var(--mut)]/60 focus-visible:ring-[var(--brand)] transition-all"
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="password">Mật khẩu</Label>
+                            <Label htmlFor="password" className="text-sm font-semibold text-[var(--ink)]">Mật khẩu</Label>
                             <div className="relative">
                                 <Input
                                     id="password"
@@ -134,12 +135,12 @@ export default function RegisterPage() {
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
                                     disabled={loading}
-                                    className="h-11 pr-10 border-muted-foreground/20 focus:border-primary"
+                                    className="h-11 pr-10 rounded-xl bg-[var(--tile)] border-[var(--line)] text-[var(--ink)] placeholder:text-[var(--mut)]/60 focus-visible:ring-[var(--brand)] transition-all"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--mut)] hover:text-[var(--ink)] transition-colors"
                                     disabled={loading}
                                 >
                                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -149,47 +150,47 @@ export default function RegisterPage() {
 
                         <Button
                             type="submit"
-                            className="w-full h-12 text-base font-semibold transition-all hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-primary/20"
+                            className="w-full h-11 text-base font-extrabold rounded-xl bg-[var(--acc)] text-[var(--bi)] hover:brightness-105 active:translate-y-0.5 shadow-md transition-all cursor-pointer border-none flex items-center justify-center gap-2"
                             disabled={loading}
                         >
                             {loading ? (
                                 <>
-                                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     Đang tạo tài khoản...
                                 </>
                             ) : (
                                 <>
-                                    Đăng ký ngay
-                                    <ArrowRight className="ml-2 h-5 w-5" />
+                                    <span>Đăng ký ngay</span>
+                                    <ArrowRight className="h-4 w-4" />
                                 </>
                             )}
                         </Button>
                     </form>
 
-                    <div className="relative">
+                    <div className="relative my-6">
                         <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t border-muted-foreground/20" />
+                            <span className="w-full border-t border-[var(--line)]" />
                         </div>
                         <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-card px-4 text-muted-foreground font-medium">Hoặc</span>
+                            <span className="bg-[var(--tile)] px-3 text-[var(--mut)] font-semibold tracking-wider">Hoặc</span>
                         </div>
                     </div>
 
                     <Button
                         variant="outline"
-                        className="w-full h-12 border-2 hover:bg-muted transition-all flex items-center justify-center gap-3"
+                        className="w-full h-11 rounded-xl border border-[var(--line)] bg-[var(--tile)] text-[var(--ink)] hover:bg-[var(--tile2)] font-semibold shadow-xs transition-all flex items-center justify-center gap-3"
                         disabled={loading}
                         onClick={handleGoogleSignUp}
                     >
-                        <svg className="h-5 w-5" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                        <svg className="h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
                             <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
                         </svg>
                         <span>Đăng ký Gia sư với Google</span>
                     </Button>
 
-                    <div className="text-center text-sm">
-                        <span className="text-muted-foreground">Đã có tài khoản? </span>
-                        <Link href="/login" className="text-primary font-bold hover:underline transition-all">
+                    <div className="mt-6 text-center text-sm">
+                        <span className="text-[var(--mut)]">Đã có tài khoản? </span>
+                        <Link href="/login" className="text-[var(--brand)] font-bold hover:underline transition-all">
                             Đăng nhập
                         </Link>
                     </div>

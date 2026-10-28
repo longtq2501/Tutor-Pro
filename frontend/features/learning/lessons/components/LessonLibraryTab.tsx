@@ -501,30 +501,60 @@ export function LessonLibraryTab() {
 
         {/* Lessons Display */}
         {filteredLessons.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center py-20 bg-muted/30 rounded-3xl border-2 border-dashed"
-          >
-            <div className="max-w-xs mx-auto space-y-4">
-              <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto">
-                <BookOpen className="h-10 w-10 text-muted-foreground/40" />
+          <div className="rounded-2xl border-2 border-dashed border-border/80 dark:border-border/60 bg-muted/20 dark:bg-muted/10 p-8 text-center flex flex-col items-center justify-center min-h-[320px]">
+            {searchQuery ? (
+              /* Search no-results state */
+              <div className="max-w-xs mx-auto space-y-4">
+                <div className="h-16 w-16 rounded-2xl bg-muted border border-border/60 text-muted-foreground flex items-center justify-center mx-auto shadow-xs">
+                  <Search className="h-8 w-8 text-muted-foreground/40" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-base font-bold text-foreground">Không tìm thấy bài giảng</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    Không có kết quả nào cho &quot;{searchQuery}&quot;. Thử tìm kiếm với từ khóa khác.
+                  </p>
+                </div>
               </div>
-              <div className="space-y-1">
-                <h3 className="text-xl font-bold">Không tìm thấy bài giảng</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  {searchQuery
-                    ? `Không có kết quả nào cho &quot;${searchQuery}&quot;. Thử tìm kiếm với từ khóa khác.`
-                    : "Chưa có bài giảng nào trong danh mục này. Hãy bắt đầu bằng cách thêm bài giảng mới."}
+            ) : (
+              /* First-time / empty library guide UI */
+              <>
+                <div className="h-16 w-16 rounded-2xl bg-primary/10 border border-primary/25 text-primary flex items-center justify-center mb-4 shadow-xs">
+                  <BookOpen className="h-8 w-8 text-primary" />
+                </div>
+                <h4 className="text-base sm:text-lg font-bold text-foreground mb-1.5">
+                  Kho bài giảng đang trống
+                </h4>
+                <p className="text-sm text-muted-foreground max-w-md mb-6 leading-relaxed font-medium">
+                  Hãy tạo bài giảng đầu tiên, phân loại theo danh mục và gán cho học sinh để bắt đầu quản lý nội dung giảng dạy.
                 </p>
-              </div>
-              {!searchQuery && (
-                <Button onClick={() => setIsFormOpen(true)} variant="outline" className="rounded-xl">
-                  Thêm bài đầu tiên
+
+                <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-semibold text-muted-foreground mb-6">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-background border border-border/80 shadow-xs">
+                    <span className="h-5 w-5 rounded-full bg-primary/15 text-primary font-bold flex items-center justify-center text-[11px]">1</span>
+                    Bấm &quot;Thêm bài giảng&quot;
+                  </span>
+                  <svg className="h-3.5 w-3.5 text-muted-foreground/60 hidden sm:inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-background border border-border/80 shadow-xs">
+                    <span className="h-5 w-5 rounded-full bg-primary/15 text-primary font-bold flex items-center justify-center text-[11px]">2</span>
+                    Điền nội dung & chọn danh mục
+                  </span>
+                  <svg className="h-3.5 w-3.5 text-muted-foreground/60 hidden sm:inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/30 text-primary font-bold shadow-xs">
+                    <span className="h-5 w-5 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center text-[11px]">3</span>
+                    Gán bài cho học sinh
+                  </span>
+                </div>
+
+                <Button
+                  onClick={() => setIsFormOpen(true)}
+                  className="h-10 px-6 rounded-xl shadow-md shadow-primary/20 bg-gradient-to-r from-primary to-primary/90 hover:scale-[1.02] active:scale-[0.98] transition-all font-semibold"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Thêm bài giảng đầu tiên
                 </Button>
-              )}
-            </div>
-          </motion.div>
+              </>
+            )}
+          </div>
         ) : (
           <div className="space-y-8">
             <AnimatePresence mode="popLayout">
@@ -539,8 +569,8 @@ export function LessonLibraryTab() {
                   {paginatedLessons.map((lesson, idx) => (
                     <motion.div
                       key={lesson.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
                       transition={{ delay: idx * 0.05 }}
                     >
                       <PremiumLessonCard

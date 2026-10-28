@@ -193,11 +193,7 @@ export function CourseManagementTab() {
 
             {/* Content Display */}
             {filteredCourses.length === 0 ? (
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-center py-24 bg-muted/20 rounded-[40px] border-2 border-dashed border-muted-foreground/20"
-                >
+                <div className="text-center py-24 bg-muted/20 rounded-[40px] border-2 border-dashed border-muted-foreground/20">
                     <div className="max-w-md mx-auto space-y-6 px-6">
                         <div className="w-24 h-24 rounded-[32px] bg-background flex items-center justify-center mx-auto shadow-xl ring-1 ring-black/5">
                             <GraduationCap className="h-12 w-12 text-primary/40" />
@@ -216,7 +212,7 @@ export function CourseManagementTab() {
                             </Button>
                         )}
                     </div>
-                </motion.div>
+                </div>
             ) : (
                 <div className="space-y-6">
                     <AnimatePresence mode="popLayout">

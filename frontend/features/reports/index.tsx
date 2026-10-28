@@ -11,6 +11,8 @@ import { DashboardHeader } from '@/contexts/UIContext';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
+import { FileBarChart2, ArrowRight } from 'lucide-react';
+
 function parseMonthValue(monthValue: string): { month: number; year: number } {
   const [year, month] = monthValue.split('-').map(Number);
   return { month, year };
@@ -96,7 +98,7 @@ export default function ReportsFeature() {
         subtitle="Tạo và xuất báo cáo tiến độ học sinh theo tháng."
       />
 
-      <div className="bg-card rounded-2xl shadow-xl border border-border/40 overflow-hidden flex-1 flex flex-col min-h-0 h-full w-full p-4 sm:p-5">
+      <div className="bg-card rounded-2xl shadow-xs border border-border/80 dark:border-border/60 overflow-hidden flex-1 flex flex-col min-h-0 h-full w-full p-4 sm:p-5">
         <div data-tour="reports-form" className="shrink-0 mb-4">
           <ReportForm
             students={students}
@@ -116,8 +118,33 @@ export default function ReportsFeature() {
                 <ReportPreview data={previewData} />
               </div>
             ) : (
-              <div className="rounded-xl border border-dashed border-border/60 p-8 text-center text-sm text-muted-foreground flex-1 flex items-center justify-center min-h-[220px]">
-                Chọn học sinh và tháng, sau đó bấm "Tạo báo cáo" để xem preview.
+              <div className="rounded-2xl border-2 border-dashed border-border/80 dark:border-border/60 bg-muted/20 dark:bg-muted/10 p-8 text-center flex-1 flex flex-col items-center justify-center min-h-[320px]">
+                <div className="h-16 w-16 rounded-2xl bg-primary/10 border border-primary/25 text-primary flex items-center justify-center mb-4 shadow-xs">
+                  <FileBarChart2 className="h-8 w-8 text-primary" />
+                </div>
+                <h4 className="text-base sm:text-lg font-bold text-foreground mb-1.5">
+                  Chưa có dữ liệu bản xem trước
+                </h4>
+                <p className="text-sm text-muted-foreground max-w-md mb-6 leading-relaxed font-medium">
+                  Vui lòng chọn học sinh và tháng ở bộ lọc phía trên, sau đó bấm nút <strong className="text-foreground">&quot;Tạo báo cáo&quot;</strong> để xem tổng hợp kết quả học tập và chuyên cần.
+                </p>
+
+                <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-semibold text-muted-foreground">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-background border border-border/80 shadow-xs">
+                    <span className="h-5 w-5 rounded-full bg-primary/15 text-primary font-bold flex items-center justify-center text-[11px]">1</span>
+                    Chọn học sinh
+                  </span>
+                  <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/60 hidden sm:inline" />
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-background border border-border/80 shadow-xs">
+                    <span className="h-5 w-5 rounded-full bg-primary/15 text-primary font-bold flex items-center justify-center text-[11px]">2</span>
+                    Chọn tháng
+                  </span>
+                  <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/60 hidden sm:inline" />
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/30 text-primary font-bold shadow-xs">
+                    <span className="h-5 w-5 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center text-[11px]">3</span>
+                    Bấm &quot;Tạo báo cáo&quot;
+                  </span>
+                </div>
               </div>
             )}
           </div>
@@ -139,7 +166,7 @@ export default function ReportsFeature() {
           </div>
         </div>
 
-        <div data-tour="reports-export-actions" className="shrink-0 pt-3 mt-4 border-t border-border/40">
+        <div data-tour="reports-export-actions" className="shrink-0 pt-3 mt-4 border-t border-border/60">
           <ReportExportButtons
             disabled={!previewData || !selectedStudentId}
             studentId={selectedStudentId}

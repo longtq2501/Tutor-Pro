@@ -43,9 +43,9 @@ export const STEP_DATA: StepDataItem[] = [
         anchor: 'step-3',
         chipLabel: 'Nhận xét',
         h3: 'Nhận xét buổi học nhanh hơn',
-        desc: 'AI gợi ý nhận xét theo nội dung buổi học, để bạn bớt ngồi nghĩ chữ sau giờ dạy.',
+        desc: 'Gia sư viết nhận xét từng buổi với mẫu câu sẵn có, xuất báo cáo PDF gửi phụ huynh trong vài giây.',
         ticks: [
-            'Gợi ý theo ngữ cảnh từng buổi',
+            'Mẫu nhận xét cá nhân hóa cho từng học sinh',
             'Viết bằng tiếng Việt tự nhiên',
         ],
         featureSlug: 'reports',

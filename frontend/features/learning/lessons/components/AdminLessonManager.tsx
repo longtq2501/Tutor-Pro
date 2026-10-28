@@ -4,7 +4,6 @@ import { useMemo } from 'react';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { LessonLibraryTab } from './LessonLibraryTab';
 import { CourseManagementTab } from '../../courses/components/CourseManagementTab';
-import { motion } from 'framer-motion';
 import { useLessonLibrary } from '../hooks/useLessonLibrary';
 import { useAdminCourses } from '../../courses/hooks/useAdminCourses';
 import { DashboardHeader } from '@/contexts/UIContext';
@@ -25,7 +24,7 @@ export function AdminLessonManager() {
   const { data: courses = [] } = useAdminCourses();
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col h-full min-h-0">
       <Tabs defaultValue="library" className="flex flex-col flex-1 min-h-0">
         <DashboardHeader
           title="Quản Lý Bài Giảng"
@@ -35,27 +34,17 @@ export function AdminLessonManager() {
           }
         />
 
-        <div data-tour="lessons-content" className="flex-1 relative">
-          <TabsContent value="library" className="h-full mt-0 focus-visible:outline-none focus-visible:ring-0">
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="h-full lg:overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6"
-            >
+        <div data-tour="lessons-content" className="flex-1 min-h-0 relative overflow-hidden">
+          <TabsContent value="library" className="h-full mt-0 focus-visible:outline-none focus-visible:ring-0 overflow-y-auto">
+            <div className="pt-3 pb-6 px-1">
               <LessonLibraryTab />
-            </motion.div>
+            </div>
           </TabsContent>
 
-          <TabsContent value="courses" className="h-full mt-0 focus-visible:outline-none focus-visible:ring-0">
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="h-full lg:overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6"
-            >
+          <TabsContent value="courses" className="h-full mt-0 focus-visible:outline-none focus-visible:ring-0 overflow-y-auto">
+            <div className="pt-3 pb-6 px-1">
               <CourseManagementTab />
-            </motion.div>
+            </div>
           </TabsContent>
         </div>
       </Tabs>

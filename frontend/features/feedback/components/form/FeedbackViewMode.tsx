@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Award, BookOpen, FileCheck2, FileText, Pencil, Sparkles } from "lucide-react";
+import { Award, BookOpen, FileCheck2, Pencil, PenLine } from "lucide-react";
 import type { FormValues } from "../../hooks/useSmartFeedbackForm";
 
 interface ReadOnlyFieldProps {
@@ -47,7 +47,7 @@ export function FeedbackViewMode({ values, hasData, onEdit }: FeedbackViewModePr
         return (
             <div className="flex flex-col items-center justify-center text-center py-10 sm:py-14 px-4 h-full min-h-[300px]">
                 <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-4 shadow-2xs">
-                    <Sparkles className="w-7 h-7 sm:w-8 sm:h-8" />
+                    <PenLine className="w-7 h-7 sm:w-8 sm:h-8" />
                 </div>
                 <h4 className="text-base font-bold text-foreground mb-1.5">
                     Chưa có phiếu đánh giá

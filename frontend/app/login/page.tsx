@@ -70,7 +70,7 @@ function LoginForm() {
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email" className="text-sm font-semibold text-[var(--ink)]">Email</Label>
           <Input
             id="email"
             type="email"
@@ -79,12 +79,12 @@ function LoginForm() {
             onChange={(e) => setEmail(e.target.value)}
             required
             disabled={loading}
-            className="h-11"
+            className="h-11 rounded-xl bg-[var(--tile)] border-[var(--line)] text-[var(--ink)] placeholder:text-[var(--mut)]/60 focus-visible:ring-[var(--brand)] transition-all"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password">Mật khẩu</Label>
+          <Label htmlFor="password" className="text-sm font-semibold text-[var(--ink)]">Mật khẩu</Label>
           <div className="relative">
             <Input
               id="password"
@@ -94,12 +94,12 @@ function LoginForm() {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={loading}
-              className="h-11 pr-10"
+              className="h-11 pr-10 rounded-xl bg-[var(--tile)] border-[var(--line)] text-[var(--ink)] placeholder:text-[var(--mut)]/60 focus-visible:ring-[var(--brand)] transition-all"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--mut)] hover:text-[var(--ink)] transition-colors"
               disabled={loading}
             >
               {showPassword ? (
@@ -113,7 +113,7 @@ function LoginForm() {
 
         <Button
           type="submit"
-          className="w-full h-11 text-base font-medium"
+          className="w-full h-11 text-base font-extrabold rounded-xl bg-[var(--acc)] text-[var(--bi)] hover:brightness-105 active:translate-y-0.5 shadow-md transition-all cursor-pointer border-none"
           disabled={loading}
         >
           {loading ? (
@@ -129,16 +129,16 @@ function LoginForm() {
 
       <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
+          <span className="w-full border-t border-[var(--line)]" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-2 text-muted-foreground">Hoặc tiếp tục với</span>
+          <span className="bg-[var(--tile)] px-3 text-[var(--mut)] font-semibold tracking-wider">Hoặc tiếp tục với</span>
         </div>
       </div>
 
       <Button
         variant="outline"
-        className="w-full h-11"
+        className="w-full h-11 rounded-xl border border-[var(--line)] bg-[var(--tile)] text-[var(--ink)] hover:bg-[var(--tile2)] font-semibold shadow-xs transition-all"
         disabled={loading}
         onClick={() => {
           const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -156,44 +156,46 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-4">
-      {/* Animated background elements */}
+    <div className="landing-page min-h-screen flex items-center justify-center bg-[var(--bg)] text-[var(--ink)] lp-grid-bg p-4 relative overflow-hidden transition-colors duration-300">
+      {/* Ambient background glow accents matching brand */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 -right-40 w-96 h-96 bg-purple-500/10 dark:bg-purple-500/20 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 -right-20 w-80 h-80 bg-[var(--acc)]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-[var(--brand)]/15 rounded-full blur-3xl pointer-events-none" />
       </div>
 
-      <Card className="w-full max-w-md relative z-10 shadow-2xl border-2">
-        <CardHeader className="space-y-4 text-center">
-          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center">
-            <TutorProLogo collapsed iconClassName="h-12 w-12" />
+      <Card className="w-full max-w-md relative z-10 shadow-2xl border border-[var(--line)] bg-[var(--tile)] rounded-2xl overflow-hidden backdrop-blur-md">
+        <CardHeader className="space-y-3 text-center pb-4 pt-8">
+          <div className="mx-auto w-14 h-14 bg-[var(--brand)]/10 border border-[var(--brand)]/20 rounded-2xl flex items-center justify-center shadow-xs">
+            <TutorProLogo collapsed iconClassName="h-10 w-10" />
           </div>
           <div>
-            <CardTitle className="text-3xl font-bold">Tutor Pro</CardTitle>
-            <CardDescription className="text-base mt-2">
+            <CardTitle className="text-3xl font-extrabold tracking-tight font-[family-name:var(--font-baloo-2)] text-[var(--ink)]">
+              Tutor Pro
+            </CardTitle>
+            <CardDescription className="text-sm mt-1.5 text-[var(--mut)]">
               Đăng nhập vào hệ thống quản lý
             </CardDescription>
           </div>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="px-6 pb-8">
           <Suspense fallback={
             <div className="flex flex-col items-center justify-center py-8 space-y-4">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground italic">Vui lòng chờ...</p>
+              <Loader2 className="h-8 w-8 animate-spin text-[var(--brand)]" />
+              <p className="text-sm text-[var(--mut)] italic">Vui lòng chờ...</p>
             </div>
           }>
             <LoginForm />
           </Suspense>
 
           <div className="mt-6 text-center text-sm">
-            <span className="text-muted-foreground">Chưa có tài khoản? </span>
-            <Link href="/register" className="text-primary font-bold hover:underline transition-all">
+            <span className="text-[var(--mut)]">Chưa có tài khoản? </span>
+            <Link href="/register" className="text-[var(--brand)] font-bold hover:underline transition-all">
               Đăng ký ngay
             </Link>
           </div>
         </CardContent>
       </Card>
-    </div >
+    </div>
   );
 }

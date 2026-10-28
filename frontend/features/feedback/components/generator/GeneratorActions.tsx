@@ -8,18 +8,18 @@ import { Loader2, Shuffle, Sparkles } from "lucide-react";
  * Interface for GeneratorActions component props.
  */
 interface GeneratorActionsProps {
-    /** Callback to trigger standard AI generation */
+    /** Callback to trigger comment suggestion based on selected keywords */
     onGenerate: () => void;
-    /** Callback to trigger a forced regeneration (bypassing cache) */
+    /** Callback to trigger an alternative suggestion (bypassing cache) */
     onShuffle: () => void;
-    /** Whether the generation process is currently active */
+    /** Whether the suggestion process is currently active */
     isGenerating: boolean;
     /** Whether the buttons should be disabled (e.g., missing rating) */
     disabled: boolean;
 }
 
 /**
- * Action buttons for the AI feedback generator, including standard generation and shuffle.
+ * Action buttons for the feedback suggestion interface, including generate and shuffle.
  */
 export function GeneratorActions({ onGenerate, onShuffle, isGenerating, disabled }: GeneratorActionsProps) {
     return (

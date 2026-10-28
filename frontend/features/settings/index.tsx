@@ -5,14 +5,13 @@ import { DashboardHeader } from '@/contexts/UIContext';
 
 export default function SettingsView() {
   return (
-    <div className="w-full max-w-[90rem] mx-auto">
+    <div className="bg-transparent flex-1 flex flex-col min-h-0 h-full w-full">
       <DashboardHeader
         title="Cài đặt"
         subtitle="Quản lý thông tin cá nhân và cấu hình tài khoản"
       />
 
-      {/* Có thể mở rộng thêm nhiều tab cài đặt khác trong tương lai */}
-      <div data-tour="settings-profile" className="w-full">
+      <div data-tour="settings-profile" className="flex-1 flex flex-col min-h-0 h-full w-full overflow-hidden">
         <ProfilePage />
       </div>
     </div>

@@ -110,7 +110,7 @@ export const LiveTeachingLobby: React.FC<LiveTeachingLobbyProps> = ({
         .sort((a, b) => new Date(a.scheduledStart).getTime() - new Date(b.scheduledStart).getTime());
 
     return (
-        <div className="w-full space-y-16">
+        <div className="w-full flex-1 min-h-0 flex flex-col space-y-6 overflow-y-auto pr-1">
             <DashboardHeader
                 title="Sảnh chờ Lớp học"
                 subtitle={isTutor
@@ -155,7 +155,7 @@ export const LiveTeachingLobby: React.FC<LiveTeachingLobbyProps> = ({
                 }
             />
 
-            <div className="px-4 sm:px-6 lg:px-8">
+            <div className="space-y-6 pb-8">
                 {hasError && (
                     <Alert variant="destructive" className="rounded-2xl mb-8">
                         <AlertCircle className="h-4 w-4" />
@@ -194,12 +194,12 @@ export const LiveTeachingLobby: React.FC<LiveTeachingLobbyProps> = ({
                             ))}
                         </div>
                     ) : (
-                        <div className="bg-muted/10 border-2 border-dashed border-border/60 rounded-[2rem] p-16 text-center">
-                            <div className="bg-muted/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <CalendarDays className="w-8 h-8 text-muted-foreground/40" />
+                        <div className="bg-muted/10 border-2 border-dashed border-border/60 rounded-2xl p-8 sm:p-12 text-center">
+                            <div className="bg-muted/30 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <CalendarDays className="w-7 h-7 text-muted-foreground/40" />
                             </div>
-                            <h4 className="text-xl font-black mb-2 italic">Hôm nay không có buổi dạy nào.</h4>
-                            <p className="text-muted-foreground font-medium max-w-sm mx-auto">
+                            <h4 className="text-lg font-bold mb-1.5 text-foreground">Hôm nay không có buổi dạy nào</h4>
+                            <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
                                 {isTutor
                                     ? "Tất cả các buổi học online của hôm nay sẽ xuất hiện tại đây. Bạn có thể chuyển đổi buổi học từ lịch sang Online nếu cần."
                                     : "Chưa có lịch học online cho hôm nay. Vui lòng liên hệ giáo viên nếu bạn có thắc mắc."}

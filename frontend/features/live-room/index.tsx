@@ -59,7 +59,7 @@ export const LiveRoomFeature = ({ roomId: propRoomId }: { roomId?: string }) => 
     if (!roomId) {
         return (
             <LobbyErrorBoundary>
-                <div data-tour="live-room-lobby">
+                <div data-tour="live-room-lobby" className="flex-1 flex flex-col min-h-0 h-full">
                     <LiveTeachingLobby
                         onJoin={(rid) => router.push(`/live-teaching/${rid}`)}
                         currentUserId={user?.id || 0}

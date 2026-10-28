@@ -37,7 +37,7 @@ const nunito = Nunito({
 export const metadata: Metadata = {
     metadataBase: new URL('https://tutorpro.id.vn'),
     title: 'Tutor Pro — Hệ thống quản lý gia sư 1-1',
-    description: 'Nền tảng quản lý gia sư toàn diện: lịch dạy, tài chính, lớp học trực tuyến, AI feedback. Dùng thử miễn phí.',
+    description: 'Nền tảng quản lý gia sư toàn diện: lịch dạy, tài chính, lớp học trực tuyến, nhận xét tiến độ. Dùng thử miễn phí.',
     keywords: ['gia su', 'quan ly gia su', 'phan mem gia su', 'tutor management'],
     manifest: '/manifest.json',
     icons: {
@@ -95,7 +95,7 @@ export default function RootLayout({
 }) {
     return (
         <html lang="vi" suppressHydrationWarning className="h-full">
-            <body className={`${inter.variable} ${beVietnamPro.variable} ${baloo2.variable} ${nunito.variable} font-sans antialiased h-full min-h-0`}>
+            <body suppressHydrationWarning className={`${inter.variable} ${beVietnamPro.variable} ${baloo2.variable} ${nunito.variable} font-sans antialiased h-full min-h-0`}>
                 <QueryProvider>
                     <AuthProvider>
                         <ThemeProvider

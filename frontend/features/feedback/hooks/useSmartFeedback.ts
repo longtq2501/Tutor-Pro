@@ -35,8 +35,8 @@ const STATIC_KEYWORDS: Record<string, string[]> = {
 };
 
 /**
- * Custom hook to manage the state and logic for AI-powered smart feedback generation.
- * Handles keyword fetching, tag management, and API communication for comment generation.
+ * Custom hook to manage the state and logic for template-based smart feedback entry.
+ * Handles keyword tags and template-driven comment composition for each feedback category.
  */
 export function useSmartFeedback({
     form,

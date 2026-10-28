@@ -114,12 +114,45 @@ export function ReportExportButtons({ disabled, studentId, data }: ReportExportB
   };
 
   return (
-    <div className="flex flex-wrap gap-2">
-      <Button onClick={handleExportPdf} disabled={disabled || exportingPdf || exportingPng}>
-        {exportingPdf ? 'Đang xuất PDF...' : 'Export PDF'}
+    <div className="flex flex-wrap items-center gap-3">
+      <Button
+        onClick={handleExportPdf}
+        disabled={disabled || exportingPdf || exportingPng}
+        className="h-10 px-5 font-bold rounded-lg shadow-sm bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2"
+      >
+        {exportingPdf ? (
+          <>
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+            <span>Đang xuất PDF...</span>
+          </>
+        ) : (
+          <>
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span>Xuất PDF</span>
+          </>
+        )}
       </Button>
-      <Button variant="outline" onClick={handleExportPng} disabled={disabled || exportingPng || exportingPdf}>
-        {exportingPng ? 'Đang xuất PNG...' : 'Export PNG (ảnh)'}
+      <Button
+        variant="outline"
+        onClick={handleExportPng}
+        disabled={disabled || exportingPng || exportingPdf}
+        className="h-10 px-5 font-bold rounded-lg border border-border/80 bg-background hover:bg-muted text-foreground flex items-center gap-2 shadow-xs"
+      >
+        {exportingPng ? (
+          <>
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
+            <span>Đang xuất PNG...</span>
+          </>
+        ) : (
+          <>
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span>Xuất ảnh PNG</span>
+          </>
+        )}
       </Button>
     </div>
   );

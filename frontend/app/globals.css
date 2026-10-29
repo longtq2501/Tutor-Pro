@@ -316,9 +316,43 @@ body {
     @apply text-xl font-bold mb-2 mt-4 border-none;
   }
 
+  /* Prose mặc định cộng thêm margin-top (~1.25em) cho <p> khiến mỗi lần Enter
+     tạo khoảng trống rất lớn. Đặt margin-top = 0 và siết line-height. */
   .lesson-content p,
   .tiptap p {
-    @apply mb-4 leading-8;
+    @apply mb-3 mt-0 leading-7;
+  }
+
+  /* Trong editor: khoảng cách giữa các dòng gõ Enter gọn như Google Docs */
+  .tiptap p {
+    @apply mb-2 leading-6;
+  }
+
+  /* Dòng trống chỉ chiếm đúng 1 dòng (không cộng thêm margin) */
+  .tiptap p:empty,
+  .tiptap p:has(> br.ProseMirror-trailingBreak:only-child) {
+    @apply mb-0;
+  }
+
+  /* Heading trong editor bớt khoảng trống so với trang đọc bài giảng */
+  .tiptap h1 {
+    @apply mb-3 mt-6;
+  }
+
+  .tiptap h2 {
+    @apply mb-3 mt-5;
+  }
+
+  .tiptap h3 {
+    @apply mb-2 mt-5;
+  }
+
+  .tiptap h4 {
+    @apply mb-2 mt-4;
+  }
+
+  .tiptap h5 {
+    @apply mb-1 mt-3;
   }
 
   /* Table Styles - Unified for HTML and Markdown */
@@ -376,6 +410,28 @@ body {
   .lesson-content code,
   .tiptap code {
     @apply text-primary bg-primary/10 rounded-md px-1.5 py-0.5 font-medium before:content-none after:content-none;
+  }
+
+  /* Editor: siết khoảng cách dọc để không phải cuộn quá nhiều khi soạn bài */
+  .tiptap table {
+    @apply my-4;
+  }
+
+  .tiptap .tableWrapper {
+    @apply my-4;
+  }
+
+  .tiptap img {
+    @apply my-6;
+  }
+
+  .tiptap pre {
+    @apply my-4;
+  }
+
+  .tiptap ul,
+  .tiptap ol {
+    @apply mb-4;
   }
 
   /* Alignment Overrides (Essential for Tiptap & Markdown) */

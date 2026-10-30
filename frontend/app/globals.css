@@ -316,9 +316,45 @@ body {
     @apply text-xl font-bold mb-2 mt-4 border-none;
   }
 
+  /* Prose mặc định cộng thêm margin-top (~1.25em) cho <p> khiến mỗi lần Enter
+     tạo khoảng trống rất lớn. Đặt margin-top = 0 và siết margin-bottom/line-height gọn như Google Docs/Notion. */
   .lesson-content p,
   .tiptap p {
-    @apply mb-4 leading-8;
+    margin-top: 0 !important;
+    margin-bottom: 0.25rem !important;
+    line-height: 1.625 !important;
+  }
+
+  /* Dòng trống chỉ chiếm đúng 1 dòng (không cộng thêm margin) */
+  .lesson-content p:empty,
+  .lesson-content p:has(> br:only-child),
+  .tiptap p:empty,
+  .tiptap p:has(> br.ProseMirror-trailingBreak:only-child) {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    min-height: 1.5rem;
+  }
+
+
+  /* Heading trong editor bớt khoảng trống so với trang đọc bài giảng */
+  .tiptap h1 {
+    @apply mb-3 mt-6;
+  }
+
+  .tiptap h2 {
+    @apply mb-3 mt-5;
+  }
+
+  .tiptap h3 {
+    @apply mb-2 mt-5;
+  }
+
+  .tiptap h4 {
+    @apply mb-2 mt-4;
+  }
+
+  .tiptap h5 {
+    @apply mb-1 mt-3;
   }
 
   /* Table Styles - Unified for HTML and Markdown */
@@ -376,6 +412,28 @@ body {
   .lesson-content code,
   .tiptap code {
     @apply text-primary bg-primary/10 rounded-md px-1.5 py-0.5 font-medium before:content-none after:content-none;
+  }
+
+  /* Editor: siết khoảng cách dọc để không phải cuộn quá nhiều khi soạn bài */
+  .tiptap table {
+    @apply my-4;
+  }
+
+  .tiptap .tableWrapper {
+    @apply my-4;
+  }
+
+  .tiptap img {
+    @apply my-6;
+  }
+
+  .tiptap pre {
+    @apply my-4;
+  }
+
+  .tiptap ul,
+  .tiptap ol {
+    @apply mb-4;
   }
 
   /* Alignment Overrides (Essential for Tiptap & Markdown) */
@@ -2679,4 +2737,21 @@ html.light .landing-page .lp-grid-bg--band {
   .lp-mega-chevron[data-open="true"] {
     transform: none !important;
   }
+}
+
+/* Tiptap editor & lesson content compact spacing on Enter (overrides typography layer) */
+.tiptap p,
+.lesson-content p {
+  margin-top: 0 !important;
+  margin-bottom: 0.25rem !important;
+  line-height: 1.625 !important;
+}
+
+.tiptap p:empty,
+.tiptap p:has(> br.ProseMirror-trailingBreak:only-child),
+.lesson-content p:empty,
+.lesson-content p:has(> br:only-child) {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  min-height: 1.5rem;
 }

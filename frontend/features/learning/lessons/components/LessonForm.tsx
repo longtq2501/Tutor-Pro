@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import {
@@ -16,7 +17,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -25,17 +25,23 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import { DatePicker } from '@/components/ui/date-picker';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
-import { CalendarIcon, Loader2, BookOpen, FileText, Edit, Tag } from 'lucide-react';
-import { format } from 'date-fns';
+import {
+  BookOpen,
+  CalendarDays,
+  Check,
+  Edit,
+  FileText,
+  Image as ImageIcon,
+  Loader2,
+  Pencil,
+  User,
+  Video,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 import type {
   LessonDTO,
   LessonLibraryDTO,
@@ -120,6 +126,75 @@ interface LessonFormProps {
   isLoading?: boolean;
 }
 
+// ---------------------------------------------------------------------------
+// Media card: gọn, cùng kích thước cho ảnh đại diện và video
+// ---------------------------------------------------------------------------
+const MEDIA_URL_PATTERN = /^https?:\/\//i;
+
+interface MediaCardProps {
+  type: 'image' | 'video';
+  icon: LucideIcon;
+  title: string;
+  hint: string;
+  badge: string;
+  value: string;
+  onValueChange: (value: string) => void;
+  disabled?: boolean;
+  children?: ReactNode;
+}
+
+function MediaCard({
+  type,
+  icon: Icon,
+  title,
+  hint,
+  badge,
+  value,
+  onValueChange,
+  disabled = false,
+  children,
+}: MediaCardProps) {
+  // Chỉ hiển thị preview khi URL hợp lệ để tránh ảnh lỗi trong lúc đang nhập
+  const previewUrl = MEDIA_URL_PATTERN.test(value) ? value : '';
+
+  return (
+    <section className="overflow-hidden rounded-xl border bg-card shadow-sm">
+      <header className="flex items-center justify-between gap-2 border-b bg-muted/20 px-4 py-2.5">
+        <div className="flex min-w-0 items-center gap-2">
+          <Icon className="h-4 w-4 shrink-0 text-primary" />
+          <div className="min-w-0">
+            <h3 className="truncate text-sm font-semibold leading-tight">{title}</h3>
+            <p className="truncate text-[11px] text-muted-foreground">{hint}</p>
+          </div>
+        </div>
+        <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+          {badge}
+        </span>
+      </header>
+
+      <div className="space-y-2 p-3">
+        <div className="h-[150px] overflow-hidden rounded-lg">
+          <CloudinaryUploader
+            compact
+            type={type}
+            value={previewUrl}
+            onUploadSuccess={onValueChange}
+            disabled={disabled}
+          />
+        </div>
+        <Input
+          value={value}
+          onChange={(event) => onValueChange(event.target.value)}
+          placeholder={type === 'image' ? 'Hoặc dán URL ảnh...' : 'Hoặc dán URL video...'}
+          className="h-8 text-xs"
+          disabled={disabled}
+        />
+        {children}
+      </div>
+    </section>
+  );
+}
+
 export function LessonForm({
   open,
   onOpenChange,
@@ -144,6 +219,18 @@ export function LessonForm({
   });
 
   const { categories } = useLessonCategories();
+  const { user } = useAuth();
+
+  // Tên giáo viên được lấy tự động từ tài khoản đang đăng nhập
+  const defaultTutorName = (user?.fullName || '').trim();
+  const defaultTutorNameRef = useRef(defaultTutorName);
+  // Phạm vi (lần mở dialog + bài giảng) đang bật chế độ sửa tên giáo viên.
+  // Nhờ vậy trạng thái tự reset mỗi lần mở dialog hoặc đổi bài giảng, không cần effect.
+  const [editingTutorNameScope, setEditingTutorNameScope] = useState<string | null>(null);
+
+  useEffect(() => {
+    defaultTutorNameRef.current = defaultTutorName;
+  }, [defaultTutorName]);
 
   // Fetch full lesson details if editing a library lesson
   const isLibraryLesson = mode === 'library' && !!lesson?.id;
@@ -154,12 +241,17 @@ export function LessonForm({
   // Use full lesson data if available, otherwise use prop
   const lessonToUse = fullLessonData || lesson;
 
+  const tutorNameScopeKey = `${open ? 'open' : 'closed'}:${lessonToUse?.id ?? 'new'}`;
+  const isEditingTutorName = editingTutorNameScope === tutorNameScopeKey;
+  const setIsEditingTutorName = (next: boolean) =>
+    setEditingTutorNameScope(next ? tutorNameScopeKey : null);
+
   // Reset form khi lesson hoặc open state thay đổi
   useEffect(() => {
     if (open) {
       if (lessonToUse) {
         form.reset({
-          tutorName: lessonToUse.tutorName,
+          tutorName: lessonToUse.tutorName?.trim() || defaultTutorNameRef.current,
           title: lessonToUse.title,
           summary: lessonToUse.summary || '',
           content: lessonToUse.content,
@@ -174,7 +266,7 @@ export function LessonForm({
         });
       } else {
         form.reset({
-          tutorName: '',
+          tutorName: defaultTutorNameRef.current,
           title: '',
           summary: '',
           content: '',
@@ -187,6 +279,16 @@ export function LessonForm({
       }
     }
   }, [lessonToUse, form, open, mode]);
+
+  // Trường hợp user được tải xong sau khi dialog đã mở: bổ sung tên giáo viên còn trống
+  useEffect(() => {
+    if (!open || !defaultTutorName) return;
+
+    if (!form.getValues('tutorName')) {
+      form.setValue('tutorName', defaultTutorName, { shouldValidate: true });
+    }
+  }, [open, defaultTutorName, form]);
+
 
   const handleSubmit = (values: LessonFormValues) => {
     // Cast và format dữ liệu để khớp với LessonFormData interface
@@ -255,6 +357,9 @@ export function LessonForm({
   const config = getDialogConfig();
   const Icon = config.icon;
 
+  // Chỉ cần theo dõi tóm tắt (đếm ký tự); các trường khác đọc trực tiếp qua FormField
+  const watchedSummary = useWatch({ control: form.control, name: 'summary' });
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="w-[95vw] max-w-[1400px] h-[95vh] flex flex-col p-0 overflow-hidden gap-0 rounded-2xl data-[state=open]:slide-in-from-bottom-4 data-[state=closed]:slide-out-to-bottom-4">
@@ -279,15 +384,23 @@ export function LessonForm({
             <div className="flex-1 overflow-hidden flex flex-col min-h-0 bg-muted/10">
               <Tabs defaultValue="content" className="flex-1 flex flex-col overflow-hidden">
                 <div className="px-6 py-2 border-b bg-background shrink-0">
-                  <TabsList className="grid w-full max-w-[600px] grid-cols-3">
+                  <TabsList className="grid w-full max-w-[420px] grid-cols-2">
                     <TabsTrigger value="content" className={cn(form.formState.errors.content ? "text-destructive data-[state=active]:text-destructive" : "")}>
                       Nội dung
                     </TabsTrigger>
-                    <TabsTrigger value="details" className={cn((form.formState.errors.title || form.formState.errors.tutorName || form.formState.errors.lessonDate) ? "text-destructive data-[state=active]:text-destructive" : "")}>
-                      Thông tin chung
-                    </TabsTrigger>
-                    <TabsTrigger value="media" className={cn((form.formState.errors.videoUrl || form.formState.errors.thumbnailUrl) ? "text-destructive data-[state=active]:text-destructive" : "")}>
-                      Media & Cài đặt
+                    <TabsTrigger
+                      value="info"
+                      className={cn(
+                        (form.formState.errors.title ||
+                          form.formState.errors.tutorName ||
+                          form.formState.errors.lessonDate ||
+                          form.formState.errors.thumbnailUrl ||
+                          form.formState.errors.videoUrl)
+                          ? "text-destructive data-[state=active]:text-destructive"
+                          : ""
+                      )}
+                    >
+                      Thông tin & Media
                     </TabsTrigger>
                   </TabsList>
                 </div>
@@ -326,68 +439,109 @@ export function LessonForm({
                     />
                   </TabsContent>
 
-                  {/* TAB 2: DETAILS */}
-                  <TabsContent value="details" className="mt-0 border-none h-full p-1">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
-                      {/* Left Column: Core Info */}
-                      <div className="lg:col-span-8 space-y-6">
-                        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6 space-y-6">
-                          <div className="flex items-center justify-between border-b pb-4">
-                            <div className="space-y-1">
-                              <h3 className="text-lg font-semibold leading-none tracking-tight">Thông tin cơ bản</h3>
-                              <p className="text-sm text-muted-foreground">Các thông tin chính của bài giảng</p>
+                  {/* TAB 2: THÔNG TIN & MEDIA */}
+                  <TabsContent value="info" className="mt-0 border-none">
+                    <div className="mx-auto grid max-w-6xl grid-cols-1 items-start gap-4 lg:grid-cols-12">
+                      {/* Cột trái: thông tin bài giảng */}
+                      <div className="lg:col-span-7">
+                        <section className="overflow-hidden rounded-xl border bg-card shadow-sm">
+                          <header className="flex items-center justify-between gap-3 border-b bg-muted/20 px-4 py-2.5">
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4 text-primary" />
+                              <h3 className="text-sm font-semibold">Thông tin bài giảng</h3>
                             </div>
-                            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700">
-                              Thông tin bắt buộc
+                            <span className="text-[10px] font-bold uppercase tracking-wide text-destructive">
+                              * Bắt buộc
                             </span>
-                          </div>
+                          </header>
 
-                          <div className="grid gap-6">
+                          <div className="space-y-3.5 p-4">
+                            {/* Tiêu đề */}
                             <FormField
                               control={form.control}
                               name="title"
                               render={({ field }) => (
                                 <FormItem>
-                                  <div className="flex items-center justify-between mb-2">
-                                    <FormLabel className="text-base font-semibold">Tiêu đề bài giảng</FormLabel>
-                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-600 uppercase tracking-wide border border-red-200">Bắt buộc</span>
-                                  </div>
+                                  <FormLabel className="text-xs font-semibold">Tiêu đề bài giảng</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="Nhập tiêu đề bài giảng..." className="h-12 text-base" {...field} disabled={isLoading} />
+                                    <Input placeholder="Nhập tiêu đề bài giảng..." {...field} disabled={isLoading} />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Giáo viên + Ngày học */}
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                               <FormField
                                 control={form.control}
                                 name="tutorName"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <div className="flex items-center justify-between mb-2">
-                                      <FormLabel className="font-semibold">Tên giáo viên</FormLabel>
-                                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-600 uppercase tracking-wide border border-red-200">Bắt buộc</span>
-                                    </div>
+                                    <FormLabel className="text-xs font-semibold">Giáo viên</FormLabel>
                                     <FormControl>
-                                      <Input placeholder="Nhập tên giáo viên..." className="h-11" {...field} disabled={isLoading} />
+                                      {isEditingTutorName ? (
+                                        <div className="flex items-center gap-1.5">
+                                          <Input
+                                            placeholder="Nhập tên giáo viên..."
+                                            {...field}
+                                            disabled={isLoading}
+                                            autoFocus
+                                          />
+                                          <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-9 w-9 shrink-0"
+                                            title="Xong"
+                                            disabled={isLoading}
+                                            onClick={() => {
+                                              if (!field.value.trim()) {
+                                                field.onChange(defaultTutorName);
+                                              }
+                                              setIsEditingTutorName(false);
+                                            }}
+                                          >
+                                            <Check className="h-4 w-4" />
+                                          </Button>
+                                        </div>
+                                      ) : (
+                                        <div className="flex h-9 items-center gap-1.5 rounded-md border border-dashed bg-muted/40 px-2.5">
+                                          <User className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                                          <span className="truncate text-sm font-medium">
+                                            {field.value || 'Chưa xác định'}
+                                          </span>
+                                          <span className="ml-auto shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                                            Tự động
+                                          </span>
+                                          <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-6 w-6 shrink-0"
+                                            title="Đổi tên giáo viên"
+                                            disabled={isLoading}
+                                            onClick={() => setIsEditingTutorName(true)}
+                                          >
+                                            <Pencil className="h-3.5 w-3.5" />
+                                          </Button>
+                                        </div>
+                                      )}
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
                                 )}
                               />
 
-                              {mode !== 'library' && (
+
+
+                              {mode !== 'library' ? (
                                 <FormField
                                   control={form.control}
                                   name="lessonDate"
                                   render={({ field }) => (
                                     <FormItem className="flex flex-col">
-                                      <div className="flex items-center justify-between mb-2">
-                                        <FormLabel className="font-semibold">Ngày học</FormLabel>
-                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-600 uppercase tracking-wide border border-red-200">Bắt buộc</span>
-                                      </div>
+                                      <FormLabel className="text-xs font-semibold">Ngày học</FormLabel>
                                       <FormControl>
                                         <DatePicker
                                           value={field.value || undefined}
@@ -399,196 +553,163 @@ export function LessonForm({
                                     </FormItem>
                                   )}
                                 />
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6 space-y-6">
-                          <div className="space-y-1 border-b pb-4">
-                            <h3 className="text-lg font-semibold leading-none tracking-tight">Phân loại</h3>
-                            <p className="text-sm text-muted-foreground">Giúp học sinh dễ dàng tìm kiếm bài giảng</p>
-                          </div>
-                          <FormField
-                            control={form.control}
-                            name="categoryId"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="font-semibold">Danh mục</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value || ''} value={field.value || ''}>
-                                  <FormControl>
-                                    <SelectTrigger className="h-11">
-                                      <SelectValue placeholder="Chọn danh mục..." />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="none">Không có danh mục</SelectItem>
-                                    {categories.map((cat) => (
-                                      <SelectItem key={cat.id} value={String(cat.id)}>
-                                        <div className="flex items-center gap-2">
-                                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color || '#3b82f6' }} />
-                                          {cat.name}
-                                        </div>
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Right Column: Descriptions & Notes */}
-                      <div className="lg:col-span-4 space-y-6">
-                        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6 h-full flex flex-col">
-                          <div className="space-y-1 border-b pb-4 mb-4">
-                            <h3 className="text-lg font-semibold leading-none tracking-tight">Mô tả chi tiết</h3>
-                            <p className="text-sm text-muted-foreground">Thông tin bổ sung cho bài giảng</p>
-                          </div>
-
-                          {mode === 'library' && (
-                            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 mb-6">
-                              <p className="text-sm text-blue-800 flex gap-2">
-                                <span className="shrink-0 text-lg">💡</span>
-                                <span className="leading-relaxed"><strong>Lưu ý:</strong> Bài giảng trong kho sẽ tự động sử dụng ngày hiện tại khi được giao.</span>
-                              </p>
-                            </div>
-                          )}
-
-                          <FormField
-                            control={form.control}
-                            name="summary"
-                            render={({ field }) => (
-                              <FormItem className="flex-1 flex flex-col">
-                                <FormLabel className="font-semibold mb-2">Tóm tắt nội dung</FormLabel>
-                                <FormControl>
-                                  <Textarea
-                                    placeholder="Nhập tóm tắt nội dung chính của bài giảng..."
-                                    className="resize-none flex-1 min-h-[200px] text-base leading-relaxed p-4"
-                                    {...field}
-                                    disabled={isLoading}
-                                  />
-                                </FormControl>
-                                <FormDescription className="mt-2">Tóm tắt này sẽ hiển thị trên thẻ bài giảng trong danh sách.</FormDescription>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </TabsContent>
-
-                  {/* TAB 3: MEDIA */}
-                  <TabsContent value="media" className="mt-0 border-none p-6">
-                    <div className="flex flex-col gap-8 max-w-6xl mx-auto">
-                      <div className="grid grid-cols-1 gap-8">
-                        {/* Thumbnail Section */}
-                        <div className="rounded-2xl border bg-card text-card-foreground shadow-sm overflow-hidden">
-                          <div className="px-6 py-4 border-b bg-muted/30 flex items-center justify-between">
-                            <div className="space-y-1">
-                              <h3 className="text-lg font-bold">Hình ảnh đại diện</h3>
-                              <p className="text-sm text-muted-foreground">Xuất hiện trên thẻ bài giảng và kết quả tìm kiếm</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-black px-2 py-1 rounded bg-amber-100 text-amber-700 uppercase tracking-tighter border border-amber-200">Khuyên dùng 16:9</span>
-                            </div>
-                          </div>
-                          <div className="p-6">
-                            <FormField
-                              control={form.control}
-                              name="thumbnailUrl"
-                              render={({ field }) => (
-                                <FormItem className="space-y-4">
-                                  <FormControl>
-                                    <div className="w-full aspect-video rounded-xl overflow-hidden">
-                                      <CloudinaryUploader
-                                        type="image"
-                                        value={field.value || ''}
-                                        onUploadSuccess={field.onChange}
-                                        disabled={isLoading}
-                                        className="w-full h-full"
-                                      />
-                                    </div>
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Video Section */}
-                        <div className="rounded-2xl border bg-card text-card-foreground shadow-sm overflow-hidden">
-                          <div className="px-6 py-4 border-b bg-muted/30 flex items-center justify-between">
-                            <div className="space-y-1">
-                              <h3 className="text-lg font-bold">Video bài giảng</h3>
-                              <p className="text-sm text-muted-foreground">Video minh họa nội dung hoặc bài giảng ghi sẵn</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-black px-2 py-1 rounded bg-blue-100 text-blue-700 uppercase tracking-tighter border border-blue-200">Max 100MB</span>
-                            </div>
-                          </div>
-                          <div className="p-6">
-                            <FormField
-                              control={form.control}
-                              name="videoUrl"
-                              render={({ field }) => (
-                                <FormItem className="space-y-4">
-                                  <FormControl>
-                                    <div className="w-full aspect-video rounded-xl overflow-hidden">
-                                      <CloudinaryUploader
-                                        type="video"
-                                        value={field.value || ''}
-                                        onUploadSuccess={field.onChange}
-                                        disabled={isLoading}
-                                        className="w-full h-full"
-                                      />
-                                    </div>
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Settings Bar */}
-                      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-0.5 shadow-xl">
-                        <div className="bg-white rounded-[14px] p-6">
-                          <FormField
-                            control={form.control}
-                            name="isPublished"
-                            render={({ field }) => (
-                              <FormItem className="flex flex-row items-center justify-between">
-                                <div className="space-y-1">
-                                  <div className="flex items-center gap-2">
-                                    <FormLabel className="text-xl font-bold text-slate-800">Cài đặt xuất bản</FormLabel>
-                                    {field.value ? (
-                                      <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase">Công khai</span>
-                                    ) : (
-                                      <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold uppercase">Bản nháp</span>
-                                    )}
+                              ) : (
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-semibold">Ngày học</span>
+                                  <div className="mt-2 flex h-9 items-center gap-2 rounded-md border border-dashed bg-muted/40 px-2.5 text-xs text-muted-foreground">
+                                    <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+                                    Tự động dùng ngày hiện tại
                                   </div>
-                                  <FormDescription className="text-base text-slate-500">
-                                    Khi kích hoạt, bài giảng sẽ ngay lập tức xuất hiện trong mục học tập của sinh viên.
-                                  </FormDescription>
                                 </div>
-                                <FormControl>
-                                  <Switch
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                    disabled={isLoading}
-                                    className="scale-150 data-[state=checked]:bg-blue-600"
-                                  />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-                        </div>
+                              )}
+                            </div>
+
+                            {/* Danh mục + Trạng thái */}
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                              <FormField
+                                control={form.control}
+                                name="categoryId"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-xs font-semibold">Danh mục</FormLabel>
+                                    <Select
+                                      onValueChange={field.onChange}
+                                      defaultValue={field.value || ''}
+                                      value={field.value || ''}
+                                    >
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Chọn danh mục..." />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="none">Không có danh mục</SelectItem>
+                                        {categories.map((cat) => (
+                                          <SelectItem key={cat.id} value={String(cat.id)}>
+                                            <div className="flex items-center gap-2">
+                                              <div
+                                                className="h-2 w-2 rounded-full"
+                                                style={{ backgroundColor: cat.color || '#3b82f6' }}
+                                              />
+                                              {cat.name}
+                                            </div>
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control}
+                                name="isPublished"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-xs font-semibold">Trạng thái</FormLabel>
+                                    <FormControl>
+                                      <div className="flex h-9 items-center justify-between rounded-md border bg-muted/40 px-2.5">
+                                        <span
+                                          className={cn(
+                                            'text-xs font-semibold',
+                                            field.value ? 'text-emerald-600' : 'text-amber-600'
+                                          )}
+                                        >
+                                          {field.value ? 'Công khai' : 'Bản nháp'}
+                                        </span>
+                                        <Switch
+                                          checked={field.value}
+                                          onCheckedChange={field.onChange}
+                                          disabled={isLoading}
+                                          className="scale-90"
+                                        />
+                                      </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+
+                            {/* Tóm tắt */}
+                            <FormField
+                              control={form.control}
+                              name="summary"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <div className="flex items-center justify-between">
+                                    <FormLabel className="text-xs font-semibold">Tóm tắt</FormLabel>
+                                    <span className="text-[10px] tabular-nums text-muted-foreground">
+                                      {(watchedSummary || '').length}/500
+                                    </span>
+                                  </div>
+                                  <FormControl>
+                                    <Textarea
+                                      placeholder="Tóm tắt nội dung chính (hiển thị trên thẻ bài giảng)..."
+                                      className="min-h-[76px] resize-none text-sm leading-relaxed"
+                                      maxLength={500}
+                                      {...field}
+                                      disabled={isLoading}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        </section>
+                      </div>
+
+                      {/* Cột phải: media */}
+                      <div className="space-y-4 lg:col-span-5">
+                        <FormField
+                          control={form.control}
+                          name="thumbnailUrl"
+                          render={({ field }) => (
+                            <FormItem>
+                              <MediaCard
+                                type="image"
+                                icon={ImageIcon}
+                                title="Ảnh đại diện"
+                                hint="Hiển thị trên thẻ bài giảng"
+                                badge="16:9"
+                                value={field.value || ''}
+                                onValueChange={field.onChange}
+                                disabled={isLoading}
+                              >
+                                <FormMessage />
+                              </MediaCard>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="videoUrl"
+                          render={({ field }) => (
+                            <FormItem>
+                              <MediaCard
+                                type="video"
+                                icon={Video}
+                                title="Video bài giảng"
+                                hint="Video minh họa nội dung"
+                                badge="Tối đa 100MB"
+                                value={field.value || ''}
+                                onValueChange={field.onChange}
+                                disabled={isLoading}
+                              >
+                                <FormMessage />
+                              </MediaCard>
+                            </FormItem>
+                          )}
+                        />
+
+                        {mode === 'library' && (
+                          <p className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-[11px] leading-relaxed text-blue-800">
+                            💡 Bài giảng trong kho sẽ tự động dùng ngày hiện tại khi được giao.
+                          </p>
+                        )}
                       </div>
                     </div>
                   </TabsContent>

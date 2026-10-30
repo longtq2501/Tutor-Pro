@@ -11,6 +11,8 @@ interface CloudinaryUploaderProps {
   onUploadSuccess: (url: string) => void;
   disabled?: boolean;
   className?: string;
+  /** Thu gọn vùng tải lên (dùng trong popover / tab chật) */
+  compact?: boolean;
 }
 
 export function CloudinaryUploader({
@@ -19,6 +21,7 @@ export function CloudinaryUploader({
   onUploadSuccess,
   disabled = false,
   className,
+  compact = false,
 }: CloudinaryUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -56,7 +59,7 @@ export function CloudinaryUploader({
 
     // Check environment variables
     if (!cloudName || !uploadPreset) {
-      setUploadError('Thiếu cấu hình Cloudinary. Vui lòng kiểm tra file .env.local');
+      setUploadError('Thiếu cấu hình Cloudinary (.env.local)');
       console.error('Missing Cloudinary configuration:', { cloudName, uploadPreset });
       return;
     }
@@ -122,7 +125,7 @@ export function CloudinaryUploader({
     : 'video/mp4,video/webm,video/ogg,video/quicktime';
 
   return (
-    <div className={cn("relative w-full h-full", className)}>
+    <div className={cn("flex w-full h-full flex-col gap-2", className)}>
       <input
         ref={fileInputRef}
         type="file"
@@ -132,93 +135,118 @@ export function CloudinaryUploader({
         disabled={disabled || isUploading}
       />
 
-      {/* Preview hoặc Upload Button */}
-      {value ? (
-        <div className="relative w-full h-full overflow-hidden bg-black group">
-          {type === 'image' ? (
-            <img
-              src={value}
-              alt="Preview"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <video
-              src={value}
-              className="w-full h-full object-cover"
-              autoPlay
-              loop
-              muted
-              playsInline
-              controls
-            />
-          )}
-
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="bg-white/10 border-white/20 text-white hover:bg-white/20 pointer-events-auto"
-              onClick={handleButtonClick}
-              disabled={disabled || isUploading}
-            >
-              Thay đổi
-            </Button>
-          </div>
-
-          {!disabled && (
-            <Button
-              type="button"
-              variant="destructive"
-              size="icon"
-              className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity shadow-xl"
-              onClick={handleRemove}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      ) : (
-        <div
-          className={cn(
-            "flex flex-col items-center justify-center w-full h-full rounded-xl border-2 border-dashed border-border bg-muted/30 hover:bg-muted/50 hover:border-primary/50 transition-all cursor-pointer",
-            (disabled || isUploading) && "opacity-50 cursor-not-allowed"
-          )}
-          onClick={!disabled && !isUploading ? handleButtonClick : undefined}
-        >
-          {isUploading ? (
-            <div className="flex flex-col items-center space-y-4">
-              <div className="relative h-16 w-16">
-                <Loader2 className="h-16 w-16 text-primary animate-spin" />
-              </div>
-              <p className="text-sm font-bold text-primary animate-pulse uppercase tracking-widest">
-                Đang tải...
-              </p>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center p-8">
-              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Icon className="h-8 w-8 text-primary" />
-              </div>
-              <p className="text-lg font-bold text-foreground mb-1">
-                Tải lên {type === 'image' ? 'ảnh bìa' : 'video'}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Định dạng {type === 'image' ? 'IMG' : 'Video'} tối đa {type === 'image' ? '10MB' : '100MB'}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Error Message */}
+      {/* Lỗi hiển thị phía trên, không đè lên nút tải lên */}
       {uploadError && (
-        <div className="absolute top-2 left-2 right-2 z-10 text-[10px] font-bold text-white bg-destructive px-3 py-1.5 rounded shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
-          <X className="h-3 w-3" />
-          {uploadError}
-          <button onClick={() => setUploadError(null)} className="ml-auto underline">Đóng</button>
+        <div className="flex shrink-0 items-start gap-1.5 rounded-md bg-destructive px-2 py-1.5 text-[10px] font-semibold leading-snug text-destructive-foreground">
+          <X className="mt-px h-3 w-3 shrink-0" />
+          <span className="flex-1">{uploadError}</span>
+          <button
+            type="button"
+            onClick={() => setUploadError(null)}
+            className="shrink-0 underline"
+          >
+            Đóng
+          </button>
         </div>
       )}
+
+      <div className="relative min-h-0 flex-1">
+        {/* Preview hoặc Upload Button */}
+        {value ? (
+          <div className="relative w-full h-full overflow-hidden bg-black group">
+            {type === 'image' ? (
+              // eslint-disable-next-line @next/next/no-img-element -- preview ảnh đã upload từ Cloudinary
+              <img
+                src={value}
+                alt="Preview"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <video
+                src={value}
+                className="w-full h-full object-cover"
+                autoPlay
+                loop
+                muted
+                playsInline
+                controls
+              />
+            )}
+
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20 pointer-events-auto"
+                onClick={handleButtonClick}
+                disabled={disabled || isUploading}
+              >
+                Thay đổi
+              </Button>
+            </div>
+
+            {!disabled && (
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon"
+                className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity shadow-xl"
+                onClick={handleRemove}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div
+            className={cn(
+              "flex flex-col items-center justify-center w-full h-full rounded-xl border-2 border-dashed border-border bg-muted/30 hover:bg-muted/50 hover:border-primary/50 transition-all cursor-pointer",
+              (disabled || isUploading) && "opacity-50 cursor-not-allowed"
+            )}
+            onClick={!disabled && !isUploading ? handleButtonClick : undefined}
+          >
+            {isUploading ? (
+              <div className={cn("flex flex-col items-center", compact ? "space-y-2" : "space-y-4")}>
+                <div className={cn("relative", compact ? "h-10 w-10" : "h-16 w-16")}>
+                  <Loader2 className={cn("text-primary animate-spin", compact ? "h-10 w-10" : "h-16 w-16")} />
+                </div>
+                <p className={cn(
+                  "font-bold text-primary animate-pulse uppercase tracking-widest",
+                  compact ? "text-xs" : "text-sm"
+                )}>
+                  Đang tải...
+                </p>
+              </div>
+            ) : (
+              <div className={cn("flex flex-col items-center text-center", compact ? "gap-1.5 p-3" : "p-8")}>
+                <div className={cn(
+                  "rounded-full bg-primary/10 flex items-center justify-center",
+                  compact ? "h-9 w-9 mb-1" : "h-16 w-16 mb-4"
+                )}>
+                  {compact ? (
+                    <Upload className="h-4 w-4 text-primary" />
+                  ) : (
+                    <Icon className="h-8 w-8 text-primary" />
+                  )}
+                </div>
+                <p className={cn("font-bold text-foreground mb-1", compact ? "text-xs" : "text-lg")}>
+                  {compact
+                    ? `Tải ${type === 'image' ? 'ảnh' : 'video'} lên`
+                    : `Tải lên ${type === 'image' ? 'ảnh bìa' : 'video'}`}
+                </p>
+                <p className={cn("text-muted-foreground", compact ? "text-[10px] leading-snug" : "text-sm")}>
+                  {compact
+                    ? type === 'image'
+                      ? 'JPEG, PNG, GIF, WebP · tối đa 10MB'
+                      : 'MP4, WebM, MOV · tối đa 100MB'
+                    : `Định dạng ${type === 'image' ? 'IMG' : 'Video'} tối đa ${type === 'image' ? '10MB' : '100MB'}`}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

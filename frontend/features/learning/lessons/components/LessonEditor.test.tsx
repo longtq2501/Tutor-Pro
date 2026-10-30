@@ -112,13 +112,30 @@ describe('LessonEditor Heading Recognition', () => {
         }, { timeout: 5000 });
     });
 
-    it('should show table management options when table button is clicked', async () => {
+    it('should show table grid picker when table button is clicked', async () => {
         render(<LessonEditor content="" onChange={mockOnChange} />);
         const btn = screen.getByLabelText('Quản lý bảng');
         fireEvent.click(btn);
 
         await waitFor(() => {
-            expect(screen.getByText('Chèn bảng (3x3)')).toBeInTheDocument();
+            expect(screen.getByText('Chèn bảng')).toBeInTheDocument();
+        }, { timeout: 5000 });
+
+        expect(screen.getByLabelText('Chèn bảng 3 hàng 3 cột')).toBeInTheDocument();
+    });
+
+    it('should insert a table by clicking a cell in the grid picker', async () => {
+        render(<LessonEditor content="" onChange={mockOnChange} />);
+        fireEvent.click(screen.getByLabelText('Quản lý bảng'));
+
+        const cell = await screen.findByLabelText('Chèn bảng 2 hàng 3 cột');
+        fireEvent.click(cell);
+
+        await waitFor(() => {
+            const table = document.querySelector('.tiptap table');
+            expect(table).toBeInTheDocument();
+            expect(table?.querySelectorAll('tr')).toHaveLength(2);
+            expect(table?.querySelectorAll('tr:first-child > *')).toHaveLength(3);
         }, { timeout: 5000 });
     });
 

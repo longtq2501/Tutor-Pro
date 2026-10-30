@@ -745,6 +745,7 @@ export function LessonEditor({ content, onChange, className, disabled = false }:
             attributes: {
                 class: cn(
                     'prose prose-sm sm:prose-base dark:prose-invert max-w-none focus:outline-none min-h-[400px] px-6 py-4',
+                    'prose-p:mt-0 prose-p:mb-1 prose-p:leading-relaxed [&_p]:mt-0 [&_p]:mb-1 [&_p]:leading-relaxed',
                     'text-foreground ring-offset-background tiptap'
                 ),
             },

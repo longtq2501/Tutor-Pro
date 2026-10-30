@@ -317,22 +317,24 @@ body {
   }
 
   /* Prose mặc định cộng thêm margin-top (~1.25em) cho <p> khiến mỗi lần Enter
-     tạo khoảng trống rất lớn. Đặt margin-top = 0 và siết line-height. */
+     tạo khoảng trống rất lớn. Đặt margin-top = 0 và siết margin-bottom/line-height gọn như Google Docs/Notion. */
   .lesson-content p,
   .tiptap p {
-    @apply mb-3 mt-0 leading-7;
-  }
-
-  /* Trong editor: khoảng cách giữa các dòng gõ Enter gọn như Google Docs */
-  .tiptap p {
-    @apply mb-2 leading-6;
+    margin-top: 0 !important;
+    margin-bottom: 0.25rem !important;
+    line-height: 1.625 !important;
   }
 
   /* Dòng trống chỉ chiếm đúng 1 dòng (không cộng thêm margin) */
+  .lesson-content p:empty,
+  .lesson-content p:has(> br:only-child),
   .tiptap p:empty,
   .tiptap p:has(> br.ProseMirror-trailingBreak:only-child) {
-    @apply mb-0;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    min-height: 1.5rem;
   }
+
 
   /* Heading trong editor bớt khoảng trống so với trang đọc bài giảng */
   .tiptap h1 {
@@ -2735,4 +2737,21 @@ html.light .landing-page .lp-grid-bg--band {
   .lp-mega-chevron[data-open="true"] {
     transform: none !important;
   }
+}
+
+/* Tiptap editor & lesson content compact spacing on Enter (overrides typography layer) */
+.tiptap p,
+.lesson-content p {
+  margin-top: 0 !important;
+  margin-bottom: 0.25rem !important;
+  line-height: 1.625 !important;
+}
+
+.tiptap p:empty,
+.tiptap p:has(> br.ProseMirror-trailingBreak:only-child),
+.lesson-content p:empty,
+.lesson-content p:has(> br:only-child) {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  min-height: 1.5rem;
 }

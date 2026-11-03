@@ -13,6 +13,7 @@ import { DashboardHeader } from '@/contexts/UIContext';
 import { DashboardStats } from './types/dashboard.types';
 
 import { useAuth } from '@/contexts/AuthContext';
+import { Money } from '@/components/shared/Money';
 
 // 2. Thành phần nặng (Biểu đồ) thì import động
 const AnalyticsView = dynamic(
@@ -116,7 +117,7 @@ export default function AdminDashboard() {
         {/* Revenue This Month */}
         <StatCard
           title="Doanh Thu Tháng"
-          value={safeStats.totalRevenueThisMonth || safeStats.currentMonthTotal}
+          value={<Money value={safeStats.totalRevenueThisMonth || safeStats.currentMonthTotal} />}
           subtitle="Cập nhật thời gian thực"
           icon={<BarChart3 />}
           variant="blue"
@@ -127,7 +128,7 @@ export default function AdminDashboard() {
         {/* Total Paid */}
         <StatCard
           title="Tổng Thu Nhập"
-          value={safeStats.totalRevenueAllTime || safeStats.totalPaidAllTime}
+          value={<Money value={safeStats.totalRevenueAllTime || safeStats.totalPaidAllTime} />}
           icon={<CheckCircle />}
           variant="green"
           isLoading={isGlobalLoading}
@@ -141,7 +142,7 @@ export default function AdminDashboard() {
               <span className="hidden shrink-0 text-[10px] font-medium opacity-60 sm:inline">(chưa thanh toán)</span>
             </div>
           }
-          value={safeStats.totalDebtAllTime || safeStats.totalUnpaidAllTime}
+          value={<Money value={safeStats.totalDebtAllTime || safeStats.totalUnpaidAllTime} />}
           icon={<XCircle />}
           variant="red"
           isLoading={isGlobalLoading}

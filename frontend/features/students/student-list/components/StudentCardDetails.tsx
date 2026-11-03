@@ -1,6 +1,7 @@
 import { DollarSign, Calendar } from 'lucide-react';
 import { Student } from '@/lib/types';
 import { formatCurrency } from '../utils/formatters';
+import { Money } from '@/components/shared/Money';
 
 /**
  * Details section of the StudentCard.
@@ -15,7 +16,7 @@ export function StudentCardDetails({ student }: { student: Student }) {
             {/* Price per hour */}
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <DollarSign size={13} className="shrink-0" />
-                <span className="font-medium text-foreground">{formatCurrency(student.pricePerHour)}</span>
+                <span className="font-medium text-foreground"><Money value={formatCurrency(student.pricePerHour)} /></span>
                 <span className="text-muted-foreground">/&nbsp;giờ</span>
             </div>
 
@@ -31,7 +32,7 @@ export function StudentCardDetails({ student }: { student: Student }) {
             <div className="border-t border-border/60 pt-2.5 flex justify-between items-center text-sm">
                 <span className="text-muted-foreground text-xs">Đang nợ</span>
                 <span className={`font-semibold text-sm ${hasDebt ? 'text-destructive' : 'text-muted-foreground'}`}>
-                    {formatCurrency(student.totalUnpaid || 0)}
+                    <Money value={formatCurrency(student.totalUnpaid || 0)} />
                 </span>
             </div>
         </div>

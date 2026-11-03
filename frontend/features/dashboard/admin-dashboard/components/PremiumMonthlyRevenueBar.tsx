@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import type { MonthlyChartData } from '../types/dashboard.types';
 import { formatCurrency, getMonthName } from '../utils/formatters';
 import { Button } from '@/components/ui/button';
+import { Money } from '@/components/shared/Money';
 
 interface PremiumMonthlyRevenueBarProps {
     month: MonthlyChartData;
@@ -50,7 +51,7 @@ export function PremiumMonthlyRevenueBar({ month, index }: PremiumMonthlyRevenue
                 <div className="space-y-1">
                     <h3 className="text-lg sm:text-xl font-bold">{getMonthName(month.month)}</h3>
                     <p className="text-sm text-muted-foreground">
-                        Tổng: <span className="font-semibold">{formatCurrency(month.total)}</span>
+                        Tổng: <span className="font-semibold"><Money value={formatCurrency(month.total)} /></span>
                     </p>
                 </div>
 
@@ -69,7 +70,7 @@ export function PremiumMonthlyRevenueBar({ month, index }: PremiumMonthlyRevenue
                             )}
                         >
                             <CheckCircle2 className="w-4 h-4" />
-                            {formatCurrency(month.totalPaid)}
+                            <Money value={formatCurrency(month.totalPaid)} />
                         </motion.div>
                     )}
 
@@ -86,7 +87,7 @@ export function PremiumMonthlyRevenueBar({ month, index }: PremiumMonthlyRevenue
                             )}
                         >
                             <AlertCircle className="w-4 h-4" />
-                            Nợ: {formatCurrency(month.totalUnpaid)}
+                            Nợ: <Money value={formatCurrency(month.totalUnpaid)} />
                         </motion.div>
                     )}
                 </div>

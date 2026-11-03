@@ -1,307 +1,289 @@
-# TUTOR PRO
-### Enterprise-Grade Tutor Management & E-Learning Ecosystem
+# Tutor Pro
 
-> Built by a tutor, for tutors. A full-stack production system that automates every operational burden — from scheduling and invoicing to live teaching and AI-powered feedback.
+🌐 **English** | [Tiếng Việt](README.vi.md)
+
+### Tutor management and learning platform
+
+Tutor Pro is a full-stack platform for tutors who want to manage teaching operations in one place: student records, schedules, tuition, documents, lessons, assessments, reports, and online teaching.
 
 [🌐 Live Demo](https://tutorpro.id.vn)
 
----
-
 ## What is Tutor Pro?
 
-Most tutors juggle spreadsheets, messaging apps, and manual bank transfers to run their classes. Tutor Pro replaces all of that with a single, cohesive platform: automated scheduling, real-time notifications, live teaching rooms with WebRTC, AI-generated feedback, and financial-grade invoicing — deployed and running in production.
+Tutor Pro brings the recurring work of a tutor into a single workspace. Tutors can organize students and parents, create recurring schedules, track completed and unpaid sessions, prepare lessons, share documents, run assessments, generate reports, and open online teaching rooms.
 
-This is not a tutorial project. It solves real problems I faced as a part-time tutor, built to a standard I'd be comfortable deploying for other tutors to use.
+The application has separate tutor, student, and admin surfaces, with role-based access control and responsive interfaces for desktop and mobile.
 
----
+## Features
+
+### Operations
+
+- **Overview** — dashboard KPIs, revenue trends, student status, notifications, and monthly details.
+- **Finance** — monthly tuition tracking, payment status, debt follow-up, student finance cards, bulk actions, and tuition reports.
+- **Settings** — tutor profile, account preferences, notification settings, recurring schedule configuration, and application appearance.
+
+### Academic management
+
+- **Students & Parents** — student profiles, parent contacts, learning schedules, tuition rates, notes, and financial summaries.
+- **Classes** — organize students into classes and manage class-related learning activities.
+
+### Teaching
+
+- **Schedule** — monthly calendar, list view, source filters, recurring schedules, session status, drag-and-drop interactions, lesson editor, payment state, and session details.
+- **Documents** — document library with categories, uploads, previews, assignments, and downloads.
+- **Lessons** — lesson library, course and lesson organization, lesson detail pages, learning materials, and reusable lesson content.
+- **Live teaching** — online teaching rooms with WebRTC media, synchronized whiteboard state, chat, session controls, and in-browser recording support.
+
+### Assessment and reporting
+
+- **Reports** — progress summaries, attendance and session information, tutor-written feedback, monthly tuition reports, and PDF export.
+- **Assessment** — exercise authoring, document-based question import, multiple-choice and essay workflows, grading, autosave, timers, and submission handling.
+
+### Recent product updates
+
+- Shared frontend global styles and refreshed responsive landing pages.
+- Calendar list view alongside the monthly calendar view.
+- Lesson editor and richer lesson detail flows.
+- Document library and monthly student reporting.
+- Live teaching lobby and media streaming improvements.
+- Global amount visibility toggle for financial values in the interactive UI. Exported PDF/image reports remain readable with full amounts.
 
 ## Engineering Highlights
 
-### 1. High-Performance Bulk Calendar Engine
-**Problem:** Initializing an entire month of sessions for 30+ students one-by-one is unusable in practice.
+### 1. Bulk calendar generation
 
-**Solution:** Optimistic Batch Processing with In-Memory Deduplication (O(1) conflict detection), Single-Pass Database Query, and JDBC Batch Inserts for transactional integrity.
+Recurring schedules can generate a group of sessions in one workflow. The backend contains calendar generation and finance-related services, while the frontend provides recurring scheduling, calendar views, status handling, and monthly reports.
 
-**Result:** 300+ sessions generated across a full student roster in **< 800ms**.
+### 2. Event-driven notifications with SSE
 
-![Calendar Bulk Generation](https://github.com/user-attachments/assets/7fb02678-e74b-4e42-83cd-2875e505fa63)
+The notification module uses Spring application events and Server-Sent Events. The frontend includes an SSE hook and notification UI so clients can receive updates without repeatedly polling the API.
 
----
+### 3. Interactive live teaching room
 
-### 2. Event-Driven Real-Time Notification System
-**Problem:** Students need to know instantly when a session is rescheduled, a grade is posted, or an exam is assigned — without polling.
+The live-room module uses WebRTC for media, STOMP/WebSocket signaling, synchronized whiteboard state, chat, device handling, and browser-side recording.
 
-**Solution:** Server-Sent Events (SSE) over Spring Application Events. `SseEmittersManager` maintains a thread-safe `ConcurrentHashMap` of emitters per user, with a heartbeat protocol to survive Docker/proxy connection drops and an auto-reconnect mechanism on the client.
+### 4. Assessment workflow with autosave
 
-**Result:** End-to-end notification delivery in **< 500ms**. Database index `idx_recipient_read` keeps unread-count queries at **< 10ms** regardless of notification volume.
+The exercise and submission modules support question management, imports, timed attempts, autosave, auto-submit behavior, tutor grading, and student submission views.
 
-> **Why SSE over WebSocket?** Notifications are inherently one-directional (server → client). SSE is simpler, HTTP-native, and proxy-friendly — WebSocket's bidirectionality would be overhead with no benefit here.
+### 5. Responsive calendar and lesson workflows
 
-![Real-time Notifications](https://github.com/user-attachments/assets/da784f98-f862-4ee5-89ee-33a970762bec)
+The calendar supports monthly and list views, filtering, recurring schedules, session editing, payment state changes, online/offline conversion, detail modals, and responsive header actions.
 
----
+### 6. Shared UI foundations
 
-### 3. AI-Powered Feedback Engine (Groq + Llama 3.3 70B)
-**Problem:** Writing individualized, contextually appropriate session feedback in Vietnamese for every student after every class is time-consuming and repetitive.
-
-**Solution:** Integrated Groq's inference API (Llama 3.3 70B) via `GroqGeneratorServiceImpl`. Prompt engineering enforces Vietnamese tone, cultural context, and length constraints based on the student's performance data passed in at runtime.
-
-**Result:** Context-aware, culturally appropriate Vietnamese feedback generated in **< 300ms** — replacing static templates with genuine intelligence.
-
-![AI Feedback Generator](https://github.com/user-attachments/assets/cc767ced-400f-4840-9c84-795e8b0d2582)
-
----
-
-### 4. Financial-Grade Invoicing with VietQR
-**Problem:** Manual payment tracking creates reconciliation errors and chasing parents for confirmation.
-
-**Solution:** Dynamic VietQR generation embedded directly in PDF invoices, built to the NAPAS-247 standard. CRC-16 checksum validation ensures transaction data integrity end-to-end.
-
-**Result:** 100% automated reconciliation flow. Reconciliation error rate reduced from ~15% to near zero.
-
-![VietQR Invoice](https://github.com/user-attachments/assets/d6724bbe-c88e-420b-8638-807e011052e1)
-
----
-
-### 5. Interactive Live Teaching Room (WebRTC + WebSocket)
-**Problem:** Teaching online requires more than just video — it needs synchronized whiteboard, session recording, and graceful hardware fallback.
-
-**Solution:** Full-Mesh WebRTC for P2P media (server never touches the video stream), STOMP over WebSocket for state synchronization. Three production-grade details:
-- **Whiteboard sync** throttled at 50ms to cut network congestion by 80% during heavy drawing
-- **Media Access Guard** catches `NotReadableError` (device busy) and surfaces human-readable guidance instead of crashing
-- **Composite Stream Recording** merges screen capture, webcam, and system audio into a single `.webm` container — entirely in-browser, no server storage required
-
-**Result:** < 200ms interactive latency. One-click recording. No crash on hardware conflicts.
-
-![Live Teaching Room](https://github.com/user-attachments/assets/b5e35a55-435d-4468-8dea-5fac8ff1f934)
-
----
-
-### 6. Drag-and-Drop Calendar with Prefetching
-**Problem:** Calendar UIs feel slow when navigating months, and drag interactions drop frames on re-renders.
-
-**Solution:** `@dnd-kit` with Optimistic Rollback. `React.memo` + `useCallback` eliminate 95% of unnecessary re-renders. Adjacent months are prefetched automatically on load.
-
-**Result:** Month navigation is **instant (~0ms)**. Drag interactions run at a consistent **60fps**.
-
-![Drag and Drop Calendar](https://github.com/user-attachments/assets/27cea769-dafc-45cf-82f7-4f6b06e2da1c)
-
----
-
-### 7. Intelligent Assessment & Auto-Grading
-**Problem:** Digitizing exam questions from Word/PDF documents is tedious. Exam data loss from browser crashes or accidental navigation is unacceptable.
-
-**Solution:** `ExerciseParserService` uses a Hybrid Regex Parsing Engine to bulk-ingest MCQ and Essay questions from plain text. The Exam Player implements debounced auto-save (~500ms), timer sync, and auto-submit on expiry — fault-tolerant by design.
-
-**Result:** Question digitization time reduced by 90%. Zero data loss architecture.
-
-![Assessment System](https://github.com/user-attachments/assets/13a7e1fb-2126-4722-be4a-5c368b719f1d)
-
----
-
-### 8. Bulk Lesson Assignment (50+ Students)
-**Problem:** Assigning lessons one student at a time doesn't scale.
-
-**Solution:** Sticky Action Toolbar with multi-select UI and Optimistic UI Updates. Batch API requests collapse N individual calls into one. React Query cache invalidation keeps the UI consistent after bulk operations.
-
-**Result:** Assign or unassign lessons for 50+ students in **< 2 seconds**.
-
-![Bulk Assignment](https://github.com/user-attachments/assets/d2901191-7c90-4f64-a0a7-d0b29ec77794)
-
----
-
-### 9. Sequential Learning with Server-Side Gating
-**Problem:** Client-side lesson locking can be bypassed by anyone with DevTools.
-
-**Solution:** Access control enforced at both the Service Layer and Database Level. Lesson progression is validated server-side — no client-side state can unlock a lesson the student hasn't earned.
-
-**Result:** Pedagogical integrity that cannot be circumvented.
-
-<img alt="Sequential Learning" src="https://github.com/user-attachments/assets/61d815e0-a6df-4f0b-84da-5f57e915f919" />
-
----
-
-### 10. Custom Video Player with Resizable Split-View
-**Solution:** Custom video player (0.5x–2x speed) in a resizable split-view layout alongside lesson materials. CSS Grid dynamic columns handle the resize. Layout ratio is persisted in LocalStorage so students return to their preferred configuration.
-
-**Result:** 60-70% query time reduction on lesson detail fetch via `JOIN FETCH` strategy. DTO projection cuts API payload by 60% (~5KB → ~2KB).
-
-![Video Learning](https://github.com/user-attachments/assets/51dfbcc0-d5f5-41e0-811c-9011912a2ac7)
-
----
+The frontend uses shared contexts, responsive header utilities, global styles, reusable UI primitives, TanStack Query, and feature-level components. Financial values are rendered through a shared visibility-aware component instead of changing stored data.
 
 ## Tech Stack
 
+```text
+Frontend          Next.js 16 · React 19 · TypeScript
+                  Tailwind CSS 4 · Radix UI · Lucide React
+                  TanStack Query v5 · Framer Motion
+                  React Hook Form · Zod · Recharts · @dnd-kit
+
+Backend           Spring Boot 3.4.1 · Java 21
+                  Spring Web · Spring Security · Spring Data JPA
+                  MySQL 8 · H2 for runtime/test scenarios
+                  Caffeine Cache · Spring Events · Actuator
+                  iText PDF · Apache POI · Bucket4j
+
+Communication     REST · JWT · OAuth2 · SSE
+                  WebSocket/STOMP · WebRTC P2P
+
+Infrastructure    Docker Compose · Nginx
+                  Cloudinary · Maven Wrapper · npm
 ```
-Frontend          Next.js 15 · React 19 · TypeScript 5
-                  Tailwind CSS 4 · Shadcn/UI
-                  TanStack Query v5 · Zustand · Framer Motion
-                  React Hook Form · Zod · @dnd-kit
-
-Backend           Spring Boot 3.4 · Java 21
-                  JPA/Hibernate · MySQL 8.0
-                  Caffeine Cache · Spring Events
-                  JasperReports · Bucket4j · Groq AI
-
-Communication     REST (JWT) · SSE · WebSocket (STOMP) · WebRTC P2P
-
-Infrastructure    Docker Compose · Railway · Cloudinary
-```
-
----
 
 ## System Architecture
 
 ```mermaid
 graph TD
-    User((User / Student / Tutor)) --> Frontend[Next.js 15 Frontend]
-
-    subgraph "Tutor-Pro Backend (Modular Monolith)"
-        Frontend --> API[REST API / JWT Auth]
-        API --> Modules[Core Modules: Auth · Lesson · Schedule · Exercise · Finance · Notification]
-        Modules --> Events[Spring Application Events]
-        Events --> Async[Async Notification / SSE]
-    end
-
-    subgraph "Data Storage & Cache"
-        Modules --> MySQL[(MySQL 8.0 Database)]
-        Modules --> Cache[(Caffeine In-Memory Cache)]
-    end
-
-    subgraph "External Integrations"
-        Modules --> Groq[Groq AI — Llama 3.3 70B]
-        Modules --> Cloudinary[Cloudinary — Media CDN]
-        Modules --> VietQR[VietQR — Payment Invoicing]
-    end
-
-    subgraph "Real-Time Layer"
-        Frontend <--> WS[WebSocket / STOMP Signaling]
-        Frontend <--> WebRTC[Full-Mesh WebRTC P2P Media]
-        API -.-> SSE((SSE: Real-time Updates)) -.-> Frontend
-    end
+    User((Tutor / Student / Parent)) --> Frontend[Next.js Frontend]
+    Frontend --> API[Spring Boot REST API]
+    API --> Modules[Auth · Students · Schedule · Finance · Lessons · Documents · Exercises · Reports]
+    Modules --> DB[(MySQL)]
+    Modules --> Cache[(Caffeine Cache)]
+    API --> SSE[SSE Notifications]
+    Frontend <--> WS[STOMP/WebSocket Signaling]
+    Frontend <--> RTC[WebRTC Live Teaching]
+    Modules --> Media[Cloudinary Media Storage]
 ```
-
----
-
-## Operational Flow
-
-### Real-Time Notification Lifecycle
-How an action in any module results in an instant UI update — without polling.
-
-```mermaid
-sequenceDiagram
-    participant M as Logic Module (e.g. Finance)
-    participant E as Spring Event Bus
-    participant N as Notification Service
-    participant S as SSE Emitters Manager
-    participant C as Client (Frontend)
-
-    M->>E: Publish NotificationEvent
-    E->>N: onApplicationEvent(event)
-    N->>N: Persist to MySQL
-    N->>S: send(userId, payload)
-    S->>C: Push Event via HTTP Stream
-```
-
-### AI Feedback Generation Flow
-How student session data becomes context-aware Vietnamese feedback in < 300ms.
-
-```mermaid
-sequenceDiagram
-    participant C as Frontend
-    participant S as Feedback Service
-    participant G as Groq AI API
-    participant D as MySQL
-
-    C->>S: Request AI Feedback (student_id, session_data)
-    S->>S: Construct Prompt (Context + Culture Injection)
-    S->>G: POST Prompt (Llama 3.3 70B)
-    G-->>S: Return Generated Vietnamese Text
-    S->>D: Store Feedback Record
-    S-->>C: Return JSON Response
-```
-
----
-
-## Performance Benchmarks
-
-| Module | Metric | Before | After |
-|:-------|:-------|:------:|:-----:|
-| Calendar | Initial load | ~1.8s | **< 0.8s** |
-| Calendar | Month navigation | ~500ms | **~0ms** |
-| Finance | Page load | ~2.5s | **< 0.8s** |
-| Finance | Data consistency | Desync issues | **100% accurate** |
-| Learning | Lesson detail query | 3 queries (N+1) | **1 query** |
-| Learning | API payload | ~5KB | **~2KB** |
-| Notifications | Delivery latency | — | **< 500ms** |
-| Notifications | Unread count query | — | **< 10ms** |
-| Bulk Calendar | 300+ session init | — | **< 800ms** |
-
----
-
-## Architecture Decisions
-
-**Modular Monolith over Microservices** — Single deployable unit with clear module boundaries. Faster to develop, simpler to operate, and straightforward to extract into services later if scale demands it.
-
-**SSE over WebSocket for notifications** — Notifications flow in one direction. SSE is HTTP-native, proxy-transparent, and requires no handshake upgrade. WebSocket is reserved for the live room where true bidirectionality is needed.
-
-**React Query over Redux** — All async state is server state. React Query's stale-while-revalidate, optimistic updates, and cache invalidation handle this natively. Redux would be ceremonial overhead.
-
----
 
 ## Security
 
-| Layer | Implementation |
-|:------|:--------------|
-| Authentication | JWT + Refresh Token via HttpOnly cookies |
-| Authorization | Dynamic RBAC — `RoleEntity` + `Permission` enum, `@PreAuthorize` per endpoint |
-| Rate Limiting | Bucket4j on login and session creation endpoints |
-| Input Validation | Zod (frontend) + Jakarta Validation (backend) |
-| File Access | Cloudinary signed uploads, per-student document access control |
-| Audit Trail | `AuditLogController` records every sensitive mutation |
+- JWT authentication with refresh-token support.
+- OAuth2 login configuration for Google.
+- Role and permission checks across protected backend endpoints.
+- Frontend Zod validation and backend Jakarta Validation.
+- Bucket4j rate limiting for protected flows.
+- Audit-log module for sensitive administrative actions.
+- CORS and frontend/backend URL configuration for local and production deployments.
 
----
+## Requirements
 
-## Roadmap
+- Node.js 20+
+- npm
+- Java 21
+- Maven Wrapper included in `backend`
+- Docker and Docker Compose for containerized development or production
+- MySQL 8 when running the backend outside Docker
 
-**Q2 2026**
-- [ ] Multi-tenancy — expand to support multiple tutors (SaaS model)
-- [ ] Bank API integration — auto-confirm payments when funds arrive
-- [ ] Google Calendar two-way sync
+## Local Development
 
-**Q3 2026**
-- [ ] Zalo/Telegram bot for automated debt reminders
-- [ ] Learning analytics dashboard with progress trend prediction
-- [ ] Voice-to-text session notes
+### Option A: run with Docker Compose
 
----
+1. Copy the environment template:
 
-## Local Setup
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Fill in the required database, API URL, OAuth, storage, and mail values.
+
+3. Start the development stack:
+
+   ```bash
+   docker compose up --build
+   ```
+
+4. Open:
+
+   - Frontend: http://localhost:3000
+   - Backend: http://localhost:8080
+   - MySQL: localhost:3306
+
+The development compose file mounts the frontend source and runs `npm run dev`. The backend is built from `backend/Dockerfile`.
+
+### Option B: run services directly
+
+Frontend:
 
 ```bash
-git clone https://github.com/longtq2501/Tutor-Pro.git
-
-# Frontend
-cd frontend && npm install && npm run dev
-
-# Backend
-cd backend && ./mvnw clean install
-docker-compose up -d
-
-# App running at:
-# Frontend → http://localhost:3000
-# Backend  → http://localhost:8080
+cd frontend
+npm install
+npm run dev
 ```
 
+Backend:
+
+```bash
+cd backend
+./mvnw spring-boot:run
+```
+
+On Windows, use `mvnw.cmd` instead of `./mvnw`.
+
+## Production Deployment
+
+The production compose file expects pre-built Docker images for the frontend and backend, a MySQL service, and an Nginx reverse proxy.
+
+```bash
+docker compose -f docker-compose.prod.yml up -d
+```
+
+Before starting production:
+
+1. Copy `.env.example` to `.env` on the server.
+2. Set `DOCKERHUB_USERNAME` and the production image configuration.
+3. Set database, JWT, OAuth2, frontend/backend URL, Cloudinary, mail, and online-session secrets.
+4. Configure TLS certificates mounted by `docker-compose.prod.yml`.
+5. Ensure `NEXT_PUBLIC_API_URL` points to the public backend URL before building the frontend image.
+
+For the complete server checklist, see [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.md).
+
+## Environment Variables
+
+The root `.env.example` is the source template for Docker deployment. Common variables include:
+
+| Variable | Purpose |
+|:--|:--|
+| `MYSQL_DATABASE` | MySQL database name |
+| `MYSQL_ROOT_PASSWORD` | Development database root password |
+| `MYSQL_USERNAME` / `MYSQL_PASSWORD` | Production database user |
+| `NEXT_PUBLIC_API_URL` | Backend URL used by the browser |
+| `BACKEND_URL` | Backend public URL and OAuth callback base |
+| `FRONTEND_URL` | Allowed frontend origin(s) in production |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth2 |
+| `JWT_SECRET` / `APP_JWT_SECRET` and expiration values | JWT signing and token lifetime; the production compose file passes `APP_JWT_SECRET` |
+| `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | Media storage |
+| `SPRING_MAIL_*` / `MAIL_PASSWORD` | Email delivery |
+| `ONLINE_SESSION_JWT_SECRET` | Online teaching session security |
+| `DOCKERHUB_USERNAME` | Production image namespace |
+| `JAVA_OPTS` | Optional JVM memory and runtime options |
+
+Do not commit `.env` or real credentials.
+
+## Repository Structure
+
+```text
+Tutor-Pro/
+├── frontend/
+│   ├── app/                 # Next.js routes and layouts
+│   ├── components/          # Shared UI and application components
+│   ├── contexts/            # Auth, UI, theme, and shared visibility state
+│   ├── features/            # Dashboard, calendar, finance, students, learning, etc.
+│   ├── hooks/               # Reusable frontend hooks
+│   ├── lib/                 # API clients, services, types, and utilities
+│   ├── providers/           # React Query and application providers
+│   └── __tests__/           # Frontend tests
+├── backend/
+│   ├── src/main/java/       # Spring Boot modular backend
+│   ├── src/main/resources/  # Application configuration and fonts
+│   ├── src/test/            # Backend tests
+│   └── pom.xml              # Maven dependencies and build
+├── docker-compose.yml        # Development stack
+├── docker-compose.prod.yml   # Production stack
+├── nginx.prod.conf           # Production reverse proxy
+├── scripts/                  # Local and backup scripts
+└── .env.example              # Environment template
+```
+
+## Testing and Quality Checks
+
+Frontend:
+
+```bash
+cd frontend
+npm run lint
+npm run test
+```
+
+Backend:
+
+```bash
+cd backend
+./mvnw test
+```
+
+Use `mvnw.cmd` on Windows.
+
+## Suggested Screenshots and GIFs
+
+Recommended screenshots for the repository page:
+
+1. Overview dashboard with KPI cards and revenue chart.
+2. Finance screen showing monthly tuition and debt tracking.
+3. Students & Parents cards with financial summary.
+4. Calendar monthly view with the list view toggle.
+5. Lesson editor/detail modal.
+6. Online teaching room with whiteboard and video panels.
+7. Assessment attempt and tutor grading view.
+8. PDF tuition report preview.
+
+GIF placeholders (fill these directly on GitHub if needed):
+
+- `<!-- GIF: calendar recurring-session generation -->`
+- `<!-- GIF: lesson editor workflow -->`
+- `<!-- GIF: live teaching room -->`
+- `<!-- GIF: amount visibility toggle -->`
+
+## License and Contact
+
+This repository is maintained as a personal product project. Review the repository files and deployment documentation before deploying it for production use.
+
+Built by [Tôn Quỳnh Long](https://github.com/longtq2501).
+
 ---
 
-## Author
-
-**Tôn Quỳnh Long** — Third-year IT student. Built this to solve my own problems as a part-time tutor. Currently maintaining this alongside a second project as Tech Lead (6-member team, flood rescue coordination system).
-
-📧 tonquynhlong05@gmail.com  
-🔗 [GitHub](https://github.com/longtq2501) · [LinkedIn](https://www.linkedin.com/in/ton-quynh-long-dev)
-
----
-
-*If this project saved you time or sparked ideas — a ⭐ goes a long way.*
+If Tutor Pro is useful to you, consider leaving a star on GitHub.

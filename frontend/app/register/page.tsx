@@ -150,7 +150,7 @@ export default function RegisterPage() {
 
                         <Button
                             type="submit"
-                            className="w-full h-11 text-base font-extrabold rounded-xl bg-[var(--acc)] text-[var(--bi)] hover:brightness-105 active:translate-y-0.5 shadow-md transition-all cursor-pointer border-none flex items-center justify-center gap-2"
+                            className="auth-submit w-full h-11 text-base font-extrabold rounded-xl bg-[var(--acc)] text-[var(--bi)] active:translate-y-0.5 shadow-md transition-all cursor-pointer border-none flex items-center justify-center gap-2"
                             disabled={loading}
                         >
                             {loading ? (

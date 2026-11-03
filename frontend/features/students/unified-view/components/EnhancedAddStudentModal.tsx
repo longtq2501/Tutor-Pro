@@ -13,6 +13,7 @@ import { useParents } from '@/features/students/parents-view/hooks/useParents';
 import { useStudentForm } from '@/features/students/student-modal/hooks/useStudentForm';
 import type { Student } from '@/lib/types';
 import { cn, formatCurrency } from '@/lib/utils';
+import { Money } from '@/components/shared/Money';
 import {
     Check,
     ChevronRight,
@@ -288,7 +289,7 @@ export function EnhancedAddStudentModal({
                                         đ
                                     </div>
                                 </div>
-                                <p className="text-xs text-muted-foreground text-right">{formatCurrency(formData.pricePerHour)} / buổi 1h</p>
+                                <p className="text-xs text-muted-foreground text-right"><Money value={formatCurrency(formData.pricePerHour)} /> / buổi 1h</p>
                             </div>
 
                             {/* Notes */}

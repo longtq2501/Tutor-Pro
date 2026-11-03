@@ -16,6 +16,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Users, CreditCard, AlertCircle } from 'lucide-react';
 import { DashboardStats } from '../types/dashboard.types';
+import { useAmountVisibility } from '@/contexts/AmountVisibilityContext';
 
 interface AnalyticsViewProps {
   stats: DashboardStats | null;
@@ -25,6 +26,7 @@ interface AnalyticsViewProps {
 const COLORS = ['#3b82f6', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6'];
 
 export function AnalyticsView({ stats, isLoading = false }: AnalyticsViewProps) {
+  const { hideAmounts } = useAmountVisibility();
   const studentData = useMemo(() => {
     if (!stats) return [];
     return [
@@ -152,10 +154,12 @@ export function AnalyticsView({ stats, isLoading = false }: AnalyticsViewProps) 
             <BarChart data={financialData} layout="vertical" margin={{ left: -20, right: 20 }}>
               <XAxis type="number" hide />
               <YAxis type="category" dataKey="name" hide />
-              <Tooltip
-                cursor={{ fill: 'transparent' }}
-                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-              />
+              {!hideAmounts && (
+                <Tooltip
+                  cursor={{ fill: 'transparent' }}
+                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                />
+              )}
               <Legend />
               <Bar dataKey="Đã thu" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} />
               <Bar dataKey="Chưa thu" stackId="a" fill="#ef4444" radius={[0, 10, 10, 0]} />

@@ -869,6 +869,17 @@ html.light .landing-page .tutor-pro-logo {
   box-shadow: 0 3px 0 rgba(0, 0, 0, 0.28);
 }
 
+.auth-submit {
+  background-color: var(--acc) !important;
+  color: var(--bi) !important;
+}
+
+.auth-submit:hover:not(:disabled) {
+  background-color: #d97706 !important;
+  color: #fff !important;
+  filter: none;
+}
+
 .lp-btn-primary:active {
   transform: translateY(5px);
   box-shadow: 0 0px 0 rgba(0, 0, 0, 0.28);
@@ -1356,8 +1367,14 @@ html.light .landing-page .lp-grid-bg--band {
 
 /* ============ Hero ============ */
 .lp-hero {
-  padding-top: 56px;
-  padding-bottom: 72px;
+  height: calc(100dvh - 64px);
+  min-height: calc(100vh - 64px);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  padding-top: clamp(32px, 6vh, 72px);
+  padding-bottom: clamp(40px, 8vh, 96px);
+  overflow: hidden;
 }
 
 .lp-hero-grid {
@@ -2540,8 +2557,11 @@ html.light .landing-page .lp-grid-bg--band {
   }
 
   .lp-hero {
+    min-height: calc(100dvh - 64px);
+    height: auto;
     padding-top: 40px;
     padding-bottom: 48px;
+    overflow: visible;
   }
 
   .lp-hero-grid {

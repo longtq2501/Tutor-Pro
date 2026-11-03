@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import type { Student } from '@/lib/types';
 import React from 'react';
+import { Money } from '@/components/shared/Money';
 
 const Label = ({ children, className }: { children: React.ReactNode, className?: string }) => (
     <span className={cn("block uppercase tracking-widest text-[10px] sm:text-xs font-bold", className)}>
@@ -82,7 +83,7 @@ export function StudentInfoSections({ student, onEdit, onEditParent }: StudentIn
                         <div className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">Học phí / giờ:</span>
                             <span className="font-bold text-foreground text-lg">
-                                {formatCurrency(student.pricePerHour)}
+                                <Money value={formatCurrency(student.pricePerHour)} />
                             </span>
                         </div>
                         <Separator />

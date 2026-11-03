@@ -4,6 +4,7 @@
 import { TrendingUp, DollarSign } from 'lucide-react';
 import type { MonthlyChartData } from '../types/dashboard.types';
 import { formatCurrency, getMonthName } from '../utils/formatters';
+import { Money } from '@/components/shared/Money';
 
 interface MonthlyRevenueChartProps {
   data: MonthlyChartData[];
@@ -17,16 +18,16 @@ const MonthBar = ({ item }: { item: MonthlyChartData }) => (
           {getMonthName(item.month)}
         </span>
         <span className="text-xs text-muted-foreground font-bold">
-          Tổng: {formatCurrency(item.total)}
+          Tổng: <Money value={formatCurrency(item.total)} />
         </span>
       </div>
       <div className="flex items-center gap-2 flex-wrap">
         <div className="text-base lg:text-lg font-bold text-emerald-600 dark:text-emerald-400">
-          {formatCurrency(item.totalPaid)}
+          <Money value={formatCurrency(item.totalPaid)} />
         </div>
         {item.totalUnpaid > 0 && (
           <div className="text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-100 dark:bg-rose-900/30 px-2 py-0.5 rounded-full">
-            Nợ: {formatCurrency(item.totalUnpaid)}
+            Nợ: <Money value={formatCurrency(item.totalUnpaid)} />
           </div>
         )}
       </div>

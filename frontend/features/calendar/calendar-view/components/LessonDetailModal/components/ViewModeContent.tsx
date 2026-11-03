@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { BookOpen, Calendar, Check, ChevronRight, Clock, FileText, Globe, Monitor, Sparkles, Wallet2 } from 'lucide-react';
 import { formatFullCurrency as formatCurrency } from '../utils';
 import { InfoCard } from './InfoCard';
+import { Money } from '@/components/shared/Money';
 
 interface ViewModeContentProps {
     session: SessionRecord;
@@ -112,10 +113,10 @@ export function ViewModeContent({
                     ) : (
                         <>
                             <p className="text-lg font-bold tracking-tight tabular-nums text-foreground">
-                                {formatCurrency(session.totalAmount)}
+                                <Money value={formatCurrency(session.totalAmount)} />
                             </p>
                             <p className="text-[11px] font-medium text-muted-foreground tabular-nums">
-                                {session.hours}h × {formatCurrency(session.pricePerHour)}/h
+                                {session.hours}h × <Money value={formatCurrency(session.pricePerHour)} />/h
                             </p>
                         </>
                     )}

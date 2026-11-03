@@ -65,6 +65,8 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import { HeaderSlot, UIProvider, useUI } from '@/contexts/UIContext';
+import { AmountVisibilityProvider } from '@/contexts/AmountVisibilityContext';
+import { AmountVisibilityToggle } from '@/components/shared/AmountVisibilityToggle';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import type { TourView } from '@/components/onboarding/useTour';
 import { type UserInfo } from '@/lib/services/auth';
@@ -123,6 +125,7 @@ const AppHeader = React.memo(({ user, initials, roleBadge, logout }: {
 
                 {/* Global Utility: Notification + Avatar — NEVER HIDDEN, ALWAYS VISIBLE */}
                 <div className="flex items-center gap-1 shrink-0 z-10">
+                    <AmountVisibilityToggle />
                     <NotificationBell />
 
                     <DropdownMenu>
@@ -478,9 +481,11 @@ function AppContent() {
 export default function DashboardPage() {
     return (
         <ProtectedRoute>
-            <UIProvider>
-                <AppContent />
-            </UIProvider>
+            <AmountVisibilityProvider>
+                <UIProvider>
+                    <AppContent />
+                </UIProvider>
+            </AmountVisibilityProvider>
         </ProtectedRoute>
     );
 }

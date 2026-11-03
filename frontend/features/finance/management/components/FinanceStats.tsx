@@ -6,6 +6,7 @@ import { ArrowUpRight, Ban, CheckCircle2, Banknote } from 'lucide-react';
 import { useFinanceData } from '../hooks/useFinanceData';
 import { StatCard } from './StatCard';
 import { FinanceGroupedRecord } from '../types';
+import { Money } from '@/components/shared/Money';
 
 /**
  * Calculates financial statistics from grouped records.
@@ -44,7 +45,7 @@ export function FinanceStats() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
                 title="Tổng Doanh Thu / Nợ"
-                value={formatCurrency(stats.totalAmount)}
+                value={<Money value={formatCurrency(stats.totalAmount)} />}
                 icon={Banknote}
                 trend="+12%"
                 trendLabel="so với tháng trước"

@@ -16,6 +16,7 @@ import { useUI } from '@/contexts/UIContext';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { Money } from '@/components/shared/Money';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -248,14 +249,14 @@ export const DayDetailModal = ({
                                 <p className="text-[10px] font-medium text-muted-foreground mb-0.5">Tổng</p>
                                 {/* No underline, tabular-nums, color #111827 */}
                                 <p className="text-[13px] font-semibold tabular-nums text-[#111827] dark:text-foreground">
-                                    {formatCurrency(totalRevenue)}
+                                    <Money value={formatCurrency(totalRevenue)} />
                                 </p>
                             </div>
                             <div className="w-px h-8 bg-[#E5E7EB] dark:bg-border/50" />
                             <div className="flex-1 text-center">
                                 <p className="text-[10px] font-medium text-muted-foreground mb-0.5">Đã thu</p>
                                 <p className="text-[13px] font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
-                                    {formatCurrency(paidRevenue)}
+                                    <Money value={formatCurrency(paidRevenue)} />
                                 </p>
                             </div>
                             <div className="w-px h-8 bg-[#E5E7EB] dark:bg-border/50" />
@@ -263,7 +264,7 @@ export const DayDetailModal = ({
                                 <p className="text-[10px] font-medium text-muted-foreground mb-0.5">Còn lại</p>
                                 {/* #C2410C = orange-700 for remaining */}
                                 <p className="text-[13px] font-semibold tabular-nums text-[#C2410C] dark:text-orange-400">
-                                    {formatCurrency(remainingRevenue)}
+                                    <Money value={formatCurrency(remainingRevenue)} />
                                 </p>
                             </div>
                         </div>
@@ -368,10 +369,10 @@ export const DayDetailModal = ({
                                                             <div>
                                                                 {/* #111827 for price text, weight 600 */}
                                                                 <p className="text-[13px] sm:text-[14px] font-semibold tabular-nums text-[#111827] dark:text-foreground">
-                                                                    {formatCurrency(session.totalAmount)}
+                                                                    <Money value={formatCurrency(session.totalAmount)} />
                                                                 </p>
                                                                 <p className="text-[11px] font-medium text-[#6B7280] dark:text-muted-foreground tabular-nums leading-snug">
-                                                                    {session.hours}h × {formatCurrency(session.pricePerHour)}/h
+                                                                    {session.hours}h × <Money value={formatCurrency(session.pricePerHour)} />/h
                                                                 </p>
                                                             </div>
                                                         )}

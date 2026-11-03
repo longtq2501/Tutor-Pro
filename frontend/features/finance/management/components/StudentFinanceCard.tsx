@@ -12,6 +12,7 @@ import { useFinanceContext } from '../context/FinanceContext';
 import { FinanceGroupedRecord } from '../types';
 import { SessionItem } from './SessionItem';
 import { isCancelledStatus } from '@/lib/types/lesson-status';
+import { Money } from '@/components/shared/Money';
 
 interface StudentFinanceCardProps {
     group: FinanceGroupedRecord;
@@ -126,10 +127,10 @@ function StudentFinanceCardComponent({ group, onDeleteSession, onTogglePayment }
                                     "text-xl font-black tabular-nums tracking-tight leading-none",
                                     hasUnpaid ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"
                                 )}>
-                                    {formatCurrency(group.totalAmount)}
+                                    <Money value={formatCurrency(group.totalAmount)} />
                                 </div>
                                 <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
-                                    {formatCurrency(group.pricePerHour)}/H
+                                    <Money value={formatCurrency(group.pricePerHour)} />/H
                                 </div>
                             </div>
 

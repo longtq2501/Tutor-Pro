@@ -24,6 +24,7 @@ import {
 import { useState } from 'react';
 import { OptimizedAvatar } from './OptimizedAvatar';
 import { QuickAddParentModal } from './QuickAddParentModal';
+import { Money } from '@/components/shared/Money';
 
 interface StudentDetailModalProps {
     open: boolean;
@@ -100,13 +101,13 @@ export function StudentDetailModal({
                             <div className="rounded-xl border border-border p-3.5">
                                 <p className="text-xs text-muted-foreground mb-1">Học phí còn nợ</p>
                                 <p className={cn("text-xl font-bold tabular-nums", hasDebt ? "text-destructive" : "text-muted-foreground")}>
-                                    {formatCurrency(student.totalUnpaidTaught ?? 0)}
+                                    <Money value={formatCurrency(student.totalUnpaidTaught ?? 0)} />
                                 </p>
                             </div>
                             <div className="rounded-xl border border-border p-3.5">
                                 <p className="text-xs text-muted-foreground mb-1">Tổng đã đóng</p>
                                 <p className="text-xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
-                                    {formatCurrency(student.totalPaid ?? 0)}
+                                    <Money value={formatCurrency(student.totalPaid ?? 0)} />
                                 </p>
                             </div>
                         </div>
@@ -115,7 +116,7 @@ export function StudentDetailModal({
                         <div>
                             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Thông tin học tập</p>
                             <div className="rounded-xl border border-border divide-y divide-border/60 px-3">
-                                <InfoRow label="Học phí / giờ" value={formatCurrency(student.pricePerHour)} />
+                                <InfoRow label="Học phí / giờ" value={<Money value={formatCurrency(student.pricePerHour)} />} />
                                 <InfoRow label="SĐT học sinh" value={student.phone || '—'} />
                                 <InfoRow
                                     label="Lịch học cố định"

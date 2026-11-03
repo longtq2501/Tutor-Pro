@@ -113,7 +113,7 @@ function LoginForm() {
 
         <Button
           type="submit"
-          className="w-full h-11 text-base font-extrabold rounded-xl bg-[var(--acc)] text-[var(--bi)] hover:brightness-105 active:translate-y-0.5 shadow-md transition-all cursor-pointer border-none"
+          className="auth-submit login-submit w-full h-11 text-base font-extrabold rounded-xl bg-[var(--acc)] text-[var(--bi)] active:translate-y-0.5 shadow-md transition-all cursor-pointer border-none"
           disabled={loading}
         >
           {loading ? (

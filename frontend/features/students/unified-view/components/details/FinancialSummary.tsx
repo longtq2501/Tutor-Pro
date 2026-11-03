@@ -2,6 +2,7 @@
 
 import { formatCurrency } from '@/lib/utils';
 import { AlertCircle, Banknote } from 'lucide-react';
+import { Money } from '@/components/shared/Money';
 
 interface FinancialSummaryProps {
     totalUnpaid: number;
@@ -17,7 +18,7 @@ export function FinancialSummary({ totalUnpaid, totalPaid }: FinancialSummaryPro
                     <span className="font-bold text-sm uppercase tracking-wider">Học phí còn nợ</span>
                 </div>
                 <div className="text-3xl font-black text-red-600 dark:text-red-400">
-                    {formatCurrency(totalUnpaid)}
+                    <Money value={formatCurrency(totalUnpaid)} />
                 </div>
             </div>
 
@@ -27,7 +28,7 @@ export function FinancialSummary({ totalUnpaid, totalPaid }: FinancialSummaryPro
                     <span className="font-bold text-sm uppercase tracking-wider">Tổng đã đóng</span>
                 </div>
                 <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400">
-                    {formatCurrency(totalPaid)}
+                    <Money value={formatCurrency(totalPaid)} />
                 </div>
             </div>
         </div>

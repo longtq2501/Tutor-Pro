@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { formatCurrency, getMonthName } from '../utils/formatters';
 import type { MonthlyChartData } from '../types/dashboard.types';
+import { useAmountVisibility } from '@/contexts/AmountVisibilityContext';
 
 interface RevenueGrowthChartProps {
     data: MonthlyChartData[];
@@ -36,6 +37,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 };
 
 export function RevenueGrowthChart({ data }: RevenueGrowthChartProps) {
+    const { hideAmounts } = useAmountVisibility();
     // Reverse data to show chronological order if backend returns newest first
     const chartData = [...data].reverse();
 
@@ -65,6 +67,7 @@ export function RevenueGrowthChart({ data }: RevenueGrowthChartProps) {
                         dy={10}
                     />
                     <YAxis
+                        hide={hideAmounts}
                         stroke="var(--muted-foreground)"
                         fontSize={12}
                         tickLine={false}
@@ -72,7 +75,12 @@ export function RevenueGrowthChart({ data }: RevenueGrowthChartProps) {
                         tickFormatter={(value) => `${(value / 1000000).toFixed(0)}tr`}
                         width={40}
                     />
-                    <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--primary)', strokeWidth: 1 }} />
+                    {!hideAmounts && (
+                        <Tooltip
+                            content={<CustomTooltip />}
+                            cursor={{ stroke: 'var(--primary)', strokeWidth: 1 }}
+                        />
+                    )}
                     <Area
                         type="monotone"
                         dataKey="total"

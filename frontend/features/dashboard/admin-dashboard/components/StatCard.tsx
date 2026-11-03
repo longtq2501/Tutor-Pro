@@ -8,7 +8,7 @@ import { memo } from 'react';
 
 interface StatCardProps {
   title: React.ReactNode;
-  value: string | number;
+  value: React.ReactNode;
   subtitle?: string;
   icon: React.ReactNode;
   variant: 'blue' | 'green' | 'red' | 'purple';

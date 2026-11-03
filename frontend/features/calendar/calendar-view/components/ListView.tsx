@@ -4,6 +4,7 @@ import { LessonCard } from './LessonCard';
 import { ChevronLeft, ChevronRight, Filter, TrendingUp } from 'lucide-react';
 import { formatCurrency } from '../utils/statusColors';
 import { Button } from '@/components/ui/button';
+import { Money } from '@/components/shared/Money';
 
 interface ListViewProps {
     sessions: SessionRecord[];
@@ -102,7 +103,7 @@ export function ListView({ sessions, onSessionClick, onSessionEdit, onUpdate }: 
                     </div>
                     <div>
                         <div className="text-[10px] text-muted-foreground uppercase font-bold">Thu nhập</div>
-                        <div className="text-lg font-bold">{formatCurrency(listStats.revenue)}</div>
+                        <div className="text-lg font-bold"><Money value={formatCurrency(listStats.revenue)} /></div>
                     </div>
                 </div>
                 <div className="bg-card p-3 rounded-xl border border-border shadow-sm flex items-center gap-3 text-muted-foreground opacity-60">

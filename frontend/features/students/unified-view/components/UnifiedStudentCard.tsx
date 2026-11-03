@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { memo, useState } from 'react';
 import { OptimizedAvatar } from './OptimizedAvatar';
+import { Money } from '@/components/shared/Money';
 
 interface UnifiedStudentCardProps {
     student: Student;
@@ -173,7 +174,7 @@ export const UnifiedStudentCard = memo(function UnifiedStudentCard({
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Banknote className="w-3.5 h-3.5 shrink-0" />
                         <span className="font-medium text-foreground">
-                            {Intl.NumberFormat('vi-VN').format(student.pricePerHour || 0)}
+                            <Money value={Intl.NumberFormat('vi-VN').format(student.pricePerHour || 0)} />
                         </span>
                         <span className="text-xs">/ giờ</span>
                     </div>
@@ -193,7 +194,7 @@ export const UnifiedStudentCard = memo(function UnifiedStudentCard({
                             <span>Đang nợ</span>
                         </div>
                         <span className="text-sm font-bold text-destructive tabular-nums">
-                            {Intl.NumberFormat('vi-VN').format(student.totalUnpaidTaught || 0)}đ
+                            <Money value={Intl.NumberFormat('vi-VN').format(student.totalUnpaidTaught || 0)} />
                         </span>
                     </div>
                 )}

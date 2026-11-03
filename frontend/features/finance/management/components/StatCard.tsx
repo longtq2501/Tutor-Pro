@@ -7,7 +7,7 @@ interface StatCardProps {
     /** The title of the stat */
     title: string;
     /** The main value to display */
-    value: string;
+    value: React.ReactNode;
     /** The icon to display */
     icon: LucideIcon;
     /** Optional secondary value */
@@ -40,7 +40,7 @@ export function StatCard({
             <CardContent className="p-3 sm:p-4 flex items-start justify-between">
                 <div>
                     <p className="text-sm font-medium text-muted-foreground mb-1">{title}</p>
-                    <h3 className="text-2xl font-bold tracking-tight truncate" title={value}>
+                    <h3 className="text-2xl font-bold tracking-tight truncate">
                         {value}
                     </h3>
                     {subValue && <p className="text-xs text-muted-foreground mt-1 truncate">{subValue}</p>}

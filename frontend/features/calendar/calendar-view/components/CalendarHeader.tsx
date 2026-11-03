@@ -8,6 +8,7 @@ import { HeaderActions } from './HeaderActions';
 import { Button } from '@/components/ui/button';
 import { useUI } from '@/contexts/UIContext';
 import { cn } from '@/lib/utils';
+import { Money } from '@/components/shared/Money';
 import type { SessionRecord } from '@/lib/types/finance';
 import type { CalendarStats } from '../types';
 import type { CalendarViewType } from "./ViewSwitcher";
@@ -118,7 +119,7 @@ export const CalendarActions = ({
             title="Bấm để xem chi tiết doanh thu"
             className="h-8 px-2.5 rounded-lg border border-orange-100 dark:border-orange-500/20 bg-orange-50/50 dark:bg-orange-500/15 text-orange-600 dark:text-orange-300 flex items-center text-[13px] font-bold whitespace-nowrap hover:shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
           >
-            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(stats.revenue)}
+            <Money value={new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(stats.revenue)} />
           </button>
         </div>
       )}

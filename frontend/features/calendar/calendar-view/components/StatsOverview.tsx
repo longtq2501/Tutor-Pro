@@ -4,6 +4,7 @@ import { memo } from 'react';
 import { cn } from '@/lib/utils';
 import { Calendar as CalendarIcon, CheckCircle2, Banknote } from 'lucide-react';
 import type { CalendarStats } from '../types';
+import { Money } from '@/components/shared/Money';
 
 /**
  * Individual stat chip.
@@ -13,7 +14,7 @@ import type { CalendarStats } from '../types';
 const StatsChip = memo(({ icon, label, value, variant, onClick }: {
     icon?: React.ReactNode,
     label: string,
-    value: string | number,
+    value: React.ReactNode,
     variant: 'blue' | 'emerald' | 'orange' | 'purple',
     onClick?: () => void,
 }) => {
@@ -77,7 +78,7 @@ export function StatsOverview({ stats, onRevenueClick }: StatsOverviewProps) {
             />
             <StatsChip
                 label="Doanh thu"
-                value={new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(stats.revenue)}
+                value={<Money value={new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(stats.revenue)} />}
                 variant="orange"
                 onClick={onRevenueClick}
             />

@@ -1,6 +1,7 @@
 import type { SessionRecord } from '@/lib/types/finance';
 import { getStatusColors, formatCurrency } from '../utils/statusColors';
 import { Globe } from 'lucide-react';
+import { Money } from '@/components/shared/Money';
 
 interface LessonCardProps {
     session: SessionRecord;
@@ -37,14 +38,6 @@ export function LessonCard({ session, compact = false, showNotes = false, onClic
     const timeDisplay = session.startTime && session.endTime
         ? `${session.startTime}-${session.endTime}`
         : null;
-
-    // Build info line (time • subject • fee)
-    const infoParts: string[] = [];
-    if (timeDisplay) infoParts.push(timeDisplay);
-    if (session.subject) infoParts.push(session.subject);
-    infoParts.push(formatCurrency(session.totalAmount));
-
-    const infoLine = infoParts.join(' • ');
 
     const handleContextMenu = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -85,7 +78,9 @@ export function LessonCard({ session, compact = false, showNotes = false, onClic
             {/* Info line: time • subject • fee */}
             {!compact && (
                 <div className="text-[10px] opacity-90 truncate pl-3 mt-0.5">
-                    {infoLine}
+                    {timeDisplay}{timeDisplay && session.subject ? ' • ' : ''}{session.subject}
+                    {(timeDisplay || session.subject) && ' • '}
+                    <Money value={formatCurrency(session.totalAmount)} />
                 </div>
             )}
 

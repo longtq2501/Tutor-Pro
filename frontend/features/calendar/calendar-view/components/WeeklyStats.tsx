@@ -1,5 +1,6 @@
 import { TrendingUp, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 import { formatCurrency } from '../utils/statusColors';
+import { Money } from '@/components/shared/Money';
 
 interface WeeklyStatsProps {
     stats: {
@@ -45,7 +46,7 @@ export function WeeklyStats({ stats }: WeeklyStatsProps) {
                 </div>
                 <div>
                     <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Dự kiến thu</div>
-                    <div className="text-base font-bold">{formatCurrency(stats.revenue)}</div>
+                    <div className="text-base font-bold"><Money value={formatCurrency(stats.revenue)} /></div>
                 </div>
             </div>
 

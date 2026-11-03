@@ -8,8 +8,13 @@ interface AmountVisibilityContextValue {
     toggleAmounts: () => void;
 }
 
-const AmountVisibilityContext = createContext<AmountVisibilityContextValue | undefined>(undefined);
 const STORAGE_KEY = 'tutor-pro-hide-amounts';
+const defaultContextValue: AmountVisibilityContextValue = {
+    hideAmounts: false,
+    setHideAmounts: () => undefined,
+    toggleAmounts: () => undefined,
+};
+const AmountVisibilityContext = createContext<AmountVisibilityContextValue>(defaultContextValue);
 
 export function AmountVisibilityProvider({ children }: { children: ReactNode }) {
     const [hideAmounts, setHideAmountsState] = useState(false);
@@ -37,9 +42,5 @@ export function AmountVisibilityProvider({ children }: { children: ReactNode }) 
 }
 
 export function useAmountVisibility() {
-    const context = useContext(AmountVisibilityContext);
-    if (!context) {
-        throw new Error('useAmountVisibility must be used within AmountVisibilityProvider');
-    }
-    return context;
+    return useContext(AmountVisibilityContext);
 }

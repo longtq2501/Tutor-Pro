@@ -2,7 +2,7 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/tutor_management?rewriteBatchedStatements=true}
     username: ${SPRING_DATASOURCE_USERNAME:root}
-    password: ${SPRING_DATASOURCE_PASSWORD:root_password_vps}
+    password: ${SPRING_DATASOURCE_PASSWORD:CHANGE_ME_SET_DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
   security:
     oauth2:
@@ -78,7 +78,7 @@ app:
   online-session:
     early-join-minutes: ${EARLY_JOIN_MINUTES:0}  # ✅ FIX: Allow joining anytime (set via env var for flexibility)
     jwt:
-      secret: ${ONLINE_SESSION_JWT_SECRET:dGVzdC1zZWNyZXQta2V5LW1pbi0yNTYtYml0cy1sb25nLWZvci1oczI1Ni1hbGdvcml0aG0=}
+      secret: ${ONLINE_SESSION_JWT_SECRET:CHANGE_ME_SET_ONLINE_SESSION_JWT_SECRET}
       expiration: 300000 # 5 minutes
     websocket:
       allowed-origins: ${cors.allowed-origins}
@@ -104,7 +104,7 @@ file:
   upload-dir: uploads
 
 jwt:
-  secret: ${APP_JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970337336763979244226452948404D635166546A576E5A7234753778214125442A}
+  secret: ${APP_JWT_SECRET:CHANGE_ME_SET_APP_JWT_SECRET}
   expiration: ${APP_JWT_EXPIRATION:86400000}
   refresh-expiration: ${APP_JWT_REFRESH_EXPIRATION:604800000}
 

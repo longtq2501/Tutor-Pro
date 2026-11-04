@@ -17,6 +17,9 @@ frontend/.env*
 frontend/npm-debug.log*
 frontend/yarn-debug.log*
 frontend/yarn-error.log*
+frontend/lint-report.json
+frontend/lint_report.json
+frontend/vitest-results.json
 
 # IDEs
 .idea/
@@ -74,3 +77,12 @@ skills
 task.md
 error-description.md
 ADMIN_DASHBOARD_PLAN.md
+
+# Internal project notes and implementation plans
+FINAL_REPORT.md
+ISSUES.md
+**/ISSUES.md
+**/KNOWLEDGE.md
+frontend/features/landing/task-*.md
+frontend/features/landing/*-plan.md
+DEPLOYMENT_GUIDE.md
